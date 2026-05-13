@@ -3,21 +3,34 @@ const mongoose = require('mongoose');
 const incidentSchema = new mongoose.Schema(
   {
     touristId: {
-      type: String, // Future: ObjectId ref
+      type: String, // Future: ObjectId ref. Added for relation to user even if not in form.
       required: true,
     },
-    type: {
-      type: String,
-      enum: ['theft', 'scam', 'accident', 'health', 'harassment', 'other'],
-      required: true,
-    },
-    title: {
+    reporterName: {
       type: String,
       required: true,
       trim: true,
     },
-    description: {
+    contactNumber: {
       type: String,
+      required: true,
+    },
+    incidentCategory: {
+      type: String,
+      enum: ['Severe Weather (Flood/Wind)', 'Landslide', 'Road Blockage', 'Accident', 'Other Emergency'],
+      required: true,
+    },
+    incidentDate: {
+      type: String, // MM/DD/YYYY from the design
+      required: true,
+    },
+    incidentTime: {
+      type: String, // HH:MM AM/PM from the design
+      required: true,
+    },
+    district: {
+      type: String,
+      enum: ['Colombo', 'Kandy', 'Nuwara Eliya'], // From the dropdown design
       required: true,
     },
     location: {
@@ -29,39 +42,17 @@ const incidentSchema = new mongoose.Schema(
         type: Number,
         required: true,
       },
-      address: {
-        type: String,
-        required: true,
+    },
+    images: [
+      {
+        type: String, // URLs for uploaded/captured photos
       },
-    },
-    severity: {
-      type: String,
-      enum: ['low', 'medium', 'high', 'critical'],
-      required: true,
-    },
+    ],
     status: {
       type: String,
       enum: ['reported', 'investigating', 'resolved', 'closed'],
       default: 'reported',
     },
-    contactInfo: {
-      name: {
-        type: String,
-        required: true,
-      },
-      phone: {
-        type: String,
-        required: true,
-      },
-      email: {
-        type: String,
-      },
-    },
-    images: [
-      {
-        type: String, // URLs (future: file upload)
-      },
-    ],
   },
   {
     timestamps: true,

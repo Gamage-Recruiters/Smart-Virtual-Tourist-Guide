@@ -3,10 +3,7 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
-    const connection = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-virtual-tourist', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const connection = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-virtual-tourist');
 
     logger.info('MongoDB connected successfully');
     return connection;
