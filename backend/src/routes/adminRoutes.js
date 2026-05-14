@@ -1,10 +1,9 @@
 // routes/adminRoutes.js
-
 const express = require('express');
 const router = express.Router();
-const { getAdminStats } = require('../controllers/adminController');
+const { getDashboardStats, getAllUsers } = require('../controllers/adminController');
 
-// GET request 
-router.get('/stats', getAdminStats);
+router.get('/stats', getDashboardStats);
+router.get('/users', getAllUsers);
 
 module.exports = router;
