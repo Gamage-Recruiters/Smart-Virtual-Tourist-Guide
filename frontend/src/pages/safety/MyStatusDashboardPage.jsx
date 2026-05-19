@@ -108,7 +108,7 @@ export default function MyStatusDashboardPage() {
               </p>
             )}
           </div>
-          
+
           {sortedMyIncidents.length > 4 && (
             <div className="mt-4 flex justify-center">
               <button
@@ -135,7 +135,7 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
         </div>
         <div>
           <p className="text-[11px] font-extrabold text-black uppercase tracking-wide">Welcome, {userName}</p>
-          <h1 className="text-[16px] font-bold text-slate-800">My Incident Reports</h1>
+          <h2 className="font-bold text-slate-800">My Incident Reports</h2>
         </div>
       </div>
 

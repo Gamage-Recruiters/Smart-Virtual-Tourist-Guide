@@ -188,8 +188,7 @@ export default function WeatherAlertsPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <header>
-          <h3 className="mt-1 text-3xl font-bold text-slate-900">Weather alerts and recommendations</h3>
-          <p className="mt-2 text-slate-600">Track conditions before moving between districts or planning outdoor activities.</p>
+          <h2 className="text-sm font-extrabold uppercase text-black">Weather alerts and recommendations</h2>
         </header>
 
         {emergencyWarning && (
@@ -254,10 +253,58 @@ export default function WeatherAlertsPage() {
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-slate-900">Live weather map</h2>
-              <p className="text-sm text-slate-500">Markers show travel-relevant weather risk by area.</p>
             </div>
-            <div className="h-[560px]">
+            {/* Map + legend wrapper — position:relative so the legend overlay is anchored */}
+            <div className="relative h-[560px]">
               <MapContainer center={[7.25, 80.75]} zoom={8} markers={markers} />
+
+              {/* ── Color legend overlay (bottom-left corner of the map) ── */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '16px',
+                  left: '16px',
+                  zIndex: 1000,
+                  background: 'rgba(255,255,255,0.92)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(100,116,139,0.25)',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                  pointerEvents: 'none',
+                }}
+              >
+                {/* Title row */}
+                <p style={{ margin: '0 0 7px 0', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
+                  Risk Level
+                </p>
+                {/* All three items in a single horizontal row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                  {[
+                    { color: '#f97316', label: 'High' },
+                    { color: '#eab308', label: 'Medium' },
+                    { color: '#22c55e', label: 'Low' },
+                  ].map(({ color, label }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: '11px',
+                          height: '11px',
+                          borderRadius: '50%',
+                          background: color,
+                          flexShrink: 0,
+                          border: '2px solid rgba(0,0,0,0.15)',
+                          boxShadow: `0 0 0 3px ${color}33`,
+                        }}
+                      />
+                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
+                        {label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>

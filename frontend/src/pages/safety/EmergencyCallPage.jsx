@@ -133,6 +133,31 @@ export default function EmergencyCallPage() {
     popupAnchor: [0, -40],
   }), []);
 
+  // Custom pulsing icon for the user's current location
+  const myLocationIcon = useMemo(() => L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,0.25);animation:pulse-ring 1.8s ease-out infinite"></div>
+      <div style="position:relative;width:14px;height:14px;border-radius:50%;background:#16a34a;border:2.5px solid #fff;box-shadow:0 0 0 2px rgba(22,163,74,0.5),0 2px 6px rgba(0,0,0,0.3)"></div>
+      <style>@keyframes pulse-ring{0%{transform:scale(0.6);opacity:1}100%{transform:scale(2.2);opacity:0}}</style>
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -18],
+  }), []);
+
+  // Build the "You are here" marker if GPS is available
+  const myLocationMarker = useMemo(() => {
+    if (!location.latitude || !location.longitude) return null;
+    return {
+      id: 'my-location',
+      lat: location.latitude,
+      lng: location.longitude,
+      icon: myLocationIcon,
+      popup: '<strong>📍 Your Current Location</strong>',
+    };
+  }, [location.latitude, location.longitude, myLocationIcon]);
+
   const createMarkers = (locs, customIcon) => locs
     .filter((item) => item.location?.lat && item.location?.lng)
     .map((item) => ({
@@ -144,8 +169,14 @@ export default function EmergencyCallPage() {
       popup: `<strong>${item.name}</strong><br/>${item.address}<br/>${item.phone || ''}`,
     }));
 
-  const touristPoliceMarkers = createMarkers(touristPoliceLocations, policeIcon);
-  const hospitalMarkers = createMarkers(hospitalLocations, hospitalIcon);
+  const touristPoliceMarkers = [
+    ...(myLocationMarker ? [myLocationMarker] : []),
+    ...createMarkers(touristPoliceLocations, policeIcon),
+  ];
+  const hospitalMarkers = [
+    ...(myLocationMarker ? [myLocationMarker] : []),
+    ...createMarkers(hospitalLocations, hospitalIcon),
+  ];
 
   const shareLocation = async () => {
     if (!location.latitude) {
@@ -308,20 +339,36 @@ export default function EmergencyCallPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Tourist Police Map */}
           <div>
-            <h3 className="text-[15px] font-bold text-slate-900 mb-4 ml-1">Tourist Police Stations</h3>
+            <div className="flex items-center justify-between mb-4 ml-1">
+              <h3 className="text-[15px] font-bold text-slate-900">Tourist Police Stations</h3>
+              {myLocationMarker && (
+                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                  <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
+                  Your Location
+                </span>
+              )}
+            </div>
             <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
               <div className="h-full rounded-lg overflow-hidden relative">
-                <MapContainer center={mapCenter} zoom={7} markers={touristPoliceMarkers} />
+                <MapContainer center={mapCenter} zoom={location.latitude ? 10 : 7} markers={touristPoliceMarkers} />
               </div>
             </div>
           </div>
 
           {/* Hospitals Map */}
           <div>
-            <h3 className="text-[15px] font-bold text-slate-900 mb-4 ml-1">Hospitals</h3>
+            <div className="flex items-center justify-between mb-4 ml-1">
+              <h3 className="text-[15px] font-bold text-slate-900">Hospitals</h3>
+              {myLocationMarker && (
+                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                  <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
+                  Your Location
+                </span>
+              )}
+            </div>
             <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
               <div className="h-full rounded-lg overflow-hidden relative">
-                <MapContainer center={mapCenter} zoom={7} markers={hospitalMarkers} />
+                <MapContainer center={mapCenter} zoom={location.latitude ? 10 : 7} markers={hospitalMarkers} />
               </div>
             </div>
           </div>
