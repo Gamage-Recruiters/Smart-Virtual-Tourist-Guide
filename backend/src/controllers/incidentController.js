@@ -6,13 +6,54 @@ const logger = require('../utils/logger');
 // @access  Public (or semi-private for Tourists)
 exports.createIncident = async (req, res, next) => {
   try {
+    logger.info('Creating incident with body:', req.body);
+    logger.info('Files received:', req.files?.length || 0);
+
+    const sequence = (await Incident.countDocuments()) + 1;
+    
+    // Process uploaded images
+    const imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        // Store the secure Cloudinary URL
+        imageUrls.push(file.path);
+      });
+    }
+    
+    // Extract and validate location
+    const lat = parseFloat(req.body['location[lat]'] || req.body.location?.lat);
+    const lng = parseFloat(req.body['location[lng]'] || req.body.location?.lng);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      throw new Error('Invalid location coordinates');
+    }
+
     const incidentData = {
-      ...req.body,
-      touristId: req.body.touristId || 'Tourist_123', // Placeholder for now
+      reporterName: req.body.reporterName?.trim(),
+      contactNumber: req.body.contactNumber?.trim(),
+      incidentCategory: req.body.incidentCategory,
+      incidentDate: req.body.incidentDate,
+      incidentTime: req.body.incidentTime,
+      district: req.body.district,
+      location: {
+        lat,
+        lng,
+      },
+      images: imageUrls,
+      touristId: req.body.touristId || 'Tourist_123',
+      referenceNumber:
+        req.body.referenceNumber ||
+        `SRL-${new Date().getFullYear()}-${String(sequence).padStart(4, '0')}`,
     };
 
+    logger.info('Creating incident with data:', incidentData);
     const incident = await Incident.create(incidentData);
-    res.status(201).json({ success: true, data: incident });
+    
+    res.status(201).json({ 
+      success: true, 
+      data: incident,
+      referenceNumber: incident.referenceNumber 
+    });
   } catch (error) {
     logger.error('Error reporting incident:', error);
     next(error);
@@ -27,6 +68,7 @@ exports.getIncidents = async (req, res, next) => {
     const query = {};
     if (req.query.status) query.status = req.query.status;
     if (req.query.type) query.type = req.query.type;
+    if (req.query.touristId) query.touristId = req.query.touristId;
 
     const incidents = await Incident.find(query).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: incidents.length, data: incidents });
@@ -99,6 +141,22 @@ exports.updateIncident = async (req, res, next) => {
     res.status(200).json({ success: true, data: incident });
   } catch (error) {
     logger.error('Error updating incident:', error);
+    next(error);
+  }
+};
+
+// @desc    Delete incident
+// @route   DELETE /api/safety/incidents/:id
+// @access  Private (Admin/Safety Manager/Tourist)
+exports.deleteIncident = async (req, res, next) => {
+  try {
+    const incident = await Incident.findByIdAndDelete(req.params.id);
+    if (!incident) {
+      return res.status(404).json({ success: false, message: 'Incident not found' });
+    }
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) {
+    logger.error('Error deleting incident:', error);
     next(error);
   }
 };

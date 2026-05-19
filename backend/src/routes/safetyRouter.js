@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const upload = require('../middleware/uploadMiddleware');
 
 const weatherController = require('../controllers/weatherController');
 const securityAlertController = require('../controllers/securityAlertController');
@@ -8,6 +9,7 @@ const locationController = require('../controllers/locationController');
 const emergencyLocationController = require('../controllers/emergencyLocationController');
 
 // --- Weather Routes ---
+router.get('/weather/alerts', weatherController.getWeatherAlerts);
 router.get('/weather', weatherController.getWeather);
 
 // --- Security Alert Routes ---
@@ -24,13 +26,13 @@ router.route('/security-alerts/:id')
 // Public incidents route MUST come before /:id to avoid "public" being treated as an id
 router.get('/incidents/public', incidentController.getPublicIncidents);
 
-router.route('/incidents')
-  .get(incidentController.getIncidents)
-  .post(incidentController.createIncident);
+router.get('/incidents', incidentController.getIncidents);
+router.post('/incidents', upload.array('images', 5), incidentController.createIncident);
 
 router.route('/incidents/:id')
   .get(incidentController.getIncidentById)
-  .put(incidentController.updateIncident);
+  .put(incidentController.updateIncident)
+  .delete(incidentController.deleteIncident);
 
 // --- Location Sharing Routes ---
 router.post('/location/share', locationController.shareLocation);
