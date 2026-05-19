@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+dotenv.config(); //use to access the values in .env file
+
 const cors = require('cors');
 const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
@@ -11,10 +13,14 @@ const PORT = process.env.PORT || 5000;
 
 
 
-dotenv.config(); //use to access the values in .env file
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files
+app.use('/uploads', express.static('src/uploads'));
 
 // Routes
 app.use('/api/safety', safetyRouter);
