@@ -6,6 +6,10 @@ const incidentSchema = new mongoose.Schema(
       type: String, // Future: ObjectId ref. Added for relation to user even if not in form.
       required: true,
     },
+    referenceNumber: {
+      type: String,
+      index: true,
+    },
     reporterName: {
       type: String,
       required: true,
@@ -30,7 +34,33 @@ const incidentSchema = new mongoose.Schema(
     },
     district: {
       type: String,
-      enum: ['Colombo', 'Kandy', 'Nuwara Eliya'], // From the dropdown design
+      enum: [
+        'Ampara',
+        'Anuradhapura',
+        'Badulla',
+        'Batticaloa',
+        'Colombo',
+        'Galle',
+        'Gampaha',
+        'Hambantota',
+        'Jaffna',
+        'Kalutara',
+        'Kandy',
+        'Kegalle',
+        'Kilinochchi',
+        'Kurunegala',
+        'Mannar',
+        'Matale',
+        'Matara',
+        'Monaragala',
+        'Mullaitivu',
+        'Nuwara Eliya',
+        'Polonnaruwa',
+        'Puttalam',
+        'Ratnapura',
+        'Trincomalee',
+        'Vavuniya',
+      ],
       required: true,
     },
     location: {
