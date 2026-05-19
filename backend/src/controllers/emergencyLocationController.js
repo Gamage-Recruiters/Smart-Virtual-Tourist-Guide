@@ -46,8 +46,8 @@ exports.getNearbyHospitals = async (req, res, next) => {
     const west = parseFloat(lng) - lngDelta;
     const east = parseFloat(lng) + lngDelta;
 
-    // Overpass QL query to find hospitals within the bounding box
-    const overpassQuery = `[out:json][timeout:10];(node["amenity"="hospital"](${south},${west},${north},${east});way["amenity"="hospital"](${south},${west},${north},${east});relation["amenity"="hospital"](${south},${west},${north},${east}););out center body;`;
+    // Overpass QL query: fetch only human hospitals, exclude veterinary/animal facilities
+    const overpassQuery = `[out:json][timeout:30];(node["amenity"="hospital"]["veterinary"!~"yes"]["animal"!~"yes"](${south},${west},${north},${east});way["amenity"="hospital"]["veterinary"!~"yes"]["animal"!~"yes"](${south},${west},${north},${east});relation["amenity"="hospital"]["veterinary"!~"yes"]["animal"!~"yes"](${south},${west},${north},${east}););out center body;`;
 
     const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
     const response = await fetch(overpassUrl, {
@@ -67,26 +67,37 @@ exports.getNearbyHospitals = async (req, res, next) => {
 
     const data = await response.json();
 
-    // Transform Overpass results into a consistent format
-    const hospitals = (data.elements || []).map((element) => {
-      // For ways/relations, use the 'center' coordinates; for nodes, use lat/lon directly
-      const elLat = element.lat || (element.center && element.center.lat);
-      const elLng = element.lon || (element.center && element.center.lon);
+    // Keywords to exclude veterinary / pet / animal facilities that may slip through
+    const excludeKeywords = /\b(veterinary|vet|animal|pet|livestock|cattle|poultry)\b/i;
 
-      return {
-        name: element.tags?.name || 'Hospital',
-        address: element.tags?.['addr:street']
-          ? `${element.tags['addr:housenumber'] || ''} ${element.tags['addr:street']}, ${element.tags['addr:city'] || ''}`.trim()
-          : element.tags?.['addr:full'] || '',
-        location: {
-          lat: elLat,
-          lng: elLng,
-        },
-        phone: element.tags?.phone || element.tags?.['contact:phone'] || null,
-        website: element.tags?.website || null,
-        osmId: element.id,
-      };
-    }).filter((h) => h.location.lat && h.location.lng); // Filter out entries without valid coordinates
+    // Transform Overpass results into a consistent format
+    const hospitals = (data.elements || [])
+      .filter((element) => {
+        const name = element.tags?.name || '';
+        const description = element.tags?.description || '';
+        // Exclude if name or description contains veterinary-related keywords
+        return !excludeKeywords.test(name) && !excludeKeywords.test(description);
+      })
+      .map((element) => {
+        // For ways/relations, use the 'center' coordinates; for nodes, use lat/lon directly
+        const elLat = element.lat || (element.center && element.center.lat);
+        const elLng = element.lon || (element.center && element.center.lon);
+
+        return {
+          name: element.tags?.name || 'Hospital',
+          address: element.tags?.['addr:street']
+            ? `${element.tags['addr:housenumber'] || ''} ${element.tags['addr:street']}, ${element.tags['addr:city'] || ''}`.trim()
+            : element.tags?.['addr:full'] || '',
+          location: {
+            lat: elLat,
+            lng: elLng,
+          },
+          phone: element.tags?.phone || element.tags?.['contact:phone'] || null,
+          website: element.tags?.website || null,
+          osmId: element.id,
+        };
+      })
+      .filter((h) => h.location.lat && h.location.lng); // Filter out entries without valid coordinates
 
     res.status(200).json({
       success: true,
