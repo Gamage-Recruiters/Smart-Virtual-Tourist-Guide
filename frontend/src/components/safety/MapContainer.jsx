@@ -21,6 +21,9 @@ L.Icon.Default.mergeOptions({
  * @param {Function} props.onMapClick - Callback when map is clicked: (lat, lng) => {}
  * @param {boolean} props.interactive - Enable/disable map interactivity (default: true)
  * @param {string} props.tileProvider - Tile provider URL
+ * @param {Array} props.polyline - Array of [lat, lng] coordinates to draw as a route polyline
+ * @param {string} props.polylineColor - Color of the route polyline (default: '#2563EB')
+ * @param {Function} props.onPopupAction - Callback when a .popup-go-btn inside a popup is clicked: ({ lat, lng, name, type }) => {}
  */
 export default function MapContainer({
   latitude = 6.9271,
@@ -34,10 +37,14 @@ export default function MapContainer({
   interactive = true,
   tileProvider = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  polyline = null,
+  polylineColor = '#2563EB',
+  onPopupAction = null,
 }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
+  const polylineRef = useRef(null)
   const mapCenter = center || [latitude, longitude]
   const mapCenterLat = mapCenter[0]
   const mapCenterLng = mapCenter[1]
@@ -57,10 +64,14 @@ export default function MapContainer({
     }
   }, [interactive, tileProvider, attribution, mapCenterLat, mapCenterLng, zoom])
 
+  //add smooth pan animation so the re-center is visible
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([mapCenterLat, mapCenterLng], zoom)
-    }
+    if (!mapInstanceRef.current) return
+    mapInstanceRef.current.setView(
+      [mapCenterLat, mapCenterLng],
+      zoom,
+      { animate: true, duration: 1.0 }   //smooth pan instead of instant jump
+    )
   }, [mapCenterLat, mapCenterLng, zoom])
 
   useEffect(() => {
@@ -113,6 +124,53 @@ export default function MapContainer({
       markersRef.current[index] = marker
     })
   }, [markers])
+
+  // Draw / update route polyline
+  useEffect(() => {
+    if (!mapInstanceRef.current) return
+
+    // Remove old polyline
+    if (polylineRef.current) {
+      polylineRef.current.remove()
+      polylineRef.current = null
+    }
+
+    // Draw new polyline if coordinates exist
+    if (polyline && polyline.length > 1) {
+      polylineRef.current = L.polyline(polyline, {
+        color: polylineColor,
+        weight: 5,
+        opacity: 0.8,
+        smoothFactor: 1,
+      }).addTo(mapInstanceRef.current)
+
+      // Fit the map to show the entire route
+      mapInstanceRef.current.fitBounds(polylineRef.current.getBounds(), {
+        padding: [40, 40],
+      })
+    }
+  }, [polyline, polylineColor])
+
+  // Event delegation for popup GO buttons
+  useEffect(() => {
+    if (!mapInstanceRef.current || !onPopupAction) return
+
+    const container = mapRef.current
+    const handler = (e) => {
+      const btn = e.target.closest('.popup-go-btn')
+      if (btn) {
+        e.stopPropagation()
+        onPopupAction({
+          lat: parseFloat(btn.dataset.lat),
+          lng: parseFloat(btn.dataset.lng),
+          name: decodeURIComponent(btn.dataset.name || 'Destination'),
+          type: btn.dataset.type || 'location',
+        })
+      }
+    }
+    container.addEventListener('click', handler)
+    return () => container.removeEventListener('click', handler)
+  }, [onPopupAction])
 
   return (
     <div

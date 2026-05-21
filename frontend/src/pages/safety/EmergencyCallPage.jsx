@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { FiShare2, FiMic, FiCopy, FiSend } from 'react-icons/fi';
@@ -63,40 +63,35 @@ export default function EmergencyCallPage() {
 
   const handleEmergencyAction = () => {
     if (!activeEmergency) return;
-    
+
     if (activeEmergency === 'location') {
       shareLocation();
     } else {
       callNumber(emergencyActionsData[activeEmergency].phone);
     }
-    setActiveEmergency(null);
   };
 
+  const handleGoNavigation = ({ lat, lng, name, type }) => {
+    navigate(`/safety/navigate?destLat=${lat}&destLng=${lng}&name=${encodeURIComponent(name)}&type=${type}`);
+  };
+
+  // ── REQUIRE REAL GPS LOCATION ONLY ───────────────────────────────────────────
+
   const { location } = useGeolocation()
-  const [gpsReady, setGpsReady] = useState(false)
 
-  // Wait for GPS to resolve before fetching — prevents the fallback fetch from overwriting
-  React.useEffect(() => {
-    if (location.latitude && location.longitude) {
-      setGpsReady(true)
-      return
-    }
-    // Timeout: if GPS doesn't resolve within 3 seconds, use Colombo default
-    const timer = setTimeout(() => setGpsReady(true), 3000)
-    return () => clearTimeout(timer)
-  }, [location.latitude, location.longitude])
+  // Only fetch emergency locations when real GPS location is available
+  const hasRealLocation = location.latitude && location.longitude
 
-  // Only compute params once GPS is ready (real coords or fallback after timeout)
-  const locationParams = useMemo(() => {
-    if (location.latitude && location.longitude) {
-      return { lat: location.latitude, lng: location.longitude, radius: 30000 }
-    }
-    // Fallback to Colombo if GPS timed out
-    return { lat: 6.9271, lng: 79.8612, radius: 30000 }
-  }, [location.latitude, location.longitude])
+  const locationParams = hasRealLocation
+    ? { lat: location.latitude, lng: location.longitude, radius: 30000 }
+    : null   // null = don't fetch yet
 
-  const { data: emergencyLocations = [], isLoading } = useEmergencyLocations(gpsReady ? locationParams : null)
-  const mapCenter = location.latitude ? [location.latitude, location.longitude] : [7.8731, 80.7718]
+  const { data: emergencyLocations = [], isLoading } = useEmergencyLocations(locationParams)
+
+  // Map center is user's actual GPS location (no fallback)
+  const mapCenter = hasRealLocation
+    ? [location.latitude, location.longitude]
+    : [7.8731, 80.7718]   // Sri Lanka island center while waiting
 
   const touristPoliceLocations = emergencyLocations.filter(loc => loc.type === 'tourist_police' || loc.type === 'tourist-police');
   const hospitalLocations = emergencyLocations.filter(loc => loc.type === 'hospital');
@@ -146,19 +141,20 @@ export default function EmergencyCallPage() {
     popupAnchor: [0, -18],
   }), []);
 
-  // Build the "You are here" marker if GPS is available
+  //your current myLocationMarker useMemo
   const myLocationMarker = useMemo(() => {
-    if (!location.latitude || !location.longitude) return null;
+    if (!location.latitude || !location.longitude) return null
+
     return {
       id: 'my-location',
       lat: location.latitude,
       lng: location.longitude,
       icon: myLocationIcon,
       popup: '<strong>📍 Your Current Location</strong>',
-    };
-  }, [location.latitude, location.longitude, myLocationIcon]);
+    }
+  }, [location.latitude, location.longitude, myLocationIcon])
 
-  const createMarkers = (locs, customIcon) => locs
+  const createMarkers = (locs, customIcon, defaultType) => locs
     .filter((item) => item.location?.lat && item.location?.lng)
     .map((item) => ({
       id: item._id || item.id,
@@ -166,16 +162,32 @@ export default function EmergencyCallPage() {
       lng: item.location.lng,
       label: item.name,
       icon: customIcon,
-      popup: `<strong>${item.name}</strong><br/>${item.address}<br/>${item.phone || ''}`,
+      popup: `
+        <div style="min-width:200px; font-family: sans-serif; padding: 2px;">
+          <strong style="font-size:14px; color: #1e293b; display: block; margin-bottom: 4px;">${item.name}</strong>
+          <p style="margin:4px 0;font-size:12px;color:#64748b;line-height:1.4;">${item.address || 'Address not available'}</p>
+          ${item.phone ? `<p style="margin:4px 0;font-size:12px;color:#334155;"><strong>Phone:</strong> ${item.phone}</p>` : ''}
+          <button
+            class="popup-go-btn"
+            data-lat="${item.location.lat}"
+            data-lng="${item.location.lng}"
+            data-name="${encodeURIComponent(item.name)}"
+            data-type="${item.type || defaultType}"
+            style="margin-top:8px;width:100%;padding:8px 0;background:#2563EB;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;letter-spacing:0.5px;text-align:center;box-shadow: 0 2px 4px rgba(37,99,235,0.2);transition: all 0.2s;"
+          >
+            GO
+          </button>
+        </div>
+      `,
     }));
 
   const touristPoliceMarkers = [
     ...(myLocationMarker ? [myLocationMarker] : []),
-    ...createMarkers(touristPoliceLocations, policeIcon),
+    ...createMarkers(touristPoliceLocations, policeIcon, 'tourist_police'),
   ];
   const hospitalMarkers = [
     ...(myLocationMarker ? [myLocationMarker] : []),
-    ...createMarkers(hospitalLocations, hospitalIcon),
+    ...createMarkers(hospitalLocations, hospitalIcon, 'hospital'),
   ];
 
   const shareLocation = async () => {
@@ -336,43 +348,101 @@ export default function EmergencyCallPage() {
         </div>
 
         {/* Maps Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Tourist Police Map */}
-          <div>
-            <div className="flex items-center justify-between mb-4 ml-1">
-              <h3 className="text-[15px] font-bold text-slate-900">Tourist Police Stations</h3>
-              {myLocationMarker && (
-                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
-                  <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
-                  Your Location
-                </span>
-              )}
-            </div>
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
-              <div className="h-full rounded-lg overflow-hidden relative">
-                <MapContainer center={mapCenter} zoom={location.latitude ? 10 : 7} markers={touristPoliceMarkers} />
+        {!hasRealLocation ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Waiting for Location - Police */}
+            <div>
+              <h3 className="text-[15px] font-bold text-slate-900 mb-4 ml-1">Tourist Police Stations</h3>
+              <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px] flex items-center justify-center">
+                <div className="text-center p-8">
+                  <div className="mb-4 flex justify-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-blue-300 border-t-blue-600 rounded-full"></div>
+                  </div>
+                  <p className="text-slate-600 font-semibold">Acquiring your location...</p>
+                  <p className="text-slate-500 text-sm mt-2">Please enable location services on your device</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Hospitals Map */}
-          <div>
-            <div className="flex items-center justify-between mb-4 ml-1">
-              <h3 className="text-[15px] font-bold text-slate-900">Hospitals</h3>
-              {myLocationMarker && (
-                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
-                  <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
-                  Your Location
-                </span>
-              )}
-            </div>
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
-              <div className="h-full rounded-lg overflow-hidden relative">
-                <MapContainer center={mapCenter} zoom={location.latitude ? 10 : 7} markers={hospitalMarkers} />
+            {/* Waiting for Location - Hospitals */}
+            <div>
+              <h3 className="text-[15px] font-bold text-slate-900 mb-4 ml-1">Hospitals</h3>
+              <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px] flex items-center justify-center">
+                <div className="text-center p-8">
+                  <div className="mb-4 flex justify-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-red-300 border-t-red-600 rounded-full"></div>
+                  </div>
+                  <p className="text-slate-600 font-semibold">Acquiring your location...</p>
+                  <p className="text-slate-500 text-sm mt-2">Please enable location services on your device</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Tourist Police Map */}
+            <div>
+              <div className="flex items-center justify-between mb-4 ml-1">
+                <h3 className="text-[15px] font-bold text-slate-900">Tourist Police Stations</h3>
+                {myLocationMarker && (
+                  <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                    <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
+                    Your Location
+                  </span>
+                )}
+              </div>
+              <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
+                <div className="h-full rounded-lg overflow-hidden relative">
+                  {isLoading && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+                      <div className="text-center">
+                        <div className="animate-spin h-8 w-8 border-4 border-blue-300 border-t-blue-600 rounded-full mx-auto mb-2"></div>
+                        <p className="text-sm text-slate-600">Loading nearby police stations...</p>
+                      </div>
+                    </div>
+                  )}
+                  <MapContainer
+                    center={mapCenter}
+                    zoom={10}
+                    markers={touristPoliceMarkers}
+                    onPopupAction={handleGoNavigation}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Hospitals Map */}
+            <div>
+              <div className="flex items-center justify-between mb-4 ml-1">
+                <h3 className="text-[15px] font-bold text-slate-900">Hospitals</h3>
+                {myLocationMarker && (
+                  <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                    <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
+                    Your Location
+                  </span>
+                )}
+              </div>
+              <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
+                <div className="h-full rounded-lg overflow-hidden relative">
+                  {isLoading && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+                      <div className="text-center">
+                        <div className="animate-spin h-8 w-8 border-4 border-red-300 border-t-red-600 rounded-full mx-auto mb-2"></div>
+                        <p className="text-sm text-slate-600">Loading nearby hospitals...</p>
+                      </div>
+                    </div>
+                  )}
+                  <MapContainer
+                    center={mapCenter}
+                    zoom={10}
+                    markers={hospitalMarkers}
+                    onPopupAction={handleGoNavigation}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Translator & Chatbot Access Section */}
         <div className="pt-4">

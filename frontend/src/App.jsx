@@ -10,6 +10,7 @@ import MyIncidentsPage from './pages/safety/MyIncidentsPage'
 import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage'
 import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage'
 import WeatherAlertsPage from './pages/safety/WeatherAlertsPage'
+import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage'
 import './App.css'
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
 
           {/* Standalone routes without the sidebar */}
           <Route path="/safety/emergency" element={<EmergencyCallPage />} />
+          <Route path="/safety/navigate" element={<NavigationDirectionsPage />} />
           <Route path="/safety/report-incident" element={<IncidentReportPage />} />
           <Route path="/safety/report-incident/form" element={<Navigate to="/safety/report-incident" replace />} />
           <Route path="/safety/report-success" element={<IncidentReportSuccessPage />} />
