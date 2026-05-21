@@ -97,7 +97,7 @@ export default function IncidentTrackingPage() {
               </div>
 
               <div className="space-y-8">
-                <section className="bg-white p-8 shadow-sm">
+                <section className="border border-black bg-white p-8 shadow-sm">
                   <h2 className="text-center text-xs font-extrabold uppercase text-black">Emergency & Safety Tools</h2>
                   <div className="mt-6 space-y-3">
                     <Link to="/safety/emergency" className="block rounded-lg bg-red-500 px-5 py-4 text-center text-xs font-bold text-white">
@@ -124,7 +124,7 @@ export default function IncidentTrackingPage() {
 
 function ChartPanel({ title, children }) {
   return (
-    <section className="rounded-md bg-white p-5 shadow-md">
+    <section className="rounded-md border border-black bg-white p-5 shadow-md">
       <h2 className="mb-4 text-center text-sm font-semibold text-black">{title}</h2>
       {children}
     </section>

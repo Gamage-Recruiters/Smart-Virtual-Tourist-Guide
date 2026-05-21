@@ -213,7 +213,7 @@ function MySubmissionCard({ incident }) {
   const activeIndex = statusSteps.indexOf(status)
 
   return (
-    <article className="rounded border border-slate-200 bg-slate-50 p-3">
+    <article className="rounded border border-black bg-slate-50 p-3">
       <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-[13px] font-extrabold text-black">{getIncidentCategory(incident)}</p>
