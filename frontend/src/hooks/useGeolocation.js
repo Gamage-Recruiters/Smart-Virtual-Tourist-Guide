@@ -9,6 +9,7 @@ import { useSafetyContext } from '../contexts/SafetyContext'
 export function useGeolocation() {
   const { userLocation, setLoadingState, setErrorState, updateUserLocation } = useSafetyContext()
   const watchIdRef = useRef(null)
+  const hasInitialLocationRef = useRef(false)
 
   useEffect(() => {
     if (!('geolocation' in navigator)) {
@@ -18,6 +19,28 @@ export function useGeolocation() {
 
     setLoadingState('location', true)
 
+    // First, try to get current position immediately (faster, uses cached location)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        updateUserLocation(
+          position.coords.latitude,
+          position.coords.longitude,
+          position.coords.accuracy
+        )
+        hasInitialLocationRef.current = true
+        setLoadingState('location', false)
+      },
+      (error) => {
+        console.warn('getCurrentPosition failed, will try watchPosition:', error.message)
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 60000,
+        timeout: 8000,
+      }
+    )
+
+    // Then start watching for position updates (continuous tracking)
     const id = navigator.geolocation.watchPosition(
       (position) => {
         updateUserLocation(
@@ -25,16 +48,22 @@ export function useGeolocation() {
           position.coords.longitude,
           position.coords.accuracy
         )
-        setLoadingState('location', false)
+        hasInitialLocationRef.current = true
+        if (!userLocation.latitude || !userLocation.longitude) {
+          setLoadingState('location', false)
+        }
       },
       (error) => {
-        setErrorState('location', error.message)
-        setLoadingState('location', false)
+        console.error('watchPosition error:', error.message)
+        if (hasInitialLocationRef.current === false) {
+          setErrorState('location', error.message)
+          setLoadingState('location', false)
+        }
       },
       {
         enableHighAccuracy: true,
         maximumAge: 0,
-        timeout: 10000,
+        timeout: 20000,
       }
     )
 
@@ -44,7 +73,7 @@ export function useGeolocation() {
       if (id) navigator.geolocation.clearWatch(id)
       if (watchIdRef.current === id) watchIdRef.current = null
     }
-  }, [setLoadingState, setErrorState, updateUserLocation])
+  }, [setLoadingState, setErrorState, updateUserLocation, userLocation.latitude, userLocation.longitude])
 
   const stopTracking = () => {
     if (watchIdRef.current) {

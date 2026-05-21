@@ -135,13 +135,21 @@ const safetyService = {
   // Fetches all tourist police stations from DB and nearby hospitals from Overpass API
   async getEmergencyLocations(params = {}) {
     try {
+      // Pass location params to both police and hospitals for filtering by proximity
       const [policeStations, hospitals] = await Promise.all([
-        this.getPoliceStations().catch(() => []),
+        this.getPoliceStations(params).catch(() => []),
         this.getHospitals(params).catch(() => []),
       ])
 
       // Tag hospitals with type since Overpass data doesn't include it
       const taggedHospitals = hospitals.map((h) => ({ ...h, type: 'hospital' }))
+
+      // Log for debugging
+      console.log('Emergency locations fetched:', {
+        police: policeStations.length,
+        hospitals: taggedHospitals.length,
+        params,
+      })
 
       return [...policeStations, ...taggedHospitals]
     } catch (error) {
