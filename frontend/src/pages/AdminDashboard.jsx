@@ -1,92 +1,110 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import StatCard from '../components/admin/StatCard';
+import RevenueChart from '../components/admin/RevenueChart';
+import BookingChart from '../components/admin/BookingChart';
+import PackagePerformanceChart from '../components/admin/PackagePerformanceChart';
+import BookingPieChart from '../components/admin/BookingPieChart';
+import RecentActivity from '../components/admin/RecentActivity';
+import { FiUsers, FiBriefcase, FiTruck, FiHome } from 'react-icons/fi';
+import HeroBg from "../assets/hero-bg.png";
 
 const AdminDashboard = () => {
-  // Mock data for frontend-first approach
-  const dashboardStats = {
-    totalUsers: '10k',
-    userTrend: '+12.5%',
-    travelAgencies: '45',
-    agencyTrend: '+4.2%',
-    registeredDrivers: '598',
-    driverTrend: '-1.5%',
-    hotelPartners: '358',
-    hotelTrend: '+8.4%'
-  };
+  const dashboardData = [
+    { id: 1, title: 'Total Users', count: '10k', percentage: '12.5', isPositive: true, icon: <FiUsers size={24} /> },
+    { id: 2, title: 'Travel Agencies', count: '45', percentage: '4.2', isPositive: true, icon: <FiBriefcase size={24} /> },
+    { id: 3, title: 'Registered Drivers', count: '598', percentage: '1.5', isPositive: false, icon: <FiTruck size={24} /> },
+    { id: 4, title: 'Hotel Partners', count: '358', percentage: '8.4', isPositive: true, icon: <FiHome size={24} /> },
+  ];
 
   return (
-    <div className="min-h-screen p-8 font-sans text-[#111111]">
-      <h1 className="text-2xl font-bold mb-6 text-[#111111]">Admin Dashboard</h1>
+    <div className="w-full pb-12">
+      
+      {/* Dashboard Specific Hero Section */}
+      <div 
+        className="relative w-full h-[400px] bg-cover bg-center flex items-center mb-8"
+        style={{ backgroundImage: `url(${HeroBg})` }}
+      >
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
+          <h1 className="text-[40px] md:text-[56px] font-bold text-[#111111] leading-tight mb-4 drop-shadow-sm">
+            Welcome To Your <br /> Admin Dashboard
+          </h1>
+          <p className="text-[16px] md:text-[20px] text-[#111111] font-medium max-w-2xl drop-shadow-sm">
+            Manage your travel platform, track performance, and deliver unforgettable journeys across Sri Lanka.
+          </p>
+        </div>
+      </div>
 
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Dashboard Content */}
+      <div className="font-inter px-6 md:px-12 max-w-7xl mx-auto w-full">
+        <div className="flex justify-between items-end mb-6">
+          <h2 className="text-[28px] font-bold text-[#111111]">Admin Dashboard</h2>
+          <span className="text-[12px] text-gray-500 mb-2">Last updated: Just now</span>
+        </div>
         
-        {/* Total Users Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Total Users</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {dashboardData.map((data) => (
+            <StatCard 
+              key={data.id}
+              title={data.title}
+              count={data.count}
+              percentage={data.percentage}
+              isPositive={data.isPositive}
+              icon={data.icon}
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+           <Link to="/user-management" className="block w-full">
+             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+               User Management
+             </button>
+           </Link>
+           <Link to="/approve-listings" className="block w-full">
+             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+               Approve Listings
+             </button>
+           </Link>
+           <Link to="/manage-ads" className="block w-full">
+             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+               Manage Ads
+             </button>
+           </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
+             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Revenue Trend</h3>
+             <div className="flex-grow">
+               <RevenueChart />
+             </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold">{dashboardStats.totalUsers}</h2>
-            <div className="text-xs font-semibold text-green-500 mt-1 flex items-center">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-              {dashboardStats.userTrend}
-            </div>
+          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
+             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
+             <div className="flex-grow">
+               <BookingChart />
+             </div>
           </div>
         </div>
 
-        {/* Travel Agencies Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Travel Agencies</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">
+          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
+             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Package Performance</h3>
+             <div className="flex-grow">
+               <PackagePerformanceChart />
+             </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold">{dashboardStats.travelAgencies}</h2>
-            <div className="text-xs font-semibold text-green-500 mt-1 flex items-center">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-              {dashboardStats.agencyTrend}
-            </div>
+          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
+             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
+             <div className="flex-grow">
+               <BookingPieChart />
+             </div>
           </div>
         </div>
 
-        {/* Registered Drivers Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Registered Drivers</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-            </div>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">{dashboardStats.registeredDrivers}</h2>
-            <div className="text-xs font-semibold text-red-500 mt-1 flex items-center">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg>
-              {dashboardStats.driverTrend}
-            </div>
-          </div>
-        </div>
-
-        {/* Hotel Partners Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Hotel Partners</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m3 0h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-            </div>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">{dashboardStats.hotelPartners}</h2>
-            <div className="text-xs font-semibold text-green-500 mt-1 flex items-center">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-              {dashboardStats.hotelTrend}
-            </div>
-          </div>
-        </div>
+        <RecentActivity />
 
       </div>
     </div>
