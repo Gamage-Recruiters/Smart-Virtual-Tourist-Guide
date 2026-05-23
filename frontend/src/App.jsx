@@ -4,6 +4,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import AdminLayout from './components/layout/AdminLayout';
 import ApproveListings from './pages/ApproveListings';
+import ManageAds from './pages/ManageAds';
+import CreateAdvertisement from './pages/CreateAdvertisement';
+import AddNewAdmin from './pages/AddNewAdmin';
+import ViewFullDetails from './pages/ViewFullDetails';
 
 function App() {
   return (
@@ -11,10 +15,11 @@ function App() {
       <Routes>
         <Route path="/" element={<AdminDashboard />} />
         <Route path="/user-management" element={<UserManagement />} />
-       
+        <Route path="/manage-ads" element={<ManageAds />} />
+        <Route path="/create-ad" element={<CreateAdvertisement />} />
+       <Route path="/add-admin" element={<AddNewAdmin />} />
         <Route path="/approve-listings" element={<ApproveListings />} /> {/* Active route */}
-        <Route path="/approve-listings" element={<div className="p-12 text-center">Approve Listings Page Coming Soon</div>} />
-        <Route path="/manage-ads" element={<div className="p-12 text-center">Manage Ads Page Coming Soon</div>} />
+        <Route path="/view-details/:id" element={<ViewFullDetails />} />
       </Routes>
     </AdminLayout>
   );

@@ -200,9 +200,11 @@ const ApproveListings = () => {
                     </div>
 
                     <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
-                      <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 bg-white text-[#111111] rounded-[6px] text-[13px] font-medium hover:bg-gray-50 transition-colors">
-                        <FiEye size={16} /> View Full Details
-                      </button>
+                      <Link to={`/view-details/${listing.id}`} className="flex-1 md:flex-none">
+                        <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 bg-white text-[#111111] rounded-[6px] text-[13px] font-medium hover:bg-gray-50 transition-colors">
+                          <FiEye size={16} /> View Full Details
+                        </button>
+                    </Link>
                       <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#1877F2] text-white rounded-[6px] text-[13px] font-medium hover:bg-blue-600 transition-colors">
                         <FiCheck size={16} /> Approve
                       </button>
