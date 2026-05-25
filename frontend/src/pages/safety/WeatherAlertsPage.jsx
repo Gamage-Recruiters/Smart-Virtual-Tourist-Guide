@@ -23,9 +23,115 @@ const fallbackDistrictRisk = [
 ]
 
 const statusClass = {
+  Critical: 'bg-red-100 text-red-800',
   High: 'bg-orange-100 text-orange-800',
   Medium: 'bg-yellow-100 text-yellow-800',
   Low: 'bg-green-100 text-green-800',
+}
+
+const riskStyles = {
+  Critical: {
+    bg: 'bg-red-50 border-red-200 text-red-900',
+    badge: 'bg-red-100 text-red-800 border-red-200',
+    icon: '🔴',
+    advice: 'Immediate, severe danger to safety. Halt outdoor movements and seek safe shelter instantly. Avoid mountain passes and coastal zones.',
+  },
+  High: {
+    bg: 'bg-orange-50 border-orange-200 text-orange-900',
+    badge: 'bg-orange-100 text-orange-800 border-orange-200',
+    icon: '🟠',
+    advice: 'Severe weather detected. High risk of dehydration or low visibility. Consider delaying travel and avoid waterfall trails.',
+  },
+  Medium: {
+    bg: 'bg-yellow-50 border-yellow-200 text-yellow-900',
+    badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    icon: '🟡',
+    advice: 'Passing showers or elevated heat. Proceed with your itinerary but carry an umbrella and stay hydrated.',
+  },
+  Low: {
+    bg: 'bg-green-50 border-green-200 text-green-900',
+    badge: 'bg-green-100 text-green-800 border-green-200',
+    icon: '🟢',
+    advice: 'Favourable weather conditions. Great time for sightseeing, hiking, and outdoor activities. Standard precautions apply.',
+  },
+}
+
+function assessWeatherRisk(openWeather) {
+  if (!openWeather) return { status: 'Low', risk: 'Fetching conditions...' }
+
+  const conditionId = openWeather.weather?.[0]?.id || 800
+  const windSpeed = openWeather.wind?.speed || 0 // m/s
+  const visibility = openWeather.visibility || 10000 // meters
+  const rain1h = openWeather.rain?.['1h'] || 0 // mm
+  const rain3h = openWeather.rain?.['3h'] || 0 // mm
+  const temp = openWeather.main?.temp || 25
+
+  const risks = []
+
+  // --- Thunderstorm (2xx codes) → Critical ---
+  if (conditionId >= 200 && conditionId < 300) {
+    risks.push({ risk: 'Thunderstorm activity', severity: 4 })
+  }
+
+  // --- Rain condition codes (5xx) ---
+  if (conditionId >= 500 && conditionId < 600) {
+    if (conditionId >= 502) {
+      risks.push({ risk: 'Heavy rainfall and flooding risk', severity: 3 })
+    } else {
+      risks.push({ risk: 'Light to moderate rain', severity: 2 })
+    }
+  }
+
+  // --- Rain volume ---
+  if (rain1h > 10 || rain3h > 25) {
+    risks.push({ risk: 'Flash flooding possible', severity: 4 })
+  } else if (rain1h > 5 || rain3h > 12) {
+    risks.push({ risk: 'Heavy downpours', severity: 3 })
+  } else if (rain1h > 2 || rain3h > 5) {
+    risks.push({ risk: 'Moderate rain', severity: 2 })
+  }
+
+  // --- Wind ---
+  if (windSpeed > 15) {
+    risks.push({ risk: 'Strong winds', severity: 4 })
+  } else if (windSpeed > 10) {
+    risks.push({ risk: 'High winds', severity: 3 })
+  } else if (windSpeed > 8) {
+    risks.push({ risk: 'Moderate winds', severity: 2 })
+  }
+
+  // --- Visibility (fog, mist, haze) ---
+  if (visibility < 500) {
+    risks.push({ risk: 'Near-zero visibility', severity: 4 })
+  } else if (visibility < 1000) {
+    risks.push({ risk: 'Very low visibility', severity: 3 })
+  } else if (visibility < 3000) {
+    risks.push({ risk: 'Mist and reduced visibility', severity: 2 })
+  }
+
+  // --- Extreme heat ---
+  if (temp > 37) {
+    risks.push({ risk: 'Extreme heat', severity: 3 })
+  } else if (temp > 35) {
+    risks.push({ risk: 'Elevated heat', severity: 2 })
+  }
+
+  // --- Snow / sleet (6xx) ---
+  if (conditionId >= 600 && conditionId < 700) {
+    risks.push({ risk: 'Cold and icy conditions', severity: 3 })
+  }
+
+  const maxSeverity = risks.length ? Math.max(...risks.map(r => r.severity)) : 0
+  let status = 'Low'
+  if (maxSeverity >= 4) status = 'Critical'
+  else if (maxSeverity >= 3) status = 'High'
+  else if (maxSeverity >= 2) status = 'Medium'
+
+  const topRisk = risks.length
+    ? risks.sort((a, b) => b.severity - a.severity)[0].risk
+    : 'Clear conditions – safe for travel'
+
+  return { status, risk: topRisk }
 }
 
 export default function WeatherAlertsPage() {
@@ -180,9 +286,11 @@ export default function WeatherAlertsPage() {
     id: item.area,
     lat: item.lat,
     lng: item.lng,
-    color: item.status === 'High' ? 'orange' : item.status === 'Medium' ? 'yellow' : 'green',
+    color: item.status === 'Critical' ? 'red' : item.status === 'High' ? 'orange' : item.status === 'Medium' ? 'yellow' : 'green',
     popup: `<strong>${item.area}</strong><br/>${item.risk}<br/>${item.status}`,
   }))
+
+  const selectedRisk = assessWeatherRisk(openWeather)
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -239,14 +347,27 @@ export default function WeatherAlertsPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-              <div className="flex items-center gap-2 font-bold text-blue-900">
-                <FiNavigation />
-                Travel recommendations
+            <div className={`rounded-lg border p-5 transition-all duration-300 ${riskStyles[selectedRisk.status].bg}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-bold">
+                  <FiNavigation />
+                  Travel Recommendation
+                </div>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${riskStyles[selectedRisk.status].badge}`}>
+                  {riskStyles[selectedRisk.status].icon} {selectedRisk.status}
+                </span>
               </div>
-              <p className="mt-3 text-sm text-blue-800">
-                Use main roads, avoid waterfall trails during rain, and check hotel or local authority advice before hiking.
+              <p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Current Risk Status:
               </p>
+              <p className="mt-1 text-sm font-semibold leading-relaxed">
+                {selectedRisk.risk}
+              </p>
+              <div className="mt-3 border-t border-current/10 pt-3">
+                <p className="text-xs leading-relaxed opacity-90">
+                  {riskStyles[selectedRisk.status].advice}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -281,6 +402,7 @@ export default function WeatherAlertsPage() {
                 {/* All three items in a single horizontal row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
                   {[
+                    { color: '#e53935', label: 'Critical' },
                     { color: '#f97316', label: 'High' },
                     { color: '#eab308', label: 'Medium' },
                     { color: '#22c55e', label: 'Low' },

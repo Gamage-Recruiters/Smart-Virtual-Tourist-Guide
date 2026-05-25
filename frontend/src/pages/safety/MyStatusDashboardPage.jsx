@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FiUser } from 'react-icons/fi'
+import { FiUser, FiTrash2 } from 'react-icons/fi'
 import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 
@@ -166,9 +166,10 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
                   <td className="border border-black px-3 py-2 text-center">
                     <button
                       onClick={() => onDelete(incident._id || incident.id)}
-                      className="rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200"
+                      className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
                       title="Delete Report"
                     >
+                      <FiTrash2 size={14} />
                       Delete
                     </button>
                   </td>
