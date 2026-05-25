@@ -74,17 +74,17 @@ const ManageAds = () => {
       
       {/* Hero Section */}
       <div 
-        className="relative w-full h-[350px] bg-cover bg-center flex items-center px-6 md:px-16"
+        className="relative w-full h-[400px] bg-cover bg-center flex items-center mb-8"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544085311-11a028465b03?w=1600&q=80')` }}
       >
         <div className="absolute inset-0 bg-black/10"></div> 
-        <div className="relative z-10 text-[#111111] drop-shadow-sm max-w-7xl mx-auto w-full">
-          <h1 className="text-[36px] font-bold mb-2 text-[#111111]">Advertisement Management</h1>
-          <p className="text-[16px] font-medium text-gray-800">Create and manage promotional campaigns</p>
+        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
+          <h1 className="text-[36px] font-bold mb-2 text-white">Advertisement Management</h1>
+          <p className="text-[16px] font-medium text-white/90">Create and manage promotional campaigns</p>
         </div>
       </div>
 
-      <div className="px-6 md:px-12 max-w-7xl mx-auto -mt-16 relative z-20">
+      <div className="font-inter px-6 md:px-12 max-w-7xl mx-auto w-full">
         
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
