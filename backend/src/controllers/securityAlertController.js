@@ -6,7 +6,21 @@ const logger = require('../utils/logger');
 // @access  Public
 exports.getAlerts = async (req, res, next) => {
   try {
-    const alerts = await SecurityAlert.find({ isActive: true }).sort({ createdAt: -1 });
+    const { lat, lng, radius } = req.query;
+    let query = { isActive: true };
+
+    // If location params provided, use geospatial $nearSphere query
+    if (lat && lng) {
+      const searchRadius = parseInt(radius) || 30000; // default 30km
+      query.location = {
+        $nearSphere: {
+          $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+          $maxDistance: searchRadius,
+        },
+      };
+    }
+
+    const alerts = await SecurityAlert.find(query).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: alerts.length, data: alerts });
   } catch (error) {
     logger.error('Error fetching alerts:', error);
@@ -35,10 +49,19 @@ exports.getAlertById = async (req, res, next) => {
 // @access  Private (Admin/Safety Manager)
 exports.createAlert = async (req, res, next) => {
   try {
+    // Convert old { lat, lng } format to GeoJSON if needed
+    if (req.body.location && req.body.location.lat && !req.body.location.coordinates) {
+      req.body.location = {
+        type: 'Point',
+        coordinates: [req.body.location.lng, req.body.location.lat],
+      };
+    }
+
     // For now, use placeholder createdBy if not provided
     const alertData = {
       ...req.body,
       createdBy: req.body.createdBy || 'SafetyManager_1',
+      source: req.body.source || 'manual',
     };
 
     const alert = await SecurityAlert.create(alertData);

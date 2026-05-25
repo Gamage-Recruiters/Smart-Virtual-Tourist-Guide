@@ -18,7 +18,7 @@ const TOURIST_AREAS = [
 
 /**
  * Analyze weather data and return a risk assessment for a tourist area.
- * Uses OpenWeather condition codes, wind speed, visibility, and rain volume.
+ * Uses a 4-tier severity system: 1 (Low) → 2 (Medium) → 3 (High) → 4 (Critical).
  */
 function assessRisk(weatherData) {
   const conditionId = weatherData.weather?.[0]?.id || 800;
@@ -30,36 +30,42 @@ function assessRisk(weatherData) {
 
   const risks = [];
 
-  // --- Thunderstorm (2xx codes) ---
+  // --- Thunderstorm (2xx codes) → Critical ---
   if (conditionId >= 200 && conditionId < 300) {
-    risks.push({ risk: 'Thunderstorm activity', severity: 3 });
+    risks.push({ risk: 'Thunderstorm activity – seek shelter immediately', severity: 4 });
   }
 
-  // --- Heavy rain (5xx codes) ---
+  // --- Rain condition codes (5xx) ---
   if (conditionId >= 500 && conditionId < 600) {
     if (conditionId >= 502) {
       risks.push({ risk: 'Heavy rainfall and flooding risk', severity: 3 });
     } else {
-      risks.push({ risk: 'Light to moderate rain', severity: 1 });
+      risks.push({ risk: 'Light to moderate rain', severity: 2 });
     }
   }
 
   // --- Rain volume ---
   if (rain1h > 10 || rain3h > 25) {
-    risks.push({ risk: 'Urban flooding possible', severity: 3 });
-  } else if (rain1h > 4 || rain3h > 10) {
-    risks.push({ risk: 'Wet roads and reduced visibility', severity: 2 });
+    risks.push({ risk: 'Flash flooding possible – avoid low-lying areas', severity: 4 });
+  } else if (rain1h > 5 || rain3h > 12) {
+    risks.push({ risk: 'Heavy downpours – wet roads and reduced visibility', severity: 3 });
+  } else if (rain1h > 2 || rain3h > 5) {
+    risks.push({ risk: 'Moderate rain – carry rain gear', severity: 2 });
   }
 
-  // --- High wind ---
+  // --- Wind ---
   if (windSpeed > 15) {
-    risks.push({ risk: 'Strong winds – unsafe for coastal activities', severity: 3 });
+    risks.push({ risk: 'Strong winds – unsafe for coastal activities', severity: 4 });
+  } else if (windSpeed > 10) {
+    risks.push({ risk: 'High winds – exercise caution outdoors', severity: 3 });
   } else if (windSpeed > 8) {
-    risks.push({ risk: 'Moderate winds', severity: 1 });
+    risks.push({ risk: 'Moderate winds', severity: 2 });
   }
 
-  // --- Low visibility (fog, mist, haze) ---
-  if (visibility < 1000) {
+  // --- Visibility (fog, mist, haze) ---
+  if (visibility < 500) {
+    risks.push({ risk: 'Near-zero visibility – do not drive', severity: 4 });
+  } else if (visibility < 1000) {
     risks.push({ risk: 'Very low visibility – avoid mountain roads', severity: 3 });
   } else if (visibility < 3000) {
     risks.push({ risk: 'Mist and reduced visibility', severity: 2 });
@@ -67,18 +73,21 @@ function assessRisk(weatherData) {
 
   // --- Extreme heat ---
   if (temp > 37) {
-    risks.push({ risk: 'Extreme heat – stay hydrated', severity: 2 });
+    risks.push({ risk: 'Extreme heat – high dehydration risk', severity: 3 });
+  } else if (temp > 35) {
+    risks.push({ risk: 'Elevated heat – stay hydrated', severity: 2 });
   }
 
   // --- Snow / sleet (6xx) – rare but possible in highlands ---
   if (conditionId >= 600 && conditionId < 700) {
-    risks.push({ risk: 'Cold and icy conditions', severity: 2 });
+    risks.push({ risk: 'Cold and icy conditions', severity: 3 });
   }
 
-  // Determine overall status from the highest severity
+  // Determine overall status from the highest severity (4-tier)
   const maxSeverity = risks.length ? Math.max(...risks.map(r => r.severity)) : 0;
   let status = 'Low';
-  if (maxSeverity >= 3) status = 'High';
+  if (maxSeverity >= 4) status = 'Critical';
+  else if (maxSeverity >= 3) status = 'High';
   else if (maxSeverity >= 2) status = 'Medium';
 
   // Pick the most severe risk description, or default
@@ -173,24 +182,33 @@ exports.getWeatherAlerts = async (req, res, next) => {
       .map((r) => r.value);
 
     // Build a top-level emergency warning from the highest-severity alerts
+    const criticalAlerts = alerts.filter((a) => a.status === 'Critical');
     const highAlerts = alerts.filter((a) => a.status === 'High');
     const mediumAlerts = alerts.filter((a) => a.status === 'Medium');
 
     let emergencyWarning = null;
-    if (highAlerts.length > 0) {
+    if (criticalAlerts.length > 0) {
+      const areaNames = criticalAlerts.map((a) => a.area).join(', ');
+      const uniqueRisks = [...new Set(criticalAlerts.map((a) => a.risk))];
+      emergencyWarning = {
+        type: 'critical',
+        title: `🔴 EMERGENCY — ${criticalAlerts.length} area${criticalAlerts.length > 1 ? 's' : ''} in critical danger`,
+        message: `${uniqueRisks.join('. ')} in ${areaNames}. Immediate danger – halt outdoor movements and seek shelter.`,
+      };
+    } else if (highAlerts.length > 0) {
       const areaNames = highAlerts.map((a) => a.area).join(', ');
       const uniqueRisks = [...new Set(highAlerts.map((a) => a.risk))];
       emergencyWarning = {
-        type: 'critical',
-        title: `Emergency weather warning – ${highAlerts.length} area${highAlerts.length > 1 ? 's' : ''} affected`,
-        message: `${uniqueRisks.join('. ')} in ${areaNames}. Avoid non-essential travel to these areas.`,
+        type: 'warning',
+        title: `🟠 Weather warning — ${highAlerts.length} area${highAlerts.length > 1 ? 's' : ''} affected`,
+        message: `${uniqueRisks.join('. ')} in ${areaNames}. Consider delaying travel to these areas.`,
       };
     } else if (mediumAlerts.length > 0) {
       const areaNames = mediumAlerts.map((a) => a.area).join(', ');
       const uniqueRisks = [...new Set(mediumAlerts.map((a) => a.risk))];
       emergencyWarning = {
-        type: 'warning',
-        title: `Weather advisory – ${mediumAlerts.length} area${mediumAlerts.length > 1 ? 's' : ''} with moderate risk`,
+        type: 'advisory',
+        title: `🟡 Weather advisory — ${mediumAlerts.length} area${mediumAlerts.length > 1 ? 's' : ''} with moderate risk`,
         message: `${uniqueRisks.join('. ')} reported in ${areaNames}. Exercise caution when travelling.`,
       };
     } else {
