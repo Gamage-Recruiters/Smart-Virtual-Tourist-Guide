@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../components/admin/StatCard';
 import RevenueChart from '../components/admin/RevenueChart';
@@ -10,11 +10,49 @@ import { FiUsers, FiBriefcase, FiTruck, FiHome } from 'react-icons/fi';
 import HeroBg from "../assets/hero-bg.png";
 
 const AdminDashboard = () => {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    travelAgencies: 0,
+    registeredDrivers: 0,
+    hotelPartners: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+        const result = await response.json();
+        
+       
+        console.log("Data received from Backend:", result);
+
+        if (response.ok && result.success) {
+         
+          setStats(result.data);
+        } else {
+          console.error("Backend returned an error:", result.message);
+        }
+      } catch (error) {
+        console.error('Cannot connect to server. Is backend running?', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
+  const formatCount = (count) => {
+    if (loading) return '...';
+    return count >= 1000 ? `${(count / 1000).toFixed(1)}k` : count;
+  };
+
   const dashboardData = [
-    { id: 1, title: 'Total Users', count: '10k', percentage: '12.5', isPositive: true, icon: <FiUsers size={24} /> },
-    { id: 2, title: 'Travel Agencies', count: '45', percentage: '4.2', isPositive: true, icon: <FiBriefcase size={24} /> },
-    { id: 3, title: 'Registered Drivers', count: '598', percentage: '1.5', isPositive: false, icon: <FiTruck size={24} /> },
-    { id: 4, title: 'Hotel Partners', count: '358', percentage: '8.4', isPositive: true, icon: <FiHome size={24} /> },
+    { id: 1, title: 'Total Users', count: formatCount(stats.totalUsers), percentage: '12.5', isPositive: true, icon: <FiUsers size={24} /> },
+    { id: 2, title: 'Travel Agencies', count: formatCount(stats.travelAgencies), percentage: '4.2', isPositive: true, icon: <FiBriefcase size={24} /> },
+    { id: 3, title: 'Registered Drivers', count: formatCount(stats.registeredDrivers), percentage: '1.5', isPositive: false, icon: <FiTruck size={24} /> },
+    { id: 4, title: 'Hotel Partners', count: formatCount(stats.hotelPartners), percentage: '8.4', isPositive: true, icon: <FiHome size={24} /> },
   ];
 
   return (

@@ -3,11 +3,18 @@ const User = require('../models/User');
 
 const getDashboardStats = async (req, res) => {
     try {
+        
         const totalUsers = await User.countDocuments();
+        
+        
         const travelAgencies = await User.countDocuments({ role: 'Travel Agency' });
         const registeredDrivers = await User.countDocuments({ role: 'Driver' });
         const hotelPartners = await User.countDocuments({ role: 'Hotel Owner' });
 
+        
+        console.log("Backend Calculated Stats:", { totalUsers, travelAgencies, registeredDrivers, hotelPartners });
+
+        
         res.status(200).json({
             success: true,
             data: {
@@ -18,6 +25,7 @@ const getDashboardStats = async (req, res) => {
             }
         });
     } catch (error) {
+        console.error("Dashboard Stats Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

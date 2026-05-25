@@ -1,8 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/database');
+const connectDB = require('./src/config/database');
 const adminRoutes = require('./src/routes/adminRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 
 // 1. Load environment variables FIRST before anything else uses them
 dotenv.config();
@@ -31,6 +32,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/auth', authRoutes);
 
 // 5. Global Error Handler (Safety net for unhandled errors)
 app.use((err, req, res, next) => {

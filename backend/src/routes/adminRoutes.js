@@ -9,7 +9,7 @@ const {
 } = require('../controllers/adminController');
 
 // Define API endpoints for the admin dashboard
-router.get('/stats', getDashboardStats);
+router.get('/dashboard-stats', getDashboardStats);
 router.get('/users', getAllUsers);
 router.get('/activities', getRecentActivities);
 router.post('/users', createUser);

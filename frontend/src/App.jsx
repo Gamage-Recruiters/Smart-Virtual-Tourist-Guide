@@ -8,6 +8,7 @@ import ManageAds from './pages/ManageAds';
 import CreateAdvertisement from './pages/CreateAdvertisement';
 import AddNewAdmin from './pages/AddNewAdmin';
 import ViewFullDetails from './pages/ViewFullDetails';
+import Login from './pages/Login'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
        <Route path="/add-admin" element={<AddNewAdmin />} />
         <Route path="/approve-listings" element={<ApproveListings />} /> {/* Active route */}
         <Route path="/view-details/:id" element={<ViewFullDetails />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </AdminLayout>
   );
