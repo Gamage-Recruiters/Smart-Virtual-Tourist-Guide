@@ -75,6 +75,24 @@ const safetyService = {
     }
   },
 
+  // 2b. GEOCODE a location name to lat/lng via OpenWeather Geocoding API
+  async geocodeLocation(query) {
+    try {
+      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+      const response = await fetch(
+        `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)},LK&limit=1&appid=${apiKey}`
+      );
+      const data = await response.json();
+      if (data.length > 0) {
+        return { lat: data[0].lat, lng: data[0].lon, name: data[0].name };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  },
+
   // 3. EMERGENCY CONTACTS & SHARING (New: Twilio Integration)
   async shareLiveLocation(payload) {
     try {
