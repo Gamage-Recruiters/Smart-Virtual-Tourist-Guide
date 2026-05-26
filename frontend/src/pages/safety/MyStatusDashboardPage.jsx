@@ -5,7 +5,7 @@ import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 
 const CURRENT_TOURIST_ID = 'Tourist_123'
-const statusSteps = ['reported', 'investigating', 'resolved']
+
 
 export default function MyStatusDashboardPage() {
   const location = useLocation()
@@ -53,9 +53,7 @@ export default function MyStatusDashboardPage() {
     return 'Alex'
   }, [myIncidents])
 
-  const [showAllSubmissions, setShowAllSubmissions] = useState(false)
 
-  const displayedSubmissions = showAllSubmissions ? sortedMyIncidents : sortedMyIncidents.slice(0, 4)
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this incident report?')) return;
@@ -81,46 +79,6 @@ export default function MyStatusDashboardPage() {
           userName={userName}
           onDelete={handleDelete}
         />
-
-        <section className="mt-6 rounded-md bg-white p-4 shadow-md">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-extrabold text-black">My Submissions</h2>
-              <p className="mt-1 text-xs text-slate-600">Filtered by touristId: {CURRENT_TOURIST_ID}</p>
-            </div>
-            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800">
-              {myIncidents.length} reports
-            </span>
-          </div>
-
-          <div className="mt-5 space-y-4">
-            {displayedSubmissions.map((incident) => (
-              <MySubmissionCard key={incident._id || incident.id} incident={incident} />
-            ))}
-            {!loading && myIncidents.length === 0 && (
-              <p className="rounded border border-sky-200 bg-sky-50 px-4 py-3 text-xs font-semibold text-slate-700">
-                No submissions found for this touristId.
-              </p>
-            )}
-            {loading && (
-              <p className="rounded border border-sky-200 bg-sky-50 px-4 py-3 text-xs font-semibold text-slate-700">
-                Loading submissions...
-              </p>
-            )}
-          </div>
-
-          {sortedMyIncidents.length > 4 && (
-            <div className="mt-4 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowAllSubmissions(!showAllSubmissions)}
-                className="text-xs font-bold text-sky-600 hover:text-sky-800 hover:underline"
-              >
-                {showAllSubmissions ? 'Show Less' : 'Show More'}
-              </button>
-            </div>
-          )}
-        </section>
       </div>
     </main>
   )
@@ -209,31 +167,16 @@ function StatusBadge({ status }) {
   )
 }
 
-function MySubmissionCard({ incident }) {
-  const status = normalizeStatus(incident.status)
-  const activeIndex = statusSteps.indexOf(status)
 
-  return (
-    <article className="rounded border border-black bg-slate-50 p-3">
-      <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-[13px] font-extrabold text-black">{getIncidentCategory(incident)}</p>
-          <p className="text-[11px] text-slate-600">{incident.district || 'Unknown district'} | {incident.incidentDate || formatDate(incident.createdAt)}</p>
-        </div>
-        <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-bold uppercase text-slate-700">{status}</span>
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {statusSteps.map((step, index) => (
-          <div key={step} className="text-center">
-            <div className={`mx-auto h-2.5 w-2.5 rounded-full ${index <= activeIndex ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-            <div className={`mt-0.5 h-0.5 ${index <= activeIndex ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-            <p className="mt-0.5 text-[10px] font-semibold capitalize text-slate-700">{step}</p>
-          </div>
-        ))}
-      </div>
-    </article>
-  )
+function formatStatusDate(value) {
+  if (!value) return 'Date not listed'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: '2-digit',
+    year: 'numeric',
+  })
 }
 
 function getIncidentCategory(incident) {
@@ -253,22 +196,4 @@ function normalizeStatus(status) {
   if (status === 'closed') return 'resolved'
   if (status === 'investigating') return 'investigating'
   return status || 'reported'
-}
-
-function formatDate(value) {
-  if (!value) return 'Date not listed'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-US')
-}
-
-function formatStatusDate(value) {
-  if (!value) return 'Date not listed'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: '2-digit',
-    year: 'numeric',
-  })
 }

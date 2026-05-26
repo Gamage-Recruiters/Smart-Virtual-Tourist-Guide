@@ -7,7 +7,7 @@ import { useSafetyContext } from '../contexts/SafetyContext'
  * @returns {Object} - { location, error, isLoading, updateLocation }
  */
 export function useGeolocation() {
-  const { userLocation, setLoadingState, setErrorState, updateUserLocation } = useSafetyContext()
+  const { userLocation, loading, setLoadingState, setErrorState, updateUserLocation } = useSafetyContext()
   const watchIdRef = useRef(null)
   const hasInitialLocationRef = useRef(false)
 
@@ -104,7 +104,7 @@ export function useGeolocation() {
   return {
     location: userLocation,
     error: userLocation.error,
-    isLoading: false,
+    isLoading: loading.location,
     stopTracking,
     getCurrentPosition,
   }

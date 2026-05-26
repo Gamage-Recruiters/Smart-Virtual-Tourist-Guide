@@ -32,6 +32,16 @@ const safetyService = {
     }
   },
 
+  async getUserIncidents(params = {}) {
+    try {
+      const response = await apiClient.get('/incidents', { params })
+      return unwrapList(response)
+    } catch (error) {
+      console.error('Error fetching user incidents:', error)
+      throw error
+    }
+  },
+
   async createIncident(formData) {
     try {
       // FormData will be automatically handled with multipart/form-data

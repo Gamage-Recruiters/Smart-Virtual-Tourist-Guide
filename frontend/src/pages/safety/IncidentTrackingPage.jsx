@@ -44,8 +44,7 @@ export default function IncidentTrackingPage() {
 
   const categoryData = useMemo(() => countBy(scopedIncidents, getIncidentCategory), [scopedIncidents])
   const districtData = useMemo(() => countBy(scopedIncidents, (incident) => incident.district || 'Unknown'), [scopedIncidents])
-  const resolvedCount = scopedIncidents.filter((incident) => ['resolved', 'closed'].includes(incident.status)).length
-  const resolutionRate = scopedIncidents.length ? Math.round((resolvedCount / scopedIncidents.length) * 100) : 0
+
 
   return (
     <main
@@ -104,17 +103,13 @@ export default function IncidentTrackingPage() {
                       One-Tap Emergency Form
                     </Link>
                     <Link
-                      to="/safety/report-incident/form"
+                      to="/safety/report-incident"
                       className="block w-full bg-[#064796] px-5 py-5 text-center text-xs font-bold text-white hover:bg-[#053d7c]"
                     >
                       Incident Reporting Form
                     </Link>
                   </div>
                 </section>
-
-                <ChartPanel title="Resolution Rate">
-                  <ResolutionGauge value={resolutionRate} resolved={resolvedCount} total={scopedIncidents.length} />
-                </ChartPanel>
               </div>
             </section>
       </div>
@@ -239,24 +234,6 @@ function TrendChart({ incidents }) {
   )
 }
 
-function ResolutionGauge({ value, resolved, total }) {
-  const circumference = 2 * Math.PI * 48
-  const offset = circumference - (value / 100) * circumference
-
-  return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 120 120" className="h-44 w-44 -rotate-90">
-        <circle cx="60" cy="60" r="48" fill="none" stroke="#e5e7eb" strokeWidth="14" />
-        <circle cx="60" cy="60" r="48" fill="none" stroke="#22c55e" strokeWidth="14" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
-      </svg>
-      <div className="-mt-28 mb-12 text-center">
-        <p className="text-3xl font-extrabold text-black">{value}%</p>
-        <p className="text-xs font-semibold text-slate-600">resolved</p>
-      </div>
-      <p className="text-xs font-semibold text-slate-700">{resolved} of {total} incidents resolved</p>
-    </div>
-  )
-}
 
 function EmptyChart() {
   return <div className="flex h-48 items-center justify-center text-xs font-semibold text-slate-500">No incident data available</div>

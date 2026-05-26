@@ -6,7 +6,6 @@ import EmergencyCallPage from './pages/safety/EmergencyCallPage'
 import SecurityAlertsPage from './pages/safety/SecurityAlertsPage'
 import IncidentReportPage from './pages/safety/IncidentReportPage'
 import IncidentTrackingPage from './pages/safety/IncidentTrackingPage'
-import MyIncidentsPage from './pages/safety/MyIncidentsPage'
 import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage'
 import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage'
 import WeatherAlertsPage from './pages/safety/WeatherAlertsPage'
@@ -23,7 +22,7 @@ function App() {
             <Route index element={<DashboardHome />} />
             <Route path="alerts" element={<SecurityAlertsPage />} />
             <Route path="security-alerts" element={<Navigate to="/safety/alerts" replace />} />
-            <Route path="my-incidents" element={<MyIncidentsPage />} />
+            <Route path="my-incidents" element={<IncidentTrackingPage />} />
             <Route path="my-reports" element={<Navigate to="/safety/my-incidents" replace />} />
             <Route path="status-dashboard" element={<MyStatusDashboardPage />} />
             <Route path="analytics" element={<IncidentTrackingPage />} />
