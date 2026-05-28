@@ -1,12 +1,17 @@
-import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import MainPage from './pages/mainPage'
+import { RenterLoginPage } from './pages/loginPage'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <>
-      <h1 class="text-3xl font-bold underline"> Hello world!</h1>
-    </>
+   <Router>
+      <Routes>
+        <Route element={<MainPage />}>
+          <Route path="/" element={<RenterLoginPage/>} />
+        </Route>
+      </Routes>
+    </Router>
   )
 }
 
