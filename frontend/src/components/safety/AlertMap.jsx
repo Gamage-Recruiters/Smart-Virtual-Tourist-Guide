@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { SEVERITY_COLORS } from '../../constants/severityConfig';
+import MapLegend from './MapLegend';
 
 // Fix for default Leaflet marker icons not showing up correctly in React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -55,16 +57,9 @@ function MapBoundsManager({ alerts, selectedAlert, center }) {
 
 // Function to generate dynamic colors based on your backend 'severity' enum
 const getSeverityIcon = (severity) => {
-  const colors = {
-    critical: '#E53935', // Emergency Red
-    high: '#EA580C',     // Orange
-    medium: '#CA8A04',    // Yellow
-    low: '#16A34A'       // Green
-  };
-
   return L.divIcon({
     className: 'custom-div-icon',
-    html: `<div style="background-color: ${colors[severity] || '#3b82f6'}; 
+    html: `<div style="background-color: ${SEVERITY_COLORS[severity] || '#3b82f6'}; 
                width: 15px; height: 15px; border-radius: 50%; 
                border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);">
            </div>`,
@@ -182,58 +177,9 @@ const AlertMap = ({ alerts, selectedAlert, mapCenter, onPopupClose, onSelectAler
           />
         ))}
       </MapContainer>
-      
-      {/* Visual branding as per your UI report */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-white/80 px-2 py-1 rounded text-[10px] font-bold text-slate-500">
-        Live Security Feed | Sri Lanka
-      </div>
 
       {/* Color legend overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '16px',
-          right: '16px',
-          zIndex: 1000,
-          background: 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(6px)',
-          border: '1px solid rgba(100,116,139,0.25)',
-          borderRadius: '10px',
-          padding: '8px 14px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-          pointerEvents: 'none',
-        }}
-      >
-        <p style={{ margin: '0 0 7px 0', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
-          Priority Level
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          {[
-            { color: '#E53935', label: 'Critical' },
-            { color: '#F97316', label: 'High' },
-            { color: '#EAB308', label: 'Medium' },
-            { color: '#22C55E', label: 'Low' },
-          ].map(({ color, label }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '11px',
-                  height: '11px',
-                  borderRadius: '50%',
-                  background: color,
-                  flexShrink: 0,
-                  border: '2px solid rgba(0,0,0,0.15)',
-                  boxShadow: `0 0 0 3px ${color}33`,
-                }}
-              />
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <MapLegend title="Priority Level" position="bottom-left" layout="horizontal" />
     </div>
   );
 };

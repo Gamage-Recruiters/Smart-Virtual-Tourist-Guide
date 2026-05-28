@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FiCloud, FiNavigation, FiThermometer, FiUmbrella, FiWind, FiSun, FiCloudRain, FiCloudLightning, FiCloudDrizzle, FiCloudSnow, FiRefreshCw } from 'react-icons/fi'
 import AlertBanner from '../../components/safety/AlertBanner'
 import MapContainer from '../../components/safety/MapContainer'
+import MapLegend from '../../components/safety/MapLegend'
 import { useWeather } from '../../hooks/useSafetyData'
+import { useAutoRefresh } from '../../hooks/useAutoRefresh'
 import safetyService from '../../services/safetyService'
+import { STATUS_BADGE_STYLES, RISK_STYLES } from '../../constants/severityConfig'
+import { DISTRICT_NAMES, DISTRICT_COORDINATES_MAP } from '../../constants/sriLankaLocations'
 
 const fallbackForecast = [
   { day: 'Mon', high: 29, low: 24, condition: 'Rain' },
@@ -22,39 +26,8 @@ const fallbackDistrictRisk = [
   { area: 'Horton Plains', risk: 'Cold wind and mist', status: 'Medium', lat: 6.8021, lng: 80.8070 },
 ]
 
-const statusClass = {
-  Critical: 'bg-red-100 text-red-800',
-  High: 'bg-orange-100 text-orange-800',
-  Medium: 'bg-yellow-100 text-yellow-800',
-  Low: 'bg-green-100 text-green-800',
-}
-
-const riskStyles = {
-  Critical: {
-    bg: 'bg-red-50 border-red-200 text-red-900',
-    badge: 'bg-red-100 text-red-800 border-red-200',
-    icon: '🔴',
-    advice: 'Immediate, severe danger to safety. Halt outdoor movements and seek safe shelter instantly. Avoid mountain passes and coastal zones.',
-  },
-  High: {
-    bg: 'bg-orange-50 border-orange-200 text-orange-900',
-    badge: 'bg-orange-100 text-orange-800 border-orange-200',
-    icon: '🟠',
-    advice: 'Severe weather detected. High risk of dehydration or low visibility. Consider delaying travel and avoid waterfall trails.',
-  },
-  Medium: {
-    bg: 'bg-yellow-50 border-yellow-200 text-yellow-900',
-    badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    icon: '🟡',
-    advice: 'Passing showers or elevated heat. Proceed with your itinerary but carry an umbrella and stay hydrated.',
-  },
-  Low: {
-    bg: 'bg-green-50 border-green-200 text-green-900',
-    badge: 'bg-green-100 text-green-800 border-green-200',
-    icon: '🟢',
-    advice: 'Favourable weather conditions. Great time for sightseeing, hiking, and outdoor activities. Standard precautions apply.',
-  },
-}
+const statusClass = STATUS_BADGE_STYLES
+const riskStyles = RISK_STYLES
 
 function assessWeatherRisk(openWeather) {
   if (!openWeather) return { status: 'Low', risk: 'Fetching conditions...' }
@@ -139,33 +112,7 @@ export default function WeatherAlertsPage() {
   const [weatherFetchedAt, setWeatherFetchedAt] = useState(null)
   const [updatedAgoText, setUpdatedAgoText] = useState('Just now')
 
-  const coordinates = {
-    'Ampara': { lat: 7.2912, lng: 81.6724 },
-    'Anuradhapura': { lat: 8.3114, lng: 80.4037 },
-    'Badulla': { lat: 6.9847, lng: 81.0565 },
-    'Batticaloa': { lat: 7.7102, lng: 81.6924 },
-    'Colombo': { lat: 6.9271, lng: 79.8612 },
-    'Galle': { lat: 6.0328, lng: 80.2150 },
-    'Gampaha': { lat: 7.0840, lng: 80.0098 },
-    'Hambantota': { lat: 6.1246, lng: 81.1213 },
-    'Jaffna': { lat: 9.6615, lng: 80.0255 },
-    'Kalutara': { lat: 6.5854, lng: 79.9607 },
-    'Kandy': { lat: 7.2906, lng: 80.6337 },
-    'Kegalle': { lat: 7.2513, lng: 80.3464 },
-    'Kilinochchi': { lat: 9.3803, lng: 80.3770 },
-    'Kurunegala': { lat: 7.4818, lng: 80.3609 },
-    'Mannar': { lat: 8.9810, lng: 79.9044 },
-    'Matale': { lat: 7.4675, lng: 80.6234 },
-    'Matara': { lat: 5.9549, lng: 80.5550 },
-    'Monaragala': { lat: 6.8728, lng: 81.3507 },
-    'Mullaitivu': { lat: 9.2671, lng: 80.8142 },
-    'Nuwara Eliya': { lat: 6.9497, lng: 80.7891 },
-    'Polonnaruwa': { lat: 7.9403, lng: 81.0188 },
-    'Puttalam': { lat: 8.0330, lng: 79.8260 },
-    'Ratnapura': { lat: 6.7056, lng: 80.3847 },
-    'Trincomalee': { lat: 8.5874, lng: 81.2152 },
-    'Vavuniya': { lat: 8.7542, lng: 80.4982 },
-  }
+  const coordinates = DISTRICT_COORDINATES_MAP
 
   const selectedCoords = coordinates[district] || coordinates['Nuwara Eliya']
   const { data: weatherData = {}, isLoading, error, refetch } = useWeather(selectedCoords)
@@ -178,12 +125,7 @@ export default function WeatherAlertsPage() {
   }, [weatherData])
 
   // Auto-refresh weather & forecast every 5 minutes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetch()
-    }, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [refetch])
+  useAutoRefresh(refetch)
 
   // Update the relative "Updated X ago" text every 30 seconds
   useEffect(() => {
@@ -258,7 +200,7 @@ export default function WeatherAlertsPage() {
   const [alertsLoading, setAlertsLoading] = useState(false)
   const [emergencyWarning, setEmergencyWarning] = useState(null)
 
-  const fetchAlerts = async () => {
+  const fetchAlerts = useCallback(async () => {
     try {
       setAlertsLoading(true)
       const result = await safetyService.getWeatherAlerts()
@@ -273,14 +215,14 @@ export default function WeatherAlertsPage() {
     } finally {
       setAlertsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchAlerts()
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchAlerts, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [fetchAlerts])
+
+  // Auto-refresh alerts every 5 minutes
+  useAutoRefresh(fetchAlerts)
 
   const markers = districtRisk.map((item) => ({
     id: item.area,
@@ -321,7 +263,7 @@ export default function WeatherAlertsPage() {
                   onChange={(event) => setDistrict(event.target.value)}
                   className="h-5 w-40 border border-black bg-white px-2 text-xs font-normal"
                 >
-                  {Object.keys(coordinates).map(dist => (
+                  {DISTRICT_NAMES.map(dist => (
                     <option key={dist} value={dist}>{dist}</option>
                   ))}
                 </select>
@@ -379,54 +321,7 @@ export default function WeatherAlertsPage() {
             <div className="relative h-[560px]">
               <MapContainer center={[7.25, 80.75]} zoom={8} markers={markers} />
 
-              {/* ── Color legend overlay (bottom-left corner of the map) ── */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  left: '16px',
-                  zIndex: 1000,
-                  background: 'rgba(255,255,255,0.92)',
-                  backdropFilter: 'blur(6px)',
-                  border: '1px solid rgba(100,116,139,0.25)',
-                  borderRadius: '10px',
-                  padding: '8px 14px',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                  pointerEvents: 'none',
-                }}
-              >
-                {/* Title row */}
-                <p style={{ margin: '0 0 7px 0', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
-                  Risk Level
-                </p>
-                {/* All three items in a single horizontal row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-                  {[
-                    { color: '#e53935', label: 'Critical' },
-                    { color: '#f97316', label: 'High' },
-                    { color: '#eab308', label: 'Medium' },
-                    { color: '#22c55e', label: 'Low' },
-                  ].map(({ color, label }) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          width: '11px',
-                          height: '11px',
-                          borderRadius: '50%',
-                          background: color,
-                          flexShrink: 0,
-                          border: '2px solid rgba(0,0,0,0.15)',
-                          boxShadow: `0 0 0 3px ${color}33`,
-                        }}
-                      />
-                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#475569' }}>
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <MapLegend title="Risk Level" position="bottom-left" layout="horizontal" />
             </div>
           </div>
         </section>

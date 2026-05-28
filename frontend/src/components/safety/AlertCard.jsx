@@ -1,33 +1,10 @@
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { SEVERITY_CARD_STYLES } from '../../constants/severityConfig';
 
-const severityStyles = {
-  critical: {
-    border: 'border-[#B91C1C]',
-    bg: 'bg-[#FEF2F2]',
-    text: 'text-[#B91C1C]',
-    iconBg: 'bg-[#E53935]',
-  },
-  high: {
-    border: 'border-[#EA580C]',
-    bg: 'bg-[#FFF7ED]',
-    text: 'text-[#EA580C]',
-    iconBg: 'bg-[#F97316]',
-  },
-  medium: {
-    border: 'border-[#CA8A04]',
-    bg: 'bg-[#FEFCE8]',
-    text: 'text-[#CA8A04]',
-    iconBg: 'bg-[#EAB308]',
-  },
-  low: {
-    border: 'border-[#16A34A]',
-    bg: 'bg-[#F0FDF4]',
-    text: 'text-[#16A34A]',
-    iconBg: 'bg-[#22C55E]',
-  },
-};
+const severityStyles = SEVERITY_CARD_STYLES;
 
+// Legacy alias kept for readability in JSX below
 const AlertCard = ({ alert, onSelect, isSelected }) => {
   const cardRef = React.useRef(null);
   const style = severityStyles[alert.severity] || severityStyles.low;
