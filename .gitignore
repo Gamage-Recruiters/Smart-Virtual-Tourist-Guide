@@ -148,3 +148,4 @@ config.bat
 
 # Temporary files & folders
 temp/
+tmp/
