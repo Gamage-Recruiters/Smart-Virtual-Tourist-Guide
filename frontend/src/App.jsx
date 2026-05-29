@@ -1,13 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Marketplace from './pages/BookingMarketplace.jsx'
+import { useState } from 'react'
 
 function App() {
+  const [count, setCount] = useState(0)
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Marketplace />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <h1 class="text-3xl font-bold underline"> Hello world!</h1>
+    </>
   )
 }
 
