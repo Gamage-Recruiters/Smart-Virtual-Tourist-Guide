@@ -1,15 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import MainPage from './pages/mainPage'
 import { RenterLoginPage } from './pages/loginPage'
+import RegisterPage from './pages/registerPage'
 
 function App() {
 
   return (
    <Router>
       <Routes>
-        <Route element={<MainPage />}>
-          <Route path="/" element={<RenterLoginPage/>} />
-        </Route>
+          <Route path="/login" element={<RenterLoginPage/>} />
+          <Route path="/register" element={<RegisterPage/>} />
       </Routes>
     </Router>
   )
