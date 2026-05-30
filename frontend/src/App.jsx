@@ -4,6 +4,7 @@ import Home_Page from "./pages/Home_Page";
 import Drivers_Card from "./components/marketplace/Drivers_Card";
 import Vehicles_Card from "./components/marketplace/Vehicles_Card";
 import Submit_Bids from "./components/bidding/Submit_Bids";
+import Driver_Details from "./components/bidding/Driver_Deatils";
 
 export default function App() {
   return (
@@ -19,7 +20,8 @@ export default function App() {
           <Route path="restaurants" element={<div className="p-10 bg-[#EBF1FF] rounded-b-2xl font-bold text-center">Restaurants Coming Soon...</div>} />
           <Route path="activities" element={<div className="p-10 bg-[#EBF1FF] rounded-b-2xl font-bold text-center">Activities Coming Soon...</div>} />
         </Route>
-        <Route path="submit-bids" element={<Submit_Bids />} />
+        <Route path="driver-details" element={<Driver_Details />} />
+        <Route path="submit-bids/:tripId" element={<Submit_Bids />} />
       </Routes>
     </BrowserRouter>
   );

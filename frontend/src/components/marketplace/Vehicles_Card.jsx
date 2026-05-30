@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  FaStar, FaSearch, FaPlus, FaCogs, FaUsers, FaGasPump 
+  FaCogs, FaUsers
 } from 'react-icons/fa';
 import tuk from '../../assets/vehiclecard/tuk.png';
 

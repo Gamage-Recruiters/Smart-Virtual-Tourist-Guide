@@ -1,6 +1,5 @@
 
 import React from "react";
-import Header from "./Header";
 import Decore from "../assets/Decore.png";
 
 export default function Main_Layout() {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
-  FaCar, FaSuitcaseRolling, FaCompass, FaHotel, FaUtensils, FaRunning, 
-  FaStar, FaSearch, FaPlus 
+  FaStar 
 } from 'react-icons/fa';
 import D0 from '../../assets/dirvercard/D0.png';
 
