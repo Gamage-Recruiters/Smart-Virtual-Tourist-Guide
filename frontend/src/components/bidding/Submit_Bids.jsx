@@ -14,8 +14,6 @@ export default function Submit_Bids() {
   const [otherBids, setOtherBids] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Temporary driver name
-  // Later login user name / driver id walin ganna
   const driverName = "Kamal";
 
   const fetchBids = async () => {
