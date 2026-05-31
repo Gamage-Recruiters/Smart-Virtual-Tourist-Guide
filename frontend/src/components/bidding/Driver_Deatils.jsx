@@ -23,8 +23,6 @@ export default function Driver_Details() {
 
   const [loading, setLoading] = useState(false);
 
-  // Temporary trip id
-  // later real trip id eka pass karanna
   const tripId = "TRIP001";
 
   const handleSaveDriverDetails = async () => {
