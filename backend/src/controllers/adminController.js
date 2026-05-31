@@ -1,4 +1,5 @@
 // controllers/adminController.js
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const getDashboardStats = async (req, res) => {
@@ -99,10 +100,64 @@ const updateUserStatus = async (req, res) => {
     }
 };
 
+// Add New Admin Logic
+// Add New Admin Logic
+const addNewAdmin = async (req, res) => {
+  try {
+    const { 
+      role, 
+      fullName, 
+      email, 
+      phoneNumber, 
+      location, 
+      username, 
+      password,
+      permissions 
+    } = req.body;
+
+    // Validate required fields
+    if (!fullName || !email || !password || !username) {
+      return res.status(400).json({ success: false, message: 'Required fields are missing.' });
+    }
+
+    // Check for existing user by email or username
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Email or Username already exists.' });
+    }
+
+    // Hash the password for security
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Map frontend fields to database schema and save
+    const newAdmin = new User({
+      name: fullName,          // Mapping fullName to name
+      email: email,
+      phone: phoneNumber,      // Mapping phoneNumber to phone
+      location: location,
+      username: username,
+      password: hashedPassword,
+      role: role,
+      permissions: permissions || [], 
+      status: 'Active'
+    });
+
+    await newAdmin.save();
+
+    res.status(201).json({ success: true, message: 'New Admin added successfully!' });
+
+  } catch (error) {
+    console.error("Error in addNewAdmin:", error);
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+  }
+};
+
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
     getRecentActivities,
     createUser,
-    updateUserStatus 
+    updateUserStatus,
+     addNewAdmin
 };

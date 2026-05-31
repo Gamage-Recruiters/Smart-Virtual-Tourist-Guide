@@ -1,8 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiShield, FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiCheck } from 'react-icons/fi';
 
 const AddNewAdmin = () => {
+  const navigate = useNavigate();
+
+  // State for form fields
+  const [formData, setFormData] = useState({
+    role: 'Admin', // Default to Admin to match backend enum
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    location: '',
+    username: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  // State for loading indicator
+  const [loading, setLoading] = useState(false);
+
+  // State for permissions (defaulting to first two as checked)
+  const [selectedPermissions, setSelectedPermissions] = useState([1, 2]);
+
   const permissions = [
     { id: 1, title: 'Manage Users', desc: 'Add, edit, and remove users' },
     { id: 2, title: 'Manage Listings', desc: 'Approve and manage package listings' },
@@ -12,6 +32,66 @@ const AddNewAdmin = () => {
     { id: 6, title: 'Manage Site Settings', desc: 'Configure site settings' },
     { id: 7, title: 'Moderate Reviews', desc: 'Approve and manage reviews' },
   ];
+
+  // Handle standard input changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle checkbox changes dynamically
+  const handlePermissionChange = (id) => {
+    setSelectedPermissions(prev => 
+      prev.includes(id) 
+        ? prev.filter(permId => permId !== id) 
+        : [...prev, id]
+    );
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Password validation
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/admin/add-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role: formData.role,
+          fullName: formData.fullName,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          location: formData.location,
+          username: formData.username,
+          password: formData.password,
+          permissions: selectedPermissions // Send selected checkbox IDs
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Administrator successfully created!');
+        navigate('/user-management'); // Redirect back to management table
+      } else {
+        alert(result.message || 'Failed to create admin.');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      alert('Cannot connect to the server.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-16 pt-8 px-6 md:px-12">
@@ -25,7 +105,7 @@ const AddNewAdmin = () => {
 
         {/* Form Container */}
         <div className="flex flex-col gap-6">
-          <form>
+          <form onSubmit={handleSubmit}>
             
             {/* 1. Account Type */}
             <div className="bg-white rounded-[16px] shadow-sm p-8 border border-red-100">
@@ -34,10 +114,15 @@ const AddNewAdmin = () => {
               </h2>
               <div className="mb-4">
                 <label className="block text-[13px] font-bold text-[#111111] mb-2">Select Role*</label>
-                <select className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2]">
-                  <option>Administrator (Full System Access)</option>
-                  <option>Moderator (Limited Access)</option>
-                  <option>Editor (Content Only)</option>
+                <select 
+                  name="role" 
+                  value={formData.role} 
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2]"
+                >
+                  <option value="Admin">Administrator (Full System Access)</option>
+                  <option value="Moderator">Moderator (Limited Access)</option>
+                  <option value="Editor">Editor (Content Only)</option>
                 </select>
               </div>
               <p className="text-[13px] text-blue-600 bg-blue-50 p-3 rounded-[8px] font-medium text-center">
@@ -57,7 +142,15 @@ const AddNewAdmin = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiUser className="text-gray-400" />
                   </div>
-                  <input type="text" placeholder="e.g. Sahan Anuradha" className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                  <input 
+                    type="text" 
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. Sahan Anuradha" 
+                    className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                  />
                 </div>
               </div>
 
@@ -68,7 +161,15 @@ const AddNewAdmin = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <FiMail className="text-gray-400" />
                     </div>
-                    <input type="email" placeholder="email@example.com" className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                    <input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="email@example.com" 
+                      className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                    />
                   </div>
                 </div>
                 <div>
@@ -77,7 +178,15 @@ const AddNewAdmin = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <FiPhone className="text-gray-400" />
                     </div>
-                    <input type="text" placeholder="+94 71 234 5678" className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                    <input 
+                      type="text" 
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      required
+                      placeholder="+94 71 234 5678" 
+                      className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                    />
                   </div>
                 </div>
               </div>
@@ -88,7 +197,14 @@ const AddNewAdmin = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiMapPin className="text-gray-400" />
                   </div>
-                  <input type="text" placeholder="City, Country" className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                  <input 
+                    type="text" 
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="City, Country" 
+                    className="w-full pl-10 pr-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                  />
                 </div>
               </div>
             </div>
@@ -101,17 +217,40 @@ const AddNewAdmin = () => {
               
               <div className="mb-6">
                 <label className="block text-[13px] font-bold text-[#111111] mb-2">User name*</label>
-                <input type="text" className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2]" />
+                <input 
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2]" 
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <div>
                   <label className="block text-[13px] font-bold text-[#111111] mb-2">Password*</label>
-                  <input type="password" placeholder="Minimum 8 characters" className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                  <input 
+                    type="password" 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="Minimum 8 characters" 
+                    className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                  />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-[#111111] mb-2">Confirm Password*</label>
-                  <input type="password" placeholder="Re - enter password" className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" />
+                  <input 
+                    type="password" 
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    placeholder="Re - enter password" 
+                    className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-white text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] placeholder-gray-400" 
+                  />
                 </div>
               </div>
               <p className="text-[13px] text-blue-600 bg-blue-50 p-3 rounded-[8px] font-medium text-center mt-4">
@@ -129,7 +268,12 @@ const AddNewAdmin = () => {
                 {permissions.map((perm) => (
                   <label key={perm.id} className="flex items-start gap-4 p-4 border border-gray-100 rounded-[8px] hover:bg-blue-50/30 cursor-pointer transition-colors">
                     <div className="relative flex items-center justify-center mt-1">
-                      <input type="checkbox" className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-[4px] checked:bg-[#1877F2] checked:border-[#1877F2] cursor-pointer transition-colors" defaultChecked={perm.id <= 2} />
+                      <input 
+                        type="checkbox" 
+                        checked={selectedPermissions.includes(perm.id)}
+                        onChange={() => handlePermissionChange(perm.id)}
+                        className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-[4px] checked:bg-[#1877F2] checked:border-[#1877F2] cursor-pointer transition-colors" 
+                      />
                       <FiCheck className="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none" size={14} />
                     </div>
                     <div className="flex flex-col">
@@ -148,8 +292,12 @@ const AddNewAdmin = () => {
                   Cancel
                 </button>
               </Link>
-              <button type="button" className="px-10 py-3 bg-[#1877F2] border border-transparent rounded-[8px] text-[14px] font-bold text-white hover:bg-blue-600 transition-colors shadow-sm flex items-center gap-2">
-                <FiUser size={18} /> Create Administrator
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="px-10 py-3 bg-[#1877F2] border border-transparent rounded-[8px] text-[14px] font-bold text-white hover:bg-blue-600 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <FiUser size={18} /> {loading ? 'Creating...' : 'Create Administrator'}
               </button>
             </div>
             

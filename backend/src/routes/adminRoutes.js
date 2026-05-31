@@ -5,7 +5,8 @@ const {
     getAllUsers, 
     getRecentActivities,
     createUser,
-    updateUserStatus 
+    updateUserStatus,
+    addNewAdmin 
 } = require('../controllers/adminController');
 
 // Define API endpoints for the admin dashboard
@@ -14,8 +15,9 @@ router.get('/users', getAllUsers);
 router.get('/activities', getRecentActivities);
 router.post('/users', createUser);
 
+
 // Route to create a new user (POST request)
 router.post('/users', createUser);
 router.put('/users/:id/status', updateUserStatus);
-
+router.post('/add-admin', addNewAdmin);
 module.exports = router;
