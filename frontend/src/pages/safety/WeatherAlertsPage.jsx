@@ -253,7 +253,7 @@ export default function WeatherAlertsPage() {
           <AlertBanner type="warning" title="Live weather unavailable" message="Showing fallback travel-safety data until the backend responds." />
         )}
 
-        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[380px_1fr]">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-3 text-xs font-bold text-black mb-2">
@@ -271,18 +271,18 @@ export default function WeatherAlertsPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-lg border border-black bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-slate-500">Current conditions</p>
-                  <h2 className="mt-1 text-4xl font-bold text-slate-900">
+                  <h2 className="mt-1 text-3xl font-bold text-slate-900">
                     {isLoading ? '--' : weather.temperature || '--'} C
                   </h2>
-                  <p className="mt-1 text-slate-600">{weather.condition || 'Partly cloudy'}</p>
+                  <p className="mt-1 text-sm text-slate-600">{weather.condition || 'Partly cloudy'}</p>
                 </div>
-                <FiCloud className="text-blue-500" size={40} />
+                <FiCloud className="text-blue-500" size={36} />
               </div>
-              <div className="mt-6 grid grid-cols-1 gap-3">
+              <div className="mt-4 grid grid-cols-1 gap-2">
                 <WeatherStat icon={<FiUmbrella />} label="Humidity" value={`${weather.humidity || '--'}%`} />
                 <WeatherStat icon={<FiWind />} label="Wind" value={`${weather.windSpeed || '--'} km/h ${weather.windDirection || ''}`} />
                 <WeatherStat icon={<FiThermometer />} label="Updated" value={updatedAgoText} />
@@ -311,79 +311,77 @@ export default function WeatherAlertsPage() {
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Live weather map</h2>
-            </div>
-            {/* Map + legend wrapper — position:relative so the legend overlay is anchored */}
-            <div className="relative h-[560px]">
-              <MapContainer center={[7.25, 80.75]} zoom={8} markers={markers} />
-
-              <MapLegend title="Risk Level" position="bottom-left" layout="horizontal" />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-slate-900">7-day forecast</h2>
-          <div className="mt-4 grid grid-cols-7 gap-3">
-            {forecastList.map((day) => (
-              <div key={day.day} className="rounded-lg border border-slate-200 p-3 flex flex-col items-center text-center">
-                <p className="font-bold text-slate-900">{day.day}</p>
-                <div className="my-2">
-                  {getWeatherIcon(day.condition)}
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Live district alerts</h2>
+                  {alertsUpdatedAt && (
+                    <p className="text-xs text-slate-500 mt-1">Last updated: {new Date(alertsUpdatedAt).toLocaleTimeString()}</p>
+                  )}
                 </div>
-                <p className="mt-1 text-sm text-slate-600">{day.condition}</p>
-                <p className="mt-2 font-semibold text-slate-800">{day.high} C / {day.low} C</p>
+                <button
+                  onClick={fetchAlerts}
+                  disabled={alertsLoading}
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50"
+                >
+                  <FiRefreshCw className={alertsLoading ? 'animate-spin' : ''} size={14} />
+                  Refresh
+                </button>
               </div>
-            ))}
+              <div className="mt-4 overflow-x-auto overflow-y-auto max-h-64 flex-1 rounded-md border border-slate-100 custom-scrollbar">
+                <table className="w-full min-w-full text-left text-sm relative">
+                  <thead className="bg-slate-50 text-slate-600 sticky top-0 shadow-sm z-10">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold">Specific Area</th>
+                      <th className="px-4 py-3 font-semibold">Risk</th>
+                      <th className="px-4 py-3 font-semibold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {districtRisk.map((item) => (
+                      <tr key={item.area} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-slate-900">{item.area}</td>
+                        <td className="px-4 py-3 text-slate-600">{item.risk}</td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass[item.status]}`}>{item.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-        </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Live district alerts</h2>
-              {alertsUpdatedAt && (
-                <p className="text-xs text-slate-500 mt-1">Last updated: {new Date(alertsUpdatedAt).toLocaleTimeString()}</p>
-              )}
+          <div className="space-y-6">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-slate-900">Live weather map</h2>
+              </div>
+              {/* Map + legend wrapper — position:relative so the legend overlay is anchored */}
+              <div className="relative h-[560px]">
+                <MapContainer center={[7.25, 80.75]} zoom={8} markers={markers} />
+
+                <MapLegend title="Risk Level" position="bottom-left" layout="horizontal" />
+              </div>
             </div>
-            <button
-              onClick={fetchAlerts}
-              disabled={alertsLoading}
-              className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50"
-            >
-              <FiRefreshCw className={alertsLoading ? 'animate-spin' : ''} size={14} />
-              Refresh
-            </button>
-          </div>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[620px] text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="px-4 py-3">Tourist area</th>
-                  <th className="px-4 py-3">Condition</th>
-                  <th className="px-4 py-3">Temp</th>
-                  <th className="px-4 py-3">Risk</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {districtRisk.map((item) => (
-                  <tr key={item.area}>
-                    <td className="px-4 py-3 font-semibold text-slate-900">{item.area}</td>
-                    <td className="px-4 py-3 text-slate-600">{item.condition || '--'}</td>
-                    <td className="px-4 py-3 text-slate-600">{item.temperature ? `${item.temperature} C` : '--'}</td>
-                    <td className="px-4 py-3 text-slate-600">{item.risk}</td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass[item.status]}`}>{item.status}</span>
-                    </td>
-                  </tr>
+
+            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm flex flex-col">
+              <h2 className="text-xl font-bold text-slate-900">7-day forecast</h2>
+              <div className="mt-4 grid grid-cols-7 gap-3">
+                {forecastList.map((day) => (
+                  <div key={day.day} className="rounded-lg border border-slate-200 p-3 flex flex-col items-center text-center">
+                    <p className="font-bold text-slate-900">{day.day}</p>
+                    <div className="my-2">
+                      {getWeatherIcon(day.condition)}
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600">{day.condition}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-800">{day.high}/{day.low} °C</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </section>
           </div>
         </section>
       </div>
@@ -393,7 +391,7 @@ export default function WeatherAlertsPage() {
 
 function WeatherStat({ icon, label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-3">
+    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
       <div className="flex items-center gap-2 text-slate-600">
         {icon}
         <span>{label}</span>
