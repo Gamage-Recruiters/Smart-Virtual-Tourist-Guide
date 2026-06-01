@@ -1,8 +1,10 @@
 import { FaFacebookF } from "react-icons/fa";
 import carImage from "../assets/registerVehicle/main_car_image.png";
 import Header from "../components/header";
+import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800">
       <Header />
@@ -165,12 +167,11 @@ function RegisterPage() {
                   <div className="pt-4 space-y-4 text-center">
                     <p className="text-sm text-slate-500 font-medium">
                       Already have an account?{" "}
-                      <a
-                        href="#"
-                        className="text-[#1A73E8] font-bold hover:underline"
+                      <button onClick={()=>navigate("/login")}
+                        className="text-[#1A73E8] font-bold hover:underline cursor-pointer"
                       >
                         Sign in
-                      </a>
+                      </button>
                     </p>
 
                     <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
