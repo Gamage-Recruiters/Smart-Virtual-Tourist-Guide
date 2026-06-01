@@ -68,4 +68,24 @@ router.get('/emergency-contacts', (req, res) => {
   });
 });
 
+// --- Tourist Profile (Mock for Integration) ---
+// Note: This endpoint is set up to allow the safety module to display the correct tourist name.
+// The group member working on User Profile Management can integrate their database model/schema here.
+router.get('/tourists/profile/:id', (req, res) => {
+  const touristId = req.params.id;
+  res.status(200).json({
+    success: true,
+    data: {
+      touristId: touristId || 'Tourist_123',
+      name: 'Alex Johnson',
+      email: 'alex.johnson@example.com',
+      contactNumber: '+94 77 123 4567',
+      passportNumber: 'N1234567',
+      bloodType: 'A+',
+      allergies: 'Penicillin',
+      nationality: 'British',
+    },
+  });
+});
+
 module.exports = router;

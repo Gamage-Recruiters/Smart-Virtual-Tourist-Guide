@@ -184,6 +184,38 @@ const safetyService = {
       console.error('Error fetching emergency locations:', error)
       throw error
     }
+  },
+
+  // 8. TOURIST PROFILE
+  async getTouristProfile(touristId) {
+    try {
+      // Try safety-scoped endpoint first
+      const response = await apiClient.get(`/tourists/profile/${touristId}`)
+      return unwrapObject(response)
+    } catch (error) {
+      console.warn('Failed to fetch from /safety/tourists/profile, trying fallbacks...', error)
+      try {
+        const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/safety';
+        const apiRoot = rawApiBaseUrl.replace(/\/safety\/?$/, '');
+        
+        // Try /api/tourists/profile/:id
+        const res1 = await fetch(`${apiRoot}/tourists/profile/${touristId}`);
+        if (res1.ok) {
+          const json = await res1.json();
+          return json?.data?.data || json?.data || json;
+        }
+
+        // Try /api/profile/:id
+        const res2 = await fetch(`${apiRoot}/profile/${touristId}`);
+        if (res2.ok) {
+          const json = await res2.json();
+          return json?.data?.data || json?.data || json;
+        }
+      } catch (innerError) {
+        console.error('All profile fetch fallback attempts failed:', innerError)
+      }
+      throw error
+    }
   }
 }
 

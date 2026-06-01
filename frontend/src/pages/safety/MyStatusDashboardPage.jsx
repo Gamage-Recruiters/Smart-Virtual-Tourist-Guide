@@ -45,13 +45,51 @@ export default function MyStatusDashboardPage() {
 
   const submittedReferenceNumber = location.state?.submittedReferenceNumber
 
-  // Extract actual name from the first incident if available, else fallback
-  const userName = useMemo(() => {
-    if (myIncidents.length > 0) {
-      return myIncidents[0].reporterName || 'Alex'
+  // Fetch and manage tourist profile name instead of relying on incident reporter name
+  const [touristProfileName, setTouristProfileName] = useState(() => {
+    try {
+      const storedProfile = localStorage.getItem('touristProfile')
+      if (storedProfile) {
+        const parsed = JSON.parse(storedProfile)
+        if (parsed && parsed.name) return parsed.name
+      }
+      
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser)
+        if (parsed && parsed.name) return parsed.name
+        if (typeof parsed === 'string') return parsed
+      }
+
+      const storedName = localStorage.getItem('touristName')
+      if (storedName) return storedName
+    } catch (e) {
+      console.warn('Failed to read tourist name from localStorage:', e)
     }
     return 'Alex'
-  }, [myIncidents])
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadTouristProfile() {
+      try {
+        const profile = await safetyService.getTouristProfile(CURRENT_TOURIST_ID)
+        if (isMounted && profile && profile.name) {
+          setTouristProfileName(profile.name)
+          localStorage.setItem('touristProfile', JSON.stringify(profile))
+        }
+      } catch (error) {
+        console.warn('Could not fetch tourist profile from backend, using localStorage/default fallback:', error)
+      }
+    }
+
+    loadTouristProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
 
 
@@ -76,7 +114,7 @@ export default function MyStatusDashboardPage() {
           incidents={sortedMyIncidents}
           loading={loading}
           highlightedReferenceNumber={submittedReferenceNumber}
-          userName={userName}
+          userName={touristProfileName}
           onDelete={handleDelete}
         />
       </div>
