@@ -1,3 +1,4 @@
+import apiClient from '../services/api';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiUsers, FiCheckCircle, FiClock, FiUserX, FiSearch, FiShield, FiMoreVertical, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
@@ -11,13 +12,13 @@ const UserManagement = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/users'); // Check if this route matches your backend
-        const result = await response.json();
-
-        if (response.ok && result.success) {
+        setLoading(true);
+        const result = await apiClient.get('/admin/users');
+        
+        if (result && result.success) {
           setUsersList(result.users);
         } else {
-          setError(result.message || 'Failed to fetch users');
+          setError(result?.message || 'Failed to fetch users');
         }
       } catch (err) {
         setError('Cannot connect to the server.');
@@ -28,7 +29,6 @@ const UserManagement = () => {
 
     fetchUsers();
   }, []);
-
   // 2. Calculate dynamic stats based on the new 'status' string
   const totalUsers = usersList.length;
   const activeUsers = usersList.filter(user => user.status === 'Active').length;
@@ -63,8 +63,7 @@ const UserManagement = () => {
   };
 
   // 4. Handle Action Button Click (Fixed to update Database properly)
-  const handleActionClick = async (userId, userName, currentStatus) => {
-    // Determine what the next status should be
+ const handleActionClick = async (userId, userName, currentStatus) => {
     let newStatus = 'Suspended';
     if (currentStatus === 'Suspended' || currentStatus === 'Pending') {
       newStatus = 'Active';
@@ -75,19 +74,10 @@ const UserManagement = () => {
     
     if (confirmAction) {
       try {
-        // IMPORTANT: Sending the new status in the request body to save in the Database
-        const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus })
-        });
         
-        const result = await response.json();
+        const result = await apiClient.put(`/admin/users/${userId}/status`, { status: newStatus });
 
-        if (response.ok && result.success) {
-          // Update the UI only if database update is successful
+        if (result && result.success) {
           setUsersList(usersList.map(user => 
             user._id === userId ? { ...user, status: newStatus } : user
           ));

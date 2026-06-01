@@ -8,6 +8,7 @@ import BookingPieChart from '../components/admin/BookingPieChart';
 import RecentActivity from '../components/admin/RecentActivity';
 import { FiUsers, FiBriefcase, FiTruck, FiHome } from 'react-icons/fi';
 import HeroBg from "../assets/hero-bg.png";
+import apiClient from '../services/api';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -21,8 +22,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/dashboard-stats');
-        const result = await response.json();
+        const result = await apiClient.get('/admin/dashboard-stats');
+        
         
        
         console.log("Data received from Backend:", result);

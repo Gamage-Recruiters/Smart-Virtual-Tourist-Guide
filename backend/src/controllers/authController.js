@@ -80,66 +80,66 @@ const loginAdmin = async (req, res) => {
     logger.error('Error in loginAdmin: ', error);
     res.status(500).json({ message: 'Server error during login' });
   }
-};
-// @desc    Get all users and admins combined for the management table
-// @route   GET /api/admin/auth/users
-// @access  Public
-const getAllUsers = async (req, res) => {
-  try {
-    // 1. Fetch from User collection
-    const users = await User.find({}).select('-password').lean();
+ };
+// // @desc    Get all users and admins combined for the management table
+// // @route   GET /api/admin/auth/users
+// // @access  Public
+// const getAllUsers = async (req, res) => {
+//   try {
+//     // 1. Fetch from User collection
+//     const users = await User.find({}).select('-password').lean();
     
-    // 2. Fetch from Admin collection
-    const admins = await Admin.find({}).select('-password').lean();
+//     // 2. Fetch from Admin collection
+//     const admins = await Admin.find({}).select('-password').lean();
 
-    // 3. Combine both arrays into one
-    const combinedData = [...users, ...admins];
+//     // 3. Combine both arrays into one
+//     const combinedData = [...users, ...admins];
 
-    // 4. Sort by date (Newest first)
-    combinedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+//     // 4. Sort by date (Newest first)
+//     combinedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    res.json(combinedData);
-  } catch (error) {
-    console.error('Error fetching combined users: ', error);
-    res.status(500).json({ message: 'Server error while fetching users' });
-  }
-};
-// @desc    Toggle user/admin active status (Active <-> Suspended)
-// @route   PUT /api/admin/auth/users/:id/status
-// @access  Public
-const toggleUserStatus = async (req, res) => {
-  try {
-    const userId = req.params.id;
+//     res.json(combinedData);
+//   } catch (error) {
+//     console.error('Error fetching combined users: ', error);
+//     res.status(500).json({ message: 'Server error while fetching users' });
+//   }
+// };
+// // @desc    Toggle user/admin active status (Active <-> Suspended)
+// // @route   PUT /api/admin/auth/users/:id/status
+// // @access  Public
+// const toggleUserStatus = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
     
-    // 1. මුලින්ම සාමාන්‍ය User කෙනෙක්ද බලලා status එක මාරු කරනවා
-    let account = await User.findById(userId);
+//    
+//     let account = await User.findById(userId);
     
-    // 2. සාමාන්‍ය User කෙනෙක් නොවේ නම් Admin කෙනෙක්ද බලනවා
-    if (!account) {
-      account = await Admin.findById(userId);
-    }
+//     
+//     if (!account) {
+//       account = await Admin.findById(userId);
+//     }
 
-    if (account) {
-      // දැනට තියෙන තත්ත්වය අනෙක් පැත්තට හරවනවා (true -> false හෝ false -> true)
-      account.isActive = !account.isActive;
-      await account.save();
+//     if (account) {
+//       
+//       account.isActive = !account.isActive;
+//       await account.save();
 
-      res.json({ 
-        message: `Status updated successfully`, 
-        isActive: account.isActive 
-      });
-    } else {
-      res.status(404).json({ message: 'Account not found' });
-    }
-  } catch (error) {
-    console.error('Error toggling status:', error);
-    res.status(500).json({ message: 'Server error while updating status' });
-  }
-};
+//       res.json({ 
+//         message: `Status updated successfully`, 
+//         isActive: account.isActive 
+//       });
+//     } else {
+//       res.status(404).json({ message: 'Account not found' });
+//     }
+//   } catch (error) {
+//     console.error('Error toggling status:', error);
+//     res.status(500).json({ message: 'Server error while updating status' });
+//   }
+// };
 
 module.exports = {
   registerAdmin,
   loginAdmin,
-  getAllUsers,
-  toggleUserStatus,
+  // getAllUsers,
+  // toggleUserStatus,
 };

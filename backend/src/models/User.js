@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     location: { type: String },
     role: { 
         type: String, 
-        enum: ['Tourist', 'Driver', 'Hotel Owner', 'Travel Agency', 'Admin'], 
+        // Removed 'Admin' to prevent conflicts with the Admin collection
+        enum: ['Tourist', 'Driver', 'Hotel Owner', 'Travel Agency'], 
         default: 'Tourist' 
     },
     status: { 

@@ -1,61 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiMapPin, FiFileText, FiEye, FiCheck, FiX, FiStar } from 'react-icons/fi';
+import apiClient from '../services/api'; // Make sure this path is correct based on your folder structure
 
 const ApproveListings = () => {
-  const statCards = [
-    { id: 1, title: 'Pending Review', value: '6', subText: '3 high priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
-    { id: 2, title: 'Rejected', value: '1', subText: 'This month', subTextColor: 'text-red-500', icon: <FiXCircle size={20} className="text-gray-700" /> },
-    { id: 3, title: 'Approved', value: '1', subText: 'Needs revision', subTextColor: 'text-red-500', icon: <FiCheckCircle size={20} className="text-red-500" /> },
-    { id: 4, title: 'Avg Verification', value: '90%', subText: 'Quality score', subTextColor: 'text-blue-500', icon: <FiShield size={20} className="text-blue-500" /> },
-  ];
+  // States for dynamic data
+  const [listingsData, setListingsData] = useState([]);
+  const [stats, setStats] = useState({
+    pendingCount: 0,
+    approvedCount: 0,
+    rejectedCount: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const listingsData = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80',
-      title: 'Premium Island Tours & Transfers',
-      rating: '4.9',
-      providerInitial: 'K',
-      providerName: 'KumaraTransport Services',
-      since: 'Since 2018',
-      description: 'Professional, licensed driver with 15+ years experience. Air-conditioned luxury vehicles, English speaking, island-wide tours available. Specializing in airport transfers and multi-day tours.',
-      location: 'Negombo - Island Wide Service',
-      price: '$50 - $120 per day',
-      submittedDate: 'Submitted 2026-03-02',
-      verification: '92% Verified',
-      tags: ['AC', 'WiFi Hotspot', 'Guide', '+1 more']
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-      title: 'Cinnamon Grand Colombo',
-      rating: '4.9',
-      providerInitial: 'C',
-      providerName: 'Cinnamon Hotels & Resorts',
-      since: 'Since 2015',
-      description: 'Luxury 5-star hotel in the heart of Colombo with world-class amenities, spa facilities, and multiple dining options. Award-winning hospitality with modern rooms and exceptional service.',
-      location: 'Colombo 03, Western Province',
-      price: '$150 - $400 per night',
-      submittedDate: 'Submitted 2024-03-01',
-      verification: '95% Verified',
-      tags: ['Infinity Pool', 'Spa & Wellness', 'Fitness Center', '+4 more']
-    },
-    {
-      id: 3,
-      image: 'https://res.klook.com/image/upload/activities/h5zeuyszyjq28q9yprwq.jpg',
-      title: 'Sigiriya Rock Fortress Heritage Tour',
-      rating: '4.8',
-      providerInitial: 'C',
-      providerName: 'Cultural Heritage Tours Lanka',
-      since: 'Since 2016',
-      description: 'Expert-guided tour of the UNESCO World Heritage Site, Sigiriya Rock Fortress. Includes entrance fees, professional archaeologist guide, and photography assistance.',
-      location: 'Sigiriya, Central Province',
-      price: '$45 per person (min 2 people)',
-      submittedDate: 'Submitted 2026-02-10',
-      verification: '88% Verified',
-      tags: ['Entrance Fees Included', 'Professional Archaeologist Guide', 'Photography Spots', '+1 more']
+  // 1. Fetch Listings Data from Backend
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      // We use the apiClient to automatically handle tokens if configured
+      const response = await apiClient.get('/admin/listings/all');
+      
+      if (response.success) {
+        setListingsData(response.data.listings);
+        setStats(response.data.stats);
+      } else {
+        setError('Failed to load listings data.');
+      }
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+      setError('Cannot connect to the server. Please ensure the backend is running.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  // 2. Handle Status Update (Approve or Reject)
+  const handleStatusUpdate = async (listingId, newStatus, providerName) => {
+    const confirmMessage = newStatus === 'Approved' ? 'approve' : 'reject';
+    if (!window.confirm(`Are you sure you want to ${confirmMessage} the listing from ${providerName}?`)) {
+      return;
+    }
+
+    try {
+      const response = await apiClient.put(`/admin/listings/${listingId}/status`, { status: newStatus });
+
+      if (response.success) {
+        alert(`Listing successfully marked as ${newStatus}.`);
+        // Refresh the data to update stats and list
+        fetchListings(); 
+      } else {
+        alert(response.message || 'Failed to update status.');
+      }
+    } catch (err) {
+      console.error("Status update error:", err);
+      alert('Error updating status. Please try again.');
+    }
+  };
+
+  // Format Date Helper
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  // Static structure for Top Cards combined with Dynamic Data
+  const statCards = [
+    { id: 1, title: 'Pending Review', value: stats.pendingCount, subText: 'High priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
+    { id: 2, title: 'Rejected', value: stats.rejectedCount, subText: 'Needs revision', subTextColor: 'text-red-500', icon: <FiXCircle size={20} className="text-red-500" /> },
+    { id: 3, title: 'Approved', value: stats.approvedCount, subText: 'Live on app', subTextColor: 'text-green-600', icon: <FiCheckCircle size={20} className="text-green-500" /> },
+    { id: 4, title: 'Avg Verification', value: '90%', subText: 'Quality score', subTextColor: 'text-blue-500', icon: <FiShield size={20} className="text-blue-500" /> },
   ];
 
   return (
@@ -63,17 +81,17 @@ const ApproveListings = () => {
       
       {/* 1. Page Specific Hero Section */}
       <div 
-        className="relative w-full h-[400px] bg-cover bg-center flex items-center mb-8"
+        className="relative w-full h-[300px] bg-cover bg-center flex items-center px-6 md:px-16"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544085311-11a028465b03?w=1600&q=80')` }}
       >
-        <div className="absolute inset-0 bg-black/10"></div> 
-        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
+        <div className="absolute inset-0 bg-black/30"></div> 
+        <div className="relative z-10 text-white drop-shadow-md">
           <h1 className="text-[36px] font-bold mb-2 text-white">Listing Management</h1>
           <p className="text-[16px] font-medium text-white/90">Review and approve travel package submissions</p>
         </div>
       </div>
 
-      <div className="font-inter px-6 md:px-12 max-w-7xl mx-auto w-full">
+      <div className="px-6 md:px-12 max-w-7xl mx-auto -mt-12 relative z-20">
         
         {/* 2. Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -82,7 +100,7 @@ const ApproveListings = () => {
                <div className="flex justify-between items-start">
                   <div className="flex flex-col">
                      <h3 className="text-[16px] font-medium text-[#111111]">{stat.title}</h3>
-                     <h2 className="text-[32px] font-medium text-[#111111] mt-1">{stat.value}</h2>
+                     <h2 className="text-[32px] font-bold text-[#111111] mt-1">{loading ? '...' : stat.value}</h2>
                   </div>
                   <div className="p-2 bg-white rounded-full shadow-sm">
                     {stat.icon}
@@ -126,119 +144,128 @@ const ApproveListings = () => {
               className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
             />
           </div>
-          <div className="flex gap-4 w-full md:w-auto">
-             <button className="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-full text-[14px] font-medium shadow-sm flex items-center justify-between gap-4">
-               Sort: Date <span className="text-gray-400">▼</span>
-             </button>
-             <button className="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-full text-[14px] font-medium shadow-sm flex items-center justify-between gap-4">
-               Priority <span className="text-gray-400">▼</span>
-             </button>
-          </div>
         </div>
 
-        {/* 5. Listing Cards */}
-        <div className="flex flex-col gap-6 mb-12">
-          {listingsData.map((listing) => (
-            <div key={listing.id} className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col lg:flex-row overflow-hidden hover:shadow-md transition-shadow">
-              
-              {/* Image Section */}
-              <div className="lg:w-2/5 h-64 lg:h-auto">
-                <img src={listing.image} alt={listing.title} className="w-full h-full object-cover" />
-              </div>
-
-              {/* Content Section */}
-              <div className="lg:w-3/5 p-6 flex flex-col justify-between">
+        {/* 5. Listing Cards Display */}
+        {loading ? (
+           <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-xl shadow-sm">Loading listings data...</div>
+        ) : error ? (
+           <div className="text-center py-10 text-red-500 font-medium bg-white rounded-xl shadow-sm">{error}</div>
+        ) : listingsData.length === 0 ? (
+           <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-xl shadow-sm">No listings found in the database.</div>
+        ) : (
+          <div className="flex flex-col gap-6 mb-12">
+            {listingsData.map((listing) => (
+              <div key={listing._id} className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col lg:flex-row overflow-hidden hover:shadow-md transition-shadow relative">
                 
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-[22px] font-bold text-[#111111] leading-tight">{listing.title}</h2>
-                    <div className="flex items-center gap-1 text-[14px] font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded-md">
-                      <FiStar className="text-yellow-400 fill-current" /> {listing.rating}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-[14px]">
-                        {listing.providerInitial}
-                      </div>
-                      <span className="text-[14px] font-medium text-[#111111]">{listing.providerName}</span>
-                    </div>
-                    <span className="text-[12px] font-medium text-gray-500">{listing.since}</span>
-                  </div>
-
-                  <p className="text-[14px] text-gray-600 leading-relaxed mb-6 line-clamp-3">
-                    {listing.description}
-                  </p>
+                {/* Status Badge overlay */}
+                <div className="absolute top-4 left-4 z-10">
+                   <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                     listing.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                     listing.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                     'bg-yellow-100 text-yellow-700'
+                   }`}>
+                     {listing.status.toUpperCase()}
+                   </span>
                 </div>
 
-                <div>
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
-                        <FiMapPin className="text-gray-500" size={16} /> {listing.location}
-                      </div>
-                      <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
-                        <FiFileText className="text-gray-500" size={16} /> {listing.submittedDate}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col md:items-end gap-3">
-                      <span className="text-[14px] font-bold text-[#111111]">{listing.price}</span>
-                      <span className="text-[13px] font-medium text-[#1877F2]">{listing.verification}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-t border-gray-100 pt-6">
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {listing.tags.map((tag, index) => (
-                        <span key={index} className="bg-[#EBF4FF] text-[#1877F2] px-3 py-1.5 rounded-[6px] text-[12px] font-medium">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
-                      <Link to={`/view-details/${listing.id}`} className="flex-1 md:flex-none">
-                        <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 bg-white text-[#111111] rounded-[6px] text-[13px] font-medium hover:bg-gray-50 transition-colors">
-                          <FiEye size={16} /> View Full Details
-                        </button>
-                    </Link>
-                      <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#1877F2] text-white rounded-[6px] text-[13px] font-medium hover:bg-blue-600 transition-colors">
-                        <FiCheck size={16} /> Approve
-                      </button>
-                      <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#6A994E] text-white rounded-[6px] text-[13px] font-medium hover:bg-[#5a8342] transition-colors">
-                        <FiX size={16} /> Reject
-                      </button>
-                    </div>
-
-                  </div>
+                {/* Image Section */}
+                <div className="lg:w-2/5 h-64 lg:h-auto bg-gray-100">
+                  <img 
+                    src={listing.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80'} 
+                    alt={listing.title} 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
 
+                {/* Content Section */}
+                <div className="lg:w-3/5 p-6 flex flex-col justify-between">
+                  
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <h2 className="text-[22px] font-bold text-[#111111] leading-tight pr-4">{listing.title}</h2>
+                      <div className="flex items-center gap-1 text-[14px] font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded-md shrink-0">
+                        <FiStar className="text-yellow-400 fill-current" /> {listing.rating}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-[14px]">
+                          {listing.providerInitial || listing.providerName.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-[14px] font-medium text-[#111111]">{listing.providerName}</span>
+                      </div>
+                      <span className="text-[12px] font-medium text-gray-500">Since {listing.since || '2026'}</span>
+                    </div>
+
+                    <p className="text-[14px] text-gray-600 leading-relaxed mb-6 line-clamp-3">
+                      {listing.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
+                          <FiMapPin className="text-gray-500" size={16} /> {listing.location}
+                        </div>
+                        <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
+                          <FiFileText className="text-gray-500" size={16} /> Submitted {formatDate(listing.createdAt)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col md:items-end gap-3">
+                        <span className="text-[14px] font-bold text-[#111111]">{listing.price}</span>
+                        <span className="text-[13px] font-medium text-[#1877F2]">{listing.verificationScore}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-t border-gray-100 pt-6">
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {listing.tags && listing.tags.map((tag, index) => (
+                          <span key={index} className="bg-[#EBF4FF] text-[#1877F2] px-3 py-1.5 rounded-[6px] text-[12px] font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
+                        <Link to={`/view-details/${listing._id}`} className="flex-1 md:flex-none">
+                          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 bg-white text-[#111111] rounded-[6px] text-[13px] font-medium hover:bg-gray-50 transition-colors">
+                            <FiEye size={16} /> View Details
+                          </button>
+                        </Link>
+                        
+                        {/* Only show Approve/Reject buttons if status is Pending or Rejected */}
+                        {listing.status !== 'Approved' && (
+                          <button 
+                            onClick={() => handleStatusUpdate(listing._id, 'Approved', listing.providerName)}
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#1877F2] text-white rounded-[6px] text-[13px] font-medium hover:bg-blue-600 transition-colors"
+                          >
+                            <FiCheck size={16} /> Approve
+                          </button>
+                        )}
+                        
+                        {listing.status !== 'Rejected' && (
+                          <button 
+                            onClick={() => handleStatusUpdate(listing._id, 'Rejected', listing.providerName)}
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#6A994E] text-white rounded-[6px] text-[13px] font-medium hover:bg-[#5a8342] transition-colors"
+                          >
+                            <FiX size={16} /> Reject
+                          </button>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 6. Pagination */}
-        <div className="flex justify-center items-center gap-2 pb-8">
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
-             &lt;
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[#A855F7] text-white font-medium shadow-sm">
-             1
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-             2
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-             3
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
-             &gt;
-           </button>
-        </div>
+            ))}
+          </div>
+        )}
 
       </div>
     </div>

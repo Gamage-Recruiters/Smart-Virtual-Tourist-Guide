@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./src/config/database');
 const adminRoutes = require('./src/routes/adminRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const listingRoutes = require('./src/routes/listingRoutes');
 
 // 1. Load environment variables FIRST before anything else uses them
 dotenv.config();
@@ -31,8 +32,12 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running properly' });
 });
 
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin/listings', listingRoutes);
+
 app.use('/api/admin/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+
+
 
 // 5. Global Error Handler (Safety net for unhandled errors)
 app.use((err, req, res, next) => {

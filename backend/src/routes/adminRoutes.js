@@ -1,21 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    getDashboardStats, 
-    getAllUsers, 
-    getRecentActivities,
-    createUser,
-    updateUserStatus 
-} = require('../controllers/adminController');
+const { getDashboardStats, getAllUsers, updateUserStatus } = require('../controllers/adminController');
+const { protectAdmin } = require('../middleware/authMiddleware');
 
-// Define API endpoints for the admin dashboard
+// Apply JWT protection to all routes below this line
+router.use(protectAdmin);
+
 router.get('/dashboard-stats', getDashboardStats);
 router.get('/users', getAllUsers);
-router.get('/activities', getRecentActivities);
-router.post('/users', createUser);
-
-// Route to create a new user (POST request)
-router.post('/users', createUser);
 router.put('/users/:id/status', updateUserStatus);
 
 module.exports = router;

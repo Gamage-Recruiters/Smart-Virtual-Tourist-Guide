@@ -1,116 +1,76 @@
-// controllers/adminController.js
 const User = require('../models/User');
+const Admin = require('../models/Admin');
 
+// Fetch dashboard statistics
 const getDashboardStats = async (req, res) => {
     try {
-        
         const totalUsers = await User.countDocuments();
-        
-        
         const travelAgencies = await User.countDocuments({ role: 'Travel Agency' });
         const registeredDrivers = await User.countDocuments({ role: 'Driver' });
         const hotelPartners = await User.countDocuments({ role: 'Hotel Owner' });
 
-        
-        console.log("Backend Calculated Stats:", { totalUsers, travelAgencies, registeredDrivers, hotelPartners });
-
-        
         res.status(200).json({
             success: true,
-            data: {
-                totalUsers,
-                travelAgencies,
-                registeredDrivers,
-                hotelPartners
-            }
+            data: { totalUsers, travelAgencies, registeredDrivers, hotelPartners }
         });
     } catch (error) {
-        console.error("Dashboard Stats Error:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
+// Get all users and admins combined for the management table
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find().sort({ joinedDate: -1 });
-        res.status(200).json({ success: true, users });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
+        const users = await User.find({}).select('-password').lean();
+        const admins = await Admin.find({}).select('-password').lean();
 
-// Fetch recent activities for the dashboard
-const getRecentActivities = async (req, res) => {
-    try {
-        // Fetch the 5 most recently joined users
-        const recentUsers = await User.find()
-            .sort({ joinedDate: -1 })
-            .limit(5);
-
-        // Format the data to match the frontend requirements
-        const activities = recentUsers.map(user => ({
-            type: 'User Registration',
-            description: `${user.name} joined from ${user.location || 'Sri Lanka'}`,
-            time: user.joinedDate
-        }));
-
-        res.status(200).json({ success: true, activities });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-// Add a new user to the system (For testing and admin data entry)
-const createUser = async (req, res) => {
-    try {
-        const newUser = new User(req.body);
-        await newUser.save();
-        res.status(201).json({ 
-            success: true, 
-            message: 'User created successfully', 
-            user: newUser 
+        // Combine and format data to match frontend table requirements
+        const combinedData = [...users, ...admins].sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.joinedDate);
+            const dateB = new Date(b.createdAt || b.joinedDate);
+            return dateB - dateA; // Sort by newest first
         });
+
+        res.status(200).json({ success: true, users: combinedData });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Server error while fetching users' });
     }
 };
-// Update user status (e.g., Approve a pending user or Suspend a user)
+
+// Update user or admin status safely
 const updateUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
 
-        // Ensure the status is valid
         const validStatuses = ['Active', 'Suspended', 'Pending'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ success: false, message: 'Invalid status value' });
         }
 
-        // Find user by ID and update the status
-        const updatedUser = await User.findByIdAndUpdate(
-            id, 
-            { status }, 
-            { new: true } // This returns the updated user data
-        );
+        // 1. Check User collection first
+        let updatedAccount = await User.findByIdAndUpdate(id, { status }, { new: true });
 
-        if (!updatedUser) {
-            return res.status(404).json({ success: false, message: 'User not found' });
+        // 2. If not found in User, check Admin collection
+        if (!updatedAccount) {
+            if (status === 'Pending') {
+                return res.status(400).json({ success: false, message: 'Admins cannot have Pending status' });
+            }
+            updatedAccount = await Admin.findByIdAndUpdate(id, { status }, { new: true });
         }
 
-        res.status(200).json({ 
-            success: true, 
-            message: `User status successfully updated to ${status}`, 
-            user: updatedUser 
-        });
+        if (!updatedAccount) {
+            return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        res.status(200).json({ success: true, message: `Status updated to ${status}` });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Server error while updating status' });
     }
 };
 
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
-    getRecentActivities,
-    createUser,
     updateUserStatus 
 };
