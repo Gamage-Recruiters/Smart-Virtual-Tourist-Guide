@@ -54,7 +54,7 @@ function Dashboard() {
                 <stat.icon size={20} className={stat.color} />
               </div>
               {stat.badge && (
-                <span className={`text-[11px] font-bold ${stat.badgeColor}`}>
+                <span className={`text-xs font-bold ${stat.badgeColor}`}>
                   {stat.badge}
                 </span>
               )}
