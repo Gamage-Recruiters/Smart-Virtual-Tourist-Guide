@@ -178,7 +178,7 @@ function EarningsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-150">
             <thead>
-              <tr className="text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-100">
+              <tr className="text-sm text-slate-400 uppercase tracking-widest border-b border-slate-100">
                 <th className="pb-4 font-bold">Date</th>
                 <th className="pb-4 font-bold">ID</th>
                 <th className="pb-4 font-bold">Trip Description</th>

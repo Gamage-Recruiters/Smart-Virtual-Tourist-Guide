@@ -1,13 +1,32 @@
-import  { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Bell, Plus, Camera, Car, ShieldCheck, Building2, Trash2 } from 'lucide-react';
 
 function SettingsPage() {
   const [activeTab, setActiveTab] = useState('Profile Information');
 
+  // 1. Create refs for each section
+  const profileRef = useRef(null);
+  const documentsRef = useRef(null);
+  const securityRef = useRef(null);
+
   const tabs = ['Profile Information', 'Documents & Compliance', 'Security Settings'];
 
+  // 2. Create a handler function to manage state and scrolling
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    
+    // Scroll to the corresponding section based on the clicked tab
+    if (tab === 'Profile Information' && profileRef.current) {
+      profileRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (tab === 'Documents & Compliance' && documentsRef.current) {
+      documentsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (tab === 'Security Settings' && securityRef.current) {
+      securityRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-8 pb-10 h-full">
+    <div className="flex flex-col gap-8">
       
       {/* 1. Header Section */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -28,11 +47,11 @@ function SettingsPage() {
       </header>
 
       {/* 2. Navigation Tabs */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2">
+      <div className="flex items-center justify-center gap-3 pb-2 my-2 sticky top-0 z-10 w-full">
         {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabClick(tab)} // Use the new handler here
             className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border ${
               activeTab === tab
                 ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-md shadow-blue-200'
@@ -45,7 +64,7 @@ function SettingsPage() {
       </div>
 
       {/* 3. Profile Details Section */}
-      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border-2 border-blue-500 relative">
+      <section ref={profileRef} className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm  ${activeTab === 'Profile Information' ? 'border-2 border-[#2563EB]' : 'border border-slate-100/50'} relative scroll-mt-20`} onClick={() => handleTabClick('Profile Information')}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-extrabold text-slate-900">Profile Details</h2>
           <button className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors absolute top-6 right-8">
@@ -56,9 +75,9 @@ function SettingsPage() {
         <div className="flex flex-col md:flex-row gap-8 md:gap-12">
           {/* Avatar Upload */}
           <div className="shrink-0 flex justify-center">
-            <div className="relative">
+            <div className="relative w-28 h-28 rounded-full">
               <div className="w-28 h-28 rounded-full bg-slate-300"></div>
-              <button className="absolute bottom-0 right-0 p-2 bg-slate-500 text-white rounded-full border-4 border-white hover:bg-slate-600 transition-colors shadow-sm">
+              <button className="absolute bottom-0 right-0 p-2 bg-slate-500 text-white rounded-full border-2 border-white hover:bg-slate-600 transition-colors shadow-sm">
                 <Camera size={16} />
               </button>
             </div>
@@ -87,7 +106,7 @@ function SettingsPage() {
       </section>
 
       {/* 4. Verification Documents Section */}
-      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100/50">
+      <section ref={documentsRef} className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-20 ${activeTab === 'Documents & Compliance' ? 'border-2 border-[#2563EB]' : 'border border-slate-100/50'}`} onClick={() => handleTabClick('Documents & Compliance')}>
         <h2 className="text-lg font-extrabold text-slate-900 mb-6">Verification Documents</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -124,7 +143,7 @@ function SettingsPage() {
       </section>
 
       {/* 5. Security & Password Section */}
-      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100/50">
+      <section ref={securityRef} className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm border scroll-mt-20 ${activeTab === 'Security Settings' ? 'border-2 border-[#2563EB]' : 'border border-slate-100/50'}`} onClick={() => handleTabClick('Security Settings')}>
         <h2 className="text-lg font-extrabold text-slate-900 mb-6">Security & Password</h2>
         
         <div className="space-y-6">
@@ -145,7 +164,7 @@ function SettingsPage() {
           </div>
 
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-4">
-            <p className="text-xs text-slate-400 font-medium">Password must be at least 12 characters long with symbols.</p>
+            <p className="text-xs 2xl:text-sm text-slate-400 font-medium">Password must be at least 12 characters long with symbols.</p>
             <button className="bg-[#EA580C] text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md shadow-orange-200 hover:bg-orange-700 transition-colors w-full md:w-auto">
               Update Password
             </button>
@@ -154,11 +173,11 @@ function SettingsPage() {
       </section>
 
       {/* 6. Footer Information */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2 mt-4">
-        <p className="text-xs font-medium text-slate-500">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-2 mt-1">
+        <p className="text-sm font-medium text-slate-500">
           Last login: 2 hours ago from Colombo, Sri Lanka
         </p>
-        <button className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 transition-colors">
+        <button className="flex items-center gap-1.5 text-sm font-bold text-red-500 hover:text-red-600 transition-colors">
           <Trash2 size={14} />
           Deactivate Account
         </button>

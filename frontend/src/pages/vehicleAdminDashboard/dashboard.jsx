@@ -1,4 +1,6 @@
 import { Bell, Plus, Banknote, Truck, Star, CreditCard } from 'lucide-react';
+import AddVehicleModal from './addVehicle/addVehicleModal';
+import { useState } from 'react';
 
 // --- MOCK DATA ---
 const statsData = [
@@ -21,6 +23,7 @@ const fleetData = [
 ];
 
 function Dashboard() {
+  const [isModdalOpen, setIsModdalOpen] = useState(false);
   return (
     <div className="flex flex-col gap-8">
       {/* 1. Header Section */}
@@ -34,11 +37,12 @@ function Dashboard() {
             <Bell size={20} className="text-slate-600" />
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors">
+          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors" onClick={() => setIsModdalOpen(true)}>
             <Plus size={18} strokeWidth={3} />
             ADD NEW VEHICLE
           </button>
         </div>
+          <AddVehicleModal isOpen={isModdalOpen} onClose={() => setIsModdalOpen(false)} />
       </header>
 
       {/* 2. Stats Grid */}
