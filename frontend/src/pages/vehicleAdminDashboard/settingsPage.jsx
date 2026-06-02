@@ -86,19 +86,19 @@ function SettingsPage() {
           {/* Form Fields */}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">Full Name</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
               <input type="text" defaultValue="Ishan Lankathilaka" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">Business Name</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Business Name</label>
               <input type="text" defaultValue="Lanka Rentals" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">Contact Email</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Contact Email</label>
               <input type="email" defaultValue="Lankarentals@gmail.com" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">Phone Number</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
               <input type="text" defaultValue="+947 000-1234" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
           </div>
@@ -148,17 +148,17 @@ function SettingsPage() {
         
         <div className="space-y-6">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 ml-1">Current Password</label>
+            <label className="text-sm font-bold text-slate-700 ml-1">Current Password</label>
             <input type="password" defaultValue="********" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">New Password</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">New Password</label>
               <input type="password" defaultValue="********" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 ml-1">Confirm New Password</label>
+              <label className="text-sm font-bold text-slate-700 ml-1">Confirm New Password</label>
               <input type="password" defaultValue="********" className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all" />
             </div>
           </div>
