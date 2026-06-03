@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { Bell, Plus, Camera, Car, ShieldCheck, Building2, Trash2 } from 'lucide-react';
+import AddVehicleModal from './addVehicle/addVehicleModal';
 
 function SettingsPage() {
   const [activeTab, setActiveTab] = useState('Profile Information');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 1. Create refs for each section
   const profileRef = useRef(null);
@@ -39,11 +41,12 @@ function SettingsPage() {
             <Bell size={20} className="text-slate-600" />
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors">
+          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors" onClick={()=>setIsModalOpen(true)}>
             <Plus size={18} strokeWidth={3} />
             ADD NEW VEHICLE
           </button>
         </div>
+        <AddVehicleModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </header>
 
       {/* 2. Navigation Tabs */}
