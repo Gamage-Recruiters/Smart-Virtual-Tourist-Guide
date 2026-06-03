@@ -72,7 +72,7 @@ function AddVehicleModal({ isOpen, onClose }) {
           <button 
             onClick={prevStep}
             disabled={currentStep === 1}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all border border-slate-200 ${
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all border border-slate-200 cursor-pointer ${
               currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -81,7 +81,7 @@ function AddVehicleModal({ isOpen, onClose }) {
           
           <button 
             onClick={currentStep === 4 ? () => console.log('Submit', formData) : nextStep}
-            className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm bg-[#0B57D0] text-white hover:bg-blue-700 shadow-md transition-all"
+            className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm bg-[#0B57D0] text-white hover:bg-blue-700 shadow-md transition-all cursor-pointer"
           >
             {currentStep === 4 ? 'Submit Vehicle' : 'Next Step'} <ArrowRight size={18} />
           </button>
