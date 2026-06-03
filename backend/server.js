@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./src/configs/db.js";
 import { configureCloudinary } from "./src/configs/cloudinary.js";
+import activityRoutes from "./src/routes/activity.routes.js";
 
 // Configure cloudinary
 configureCloudinary();
@@ -13,6 +14,9 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api/activities', activityRoutes);
 
 // Port
 const PORT = process.env.PORT || 5000;
