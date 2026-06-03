@@ -8,6 +8,10 @@ export const configureCloudinary = () => {
     CLOUDINARY_URL,
   } = process.env;
 
+  if (!CLOUDINARY_URL && (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET)) {
+    return;
+  }
+
   if (CLOUDINARY_URL) {
     cloudinary.config({ cloudinary_url: CLOUDINARY_URL });
     return;

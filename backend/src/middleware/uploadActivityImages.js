@@ -1,6 +1,5 @@
 import multer from "multer";
 import { cloudinary } from "../configs/cloudinary.js";
-
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -29,6 +28,20 @@ export const uploadActivityImagesToCloudinary = async (req, res, next) => {
       return next();
     }
 
+    const hasCloudinaryConfig = Boolean(
+      process.env.CLOUDINARY_URL ||
+      (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+    );
+
+    if (!hasCloudinaryConfig) {
+      req.cloudinaryImages = (req.files || []).map((file) => ({
+        url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+        public_id: null,
+      }));
+
+      return next();
+    }
+
     const uploadOne = (file) =>
       new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -54,7 +67,13 @@ export const uploadActivityImagesToCloudinary = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("Cloudinary upload error:", err);
-    next(err);
+    const fallbackImages = (req.files || []).map((file) => ({
+      url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+      public_id: null,
+    }));
+
+    console.warn("Cloudinary upload unavailable, storing images inline.");
+    req.cloudinaryImages = fallbackImages;
+    next();
   }
 };

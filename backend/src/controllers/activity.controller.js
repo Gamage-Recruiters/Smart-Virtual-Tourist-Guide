@@ -1,5 +1,13 @@
 import Activity from '../models/activity.model.js';
 
+const normalizeImages = (images = []) =>
+  [...new Set(
+    images
+      .filter((image) => typeof image === 'string')
+      .map((image) => image.trim())
+      .filter((image) => image && image !== '/uploads/undefined')
+  )].slice(0, 8);
+
 // GET /api/activities
 // Query params: category, status, search, page, limit
 export const getActivities = async (req, res) => {
@@ -18,9 +26,15 @@ export const getActivities = async (req, res) => {
       Activity.countDocuments(query),
     ]);
 
+    const data = activities.map((activity) => {
+      const item = activity.toObject();
+      item.images = normalizeImages(item.images);
+      return item;
+    });
+
     res.json({
       success: true,
-      data: activities,
+      data,
       pagination: {
         total,
         page: parseInt(page, 10),
@@ -38,7 +52,9 @@ export const getActivityById = async (req, res) => {
   try {
     const activity = await Activity.findById(req.params.id);
     if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
-    res.json({ success: true, data: activity });
+    const data = activity.toObject();
+    data.images = normalizeImages(data.images);
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -52,11 +68,9 @@ export const createActivity = async (req, res) => {
       maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status,
     } = req.body;
 
-    // Prefer cloudinary uploads (middleware sets req.cloudinaryImages),
-    // fallback to local uploads (req.files) if present.
-    const images = (req.cloudinaryImages && req.cloudinaryImages.length)
-      ? req.cloudinaryImages.map((i) => i.url)
-      : (req.files ? req.files.map((f) => `/uploads/${f.filename}`) : []);
+    const images = normalizeImages(
+      (req.cloudinaryImages || []).map((i) => i.url)
+    );
 
     let equipment = requiredEquipment;
     if (typeof requiredEquipment === 'string') {
@@ -98,14 +112,15 @@ export const updateActivity = async (req, res) => {
       maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, existingImages,
     } = req.body;
 
-    const newImages = (req.cloudinaryImages && req.cloudinaryImages.length)
-      ? req.cloudinaryImages.map((i) => i.url)
-      : (req.files ? req.files.map((f) => `/uploads/${f.filename}`) : []);
+    const newImages = normalizeImages(
+      (req.cloudinaryImages || []).map((i) => i.url)
+    );
 
     let kept = existingImages || [];
     if (typeof kept === 'string') {
       try { kept = JSON.parse(kept); } catch { kept = []; }
     }
+    kept = normalizeImages(Array.isArray(kept) ? kept : []);
 
     let equipment = requiredEquipment;
     if (typeof requiredEquipment === 'string') {
@@ -124,13 +139,16 @@ export const updateActivity = async (req, res) => {
         pricePerPerson: pricePerPerson ? parseFloat(pricePerPerson) : activity.pricePerPerson,
         requiredEquipment: equipment || activity.requiredEquipment,
         safetyNotes: safetyNotes !== undefined ? safetyNotes : activity.safetyNotes,
-        images: [...kept, ...newImages].slice(0, 8),
+        images: normalizeImages([...kept, ...newImages]),
         status: status || activity.status,
       },
       { returnDocument: 'after', runValidators: true }
     );
 
-    res.json({ success: true, data: updated, message: 'Activity updated successfully' });
+    const data = updated.toObject();
+    data.images = normalizeImages(data.images);
+
+    res.json({ success: true, data, message: 'Activity updated successfully' });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map((e) => e.message);

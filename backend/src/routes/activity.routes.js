@@ -1,6 +1,9 @@
 import express from 'express';
 import activityController from '../controllers/activity.controller.js';
-import { uploadActivityImages } from '../middleware/uploadActivityImages.js';
+import {
+	uploadActivityImages,
+	uploadActivityImagesToCloudinary,
+} from '../middleware/uploadActivityImages.js';
 
 const router = express.Router();
 
@@ -11,10 +14,20 @@ router.get('/', activityController.getActivities);
 router.get('/:id', activityController.getActivityById);
 
 // Create activity (with optional image upload middleware)
-router.post('/', uploadActivityImages.array('images', 5), activityController.createActivity);
+router.post(
+	'/',
+	uploadActivityImages.array('images', 5),
+	uploadActivityImagesToCloudinary,
+	activityController.createActivity
+);
 
 // Update activity
-router.put('/:id', uploadActivityImages.array('images', 5), activityController.updateActivity);
+router.put(
+	'/:id',
+	uploadActivityImages.array('images', 5),
+	uploadActivityImagesToCloudinary,
+	activityController.updateActivity
+);
 
 // Delete activity
 router.delete('/:id', activityController.deleteActivity);
