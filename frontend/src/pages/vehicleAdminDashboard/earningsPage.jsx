@@ -112,7 +112,7 @@ function EarningsPage() {
           </p>
         </div>
         <div>
-          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors" onClick={() => setIsModalOpen(true)}>
+          <button className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer" onClick={() => setIsModalOpen(true)}>
             <Plus size={18} strokeWidth={3} />
             ADD NEW VEHICLE
           </button>
