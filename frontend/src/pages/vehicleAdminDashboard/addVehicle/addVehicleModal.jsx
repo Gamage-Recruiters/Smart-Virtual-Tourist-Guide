@@ -20,7 +20,16 @@ function AddVehicleModal({ isOpen, onClose }) {
     fuelType: 'Hybrid',
     passengers: 1,
     luggage: 1,
-    // ... other fields
+    vehicleInsurance: null,
+    revenueLicense: null,
+    location: "",
+    photos: {
+      exterior: "",
+      interior: "",
+      side: "",
+      dashboard: "",
+    },
+    rentalPrice: "",
   });
 
   // Early return if the modal shouldn't be visible
