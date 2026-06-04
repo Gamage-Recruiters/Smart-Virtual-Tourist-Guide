@@ -1,6 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./configs/database');
+const restaurantRoutes = require('./routes/restaurant.routes');
+const menuItemRoutes = require('./routes/menuItem.routes');
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +20,10 @@ connectDB();
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
 });
+
+// Routes
+app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/menu', menuItemRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
