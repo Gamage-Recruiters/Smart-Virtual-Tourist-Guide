@@ -1,4 +1,5 @@
 const MenuItem = require("../models/menuItem.model");
+const Restaurant = require("../models/restaurant.model");
 
 const REQUIRED_FIELDS = ["restaurantId", "name", "category", "price"];
 
@@ -10,6 +11,16 @@ const isValidFoodType = (value) => {
   return (
     value === "Vegetarian" || value === "Non-Vegetarian" || value === "Vegan"
   );
+};
+
+const getErrorResponse = (error) => {
+  if (error?.name === "CastError") {
+    return { status: 400, message: "Invalid id format" };
+  }
+  if (error?.name === "ValidationError") {
+    return { status: 400, message: "Validation error" };
+  }
+  return { status: 500, message: "Server error" };
 };
 
 const createMenuItem = async (req, res) => {
@@ -36,10 +47,16 @@ const createMenuItem = async (req, res) => {
       });
     }
 
+    const restaurant = await Restaurant.findById(req.body.restaurantId);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
     const menuItem = await MenuItem.create(req.body);
     return res.status(201).json(menuItem);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -51,7 +68,8 @@ const getMenuItemsByRestaurant = async (req, res) => {
     });
     return res.status(200).json(menuItems);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -63,7 +81,8 @@ const getMenuItemById = async (req, res) => {
     }
     return res.status(200).json(menuItem);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -95,7 +114,8 @@ const updateMenuItem = async (req, res) => {
 
     return res.status(200).json(menuItem);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -107,7 +127,8 @@ const deleteMenuItem = async (req, res) => {
     }
     return res.status(200).json({ message: "Menu item deleted" });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -123,7 +144,8 @@ const toggleAvailability = async (req, res) => {
 
     return res.status(200).json(menuItem);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -142,7 +164,8 @@ const searchMenuItems = async (req, res) => {
 
     return res.status(200).json(menuItems);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 

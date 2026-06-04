@@ -17,6 +17,16 @@ const isValidFoodType = (value) => {
   return value === "Restaurant" || value === "Home Based";
 };
 
+const getErrorResponse = (error) => {
+  if (error?.name === "CastError") {
+    return { status: 400, message: "Invalid id format" };
+  }
+  if (error?.name === "ValidationError") {
+    return { status: 400, message: "Validation error" };
+  }
+  return { status: 500, message: "Server error" };
+};
+
 const createRestaurantProfile = async (req, res) => {
   try {
     const missing = isMissingRequired(req.body);
@@ -37,7 +47,8 @@ const createRestaurantProfile = async (req, res) => {
     const restaurant = await Restaurant.create(req.body);
     return res.status(201).json(restaurant);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -49,7 +60,8 @@ const getRestaurantProfileById = async (req, res) => {
     }
     return res.status(200).json(restaurant);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -58,7 +70,8 @@ const getAllRestaurants = async (req, res) => {
     const restaurants = await Restaurant.find().sort({ createdAt: -1 });
     return res.status(200).json(restaurants);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -83,7 +96,8 @@ const updateRestaurantProfile = async (req, res) => {
 
     return res.status(200).json(restaurant);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -95,7 +109,8 @@ const deleteRestaurantProfile = async (req, res) => {
     }
     return res.status(200).json({ message: "Restaurant deleted" });
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -121,7 +136,8 @@ const updateOperatingHours = async (req, res) => {
 
     return res.status(200).json(restaurant);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
@@ -147,7 +163,8 @@ const updateBannerImage = async (req, res) => {
 
     return res.status(200).json(restaurant);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    const { status, message } = getErrorResponse(error);
+    return res.status(status).json({ message });
   }
 };
 
