@@ -2,7 +2,8 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { FiShare2, FiMic, FiCopy, FiSend, FiCheck } from 'react-icons/fi';
-import { FaPhoneAlt, FaAmbulance, FaShieldAlt, FaFire, FaMapMarkerAlt, FaRobot, FaExchangeAlt } from 'react-icons/fa';
+import { FaPhoneAlt, FaAmbulance, FaShieldAlt, FaFire, FaMapMarkerAlt, FaExchangeAlt } from 'react-icons/fa';
+import ChatbotPanel from '../../components/safety/ChatbotPanel';
 import MapContainer from '../../components/safety/MapContainer';
 import EmergencyActionModal from '../../components/safety/EmergencyActionModal';
 import { useGeolocation } from '../../hooks/useGeolocation';
@@ -456,7 +457,7 @@ export default function EmergencyCallPage() {
 
         {/* Translator & Chatbot Access Section */}
         <div className="pt-4">
-          <h2 className="text-[15px] font-bold text-slate-900 mb-6 ml-1">Translator Access</h2>
+          <h2 className="text-[15px] font-bold text-slate-900 mb-6 ml-1">Translator & AI Assistant</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* ── Live Translator (MyMemory API) ────────────────────────────── */}
@@ -557,31 +558,8 @@ export default function EmergencyCallPage() {
 
             </div>
 
-            {/* Chatbot UI Mock */}
-            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col shadow-sm">
-              <div className="p-6 flex items-start gap-4 flex-1">
-                <div className="bg-blue-100 p-3 rounded-full text-blue-600 shrink-0">
-                  <FaRobot size={24} />
-                </div>
-                <div className="pt-1">
-                  <h4 className="font-bold text-slate-900 text-sm">Hi</h4>
-                  <p className="text-slate-600 text-sm mt-1">"Type your message here to get some help from me"</p>
-                </div>
-              </div>
-
-              <div className="p-6 pt-0 mt-auto">
-                <div className="relative border border-blue-400 rounded-md overflow-hidden">
-                  <input
-                    type="text"
-                    placeholder="Ask me anything."
-                    className="w-full bg-white p-3 pr-12 outline-none text-sm text-slate-700 placeholder-slate-400"
-                  />
-                  <div className="absolute right-0 top-0 bottom-0 flex items-center justify-center px-4 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition-colors">
-                    <FiSend size={16} />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* SafeBot — Rule-Based Tourist Safety Chatbot */}
+            <ChatbotPanel />
           </div>
         </div>
 
