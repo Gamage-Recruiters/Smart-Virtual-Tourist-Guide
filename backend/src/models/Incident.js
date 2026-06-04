@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const incidentSchema = new mongoose.Schema(
   {
     touristId: {
-      type: String, // Future: ObjectId ref. Added for relation to user even if not in form.
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     referenceNumber: {

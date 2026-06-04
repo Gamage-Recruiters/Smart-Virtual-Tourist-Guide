@@ -34,7 +34,7 @@ const securityAlertSchema = new mongoose.Schema(
       required: true,
     },
     createdBy: {
-      type: String, // Placeholder for Safety Manager ID
+      type: mongoose.Schema.Types.Mixed, // String for system alerts (e.g., 'System_OpenWeather'), ObjectId for user-created alerts
       required: true,
     },
 

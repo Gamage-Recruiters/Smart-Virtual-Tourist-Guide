@@ -21,7 +21,7 @@ exports.shareLocation = async (req, res, next) => {
     const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000);
 
     const locationData = {
-      touristId: req.body.touristId || 'Tourist_123',
+      touristId: req.user?._id || req.body.touristId,
       shareCode,
       location: { lat, lng },
       expiresAt,

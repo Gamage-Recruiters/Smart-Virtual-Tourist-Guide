@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const sharedLocationSchema = new mongoose.Schema(
   {
     touristId: {
-      type: String, // Who is sharing
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     shareCode: {

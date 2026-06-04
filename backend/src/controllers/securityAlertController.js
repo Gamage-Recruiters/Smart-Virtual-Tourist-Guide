@@ -57,10 +57,10 @@ exports.createAlert = async (req, res, next) => {
       };
     }
 
-    // For now, use placeholder createdBy if not provided
+    // Use authenticated user if available, fallback to body value
     const alertData = {
       ...req.body,
-      createdBy: req.body.createdBy || 'SafetyManager_1',
+      createdBy: req.user?._id || req.body.createdBy,
       source: req.body.source || 'manual',
     };
 

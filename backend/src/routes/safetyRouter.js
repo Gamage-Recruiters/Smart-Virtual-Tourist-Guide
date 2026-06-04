@@ -68,24 +68,53 @@ router.get('/emergency-contacts', (req, res) => {
   });
 });
 
-// --- Tourist Profile (Mock for Integration) ---
-// Note: This endpoint is set up to allow the safety module to display the correct tourist name.
-// The group member working on User Profile Management can integrate their database model/schema here.
-router.get('/tourists/profile/:id', (req, res) => {
-  const touristId = req.params.id;
-  res.status(200).json({
-    success: true,
-    data: {
-      touristId: touristId || 'Tourist_123',
-      name: 'Alex Johnson',
-      email: 'alex.johnson@example.com',
-      contactNumber: '+94 77 123 4567',
-      passportNumber: 'N1234567',
-      bloodType: 'A+',
-      allergies: 'Penicillin',
-      nationality: 'British',
-    },
-  });
+// --- Tourist Profile (Integrated with User Model) ---
+// The User model is managed by the registration team member.
+// This gracefully handles the case where models/User.js hasn't been added yet.
+let User;
+try {
+  User = require('../models/User');
+} catch (e) {
+  // User model not yet available — will return a placeholder response
+}
+
+router.get('/tourists/profile/:id', async (req, res, next) => {
+  try {
+    if (!User) {
+      return res.status(200).json({
+        success: true,
+        message: 'User model not yet integrated. Waiting for registration module.',
+        data: {
+          touristId: req.params.id,
+          name: 'Tourist',
+          email: '',
+          country: 'Sri Lanka',
+        },
+      });
+    }
+
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Tourist not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        touristId: user._id,
+        name: user.fullName,
+        email: user.email,
+        country: user.country,
+        bloodType: user.healthInfo?.bloodType,
+        medicalCondition: user.healthInfo?.medicalCondition,
+        emergencyContact: user.emergencyContact,
+        travelType: user.travelType,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;

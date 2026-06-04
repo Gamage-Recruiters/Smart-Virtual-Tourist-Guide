@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Incident = require('../models/Incident');
 const logger = require('../utils/logger');
 
@@ -40,7 +41,7 @@ exports.createIncident = async (req, res, next) => {
         lng,
       },
       images: imageUrls,
-      touristId: req.body.touristId || 'Tourist_123',
+      touristId: req.user?._id || req.body.touristId,
       referenceNumber:
         req.body.referenceNumber ||
         `SRL-${new Date().getFullYear()}-${String(sequence).padStart(4, '0')}`,
@@ -70,7 +71,11 @@ exports.getIncidents = async (req, res, next) => {
     if (req.query.type) query.type = req.query.type;
     if (req.query.touristId) query.touristId = req.query.touristId;
 
-    const incidents = await Incident.find(query).sort({ createdAt: -1 });
+    let queryBuilder = Incident.find(query).sort({ createdAt: -1 });
+    if (mongoose.models.User) {
+      queryBuilder = queryBuilder.populate('touristId', 'fullName email country');
+    }
+    const incidents = await queryBuilder;
     res.status(200).json({ success: true, count: incidents.length, data: incidents });
   } catch (error) {
     logger.error('Error fetching incidents:', error);

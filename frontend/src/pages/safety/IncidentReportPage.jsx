@@ -153,7 +153,9 @@ export default function IncidentReportPage() {
       payload.append('district', formData.district)
       payload.append('location[lat]', formData.location.lat)
       payload.append('location[lng]', formData.location.lng)
-      payload.append('touristId', 'Tourist_123') // Default required by the backend schema
+      // touristId is now set automatically by the backend from the authenticated user
+      // TODO: Remove this temporary hardcoded ID once auth is ready
+      payload.append('touristId', '6a1c174b162545981107bcbe')
 
       formData.images.forEach((file) => {
         payload.append('images', file)
