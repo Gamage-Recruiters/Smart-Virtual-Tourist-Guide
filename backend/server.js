@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import connectDB from "./src/configs/db.js";
+import connectDB from "./src/configs/database.js";
 import { configureCloudinary } from "./src/configs/cloudinary.js";
 import activityRoutes from "./src/routes/activity.routes.js";
 
