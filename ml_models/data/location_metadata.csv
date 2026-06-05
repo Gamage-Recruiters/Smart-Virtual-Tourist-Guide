@@ -1,0 +1,1001 @@
+user_id,destination,age,nationality,interest,trip_cost_lkr,rating,tags,category,entry_fee_lkr,budget_level,trip_duration,travel_month,group_size
+user_1000,Trincomalee,60,DE,nature,476662,3.5,"beach,nature,diving",Beach,0,high,14,11,1
+user_1001,Polonnaruwa,32,US,relaxation,189438,4.0,"history,heritage,ruins",Heritage,3000,high,7,6,6
+user_1002,Nuwara Eliya,64,CA,adventure,426330,4.8,"nature,scenic,tea",Nature,0,high,14,12,5
+user_1003,Sigiriya,58,AU,photography,458801,2.7,"history,nature,adventure",Heritage,4500,high,11,7,3
+user_1004,Trincomalee,27,ES,photography,313589,2.3,"beach,nature,diving",Beach,0,high,8,5,6
+user_1005,Kandy,32,US,hiking,108754,4.2,"culture,history,temple",Cultural,1500,medium,6,12,3
+user_1006,Sigiriya,36,ES,culture,406506,3.8,"history,nature,adventure",Heritage,4500,high,7,6,2
+user_1007,Nuwara Eliya,41,CN,culture,447420,4.2,"nature,scenic,tea",Nature,0,high,11,8,4
+user_1008,Galle,26,IN,culture,274765,3.0,"history,culture,beach",Heritage,0,high,8,3,2
+user_1009,Galle,31,US,photography,80101,3.4,"history,culture,beach",Heritage,0,medium,10,6,6
+user_1010,Colombo,26,CN,relaxation,53108,3.0,"urban,culture,food",City,0,medium,7,3,6
+user_1011,Colombo,49,MY,hiking,367599,3.4,"urban,culture,food",City,0,high,12,1,5
+user_1012,Kandy,39,CN,adventure,357100,3.4,"culture,history,temple",Cultural,1500,high,7,9,2
+user_1013,Sigiriya,65,RU,culture,302402,1.6,"history,nature,adventure",Heritage,4500,high,5,8,3
+user_1014,Colombo,51,AU,food,139545,5.0,"urban,culture,food",City,0,medium,3,9,6
+user_1015,Trincomalee,26,ES,beach,117873,4.6,"beach,nature,diving",Beach,0,medium,7,1,2
+user_1016,Sigiriya,65,ES,wildlife,417601,2.1,"history,nature,adventure",Heritage,4500,high,4,12,5
+user_1017,Nuwara Eliya,20,UK,food,19769,3.8,"nature,scenic,tea",Nature,0,low,8,6,6
+user_1018,Anuradhapura,65,IT,culture,90766,3.3,"history,heritage,culture",Heritage,3500,medium,2,9,3
+user_1019,Colombo,23,SG,food,19385,1.2,"urban,culture,food",City,0,low,9,1,2
+user_1020,Ella,44,RU,hiking,69602,2.0,"nature,adventure,scenic",Nature,0,medium,8,12,2
+user_1021,Trincomalee,45,IN,beach,23377,3.2,"beach,nature,diving",Beach,0,low,13,5,5
+user_1022,Galle,18,CA,history,147485,2.3,"history,culture,beach",Heritage,0,medium,9,8,5
+user_1023,Nuwara Eliya,57,IN,wildlife,227899,2.4,"nature,scenic,tea",Nature,0,high,7,1,1
+user_1024,Ella,55,IN,relaxation,58847,1.9,"nature,adventure,scenic",Nature,0,medium,7,11,1
+user_1025,Galle,28,US,relaxation,170214,4.4,"history,culture,beach",Heritage,0,high,6,2,3
+user_1026,Anuradhapura,43,NL,food,427547,2.8,"history,heritage,culture",Heritage,3500,high,1,3,4
+user_1027,Colombo,22,UK,relaxation,439967,4.4,"urban,culture,food",City,0,high,7,11,4
+user_1028,Sigiriya,54,DE,relaxation,117254,4.2,"history,nature,adventure",Heritage,4500,medium,14,3,2
+user_1029,Ella,30,MY,nature,356486,1.8,"nature,adventure,scenic",Nature,0,high,5,11,2
+user_1030,Galle,39,CN,wildlife,40746,4.3,"history,culture,beach",Heritage,0,low,4,7,2
+user_1031,Mirissa,33,US,hiking,351943,2.0,"beach,nature,relaxation",Beach,0,high,10,12,3
+user_1032,Kandy,20,RU,adventure,54286,1.6,"culture,history,temple",Cultural,1500,medium,14,12,6
+user_1033,Polonnaruwa,58,US,culture,478541,3.6,"history,heritage,ruins",Heritage,3000,high,4,5,1
+user_1034,Trincomalee,50,DE,wildlife,58456,3.1,"beach,nature,diving",Beach,0,medium,14,7,6
+user_1035,Mirissa,19,NL,hiking,419690,3.7,"beach,nature,relaxation",Beach,0,high,6,10,3
+user_1036,Anuradhapura,27,IN,wildlife,413866,1.2,"history,heritage,culture",Heritage,3500,high,7,10,5
+user_1037,Mirissa,41,US,photography,151585,2.8,"beach,nature,relaxation",Beach,0,high,1,10,4
+user_1038,Polonnaruwa,44,ES,wildlife,286650,1.1,"history,heritage,ruins",Heritage,3000,high,1,4,5
+user_1039,Colombo,57,CA,beach,36794,2.0,"urban,culture,food",City,0,low,3,3,5
+user_1040,Galle,22,ES,culture,435979,2.1,"history,culture,beach",Heritage,0,high,10,2,6
+user_1041,Galle,43,CA,hiking,222610,4.4,"history,culture,beach",Heritage,0,high,5,4,2
+user_1042,Kandy,24,JP,hiking,18747,4.8,"culture,history,temple",Cultural,1500,low,12,2,6
+user_1043,Trincomalee,23,CN,relaxation,259319,4.8,"beach,nature,diving",Beach,0,high,10,12,5
+user_1044,Polonnaruwa,37,DE,history,71108,2.1,"history,heritage,ruins",Heritage,3000,medium,13,1,2
+user_1045,Galle,53,MY,hiking,115657,4.5,"history,culture,beach",Heritage,0,medium,1,12,6
+user_1046,Trincomalee,42,CA,photography,433815,3.7,"beach,nature,diving",Beach,0,high,8,2,2
+user_1047,Kandy,20,US,nature,224867,4.8,"culture,history,temple",Cultural,1500,high,10,1,3
+user_1048,Galle,21,CA,culture,444919,4.7,"history,culture,beach",Heritage,0,high,9,10,4
+user_1049,Mirissa,35,FR,adventure,58746,1.2,"beach,nature,relaxation",Beach,0,medium,9,12,6
+user_1050,Ella,53,UK,adventure,336215,1.2,"nature,adventure,scenic",Nature,0,high,1,11,1
+user_1051,Polonnaruwa,35,NL,culture,138770,3.0,"history,heritage,ruins",Heritage,3000,medium,4,7,3
+user_1052,Trincomalee,36,IN,relaxation,413388,3.4,"beach,nature,diving",Beach,0,high,3,2,4
+user_1053,Mirissa,21,RU,photography,337861,2.4,"beach,nature,relaxation",Beach,0,high,12,4,4
+user_1054,Nuwara Eliya,60,DE,adventure,406489,4.8,"nature,scenic,tea",Nature,0,high,4,5,6
+user_1055,Kandy,62,ES,photography,349644,3.6,"culture,history,temple",Cultural,1500,high,2,8,4
+user_1056,Anuradhapura,22,SG,hiking,269598,4.2,"history,heritage,culture",Heritage,3500,high,12,5,6
+user_1057,Sigiriya,43,FR,nature,151982,3.2,"history,nature,adventure",Heritage,4500,high,9,8,2
+user_1058,Galle,58,UK,food,259015,1.7,"history,culture,beach",Heritage,0,high,2,4,6
+user_1059,Anuradhapura,52,IT,history,141642,4.1,"history,heritage,culture",Heritage,3500,medium,13,5,6
+user_1060,Sigiriya,49,IN,food,433499,3.6,"history,nature,adventure",Heritage,4500,high,8,11,3
+user_1061,Trincomalee,52,NL,relaxation,476718,2.4,"beach,nature,diving",Beach,0,high,12,11,3
+user_1062,Nuwara Eliya,32,IN,adventure,229399,4.2,"nature,scenic,tea",Nature,0,high,13,12,5
+user_1063,Ella,51,RU,hiking,96796,2.4,"nature,adventure,scenic",Nature,0,medium,7,6,4
+user_1064,Polonnaruwa,32,MY,adventure,452530,1.3,"history,heritage,ruins",Heritage,3000,high,8,1,6
+user_1065,Polonnaruwa,55,NL,food,173688,4.1,"history,heritage,ruins",Heritage,3000,high,9,12,6
+user_1066,Trincomalee,51,IT,relaxation,382871,4.7,"beach,nature,diving",Beach,0,high,4,2,6
+user_1067,Kandy,63,US,relaxation,335823,2.8,"culture,history,temple",Cultural,1500,high,8,1,2
+user_1068,Polonnaruwa,26,ES,photography,22779,3.5,"history,heritage,ruins",Heritage,3000,low,4,12,2
+user_1069,Nuwara Eliya,29,AU,food,35429,4.3,"nature,scenic,tea",Nature,0,low,5,3,1
+user_1070,Trincomalee,63,SG,culture,126259,3.0,"beach,nature,diving",Beach,0,medium,12,8,4
+user_1071,Nuwara Eliya,48,UK,nature,303888,4.8,"nature,scenic,tea",Nature,0,high,1,10,2
+user_1072,Ella,52,IT,hiking,407442,1.5,"nature,adventure,scenic",Nature,0,high,12,4,5
+user_1073,Galle,61,UK,history,475753,2.8,"history,culture,beach",Heritage,0,high,7,11,2
+user_1074,Polonnaruwa,55,IT,wildlife,60707,4.0,"history,heritage,ruins",Heritage,3000,medium,6,5,2
+user_1075,Colombo,53,IN,hiking,293377,3.3,"urban,culture,food",City,0,high,13,3,4
+user_1076,Mirissa,57,RU,relaxation,297285,3.2,"beach,nature,relaxation",Beach,0,high,3,11,5
+user_1077,Ella,26,DE,nature,177794,1.7,"nature,adventure,scenic",Nature,0,high,10,4,6
+user_1078,Colombo,28,ES,hiking,346095,4.3,"urban,culture,food",City,0,high,5,5,4
+user_1079,Mirissa,52,JP,culture,104628,2.6,"beach,nature,relaxation",Beach,0,medium,6,12,6
+user_1080,Ella,19,UK,photography,437888,3.9,"nature,adventure,scenic",Nature,0,high,11,4,2
+user_1081,Sigiriya,40,MY,photography,370205,3.0,"history,nature,adventure",Heritage,4500,high,13,5,3
+user_1082,Colombo,62,JP,photography,248689,5.0,"urban,culture,food",City,0,high,11,4,2
+user_1083,Ella,21,CA,photography,436324,3.2,"nature,adventure,scenic",Nature,0,high,9,6,3
+user_1084,Sigiriya,26,IT,photography,354394,3.5,"history,nature,adventure",Heritage,4500,high,3,7,2
+user_1085,Anuradhapura,41,IT,history,63201,1.9,"history,heritage,culture",Heritage,3500,medium,8,7,1
+user_1086,Colombo,55,MY,wildlife,457648,2.8,"urban,culture,food",City,0,high,12,12,1
+user_1087,Trincomalee,18,SG,history,280508,3.0,"beach,nature,diving",Beach,0,high,8,10,4
+user_1088,Colombo,58,DE,food,269059,4.9,"urban,culture,food",City,0,high,13,7,4
+user_1089,Anuradhapura,55,NL,relaxation,79548,2.5,"history,heritage,culture",Heritage,3500,medium,10,5,3
+user_1090,Sigiriya,18,FR,food,333767,1.7,"history,nature,adventure",Heritage,4500,high,7,2,3
+user_1091,Trincomalee,37,US,relaxation,419863,2.8,"beach,nature,diving",Beach,0,high,3,12,4
+user_1092,Nuwara Eliya,41,CA,nature,483271,2.5,"nature,scenic,tea",Nature,0,high,4,5,1
+user_1093,Nuwara Eliya,63,SG,adventure,455317,3.3,"nature,scenic,tea",Nature,0,high,12,2,5
+user_1094,Trincomalee,59,AU,culture,256281,4.7,"beach,nature,diving",Beach,0,high,9,1,5
+user_1095,Colombo,41,JP,adventure,356002,2.2,"urban,culture,food",City,0,high,9,6,6
+user_1096,Ella,24,NL,food,225793,1.3,"nature,adventure,scenic",Nature,0,high,1,1,4
+user_1097,Ella,49,JP,beach,269407,2.2,"nature,adventure,scenic",Nature,0,high,5,6,6
+user_1098,Polonnaruwa,58,RU,relaxation,89454,1.5,"history,heritage,ruins",Heritage,3000,medium,9,6,3
+user_1099,Galle,47,IT,beach,189208,1.8,"history,culture,beach",Heritage,0,high,1,1,1
+user_1100,Nuwara Eliya,42,DE,wildlife,196610,3.1,"nature,scenic,tea",Nature,0,high,7,7,6
+user_1101,Galle,27,DE,relaxation,169059,3.4,"history,culture,beach",Heritage,0,high,8,12,6
+user_1102,Nuwara Eliya,61,SG,food,70423,4.2,"nature,scenic,tea",Nature,0,medium,5,12,4
+user_1103,Mirissa,45,NL,beach,454505,2.4,"beach,nature,relaxation",Beach,0,high,2,12,1
+user_1104,Trincomalee,42,US,culture,124304,4.4,"beach,nature,diving",Beach,0,medium,14,8,2
+user_1105,Galle,39,JP,relaxation,282473,1.7,"history,culture,beach",Heritage,0,high,6,4,5
+user_1106,Ella,27,DE,relaxation,454609,4.4,"nature,adventure,scenic",Nature,0,high,8,4,2
+user_1107,Nuwara Eliya,62,NL,hiking,179473,2.8,"nature,scenic,tea",Nature,0,high,6,1,3
+user_1108,Galle,62,AU,wildlife,318019,2.3,"history,culture,beach",Heritage,0,high,8,8,6
+user_1109,Sigiriya,20,CA,history,178296,2.5,"history,nature,adventure",Heritage,4500,high,11,1,2
+user_1110,Trincomalee,47,IN,beach,138028,3.5,"beach,nature,diving",Beach,0,medium,14,6,1
+user_1111,Anuradhapura,18,FR,food,107169,2.1,"history,heritage,culture",Heritage,3500,medium,4,10,1
+user_1112,Sigiriya,52,RU,relaxation,75856,3.2,"history,nature,adventure",Heritage,4500,medium,14,7,1
+user_1113,Trincomalee,59,RU,relaxation,390562,4.6,"beach,nature,diving",Beach,0,high,10,5,2
+user_1114,Ella,47,ES,history,302872,4.8,"nature,adventure,scenic",Nature,0,high,9,5,2
+user_1115,Galle,49,IT,history,94762,1.3,"history,culture,beach",Heritage,0,medium,2,11,1
+user_1116,Nuwara Eliya,20,CN,wildlife,327201,4.2,"nature,scenic,tea",Nature,0,high,1,11,3
+user_1117,Colombo,53,SG,hiking,407436,2.5,"urban,culture,food",City,0,high,14,11,1
+user_1118,Colombo,21,JP,beach,180181,1.1,"urban,culture,food",City,0,high,4,10,2
+user_1119,Sigiriya,52,FR,relaxation,98599,1.4,"history,nature,adventure",Heritage,4500,medium,12,7,6
+user_1120,Nuwara Eliya,45,IN,nature,442025,4.3,"nature,scenic,tea",Nature,0,high,4,9,4
+user_1121,Mirissa,26,MY,wildlife,279703,3.9,"beach,nature,relaxation",Beach,0,high,3,10,6
+user_1122,Galle,42,CN,food,25889,3.7,"history,culture,beach",Heritage,0,low,3,12,6
+user_1123,Galle,20,DE,relaxation,167972,3.5,"history,culture,beach",Heritage,0,high,1,8,6
+user_1124,Mirissa,34,CA,photography,212136,1.7,"beach,nature,relaxation",Beach,0,high,7,3,3
+user_1125,Anuradhapura,63,CA,food,490379,4.3,"history,heritage,culture",Heritage,3500,high,8,11,3
+user_1126,Nuwara Eliya,18,AU,beach,309960,1.7,"nature,scenic,tea",Nature,0,high,5,12,5
+user_1127,Sigiriya,59,IT,adventure,72693,3.9,"history,nature,adventure",Heritage,4500,medium,10,2,5
+user_1128,Galle,18,FR,hiking,124329,1.0,"history,culture,beach",Heritage,0,medium,3,7,3
+user_1129,Polonnaruwa,62,DE,history,419297,3.3,"history,heritage,ruins",Heritage,3000,high,2,12,6
+user_1130,Galle,25,RU,beach,26606,4.4,"history,culture,beach",Heritage,0,low,5,7,6
+user_1131,Colombo,49,AU,adventure,321580,3.0,"urban,culture,food",City,0,high,10,6,5
+user_1132,Polonnaruwa,65,ES,nature,433154,3.2,"history,heritage,ruins",Heritage,3000,high,1,7,4
+user_1133,Mirissa,47,UK,beach,439285,2.9,"beach,nature,relaxation",Beach,0,high,14,6,1
+user_1134,Trincomalee,64,JP,wildlife,267820,1.1,"beach,nature,diving",Beach,0,high,5,7,2
+user_1135,Nuwara Eliya,25,US,hiking,78866,3.4,"nature,scenic,tea",Nature,0,medium,4,2,5
+user_1136,Polonnaruwa,60,MY,hiking,74486,4.9,"history,heritage,ruins",Heritage,3000,medium,3,7,3
+user_1137,Polonnaruwa,39,AU,adventure,454032,3.4,"history,heritage,ruins",Heritage,3000,high,14,3,4
+user_1138,Galle,51,ES,relaxation,127282,3.0,"history,culture,beach",Heritage,0,medium,1,10,3
+user_1139,Galle,57,NL,relaxation,304539,2.9,"history,culture,beach",Heritage,0,high,3,7,5
+user_1140,Mirissa,60,UK,history,297890,1.8,"beach,nature,relaxation",Beach,0,high,11,1,6
+user_1141,Kandy,30,MY,food,177710,2.8,"culture,history,temple",Cultural,1500,high,9,9,4
+user_1142,Colombo,51,JP,wildlife,212477,2.3,"urban,culture,food",City,0,high,2,9,5
+user_1143,Ella,37,UK,nature,399420,4.6,"nature,adventure,scenic",Nature,0,high,7,8,2
+user_1144,Colombo,56,US,culture,442206,4.5,"urban,culture,food",City,0,high,7,1,6
+user_1145,Ella,24,IT,adventure,265712,2.5,"nature,adventure,scenic",Nature,0,high,13,2,1
+user_1146,Kandy,38,ES,nature,228725,2.3,"culture,history,temple",Cultural,1500,high,6,1,1
+user_1147,Nuwara Eliya,60,ES,hiking,142345,4.0,"nature,scenic,tea",Nature,0,medium,5,11,2
+user_1148,Trincomalee,48,UK,wildlife,259926,2.7,"beach,nature,diving",Beach,0,high,3,11,3
+user_1149,Colombo,59,US,photography,98050,4.5,"urban,culture,food",City,0,medium,9,8,4
+user_1150,Ella,57,FR,history,484339,3.6,"nature,adventure,scenic",Nature,0,high,11,6,1
+user_1151,Galle,53,CN,hiking,302232,3.9,"history,culture,beach",Heritage,0,high,1,5,6
+user_1152,Mirissa,18,CN,history,405814,4.7,"beach,nature,relaxation",Beach,0,high,6,7,3
+user_1153,Nuwara Eliya,33,NL,photography,61351,1.7,"nature,scenic,tea",Nature,0,medium,14,5,2
+user_1154,Nuwara Eliya,61,DE,relaxation,248472,4.5,"nature,scenic,tea",Nature,0,high,3,9,5
+user_1155,Trincomalee,49,FR,photography,488523,5.0,"beach,nature,diving",Beach,0,high,13,9,2
+user_1156,Colombo,61,IN,nature,413346,3.1,"urban,culture,food",City,0,high,9,9,3
+user_1157,Sigiriya,48,MY,adventure,38633,5.0,"history,nature,adventure",Heritage,4500,low,14,9,1
+user_1158,Anuradhapura,24,AU,nature,444139,4.1,"history,heritage,culture",Heritage,3500,high,7,8,3
+user_1159,Anuradhapura,49,JP,nature,465138,3.4,"history,heritage,culture",Heritage,3500,high,11,10,4
+user_1160,Mirissa,54,IT,hiking,16410,1.1,"beach,nature,relaxation",Beach,0,low,12,1,3
+user_1161,Galle,31,MY,hiking,42875,3.3,"history,culture,beach",Heritage,0,low,4,4,5
+user_1162,Anuradhapura,38,CA,nature,471185,1.9,"history,heritage,culture",Heritage,3500,high,14,2,1
+user_1163,Trincomalee,42,MY,photography,159059,3.1,"beach,nature,diving",Beach,0,high,4,11,1
+user_1164,Nuwara Eliya,61,CA,beach,437061,3.6,"nature,scenic,tea",Nature,0,high,7,12,3
+user_1165,Galle,27,CA,beach,233672,4.1,"history,culture,beach",Heritage,0,high,2,8,5
+user_1166,Anuradhapura,51,AU,relaxation,404447,1.4,"history,heritage,culture",Heritage,3500,high,3,7,1
+user_1167,Anuradhapura,20,MY,beach,147507,2.0,"history,heritage,culture",Heritage,3500,medium,14,7,4
+user_1168,Nuwara Eliya,22,RU,adventure,268369,1.7,"nature,scenic,tea",Nature,0,high,3,4,3
+user_1169,Polonnaruwa,43,DE,relaxation,272687,3.6,"history,heritage,ruins",Heritage,3000,high,11,6,2
+user_1170,Nuwara Eliya,63,JP,relaxation,197818,1.2,"nature,scenic,tea",Nature,0,high,10,5,2
+user_1171,Colombo,26,UK,adventure,492183,2.9,"urban,culture,food",City,0,high,3,11,4
+user_1172,Colombo,56,IN,nature,320529,4.0,"urban,culture,food",City,0,high,12,12,4
+user_1173,Ella,58,SG,food,226486,3.0,"nature,adventure,scenic",Nature,0,high,10,1,3
+user_1174,Galle,28,RU,adventure,494605,4.5,"history,culture,beach",Heritage,0,high,9,6,1
+user_1175,Nuwara Eliya,63,US,relaxation,113567,3.4,"nature,scenic,tea",Nature,0,medium,2,6,1
+user_1176,Galle,44,MY,nature,81199,1.7,"history,culture,beach",Heritage,0,medium,1,1,3
+user_1177,Anuradhapura,43,FR,food,71237,3.8,"history,heritage,culture",Heritage,3500,medium,7,6,6
+user_1178,Polonnaruwa,29,US,food,45280,2.1,"history,heritage,ruins",Heritage,3000,low,14,12,4
+user_1179,Anuradhapura,54,JP,adventure,155066,3.8,"history,heritage,culture",Heritage,3500,high,10,1,5
+user_1180,Nuwara Eliya,31,UK,nature,372112,1.4,"nature,scenic,tea",Nature,0,high,9,8,6
+user_1181,Mirissa,61,CN,history,319813,2.7,"beach,nature,relaxation",Beach,0,high,10,6,4
+user_1182,Kandy,45,DE,beach,100613,3.3,"culture,history,temple",Cultural,1500,medium,7,5,2
+user_1183,Anuradhapura,62,SG,history,60903,2.5,"history,heritage,culture",Heritage,3500,medium,9,1,3
+user_1184,Mirissa,40,CN,wildlife,477636,2.1,"beach,nature,relaxation",Beach,0,high,7,10,2
+user_1185,Trincomalee,36,US,photography,418432,3.0,"beach,nature,diving",Beach,0,high,3,1,4
+user_1186,Kandy,28,NL,history,315852,4.1,"culture,history,temple",Cultural,1500,high,2,5,5
+user_1187,Anuradhapura,29,CA,beach,434665,1.8,"history,heritage,culture",Heritage,3500,high,5,3,4
+user_1188,Kandy,46,IT,history,371096,4.2,"culture,history,temple",Cultural,1500,high,10,4,5
+user_1189,Ella,18,CN,adventure,271371,2.6,"nature,adventure,scenic",Nature,0,high,1,1,6
+user_1190,Galle,47,CA,photography,26729,1.6,"history,culture,beach",Heritage,0,low,12,1,6
+user_1191,Nuwara Eliya,65,CN,photography,203271,2.1,"nature,scenic,tea",Nature,0,high,6,9,4
+user_1192,Mirissa,35,CA,beach,323385,1.5,"beach,nature,relaxation",Beach,0,high,6,2,1
+user_1193,Anuradhapura,33,MY,nature,329658,4.4,"history,heritage,culture",Heritage,3500,high,3,10,5
+user_1194,Galle,32,ES,wildlife,119126,3.6,"history,culture,beach",Heritage,0,medium,13,9,4
+user_1195,Nuwara Eliya,40,UK,photography,347473,1.4,"nature,scenic,tea",Nature,0,high,13,4,4
+user_1196,Nuwara Eliya,44,IN,wildlife,36253,4.0,"nature,scenic,tea",Nature,0,low,13,1,6
+user_1197,Sigiriya,62,CA,history,317231,1.1,"history,nature,adventure",Heritage,4500,high,14,9,3
+user_1198,Galle,56,SG,food,469390,2.8,"history,culture,beach",Heritage,0,high,13,8,3
+user_1199,Ella,62,AU,history,62127,2.7,"nature,adventure,scenic",Nature,0,medium,14,9,2
+user_1200,Polonnaruwa,37,US,nature,375786,2.1,"history,heritage,ruins",Heritage,3000,high,10,1,3
+user_1201,Trincomalee,52,UK,relaxation,381041,4.7,"beach,nature,diving",Beach,0,high,3,9,5
+user_1202,Polonnaruwa,34,MY,wildlife,363285,3.4,"history,heritage,ruins",Heritage,3000,high,1,5,1
+user_1203,Nuwara Eliya,43,FR,history,53730,4.8,"nature,scenic,tea",Nature,0,medium,7,7,5
+user_1204,Sigiriya,22,MY,hiking,186775,4.9,"history,nature,adventure",Heritage,4500,high,1,5,2
+user_1205,Sigiriya,36,RU,nature,231404,3.0,"history,nature,adventure",Heritage,4500,high,13,12,6
+user_1206,Kandy,32,JP,hiking,106806,1.3,"culture,history,temple",Cultural,1500,medium,12,9,3
+user_1207,Mirissa,21,SG,hiking,351203,1.5,"beach,nature,relaxation",Beach,0,high,13,9,6
+user_1208,Ella,25,JP,wildlife,373827,1.8,"nature,adventure,scenic",Nature,0,high,5,6,2
+user_1209,Anuradhapura,40,FR,photography,115331,3.7,"history,heritage,culture",Heritage,3500,medium,6,8,3
+user_1210,Anuradhapura,64,CN,relaxation,497529,1.2,"history,heritage,culture",Heritage,3500,high,7,11,2
+user_1211,Colombo,45,IT,relaxation,28440,4.4,"urban,culture,food",City,0,low,9,12,6
+user_1212,Polonnaruwa,30,FR,relaxation,45635,3.4,"history,heritage,ruins",Heritage,3000,low,5,6,5
+user_1213,Trincomalee,31,IT,history,396431,2.3,"beach,nature,diving",Beach,0,high,12,4,2
+user_1214,Polonnaruwa,37,AU,hiking,236932,3.7,"history,heritage,ruins",Heritage,3000,high,2,3,1
+user_1215,Ella,55,RU,food,407061,3.4,"nature,adventure,scenic",Nature,0,high,11,5,4
+user_1216,Sigiriya,55,IN,wildlife,316227,3.9,"history,nature,adventure",Heritage,4500,high,10,5,6
+user_1217,Nuwara Eliya,43,IT,beach,284350,1.8,"nature,scenic,tea",Nature,0,high,6,9,6
+user_1218,Mirissa,64,CA,photography,34228,2.5,"beach,nature,relaxation",Beach,0,low,4,12,4
+user_1219,Trincomalee,37,CA,culture,273474,4.6,"beach,nature,diving",Beach,0,high,10,10,4
+user_1220,Galle,34,NL,history,99151,3.4,"history,culture,beach",Heritage,0,medium,13,9,3
+user_1221,Nuwara Eliya,49,FR,beach,67041,2.3,"nature,scenic,tea",Nature,0,medium,7,6,5
+user_1222,Kandy,33,FR,food,375677,2.8,"culture,history,temple",Cultural,1500,high,11,5,4
+user_1223,Mirissa,21,DE,food,59338,4.5,"beach,nature,relaxation",Beach,0,medium,3,4,6
+user_1224,Nuwara Eliya,65,US,food,23731,4.2,"nature,scenic,tea",Nature,0,low,9,1,5
+user_1225,Ella,29,JP,photography,267022,1.3,"nature,adventure,scenic",Nature,0,high,7,5,2
+user_1226,Sigiriya,39,CA,beach,356273,1.1,"history,nature,adventure",Heritage,4500,high,14,9,1
+user_1227,Nuwara Eliya,64,IN,beach,37599,4.3,"nature,scenic,tea",Nature,0,low,4,9,4
+user_1228,Colombo,40,DE,relaxation,291587,1.3,"urban,culture,food",City,0,high,8,1,6
+user_1229,Mirissa,62,CN,hiking,383285,1.3,"beach,nature,relaxation",Beach,0,high,3,9,5
+user_1230,Kandy,48,JP,nature,238707,2.2,"culture,history,temple",Cultural,1500,high,1,1,4
+user_1231,Mirissa,30,RU,culture,124436,4.7,"beach,nature,relaxation",Beach,0,medium,13,11,2
+user_1232,Trincomalee,54,NL,relaxation,83662,1.0,"beach,nature,diving",Beach,0,medium,7,2,4
+user_1233,Ella,57,RU,adventure,164510,2.5,"nature,adventure,scenic",Nature,0,high,9,5,1
+user_1234,Kandy,46,CN,beach,240149,2.3,"culture,history,temple",Cultural,1500,high,5,11,1
+user_1235,Colombo,44,ES,history,232924,2.4,"urban,culture,food",City,0,high,14,11,3
+user_1236,Sigiriya,30,RU,wildlife,339954,1.8,"history,nature,adventure",Heritage,4500,high,13,5,5
+user_1237,Polonnaruwa,38,RU,wildlife,43714,4.2,"history,heritage,ruins",Heritage,3000,low,9,3,4
+user_1238,Polonnaruwa,38,DE,hiking,459665,1.6,"history,heritage,ruins",Heritage,3000,high,11,11,2
+user_1239,Ella,32,MY,nature,252257,1.5,"nature,adventure,scenic",Nature,0,high,12,3,4
+user_1240,Anuradhapura,36,CN,culture,287896,2.5,"history,heritage,culture",Heritage,3500,high,12,3,6
+user_1241,Kandy,42,MY,history,300702,2.0,"culture,history,temple",Cultural,1500,high,2,6,1
+user_1242,Sigiriya,35,MY,hiking,323130,1.5,"history,nature,adventure",Heritage,4500,high,8,9,5
+user_1243,Polonnaruwa,38,UK,nature,236932,4.8,"history,heritage,ruins",Heritage,3000,high,10,8,6
+user_1244,Anuradhapura,19,FR,history,76135,1.7,"history,heritage,culture",Heritage,3500,medium,8,1,6
+user_1245,Galle,52,CN,adventure,482644,2.6,"history,culture,beach",Heritage,0,high,4,6,1
+user_1246,Galle,38,ES,culture,370968,4.9,"history,culture,beach",Heritage,0,high,11,6,3
+user_1247,Nuwara Eliya,27,IT,beach,345206,1.5,"nature,scenic,tea",Nature,0,high,1,6,2
+user_1248,Polonnaruwa,39,RU,photography,106154,1.4,"history,heritage,ruins",Heritage,3000,medium,12,1,5
+user_1249,Trincomalee,31,IT,nature,464180,1.2,"beach,nature,diving",Beach,0,high,12,1,2
+user_1250,Trincomalee,22,DE,relaxation,450361,2.1,"beach,nature,diving",Beach,0,high,1,7,6
+user_1251,Trincomalee,64,IN,nature,244590,1.6,"beach,nature,diving",Beach,0,high,1,6,1
+user_1252,Mirissa,39,NL,beach,393697,3.5,"beach,nature,relaxation",Beach,0,high,10,4,2
+user_1253,Galle,37,ES,adventure,496736,1.0,"history,culture,beach",Heritage,0,high,11,10,4
+user_1254,Kandy,29,US,photography,114757,2.0,"culture,history,temple",Cultural,1500,medium,9,9,6
+user_1255,Trincomalee,20,NL,adventure,94733,3.7,"beach,nature,diving",Beach,0,medium,12,11,4
+user_1256,Ella,31,ES,photography,283582,3.4,"nature,adventure,scenic",Nature,0,high,12,9,6
+user_1257,Kandy,48,IN,nature,88667,4.4,"culture,history,temple",Cultural,1500,medium,11,9,1
+user_1258,Trincomalee,55,NL,relaxation,43306,3.4,"beach,nature,diving",Beach,0,low,12,10,1
+user_1259,Ella,54,RU,beach,35128,5.0,"nature,adventure,scenic",Nature,0,low,10,5,3
+user_1260,Nuwara Eliya,29,SG,wildlife,373688,4.9,"nature,scenic,tea",Nature,0,high,6,10,1
+user_1261,Ella,35,AU,wildlife,306542,3.2,"nature,adventure,scenic",Nature,0,high,11,1,1
+user_1262,Kandy,38,CA,wildlife,155410,4.3,"culture,history,temple",Cultural,1500,high,3,9,3
+user_1263,Trincomalee,45,CA,adventure,176635,3.8,"beach,nature,diving",Beach,0,high,4,9,4
+user_1264,Polonnaruwa,35,ES,adventure,397369,4.1,"history,heritage,ruins",Heritage,3000,high,3,5,2
+user_1265,Ella,55,IT,adventure,485000,3.4,"nature,adventure,scenic",Nature,0,high,5,12,4
+user_1266,Anuradhapura,50,CA,hiking,82393,3.8,"history,heritage,culture",Heritage,3500,medium,1,5,3
+user_1267,Trincomalee,25,ES,photography,426906,1.5,"beach,nature,diving",Beach,0,high,12,12,5
+user_1268,Sigiriya,42,CA,beach,175459,4.6,"history,nature,adventure",Heritage,4500,high,9,8,3
+user_1269,Polonnaruwa,35,IN,nature,104852,3.5,"history,heritage,ruins",Heritage,3000,medium,5,10,4
+user_1270,Polonnaruwa,44,SG,beach,71854,3.9,"history,heritage,ruins",Heritage,3000,medium,13,9,6
+user_1271,Anuradhapura,39,SG,beach,450933,1.5,"history,heritage,culture",Heritage,3500,high,5,4,3
+user_1272,Ella,64,US,relaxation,290227,3.0,"nature,adventure,scenic",Nature,0,high,7,9,2
+user_1273,Trincomalee,60,JP,beach,155653,1.5,"beach,nature,diving",Beach,0,high,7,5,3
+user_1274,Sigiriya,56,RU,culture,464912,3.7,"history,nature,adventure",Heritage,4500,high,13,9,6
+user_1275,Nuwara Eliya,34,IT,relaxation,30322,1.2,"nature,scenic,tea",Nature,0,low,13,4,3
+user_1276,Ella,43,US,adventure,256498,4.3,"nature,adventure,scenic",Nature,0,high,6,9,6
+user_1277,Sigiriya,36,CA,culture,288818,4.2,"history,nature,adventure",Heritage,4500,high,7,9,5
+user_1278,Sigiriya,62,RU,hiking,304465,4.0,"history,nature,adventure",Heritage,4500,high,2,1,3
+user_1279,Galle,52,AU,photography,125657,3.1,"history,culture,beach",Heritage,0,medium,3,9,6
+user_1280,Trincomalee,54,SG,food,195557,4.8,"beach,nature,diving",Beach,0,high,7,10,3
+user_1281,Trincomalee,30,JP,wildlife,251978,1.6,"beach,nature,diving",Beach,0,high,7,11,4
+user_1282,Trincomalee,18,IN,wildlife,408938,1.1,"beach,nature,diving",Beach,0,high,11,9,1
+user_1283,Anuradhapura,45,CN,nature,202959,2.9,"history,heritage,culture",Heritage,3500,high,6,5,3
+user_1284,Galle,49,DE,hiking,427757,2.3,"history,culture,beach",Heritage,0,high,10,9,2
+user_1285,Colombo,29,DE,beach,120219,2.8,"urban,culture,food",City,0,medium,5,12,1
+user_1286,Colombo,24,DE,history,233010,4.1,"urban,culture,food",City,0,high,2,5,1
+user_1287,Mirissa,35,NL,food,388115,1.5,"beach,nature,relaxation",Beach,0,high,1,1,2
+user_1288,Colombo,54,DE,food,35811,2.5,"urban,culture,food",City,0,low,4,11,1
+user_1289,Nuwara Eliya,46,US,adventure,167619,3.3,"nature,scenic,tea",Nature,0,high,7,10,2
+user_1290,Colombo,41,CN,relaxation,238724,1.4,"urban,culture,food",City,0,high,9,11,1
+user_1291,Ella,34,UK,nature,400998,3.2,"nature,adventure,scenic",Nature,0,high,2,6,6
+user_1292,Kandy,29,UK,hiking,410000,4.3,"culture,history,temple",Cultural,1500,high,14,8,1
+user_1293,Nuwara Eliya,32,NL,adventure,166824,1.7,"nature,scenic,tea",Nature,0,high,3,7,3
+user_1294,Nuwara Eliya,43,ES,photography,126583,3.3,"nature,scenic,tea",Nature,0,medium,2,5,3
+user_1295,Colombo,64,NL,nature,261521,3.8,"urban,culture,food",City,0,high,14,7,2
+user_1296,Sigiriya,42,JP,history,365915,2.4,"history,nature,adventure",Heritage,4500,high,8,8,1
+user_1297,Nuwara Eliya,21,NL,culture,219640,4.1,"nature,scenic,tea",Nature,0,high,1,9,1
+user_1298,Mirissa,32,IN,nature,19680,1.5,"beach,nature,relaxation",Beach,0,low,9,4,6
+user_1299,Trincomalee,62,JP,food,326559,2.8,"beach,nature,diving",Beach,0,high,3,2,2
+user_1300,Sigiriya,38,NL,hiking,305526,4.3,"history,nature,adventure",Heritage,4500,high,14,9,3
+user_1301,Ella,57,CA,adventure,391015,2.2,"nature,adventure,scenic",Nature,0,high,3,8,5
+user_1302,Kandy,64,RU,culture,39545,4.4,"culture,history,temple",Cultural,1500,low,10,11,5
+user_1303,Mirissa,42,NL,relaxation,353181,2.5,"beach,nature,relaxation",Beach,0,high,4,10,3
+user_1304,Trincomalee,38,IT,history,476567,1.6,"beach,nature,diving",Beach,0,high,8,9,4
+user_1305,Galle,42,AU,relaxation,320317,3.5,"history,culture,beach",Heritage,0,high,3,4,5
+user_1306,Colombo,30,AU,beach,455246,1.8,"urban,culture,food",City,0,high,6,8,5
+user_1307,Anuradhapura,42,IN,nature,281170,4.9,"history,heritage,culture",Heritage,3500,high,8,12,2
+user_1308,Anuradhapura,58,UK,photography,493155,3.7,"history,heritage,culture",Heritage,3500,high,7,10,5
+user_1309,Galle,43,CN,photography,289716,2.3,"history,culture,beach",Heritage,0,high,13,5,5
+user_1310,Polonnaruwa,36,FR,beach,344461,2.9,"history,heritage,ruins",Heritage,3000,high,2,10,2
+user_1311,Ella,49,CN,photography,308779,4.6,"nature,adventure,scenic",Nature,0,high,11,9,2
+user_1312,Anuradhapura,25,RU,food,186388,3.7,"history,heritage,culture",Heritage,3500,high,9,3,4
+user_1313,Mirissa,34,UK,food,388569,1.6,"beach,nature,relaxation",Beach,0,high,4,9,2
+user_1314,Kandy,19,SG,culture,204630,3.0,"culture,history,temple",Cultural,1500,high,10,6,2
+user_1315,Nuwara Eliya,21,FR,wildlife,56432,3.5,"nature,scenic,tea",Nature,0,medium,6,10,1
+user_1316,Kandy,21,DE,nature,88861,3.7,"culture,history,temple",Cultural,1500,medium,7,6,5
+user_1317,Mirissa,22,JP,adventure,132592,1.2,"beach,nature,relaxation",Beach,0,medium,6,10,3
+user_1318,Anuradhapura,27,ES,culture,134720,1.1,"history,heritage,culture",Heritage,3500,medium,11,7,4
+user_1319,Polonnaruwa,57,AU,photography,249654,1.8,"history,heritage,ruins",Heritage,3000,high,8,1,5
+user_1320,Sigiriya,49,AU,relaxation,330775,3.6,"history,nature,adventure",Heritage,4500,high,12,6,6
+user_1321,Colombo,57,RU,history,330977,1.3,"urban,culture,food",City,0,high,7,9,4
+user_1322,Colombo,18,ES,culture,283731,2.3,"urban,culture,food",City,0,high,13,2,4
+user_1323,Colombo,59,RU,photography,329861,1.0,"urban,culture,food",City,0,high,1,4,5
+user_1324,Galle,36,NL,beach,35833,3.6,"history,culture,beach",Heritage,0,low,14,1,2
+user_1325,Nuwara Eliya,55,RU,relaxation,303320,2.0,"nature,scenic,tea",Nature,0,high,9,9,4
+user_1326,Sigiriya,62,RU,photography,375246,4.6,"history,nature,adventure",Heritage,4500,high,7,8,5
+user_1327,Mirissa,50,RU,wildlife,463575,3.5,"beach,nature,relaxation",Beach,0,high,1,2,2
+user_1328,Sigiriya,19,CN,photography,421730,4.0,"history,nature,adventure",Heritage,4500,high,8,3,5
+user_1329,Trincomalee,21,SG,nature,150154,3.8,"beach,nature,diving",Beach,0,high,1,2,6
+user_1330,Ella,41,JP,nature,111508,2.0,"nature,adventure,scenic",Nature,0,medium,3,11,4
+user_1331,Sigiriya,48,SG,food,258786,4.5,"history,nature,adventure",Heritage,4500,high,2,1,1
+user_1332,Nuwara Eliya,19,IT,adventure,452306,1.3,"nature,scenic,tea",Nature,0,high,14,2,3
+user_1333,Trincomalee,61,AU,history,419495,1.5,"beach,nature,diving",Beach,0,high,1,1,6
+user_1334,Ella,46,IN,adventure,432147,3.3,"nature,adventure,scenic",Nature,0,high,10,12,2
+user_1335,Kandy,42,CN,wildlife,396623,1.8,"culture,history,temple",Cultural,1500,high,2,2,3
+user_1336,Mirissa,18,SG,hiking,481821,2.9,"beach,nature,relaxation",Beach,0,high,5,5,5
+user_1337,Sigiriya,55,MY,nature,420873,3.8,"history,nature,adventure",Heritage,4500,high,8,1,6
+user_1338,Anuradhapura,33,MY,adventure,185785,3.1,"history,heritage,culture",Heritage,3500,high,7,11,1
+user_1339,Kandy,65,IT,adventure,285603,3.4,"culture,history,temple",Cultural,1500,high,6,2,4
+user_1340,Galle,60,US,hiking,342263,3.4,"history,culture,beach",Heritage,0,high,2,7,2
+user_1341,Sigiriya,58,CA,hiking,89815,1.4,"history,nature,adventure",Heritage,4500,medium,7,12,1
+user_1342,Colombo,45,FR,history,445466,1.1,"urban,culture,food",City,0,high,3,2,3
+user_1343,Galle,64,IN,nature,374625,3.1,"history,culture,beach",Heritage,0,high,2,5,1
+user_1344,Anuradhapura,58,CN,hiking,326717,3.5,"history,heritage,culture",Heritage,3500,high,11,12,6
+user_1345,Colombo,65,US,food,475079,1.4,"urban,culture,food",City,0,high,4,1,2
+user_1346,Polonnaruwa,37,UK,food,285463,3.7,"history,heritage,ruins",Heritage,3000,high,7,9,5
+user_1347,Anuradhapura,24,MY,photography,180503,3.7,"history,heritage,culture",Heritage,3500,high,10,1,6
+user_1348,Nuwara Eliya,57,CA,relaxation,357079,1.5,"nature,scenic,tea",Nature,0,high,13,4,6
+user_1349,Sigiriya,42,RU,history,133724,4.9,"history,nature,adventure",Heritage,4500,medium,9,6,6
+user_1350,Colombo,57,FR,food,306313,2.1,"urban,culture,food",City,0,high,13,2,5
+user_1351,Mirissa,48,MY,photography,53292,2.3,"beach,nature,relaxation",Beach,0,medium,3,6,4
+user_1352,Ella,33,DE,history,253363,3.8,"nature,adventure,scenic",Nature,0,high,1,3,2
+user_1353,Trincomalee,50,IN,food,458851,1.1,"beach,nature,diving",Beach,0,high,2,5,2
+user_1354,Nuwara Eliya,47,IT,photography,361668,1.0,"nature,scenic,tea",Nature,0,high,6,10,4
+user_1355,Polonnaruwa,50,IT,relaxation,128867,3.3,"history,heritage,ruins",Heritage,3000,medium,1,8,1
+user_1356,Galle,40,ES,food,279434,2.4,"history,culture,beach",Heritage,0,high,6,5,3
+user_1357,Anuradhapura,24,IT,nature,319411,2.1,"history,heritage,culture",Heritage,3500,high,12,11,2
+user_1358,Anuradhapura,58,UK,nature,264962,2.1,"history,heritage,culture",Heritage,3500,high,13,12,5
+user_1359,Kandy,47,RU,history,50528,1.5,"culture,history,temple",Cultural,1500,medium,13,12,1
+user_1360,Sigiriya,54,AU,food,312522,2.9,"history,nature,adventure",Heritage,4500,high,10,5,2
+user_1361,Kandy,55,US,relaxation,18679,1.3,"culture,history,temple",Cultural,1500,low,7,1,1
+user_1362,Polonnaruwa,47,ES,nature,496931,1.2,"history,heritage,ruins",Heritage,3000,high,8,7,2
+user_1363,Anuradhapura,20,JP,food,429133,3.6,"history,heritage,culture",Heritage,3500,high,9,8,1
+user_1364,Sigiriya,41,SG,history,69756,3.0,"history,nature,adventure",Heritage,4500,medium,9,9,4
+user_1365,Anuradhapura,48,CA,relaxation,104716,4.0,"history,heritage,culture",Heritage,3500,medium,5,9,3
+user_1366,Trincomalee,52,FR,wildlife,149313,3.7,"beach,nature,diving",Beach,0,medium,2,4,6
+user_1367,Galle,32,ES,culture,291173,4.9,"history,culture,beach",Heritage,0,high,7,12,2
+user_1368,Polonnaruwa,39,SG,wildlife,394377,3.5,"history,heritage,ruins",Heritage,3000,high,1,4,2
+user_1369,Colombo,64,US,food,492978,3.3,"urban,culture,food",City,0,high,1,8,1
+user_1370,Kandy,54,JP,adventure,292303,3.1,"culture,history,temple",Cultural,1500,high,4,10,6
+user_1371,Colombo,39,CN,wildlife,131405,2.4,"urban,culture,food",City,0,medium,8,5,2
+user_1372,Sigiriya,41,IT,hiking,268778,1.3,"history,nature,adventure",Heritage,4500,high,8,5,2
+user_1373,Galle,53,CN,culture,30573,4.1,"history,culture,beach",Heritage,0,low,10,12,1
+user_1374,Mirissa,19,RU,hiking,83694,3.8,"beach,nature,relaxation",Beach,0,medium,1,7,2
+user_1375,Kandy,44,DE,beach,244299,5.0,"culture,history,temple",Cultural,1500,high,2,12,4
+user_1376,Colombo,44,IT,relaxation,77469,4.9,"urban,culture,food",City,0,medium,11,2,3
+user_1377,Sigiriya,55,AU,photography,239654,2.1,"history,nature,adventure",Heritage,4500,high,13,3,1
+user_1378,Nuwara Eliya,18,NL,relaxation,32265,2.1,"nature,scenic,tea",Nature,0,low,11,10,4
+user_1379,Nuwara Eliya,25,FR,nature,244413,3.3,"nature,scenic,tea",Nature,0,high,1,8,3
+user_1380,Galle,21,NL,wildlife,225639,1.4,"history,culture,beach",Heritage,0,high,14,8,1
+user_1381,Kandy,52,FR,wildlife,46761,1.3,"culture,history,temple",Cultural,1500,low,7,5,2
+user_1382,Anuradhapura,48,IT,adventure,226701,1.8,"history,heritage,culture",Heritage,3500,high,12,8,4
+user_1383,Trincomalee,36,ES,hiking,17118,4.1,"beach,nature,diving",Beach,0,low,10,8,4
+user_1384,Kandy,50,US,beach,86134,3.8,"culture,history,temple",Cultural,1500,medium,1,3,1
+user_1385,Kandy,49,DE,nature,15118,4.3,"culture,history,temple",Cultural,1500,low,11,1,2
+user_1386,Mirissa,25,CA,adventure,229296,4.0,"beach,nature,relaxation",Beach,0,high,12,4,2
+user_1387,Polonnaruwa,65,AU,beach,162051,2.2,"history,heritage,ruins",Heritage,3000,high,5,5,6
+user_1388,Polonnaruwa,49,US,beach,486390,4.1,"history,heritage,ruins",Heritage,3000,high,12,1,6
+user_1389,Trincomalee,37,NL,photography,342826,3.9,"beach,nature,diving",Beach,0,high,2,9,2
+user_1390,Ella,58,AU,photography,352824,4.8,"nature,adventure,scenic",Nature,0,high,4,9,4
+user_1391,Kandy,34,SG,hiking,222791,2.5,"culture,history,temple",Cultural,1500,high,2,7,2
+user_1392,Nuwara Eliya,47,ES,food,475548,4.6,"nature,scenic,tea",Nature,0,high,12,10,5
+user_1393,Nuwara Eliya,64,UK,hiking,242338,2.3,"nature,scenic,tea",Nature,0,high,11,7,4
+user_1394,Galle,35,CA,wildlife,204556,2.7,"history,culture,beach",Heritage,0,high,7,8,2
+user_1395,Kandy,49,IT,adventure,208496,2.5,"culture,history,temple",Cultural,1500,high,3,9,5
+user_1396,Polonnaruwa,45,MY,photography,345959,1.8,"history,heritage,ruins",Heritage,3000,high,5,11,5
+user_1397,Mirissa,63,JP,culture,267829,1.5,"beach,nature,relaxation",Beach,0,high,11,8,4
+user_1398,Nuwara Eliya,19,IT,hiking,114122,4.1,"nature,scenic,tea",Nature,0,medium,9,2,4
+user_1399,Trincomalee,33,NL,food,388149,4.9,"beach,nature,diving",Beach,0,high,8,4,6
+user_1400,Kandy,32,CN,photography,332043,2.8,"culture,history,temple",Cultural,1500,high,1,11,2
+user_1401,Galle,63,ES,wildlife,38192,2.2,"history,culture,beach",Heritage,0,low,6,12,3
+user_1402,Sigiriya,56,SG,adventure,339982,4.8,"history,nature,adventure",Heritage,4500,high,7,7,4
+user_1403,Ella,37,ES,hiking,413511,4.0,"nature,adventure,scenic",Nature,0,high,10,5,3
+user_1404,Anuradhapura,58,JP,wildlife,268833,3.6,"history,heritage,culture",Heritage,3500,high,2,8,1
+user_1405,Nuwara Eliya,21,IN,beach,216615,3.0,"nature,scenic,tea",Nature,0,high,9,12,6
+user_1406,Sigiriya,26,IN,photography,240202,2.1,"history,nature,adventure",Heritage,4500,high,4,11,4
+user_1407,Nuwara Eliya,29,DE,hiking,344182,2.2,"nature,scenic,tea",Nature,0,high,2,8,4
+user_1408,Colombo,27,CA,adventure,275386,3.0,"urban,culture,food",City,0,high,10,2,3
+user_1409,Nuwara Eliya,33,CA,culture,18271,4.8,"nature,scenic,tea",Nature,0,low,12,2,6
+user_1410,Mirissa,26,IT,history,399341,1.6,"beach,nature,relaxation",Beach,0,high,10,10,5
+user_1411,Mirissa,53,ES,beach,461695,2.1,"beach,nature,relaxation",Beach,0,high,5,10,4
+user_1412,Mirissa,50,NL,beach,453557,3.5,"beach,nature,relaxation",Beach,0,high,4,2,6
+user_1413,Kandy,35,DE,nature,280647,4.6,"culture,history,temple",Cultural,1500,high,9,9,1
+user_1414,Trincomalee,56,UK,photography,165186,2.0,"beach,nature,diving",Beach,0,high,12,2,5
+user_1415,Ella,21,CA,food,36162,2.0,"nature,adventure,scenic",Nature,0,low,14,10,5
+user_1416,Mirissa,45,IN,photography,319514,1.1,"beach,nature,relaxation",Beach,0,high,14,12,3
+user_1417,Ella,41,CA,photography,242464,2.0,"nature,adventure,scenic",Nature,0,high,1,7,3
+user_1418,Kandy,36,MY,history,252371,1.5,"culture,history,temple",Cultural,1500,high,7,12,4
+user_1419,Ella,48,CN,food,498139,2.5,"nature,adventure,scenic",Nature,0,high,10,5,5
+user_1420,Colombo,29,FR,nature,465476,1.9,"urban,culture,food",City,0,high,6,8,3
+user_1421,Kandy,54,CN,nature,437387,1.1,"culture,history,temple",Cultural,1500,high,12,4,3
+user_1422,Trincomalee,47,IN,adventure,351519,1.9,"beach,nature,diving",Beach,0,high,12,10,3
+user_1423,Colombo,44,SG,adventure,196649,3.8,"urban,culture,food",City,0,high,12,8,5
+user_1424,Mirissa,29,UK,history,323963,1.5,"beach,nature,relaxation",Beach,0,high,14,7,5
+user_1425,Nuwara Eliya,23,SG,culture,379594,4.8,"nature,scenic,tea",Nature,0,high,10,8,2
+user_1426,Kandy,18,NL,relaxation,236182,1.8,"culture,history,temple",Cultural,1500,high,9,10,3
+user_1427,Nuwara Eliya,18,US,photography,385476,4.6,"nature,scenic,tea",Nature,0,high,2,12,6
+user_1428,Galle,65,CN,history,171537,3.9,"history,culture,beach",Heritage,0,high,10,5,5
+user_1429,Anuradhapura,33,IT,relaxation,263822,5.0,"history,heritage,culture",Heritage,3500,high,9,4,6
+user_1430,Colombo,65,DE,relaxation,129657,3.9,"urban,culture,food",City,0,medium,8,2,4
+user_1431,Sigiriya,47,CN,nature,180164,1.1,"history,nature,adventure",Heritage,4500,high,4,4,2
+user_1432,Nuwara Eliya,34,JP,beach,470026,4.5,"nature,scenic,tea",Nature,0,high,2,3,3
+user_1433,Sigiriya,52,DE,relaxation,21831,2.3,"history,nature,adventure",Heritage,4500,low,11,12,1
+user_1434,Nuwara Eliya,24,DE,hiking,46907,4.1,"nature,scenic,tea",Nature,0,low,7,8,4
+user_1435,Trincomalee,64,UK,history,114288,2.4,"beach,nature,diving",Beach,0,medium,10,2,4
+user_1436,Anuradhapura,58,UK,history,433369,3.8,"history,heritage,culture",Heritage,3500,high,6,4,1
+user_1437,Galle,19,DE,culture,376434,5.0,"history,culture,beach",Heritage,0,high,8,8,2
+user_1438,Anuradhapura,21,IN,nature,23754,1.8,"history,heritage,culture",Heritage,3500,low,11,9,3
+user_1439,Kandy,37,DE,hiking,274046,2.8,"culture,history,temple",Cultural,1500,high,5,12,5
+user_1440,Galle,55,US,hiking,191755,2.0,"history,culture,beach",Heritage,0,high,14,7,1
+user_1441,Kandy,54,ES,hiking,91276,3.1,"culture,history,temple",Cultural,1500,medium,1,8,4
+user_1442,Mirissa,32,NL,history,174104,4.1,"beach,nature,relaxation",Beach,0,high,12,2,3
+user_1443,Kandy,26,AU,hiking,345115,1.1,"culture,history,temple",Cultural,1500,high,8,4,3
+user_1444,Mirissa,35,NL,adventure,459697,1.4,"beach,nature,relaxation",Beach,0,high,5,2,2
+user_1445,Ella,47,IT,wildlife,455709,1.4,"nature,adventure,scenic",Nature,0,high,4,9,4
+user_1446,Mirissa,54,NL,relaxation,416912,4.3,"beach,nature,relaxation",Beach,0,high,5,8,5
+user_1447,Anuradhapura,61,SG,hiking,92918,3.1,"history,heritage,culture",Heritage,3500,medium,7,9,2
+user_1448,Galle,22,CN,relaxation,53190,2.0,"history,culture,beach",Heritage,0,medium,2,9,6
+user_1449,Nuwara Eliya,42,RU,food,98747,1.1,"nature,scenic,tea",Nature,0,medium,9,9,4
+user_1450,Kandy,47,US,beach,53749,4.6,"culture,history,temple",Cultural,1500,medium,11,9,6
+user_1451,Mirissa,29,IT,nature,438443,4.0,"beach,nature,relaxation",Beach,0,high,14,12,4
+user_1452,Mirissa,42,CN,relaxation,55169,3.9,"beach,nature,relaxation",Beach,0,medium,6,12,6
+user_1453,Ella,61,UK,history,197190,2.6,"nature,adventure,scenic",Nature,0,high,1,8,2
+user_1454,Anuradhapura,23,NL,hiking,372182,1.0,"history,heritage,culture",Heritage,3500,high,7,7,2
+user_1455,Ella,28,NL,adventure,82595,1.1,"nature,adventure,scenic",Nature,0,medium,10,8,4
+user_1456,Mirissa,58,IN,culture,108419,1.4,"beach,nature,relaxation",Beach,0,medium,14,6,1
+user_1457,Kandy,30,FR,hiking,295594,2.7,"culture,history,temple",Cultural,1500,high,14,9,1
+user_1458,Mirissa,46,FR,wildlife,466015,2.8,"beach,nature,relaxation",Beach,0,high,14,6,4
+user_1459,Colombo,43,JP,relaxation,212399,1.8,"urban,culture,food",City,0,high,8,4,5
+user_1460,Ella,45,UK,culture,133261,3.3,"nature,adventure,scenic",Nature,0,medium,8,9,4
+user_1461,Polonnaruwa,55,SG,hiking,240210,2.4,"history,heritage,ruins",Heritage,3000,high,1,4,5
+user_1462,Colombo,39,CN,history,16037,2.4,"urban,culture,food",City,0,low,7,4,2
+user_1463,Ella,33,MY,beach,191092,4.4,"nature,adventure,scenic",Nature,0,high,1,10,1
+user_1464,Trincomalee,31,JP,food,182694,4.0,"beach,nature,diving",Beach,0,high,1,7,1
+user_1465,Mirissa,43,CA,food,322293,3.1,"beach,nature,relaxation",Beach,0,high,7,4,6
+user_1466,Polonnaruwa,45,FR,food,18597,4.3,"history,heritage,ruins",Heritage,3000,low,5,10,2
+user_1467,Polonnaruwa,29,SG,beach,252465,4.5,"history,heritage,ruins",Heritage,3000,high,2,8,4
+user_1468,Trincomalee,47,ES,history,211485,4.9,"beach,nature,diving",Beach,0,high,7,2,2
+user_1469,Nuwara Eliya,46,MY,photography,57705,2.9,"nature,scenic,tea",Nature,0,medium,14,10,4
+user_1470,Sigiriya,29,NL,wildlife,74245,2.4,"history,nature,adventure",Heritage,4500,medium,8,6,1
+user_1471,Sigiriya,55,FR,relaxation,484245,4.7,"history,nature,adventure",Heritage,4500,high,9,3,3
+user_1472,Trincomalee,44,IN,adventure,126598,3.6,"beach,nature,diving",Beach,0,medium,14,3,5
+user_1473,Kandy,33,CN,relaxation,284647,4.7,"culture,history,temple",Cultural,1500,high,8,3,1
+user_1474,Galle,33,NL,food,436641,2.2,"history,culture,beach",Heritage,0,high,2,12,1
+user_1475,Galle,37,CA,photography,331376,4.1,"history,culture,beach",Heritage,0,high,12,8,5
+user_1476,Kandy,45,JP,beach,265162,4.1,"culture,history,temple",Cultural,1500,high,9,8,6
+user_1477,Nuwara Eliya,57,IT,hiking,241602,3.7,"nature,scenic,tea",Nature,0,high,2,10,4
+user_1478,Kandy,60,US,nature,68706,4.6,"culture,history,temple",Cultural,1500,medium,4,5,5
+user_1479,Polonnaruwa,47,IN,history,330593,2.4,"history,heritage,ruins",Heritage,3000,high,12,5,6
+user_1480,Trincomalee,31,RU,relaxation,174277,2.0,"beach,nature,diving",Beach,0,high,4,10,1
+user_1481,Sigiriya,28,AU,wildlife,222029,3.4,"history,nature,adventure",Heritage,4500,high,8,12,6
+user_1482,Mirissa,45,IT,wildlife,253348,1.1,"beach,nature,relaxation",Beach,0,high,6,5,5
+user_1483,Mirissa,41,IN,photography,127334,3.0,"beach,nature,relaxation",Beach,0,medium,4,8,1
+user_1484,Trincomalee,24,UK,food,215806,2.2,"beach,nature,diving",Beach,0,high,9,10,4
+user_1485,Colombo,44,IT,nature,231943,4.5,"urban,culture,food",City,0,high,9,2,2
+user_1486,Ella,31,RU,photography,79824,2.9,"nature,adventure,scenic",Nature,0,medium,8,3,1
+user_1487,Polonnaruwa,36,DE,nature,302876,3.0,"history,heritage,ruins",Heritage,3000,high,12,7,4
+user_1488,Trincomalee,35,AU,photography,316748,1.4,"beach,nature,diving",Beach,0,high,5,9,3
+user_1489,Sigiriya,62,RU,beach,35653,4.0,"history,nature,adventure",Heritage,4500,low,11,9,3
+user_1490,Polonnaruwa,38,ES,photography,174010,3.6,"history,heritage,ruins",Heritage,3000,high,5,10,2
+user_1491,Trincomalee,54,IN,food,442275,2.4,"beach,nature,diving",Beach,0,high,11,8,5
+user_1492,Colombo,38,IN,history,22475,3.1,"urban,culture,food",City,0,low,2,11,4
+user_1493,Ella,29,DE,wildlife,490074,3.7,"nature,adventure,scenic",Nature,0,high,11,11,6
+user_1494,Mirissa,44,US,food,244773,3.3,"beach,nature,relaxation",Beach,0,high,10,1,2
+user_1495,Trincomalee,22,AU,culture,463713,1.5,"beach,nature,diving",Beach,0,high,12,11,1
+user_1496,Sigiriya,57,ES,relaxation,269539,2.3,"history,nature,adventure",Heritage,4500,high,10,8,2
+user_1497,Trincomalee,19,DE,photography,229259,2.8,"beach,nature,diving",Beach,0,high,9,9,1
+user_1498,Trincomalee,31,FR,history,229824,1.7,"beach,nature,diving",Beach,0,high,11,8,1
+user_1499,Sigiriya,49,RU,beach,192163,3.5,"history,nature,adventure",Heritage,4500,high,12,7,1
+user_1500,Mirissa,62,MY,nature,40034,3.5,"beach,nature,relaxation",Beach,0,low,1,1,1
+user_1501,Anuradhapura,41,US,hiking,437093,1.9,"history,heritage,culture",Heritage,3500,high,7,1,6
+user_1502,Sigiriya,34,US,photography,468063,1.4,"history,nature,adventure",Heritage,4500,high,12,8,3
+user_1503,Anuradhapura,48,IN,nature,155264,1.7,"history,heritage,culture",Heritage,3500,high,1,6,5
+user_1504,Galle,31,CA,culture,94802,2.8,"history,culture,beach",Heritage,0,medium,13,2,3
+user_1505,Trincomalee,57,UK,wildlife,344911,3.5,"beach,nature,diving",Beach,0,high,7,1,3
+user_1506,Sigiriya,29,RU,adventure,471570,1.3,"history,nature,adventure",Heritage,4500,high,13,7,3
+user_1507,Ella,37,RU,beach,36543,2.8,"nature,adventure,scenic",Nature,0,low,12,5,3
+user_1508,Nuwara Eliya,31,RU,history,57794,3.8,"nature,scenic,tea",Nature,0,medium,12,5,5
+user_1509,Ella,47,IN,wildlife,338836,4.0,"nature,adventure,scenic",Nature,0,high,5,11,4
+user_1510,Anuradhapura,41,FR,nature,452080,2.5,"history,heritage,culture",Heritage,3500,high,12,3,1
+user_1511,Kandy,58,NL,photography,249909,5.0,"culture,history,temple",Cultural,1500,high,13,5,4
+user_1512,Mirissa,54,AU,history,409178,3.5,"beach,nature,relaxation",Beach,0,high,2,11,4
+user_1513,Nuwara Eliya,23,CA,wildlife,296593,2.6,"nature,scenic,tea",Nature,0,high,12,6,1
+user_1514,Trincomalee,60,IN,culture,372879,2.1,"beach,nature,diving",Beach,0,high,14,10,4
+user_1515,Mirissa,56,CA,hiking,132565,4.0,"beach,nature,relaxation",Beach,0,medium,7,7,4
+user_1516,Galle,31,US,relaxation,103363,4.4,"history,culture,beach",Heritage,0,medium,14,2,3
+user_1517,Colombo,34,RU,culture,138650,4.1,"urban,culture,food",City,0,medium,1,4,5
+user_1518,Ella,53,NL,history,384059,2.7,"nature,adventure,scenic",Nature,0,high,14,4,2
+user_1519,Polonnaruwa,41,IT,food,468326,3.3,"history,heritage,ruins",Heritage,3000,high,12,10,1
+user_1520,Kandy,62,CN,beach,111243,1.2,"culture,history,temple",Cultural,1500,medium,11,6,3
+user_1521,Kandy,51,ES,history,182264,3.8,"culture,history,temple",Cultural,1500,high,10,2,4
+user_1522,Anuradhapura,49,MY,culture,460115,2.8,"history,heritage,culture",Heritage,3500,high,3,11,3
+user_1523,Mirissa,21,JP,history,386621,4.3,"beach,nature,relaxation",Beach,0,high,10,3,6
+user_1524,Mirissa,23,MY,wildlife,157306,3.3,"beach,nature,relaxation",Beach,0,high,5,3,5
+user_1525,Trincomalee,53,RU,relaxation,338056,2.5,"beach,nature,diving",Beach,0,high,6,10,3
+user_1526,Polonnaruwa,26,IN,relaxation,228074,2.6,"history,heritage,ruins",Heritage,3000,high,5,5,5
+user_1527,Ella,32,IN,photography,355302,3.9,"nature,adventure,scenic",Nature,0,high,1,2,1
+user_1528,Sigiriya,37,RU,food,282898,4.5,"history,nature,adventure",Heritage,4500,high,8,7,1
+user_1529,Anuradhapura,41,CN,nature,185390,3.0,"history,heritage,culture",Heritage,3500,high,9,10,4
+user_1530,Kandy,41,NL,beach,196853,3.0,"culture,history,temple",Cultural,1500,high,6,4,6
+user_1531,Sigiriya,50,ES,nature,188952,3.8,"history,nature,adventure",Heritage,4500,high,13,10,1
+user_1532,Colombo,40,IT,beach,372762,1.3,"urban,culture,food",City,0,high,8,11,6
+user_1533,Anuradhapura,29,MY,culture,364884,3.8,"history,heritage,culture",Heritage,3500,high,14,10,2
+user_1534,Mirissa,37,FR,hiking,387832,4.1,"beach,nature,relaxation",Beach,0,high,14,6,5
+user_1535,Kandy,35,DE,hiking,338360,3.3,"culture,history,temple",Cultural,1500,high,7,8,6
+user_1536,Anuradhapura,59,IN,relaxation,134401,4.6,"history,heritage,culture",Heritage,3500,medium,3,9,5
+user_1537,Nuwara Eliya,51,SG,hiking,260857,2.3,"nature,scenic,tea",Nature,0,high,10,6,3
+user_1538,Colombo,24,IT,culture,180505,1.3,"urban,culture,food",City,0,high,11,1,3
+user_1539,Mirissa,62,US,adventure,244144,1.1,"beach,nature,relaxation",Beach,0,high,1,7,4
+user_1540,Nuwara Eliya,46,AU,photography,157403,1.3,"nature,scenic,tea",Nature,0,high,10,6,3
+user_1541,Polonnaruwa,63,NL,culture,131722,2.7,"history,heritage,ruins",Heritage,3000,medium,14,11,6
+user_1542,Nuwara Eliya,55,AU,history,232316,2.8,"nature,scenic,tea",Nature,0,high,14,3,3
+user_1543,Galle,48,IT,history,142320,3.1,"history,culture,beach",Heritage,0,medium,14,5,3
+user_1544,Sigiriya,26,RU,history,372989,2.0,"history,nature,adventure",Heritage,4500,high,2,3,5
+user_1545,Anuradhapura,35,DE,history,44562,1.7,"history,heritage,culture",Heritage,3500,low,2,5,5
+user_1546,Trincomalee,59,NL,wildlife,450054,1.9,"beach,nature,diving",Beach,0,high,7,7,4
+user_1547,Anuradhapura,58,NL,food,67486,3.0,"history,heritage,culture",Heritage,3500,medium,14,1,2
+user_1548,Ella,55,ES,nature,475396,1.8,"nature,adventure,scenic",Nature,0,high,6,2,6
+user_1549,Galle,36,AU,photography,336783,3.4,"history,culture,beach",Heritage,0,high,14,9,5
+user_1550,Anuradhapura,20,ES,nature,164518,4.0,"history,heritage,culture",Heritage,3500,high,12,10,2
+user_1551,Anuradhapura,32,ES,beach,397493,1.3,"history,heritage,culture",Heritage,3500,high,8,1,5
+user_1552,Mirissa,20,FR,adventure,178180,3.1,"beach,nature,relaxation",Beach,0,high,3,10,6
+user_1553,Trincomalee,26,SG,adventure,387807,1.3,"beach,nature,diving",Beach,0,high,10,1,4
+user_1554,Galle,23,DE,beach,111108,2.0,"history,culture,beach",Heritage,0,medium,4,10,6
+user_1555,Anuradhapura,32,FR,beach,71653,2.3,"history,heritage,culture",Heritage,3500,medium,1,4,6
+user_1556,Sigiriya,34,MY,history,127034,4.7,"history,nature,adventure",Heritage,4500,medium,5,11,1
+user_1557,Sigiriya,20,DE,beach,455938,4.2,"history,nature,adventure",Heritage,4500,high,6,6,2
+user_1558,Mirissa,35,US,hiking,416837,2.4,"beach,nature,relaxation",Beach,0,high,3,1,5
+user_1559,Mirissa,32,CN,history,366668,4.2,"beach,nature,relaxation",Beach,0,high,6,5,4
+user_1560,Trincomalee,25,NL,adventure,92949,4.2,"beach,nature,diving",Beach,0,medium,1,1,5
+user_1561,Galle,46,CA,wildlife,167490,3.9,"history,culture,beach",Heritage,0,high,9,3,6
+user_1562,Mirissa,63,DE,wildlife,471631,3.1,"beach,nature,relaxation",Beach,0,high,7,12,6
+user_1563,Polonnaruwa,37,FR,wildlife,55283,2.6,"history,heritage,ruins",Heritage,3000,medium,3,5,4
+user_1564,Polonnaruwa,54,US,beach,141237,3.0,"history,heritage,ruins",Heritage,3000,medium,2,12,2
+user_1565,Ella,24,US,adventure,66533,1.6,"nature,adventure,scenic",Nature,0,medium,6,6,1
+user_1566,Galle,63,DE,wildlife,331856,2.3,"history,culture,beach",Heritage,0,high,4,8,6
+user_1567,Polonnaruwa,52,DE,nature,398191,3.2,"history,heritage,ruins",Heritage,3000,high,7,11,5
+user_1568,Colombo,60,JP,photography,317479,3.3,"urban,culture,food",City,0,high,6,11,4
+user_1569,Anuradhapura,26,RU,wildlife,436577,1.3,"history,heritage,culture",Heritage,3500,high,5,10,2
+user_1570,Trincomalee,33,AU,history,15654,4.6,"beach,nature,diving",Beach,0,low,12,6,5
+user_1571,Anuradhapura,37,DE,hiking,424623,1.1,"history,heritage,culture",Heritage,3500,high,13,1,3
+user_1572,Kandy,56,CN,food,90232,2.3,"culture,history,temple",Cultural,1500,medium,13,10,6
+user_1573,Colombo,50,RU,history,239980,2.1,"urban,culture,food",City,0,high,9,8,4
+user_1574,Anuradhapura,63,US,history,242472,3.2,"history,heritage,culture",Heritage,3500,high,10,6,6
+user_1575,Galle,22,SG,adventure,367593,1.0,"history,culture,beach",Heritage,0,high,11,3,6
+user_1576,Sigiriya,48,JP,wildlife,48283,2.8,"history,nature,adventure",Heritage,4500,low,4,8,2
+user_1577,Colombo,26,CN,beach,336844,2.9,"urban,culture,food",City,0,high,5,6,5
+user_1578,Colombo,25,MY,wildlife,429588,3.7,"urban,culture,food",City,0,high,11,5,2
+user_1579,Kandy,60,UK,history,172719,1.9,"culture,history,temple",Cultural,1500,high,8,2,4
+user_1580,Mirissa,38,MY,relaxation,37960,1.9,"beach,nature,relaxation",Beach,0,low,14,3,3
+user_1581,Anuradhapura,24,ES,wildlife,391633,3.7,"history,heritage,culture",Heritage,3500,high,8,1,1
+user_1582,Nuwara Eliya,52,UK,photography,120349,3.2,"nature,scenic,tea",Nature,0,medium,3,5,2
+user_1583,Mirissa,61,SG,wildlife,201651,2.8,"beach,nature,relaxation",Beach,0,high,11,2,5
+user_1584,Colombo,49,IN,history,337923,2.1,"urban,culture,food",City,0,high,14,4,4
+user_1585,Ella,58,DE,photography,308025,2.4,"nature,adventure,scenic",Nature,0,high,11,3,6
+user_1586,Anuradhapura,20,MY,food,35214,4.3,"history,heritage,culture",Heritage,3500,low,11,6,5
+user_1587,Mirissa,45,ES,culture,141366,4.0,"beach,nature,relaxation",Beach,0,medium,12,6,2
+user_1588,Mirissa,51,UK,nature,83716,2.7,"beach,nature,relaxation",Beach,0,medium,2,8,4
+user_1589,Trincomalee,39,CA,nature,364812,4.7,"beach,nature,diving",Beach,0,high,12,8,5
+user_1590,Sigiriya,59,FR,culture,420120,3.9,"history,nature,adventure",Heritage,4500,high,7,5,1
+user_1591,Colombo,37,RU,wildlife,310483,4.6,"urban,culture,food",City,0,high,1,5,6
+user_1592,Kandy,36,IT,history,337676,2.8,"culture,history,temple",Cultural,1500,high,12,11,3
+user_1593,Trincomalee,34,ES,nature,318439,2.4,"beach,nature,diving",Beach,0,high,6,11,2
+user_1594,Mirissa,54,AU,relaxation,373094,4.2,"beach,nature,relaxation",Beach,0,high,2,12,2
+user_1595,Polonnaruwa,30,IT,hiking,270304,2.6,"history,heritage,ruins",Heritage,3000,high,14,8,5
+user_1596,Mirissa,64,US,hiking,318885,2.1,"beach,nature,relaxation",Beach,0,high,9,7,3
+user_1597,Trincomalee,35,NL,adventure,223867,2.8,"beach,nature,diving",Beach,0,high,10,8,3
+user_1598,Sigiriya,39,RU,wildlife,141030,2.0,"history,nature,adventure",Heritage,4500,medium,2,12,5
+user_1599,Trincomalee,24,NL,adventure,419884,4.9,"beach,nature,diving",Beach,0,high,5,5,2
+user_1600,Ella,51,DE,hiking,481843,1.7,"nature,adventure,scenic",Nature,0,high,4,1,4
+user_1601,Polonnaruwa,27,RU,hiking,210236,4.7,"history,heritage,ruins",Heritage,3000,high,14,7,3
+user_1602,Galle,34,MY,relaxation,423855,4.5,"history,culture,beach",Heritage,0,high,8,3,2
+user_1603,Mirissa,61,DE,wildlife,175230,3.5,"beach,nature,relaxation",Beach,0,high,13,2,1
+user_1604,Ella,48,US,photography,457244,1.7,"nature,adventure,scenic",Nature,0,high,10,5,6
+user_1605,Mirissa,47,AU,beach,241403,4.6,"beach,nature,relaxation",Beach,0,high,12,5,2
+user_1606,Anuradhapura,21,CA,wildlife,72141,3.9,"history,heritage,culture",Heritage,3500,medium,12,5,4
+user_1607,Anuradhapura,52,JP,relaxation,479868,2.8,"history,heritage,culture",Heritage,3500,high,2,11,6
+user_1608,Sigiriya,18,IT,food,123398,2.3,"history,nature,adventure",Heritage,4500,medium,6,8,2
+user_1609,Ella,29,UK,wildlife,450773,4.1,"nature,adventure,scenic",Nature,0,high,11,2,1
+user_1610,Sigiriya,39,CN,adventure,199435,4.1,"history,nature,adventure",Heritage,4500,high,8,4,4
+user_1611,Trincomalee,19,SG,food,470757,1.7,"beach,nature,diving",Beach,0,high,4,8,5
+user_1612,Ella,41,CN,relaxation,24090,2.4,"nature,adventure,scenic",Nature,0,low,11,12,3
+user_1613,Colombo,18,DE,beach,125866,2.0,"urban,culture,food",City,0,medium,4,2,6
+user_1614,Polonnaruwa,19,US,culture,99229,1.1,"history,heritage,ruins",Heritage,3000,medium,9,8,4
+user_1615,Polonnaruwa,31,DE,food,459857,4.9,"history,heritage,ruins",Heritage,3000,high,10,9,3
+user_1616,Polonnaruwa,59,IN,food,263150,2.9,"history,heritage,ruins",Heritage,3000,high,11,7,6
+user_1617,Trincomalee,50,MY,photography,321493,1.4,"beach,nature,diving",Beach,0,high,12,4,4
+user_1618,Ella,52,IT,nature,360141,2.9,"nature,adventure,scenic",Nature,0,high,12,6,5
+user_1619,Galle,33,DE,adventure,77246,4.2,"history,culture,beach",Heritage,0,medium,12,11,4
+user_1620,Polonnaruwa,24,ES,photography,480477,2.8,"history,heritage,ruins",Heritage,3000,high,1,1,6
+user_1621,Ella,29,AU,adventure,437747,3.2,"nature,adventure,scenic",Nature,0,high,10,7,5
+user_1622,Ella,49,MY,photography,161185,4.7,"nature,adventure,scenic",Nature,0,high,3,7,5
+user_1623,Anuradhapura,28,FR,adventure,159222,4.6,"history,heritage,culture",Heritage,3500,high,13,9,5
+user_1624,Polonnaruwa,55,SG,food,483572,4.2,"history,heritage,ruins",Heritage,3000,high,6,4,5
+user_1625,Nuwara Eliya,48,SG,hiking,401521,3.1,"nature,scenic,tea",Nature,0,high,5,2,5
+user_1626,Mirissa,57,JP,culture,462352,2.5,"beach,nature,relaxation",Beach,0,high,10,3,6
+user_1627,Kandy,35,FR,nature,244985,3.4,"culture,history,temple",Cultural,1500,high,14,1,4
+user_1628,Polonnaruwa,29,RU,history,169837,3.2,"history,heritage,ruins",Heritage,3000,high,3,8,6
+user_1629,Trincomalee,63,IT,adventure,167472,2.3,"beach,nature,diving",Beach,0,high,9,5,5
+user_1630,Nuwara Eliya,24,FR,culture,432960,2.9,"nature,scenic,tea",Nature,0,high,1,7,3
+user_1631,Anuradhapura,40,NL,relaxation,162684,2.8,"history,heritage,culture",Heritage,3500,high,11,12,5
+user_1632,Polonnaruwa,35,DE,relaxation,35454,2.0,"history,heritage,ruins",Heritage,3000,low,10,3,3
+user_1633,Polonnaruwa,37,UK,food,176072,3.1,"history,heritage,ruins",Heritage,3000,high,12,8,2
+user_1634,Galle,33,UK,adventure,125619,1.8,"history,culture,beach",Heritage,0,medium,3,8,2
+user_1635,Anuradhapura,37,IN,food,348194,2.8,"history,heritage,culture",Heritage,3500,high,7,10,5
+user_1636,Mirissa,34,JP,adventure,445348,1.1,"beach,nature,relaxation",Beach,0,high,11,8,4
+user_1637,Galle,54,CA,beach,476978,2.1,"history,culture,beach",Heritage,0,high,7,7,4
+user_1638,Ella,53,CN,adventure,471232,1.0,"nature,adventure,scenic",Nature,0,high,7,9,3
+user_1639,Mirissa,34,US,culture,385486,4.5,"beach,nature,relaxation",Beach,0,high,14,6,6
+user_1640,Kandy,56,MY,nature,87980,2.6,"culture,history,temple",Cultural,1500,medium,13,1,1
+user_1641,Ella,65,SG,nature,490437,2.7,"nature,adventure,scenic",Nature,0,high,3,9,6
+user_1642,Anuradhapura,30,RU,adventure,475626,3.6,"history,heritage,culture",Heritage,3500,high,4,8,6
+user_1643,Trincomalee,39,ES,relaxation,224243,3.8,"beach,nature,diving",Beach,0,high,2,8,3
+user_1644,Anuradhapura,44,IT,culture,76454,2.4,"history,heritage,culture",Heritage,3500,medium,5,12,5
+user_1645,Kandy,48,IN,adventure,263763,1.4,"culture,history,temple",Cultural,1500,high,11,8,4
+user_1646,Galle,44,MY,adventure,127181,1.4,"history,culture,beach",Heritage,0,medium,2,6,6
+user_1647,Anuradhapura,36,CA,nature,407361,2.1,"history,heritage,culture",Heritage,3500,high,7,4,5
+user_1648,Kandy,31,US,wildlife,495241,3.5,"culture,history,temple",Cultural,1500,high,5,7,1
+user_1649,Polonnaruwa,35,RU,adventure,240799,4.5,"history,heritage,ruins",Heritage,3000,high,7,10,2
+user_1650,Colombo,31,ES,history,427284,4.0,"urban,culture,food",City,0,high,14,11,1
+user_1651,Sigiriya,21,CA,relaxation,273311,3.8,"history,nature,adventure",Heritage,4500,high,3,1,5
+user_1652,Galle,53,ES,nature,427629,4.8,"history,culture,beach",Heritage,0,high,1,2,4
+user_1653,Nuwara Eliya,33,CN,nature,80656,3.9,"nature,scenic,tea",Nature,0,medium,5,5,6
+user_1654,Colombo,60,DE,food,260849,2.1,"urban,culture,food",City,0,high,8,6,2
+user_1655,Kandy,64,NL,hiking,481782,2.5,"culture,history,temple",Cultural,1500,high,6,6,1
+user_1656,Polonnaruwa,45,UK,culture,393195,4.6,"history,heritage,ruins",Heritage,3000,high,7,3,3
+user_1657,Galle,58,DE,nature,488117,3.5,"history,culture,beach",Heritage,0,high,5,6,2
+user_1658,Anuradhapura,51,CN,hiking,67285,4.0,"history,heritage,culture",Heritage,3500,medium,4,1,5
+user_1659,Ella,21,ES,hiking,335701,4.8,"nature,adventure,scenic",Nature,0,high,4,10,6
+user_1660,Colombo,28,IT,wildlife,64799,4.5,"urban,culture,food",City,0,medium,7,5,5
+user_1661,Nuwara Eliya,33,US,adventure,131371,3.3,"nature,scenic,tea",Nature,0,medium,4,9,1
+user_1662,Ella,40,MY,nature,270379,4.9,"nature,adventure,scenic",Nature,0,high,9,5,3
+user_1663,Anuradhapura,38,AU,nature,214011,1.8,"history,heritage,culture",Heritage,3500,high,10,11,1
+user_1664,Nuwara Eliya,45,AU,photography,64952,3.4,"nature,scenic,tea",Nature,0,medium,14,12,3
+user_1665,Trincomalee,34,CA,beach,177046,2.5,"beach,nature,diving",Beach,0,high,13,4,1
+user_1666,Polonnaruwa,53,DE,beach,277938,3.7,"history,heritage,ruins",Heritage,3000,high,10,8,2
+user_1667,Polonnaruwa,21,IN,nature,26502,3.1,"history,heritage,ruins",Heritage,3000,low,13,7,6
+user_1668,Trincomalee,57,IN,photography,415253,1.1,"beach,nature,diving",Beach,0,high,10,11,3
+user_1669,Kandy,47,NL,adventure,306313,2.5,"culture,history,temple",Cultural,1500,high,5,2,1
+user_1670,Colombo,59,CA,photography,134719,2.7,"urban,culture,food",City,0,medium,10,6,4
+user_1671,Polonnaruwa,23,IT,nature,460918,1.5,"history,heritage,ruins",Heritage,3000,high,5,2,5
+user_1672,Sigiriya,53,JP,culture,252320,2.6,"history,nature,adventure",Heritage,4500,high,11,11,4
+user_1673,Mirissa,57,JP,nature,186212,5.0,"beach,nature,relaxation",Beach,0,high,2,8,5
+user_1674,Polonnaruwa,37,DE,wildlife,51975,3.8,"history,heritage,ruins",Heritage,3000,medium,14,8,4
+user_1675,Kandy,54,US,beach,158968,4.2,"culture,history,temple",Cultural,1500,high,13,8,1
+user_1676,Colombo,33,US,photography,35445,1.3,"urban,culture,food",City,0,low,4,1,2
+user_1677,Kandy,47,SG,adventure,310640,3.3,"culture,history,temple",Cultural,1500,high,5,3,4
+user_1678,Galle,19,SG,hiking,439248,3.9,"history,culture,beach",Heritage,0,high,3,3,5
+user_1679,Galle,58,IN,adventure,34131,3.9,"history,culture,beach",Heritage,0,low,14,4,4
+user_1680,Anuradhapura,50,DE,photography,39842,1.3,"history,heritage,culture",Heritage,3500,low,8,4,5
+user_1681,Colombo,37,AU,photography,107810,2.5,"urban,culture,food",City,0,medium,9,8,4
+user_1682,Ella,65,FR,food,410336,4.5,"nature,adventure,scenic",Nature,0,high,13,8,2
+user_1683,Trincomalee,34,UK,beach,231620,4.0,"beach,nature,diving",Beach,0,high,2,10,2
+user_1684,Mirissa,58,FR,wildlife,339000,2.9,"beach,nature,relaxation",Beach,0,high,8,11,3
+user_1685,Trincomalee,40,AU,photography,187418,3.8,"beach,nature,diving",Beach,0,high,3,9,5
+user_1686,Galle,64,RU,beach,336269,1.7,"history,culture,beach",Heritage,0,high,14,4,2
+user_1687,Mirissa,25,IT,food,354307,4.2,"beach,nature,relaxation",Beach,0,high,13,4,1
+user_1688,Sigiriya,62,UK,adventure,158914,1.3,"history,nature,adventure",Heritage,4500,high,11,12,4
+user_1689,Anuradhapura,62,FR,adventure,362428,4.2,"history,heritage,culture",Heritage,3500,high,11,7,4
+user_1690,Sigiriya,22,ES,food,473795,2.3,"history,nature,adventure",Heritage,4500,high,13,7,5
+user_1691,Ella,62,JP,nature,26271,1.2,"nature,adventure,scenic",Nature,0,low,8,3,1
+user_1692,Ella,54,NL,adventure,387532,2.1,"nature,adventure,scenic",Nature,0,high,12,9,6
+user_1693,Nuwara Eliya,30,DE,food,467520,3.6,"nature,scenic,tea",Nature,0,high,1,6,5
+user_1694,Mirissa,24,CN,hiking,241339,3.6,"beach,nature,relaxation",Beach,0,high,9,4,4
+user_1695,Kandy,41,RU,hiking,186950,2.6,"culture,history,temple",Cultural,1500,high,9,12,6
+user_1696,Sigiriya,47,RU,culture,296119,1.1,"history,nature,adventure",Heritage,4500,high,1,12,6
+user_1697,Sigiriya,23,AU,history,268279,3.5,"history,nature,adventure",Heritage,4500,high,13,9,5
+user_1698,Nuwara Eliya,56,DE,relaxation,231577,3.3,"nature,scenic,tea",Nature,0,high,2,7,1
+user_1699,Sigiriya,55,CA,beach,40660,2.5,"history,nature,adventure",Heritage,4500,low,8,10,5
+user_1700,Colombo,23,AU,hiking,343856,4.5,"urban,culture,food",City,0,high,10,1,5
+user_1701,Ella,25,NL,nature,140337,1.9,"nature,adventure,scenic",Nature,0,medium,4,6,3
+user_1702,Ella,42,SG,culture,191364,3.5,"nature,adventure,scenic",Nature,0,high,1,10,4
+user_1703,Trincomalee,30,UK,photography,473628,2.3,"beach,nature,diving",Beach,0,high,9,4,5
+user_1704,Galle,50,US,history,85257,1.9,"history,culture,beach",Heritage,0,medium,14,7,2
+user_1705,Anuradhapura,45,UK,relaxation,189679,4.5,"history,heritage,culture",Heritage,3500,high,2,10,4
+user_1706,Colombo,33,CN,relaxation,322200,3.3,"urban,culture,food",City,0,high,14,8,3
+user_1707,Colombo,64,CA,history,42037,3.6,"urban,culture,food",City,0,low,12,2,6
+user_1708,Trincomalee,52,US,hiking,63226,2.1,"beach,nature,diving",Beach,0,medium,9,11,2
+user_1709,Colombo,53,JP,wildlife,446438,2.0,"urban,culture,food",City,0,high,12,11,3
+user_1710,Galle,39,US,relaxation,344579,1.0,"history,culture,beach",Heritage,0,high,4,4,5
+user_1711,Galle,24,AU,nature,265664,2.0,"history,culture,beach",Heritage,0,high,1,2,5
+user_1712,Sigiriya,64,JP,relaxation,206277,4.6,"history,nature,adventure",Heritage,4500,high,13,6,4
+user_1713,Nuwara Eliya,62,NL,hiking,84619,3.4,"nature,scenic,tea",Nature,0,medium,6,2,4
+user_1714,Ella,63,DE,adventure,19266,1.9,"nature,adventure,scenic",Nature,0,low,9,7,3
+user_1715,Ella,52,DE,relaxation,375195,3.1,"nature,adventure,scenic",Nature,0,high,10,1,2
+user_1716,Trincomalee,65,MY,food,334339,4.7,"beach,nature,diving",Beach,0,high,9,12,6
+user_1717,Anuradhapura,53,RU,food,99646,3.7,"history,heritage,culture",Heritage,3500,medium,7,1,2
+user_1718,Kandy,28,CN,history,190798,3.6,"culture,history,temple",Cultural,1500,high,6,3,3
+user_1719,Polonnaruwa,61,JP,history,379737,4.8,"history,heritage,ruins",Heritage,3000,high,13,4,4
+user_1720,Ella,40,UK,food,465695,4.0,"nature,adventure,scenic",Nature,0,high,4,11,5
+user_1721,Kandy,62,RU,nature,256988,1.8,"culture,history,temple",Cultural,1500,high,11,8,1
+user_1722,Polonnaruwa,28,AU,hiking,226368,4.9,"history,heritage,ruins",Heritage,3000,high,12,7,4
+user_1723,Polonnaruwa,52,SG,history,343119,4.0,"history,heritage,ruins",Heritage,3000,high,12,7,1
+user_1724,Galle,40,IN,history,42175,1.3,"history,culture,beach",Heritage,0,low,1,8,1
+user_1725,Colombo,35,DE,hiking,140654,2.7,"urban,culture,food",City,0,medium,9,11,3
+user_1726,Trincomalee,42,CN,nature,449041,3.1,"beach,nature,diving",Beach,0,high,8,12,1
+user_1727,Ella,54,IT,food,337859,3.5,"nature,adventure,scenic",Nature,0,high,7,12,2
+user_1728,Sigiriya,35,DE,wildlife,429483,4.6,"history,nature,adventure",Heritage,4500,high,4,5,4
+user_1729,Mirissa,28,US,beach,104744,4.2,"beach,nature,relaxation",Beach,0,medium,10,9,1
+user_1730,Polonnaruwa,44,IN,beach,282088,3.1,"history,heritage,ruins",Heritage,3000,high,13,11,1
+user_1731,Ella,56,SG,photography,338883,4.7,"nature,adventure,scenic",Nature,0,high,11,11,5
+user_1732,Trincomalee,51,IN,hiking,236931,4.0,"beach,nature,diving",Beach,0,high,7,1,5
+user_1733,Nuwara Eliya,28,NL,history,392316,2.4,"nature,scenic,tea",Nature,0,high,9,12,2
+user_1734,Mirissa,26,UK,hiking,135863,1.1,"beach,nature,relaxation",Beach,0,medium,10,9,1
+user_1735,Sigiriya,41,FR,history,466363,1.2,"history,nature,adventure",Heritage,4500,high,2,9,4
+user_1736,Galle,39,RU,history,317935,1.4,"history,culture,beach",Heritage,0,high,4,6,6
+user_1737,Sigiriya,27,RU,photography,195248,3.7,"history,nature,adventure",Heritage,4500,high,14,7,1
+user_1738,Galle,19,IT,beach,337919,1.9,"history,culture,beach",Heritage,0,high,3,6,3
+user_1739,Kandy,57,JP,history,193563,4.0,"culture,history,temple",Cultural,1500,high,10,11,3
+user_1740,Anuradhapura,47,SG,culture,386426,2.0,"history,heritage,culture",Heritage,3500,high,2,7,2
+user_1741,Polonnaruwa,37,NL,relaxation,228743,1.8,"history,heritage,ruins",Heritage,3000,high,6,6,2
+user_1742,Galle,46,DE,wildlife,391474,4.4,"history,culture,beach",Heritage,0,high,7,2,6
+user_1743,Ella,35,UK,history,433929,3.2,"nature,adventure,scenic",Nature,0,high,10,5,2
+user_1744,Mirissa,26,NL,food,263273,3.7,"beach,nature,relaxation",Beach,0,high,14,8,1
+user_1745,Mirissa,24,SG,photography,475810,3.9,"beach,nature,relaxation",Beach,0,high,8,5,3
+user_1746,Polonnaruwa,37,UK,relaxation,305818,3.5,"history,heritage,ruins",Heritage,3000,high,14,8,1
+user_1747,Nuwara Eliya,38,DE,photography,241349,3.2,"nature,scenic,tea",Nature,0,high,14,9,5
+user_1748,Colombo,65,MY,history,404538,2.2,"urban,culture,food",City,0,high,6,3,4
+user_1749,Mirissa,56,SG,photography,444261,1.9,"beach,nature,relaxation",Beach,0,high,2,4,2
+user_1750,Kandy,63,JP,culture,145885,4.8,"culture,history,temple",Cultural,1500,medium,14,10,2
+user_1751,Nuwara Eliya,19,IN,culture,468724,1.8,"nature,scenic,tea",Nature,0,high,8,3,2
+user_1752,Trincomalee,31,DE,wildlife,429402,1.6,"beach,nature,diving",Beach,0,high,13,5,6
+user_1753,Mirissa,30,IT,history,452634,4.7,"beach,nature,relaxation",Beach,0,high,10,8,3
+user_1754,Kandy,19,US,relaxation,486991,4.9,"culture,history,temple",Cultural,1500,high,12,11,4
+user_1755,Kandy,55,DE,relaxation,338191,4.0,"culture,history,temple",Cultural,1500,high,13,9,2
+user_1756,Anuradhapura,24,JP,hiking,451405,1.9,"history,heritage,culture",Heritage,3500,high,6,8,6
+user_1757,Anuradhapura,63,NL,beach,62627,1.6,"history,heritage,culture",Heritage,3500,medium,5,12,1
+user_1758,Anuradhapura,49,IT,hiking,270212,1.4,"history,heritage,culture",Heritage,3500,high,9,5,4
+user_1759,Ella,29,SG,history,402745,4.3,"nature,adventure,scenic",Nature,0,high,3,7,4
+user_1760,Colombo,60,CA,wildlife,126088,5.0,"urban,culture,food",City,0,medium,5,2,4
+user_1761,Galle,46,IT,culture,224953,3.7,"history,culture,beach",Heritage,0,high,9,11,4
+user_1762,Anuradhapura,46,CA,beach,476267,4.3,"history,heritage,culture",Heritage,3500,high,13,4,6
+user_1763,Trincomalee,30,MY,wildlife,109246,3.7,"beach,nature,diving",Beach,0,medium,2,11,6
+user_1764,Polonnaruwa,47,MY,adventure,193553,2.0,"history,heritage,ruins",Heritage,3000,high,6,4,6
+user_1765,Trincomalee,23,CA,culture,320101,4.6,"beach,nature,diving",Beach,0,high,8,7,6
+user_1766,Kandy,36,CN,history,215144,2.1,"culture,history,temple",Cultural,1500,high,12,4,6
+user_1767,Polonnaruwa,47,SG,culture,89560,4.8,"history,heritage,ruins",Heritage,3000,medium,8,1,6
+user_1768,Ella,44,FR,nature,204678,2.5,"nature,adventure,scenic",Nature,0,high,3,10,1
+user_1769,Nuwara Eliya,47,MY,culture,61631,4.9,"nature,scenic,tea",Nature,0,medium,1,5,5
+user_1770,Kandy,44,SG,hiking,434046,4.7,"culture,history,temple",Cultural,1500,high,12,2,5
+user_1771,Polonnaruwa,45,MY,beach,40891,4.2,"history,heritage,ruins",Heritage,3000,low,4,6,6
+user_1772,Anuradhapura,60,NL,wildlife,387208,2.3,"history,heritage,culture",Heritage,3500,high,13,10,3
+user_1773,Kandy,23,NL,culture,449144,3.7,"culture,history,temple",Cultural,1500,high,8,1,4
+user_1774,Colombo,22,AU,nature,198970,1.3,"urban,culture,food",City,0,high,14,12,4
+user_1775,Anuradhapura,64,SG,history,269472,4.2,"history,heritage,culture",Heritage,3500,high,4,10,1
+user_1776,Colombo,29,SG,history,318379,3.6,"urban,culture,food",City,0,high,9,5,3
+user_1777,Galle,20,NL,history,493913,2.9,"history,culture,beach",Heritage,0,high,12,6,4
+user_1778,Trincomalee,50,IN,photography,203222,1.9,"beach,nature,diving",Beach,0,high,11,8,4
+user_1779,Anuradhapura,59,NL,beach,53075,3.7,"history,heritage,culture",Heritage,3500,medium,11,5,3
+user_1780,Nuwara Eliya,46,RU,nature,475721,3.2,"nature,scenic,tea",Nature,0,high,4,2,1
+user_1781,Mirissa,26,ES,adventure,236034,1.8,"beach,nature,relaxation",Beach,0,high,8,4,6
+user_1782,Trincomalee,60,SG,nature,479505,4.7,"beach,nature,diving",Beach,0,high,2,4,4
+user_1783,Nuwara Eliya,32,RU,nature,402254,2.7,"nature,scenic,tea",Nature,0,high,5,10,3
+user_1784,Mirissa,35,IT,wildlife,193206,3.2,"beach,nature,relaxation",Beach,0,high,2,5,2
+user_1785,Galle,38,NL,food,381134,4.5,"history,culture,beach",Heritage,0,high,7,7,1
+user_1786,Ella,57,NL,beach,489643,3.9,"nature,adventure,scenic",Nature,0,high,8,4,5
+user_1787,Nuwara Eliya,65,RU,nature,83462,3.0,"nature,scenic,tea",Nature,0,medium,11,1,2
+user_1788,Galle,31,IN,hiking,351389,1.7,"history,culture,beach",Heritage,0,high,3,10,3
+user_1789,Nuwara Eliya,38,US,wildlife,117922,4.6,"nature,scenic,tea",Nature,0,medium,7,5,3
+user_1790,Anuradhapura,56,DE,culture,427570,2.9,"history,heritage,culture",Heritage,3500,high,13,8,4
+user_1791,Colombo,25,IT,adventure,191245,3.6,"urban,culture,food",City,0,high,3,5,3
+user_1792,Ella,27,IT,adventure,23570,3.0,"nature,adventure,scenic",Nature,0,low,13,6,3
+user_1793,Ella,31,DE,food,29965,4.4,"nature,adventure,scenic",Nature,0,low,9,3,6
+user_1794,Anuradhapura,23,NL,adventure,252350,3.3,"history,heritage,culture",Heritage,3500,high,1,7,2
+user_1795,Anuradhapura,46,AU,culture,383404,1.4,"history,heritage,culture",Heritage,3500,high,3,5,6
+user_1796,Ella,34,IN,relaxation,160247,1.7,"nature,adventure,scenic",Nature,0,high,9,3,2
+user_1797,Ella,59,SG,history,221744,3.8,"nature,adventure,scenic",Nature,0,high,6,8,2
+user_1798,Colombo,45,US,history,314159,4.0,"urban,culture,food",City,0,high,7,8,4
+user_1799,Ella,31,IT,relaxation,73510,4.1,"nature,adventure,scenic",Nature,0,medium,3,7,2
+user_1800,Nuwara Eliya,58,ES,history,362898,4.9,"nature,scenic,tea",Nature,0,high,10,4,5
+user_1801,Mirissa,29,US,wildlife,227886,1.3,"beach,nature,relaxation",Beach,0,high,2,9,1
+user_1802,Sigiriya,34,JP,adventure,193071,2.0,"history,nature,adventure",Heritage,4500,high,12,8,6
+user_1803,Galle,57,FR,wildlife,260240,4.5,"history,culture,beach",Heritage,0,high,7,1,1
+user_1804,Ella,37,IN,culture,95547,2.2,"nature,adventure,scenic",Nature,0,medium,2,6,4
+user_1805,Ella,40,ES,wildlife,24075,2.9,"nature,adventure,scenic",Nature,0,low,5,3,6
+user_1806,Ella,25,IN,nature,270036,2.9,"nature,adventure,scenic",Nature,0,high,11,3,3
+user_1807,Kandy,39,JP,wildlife,215813,4.8,"culture,history,temple",Cultural,1500,high,11,3,1
+user_1808,Galle,50,FR,culture,485945,4.8,"history,culture,beach",Heritage,0,high,14,5,2
+user_1809,Anuradhapura,39,MY,photography,425922,4.1,"history,heritage,culture",Heritage,3500,high,1,7,4
+user_1810,Colombo,37,NL,culture,328100,3.2,"urban,culture,food",City,0,high,12,5,6
+user_1811,Ella,26,ES,history,416806,1.6,"nature,adventure,scenic",Nature,0,high,1,4,4
+user_1812,Sigiriya,36,RU,adventure,114414,4.3,"history,nature,adventure",Heritage,4500,medium,7,12,4
+user_1813,Anuradhapura,30,IN,beach,79592,4.0,"history,heritage,culture",Heritage,3500,medium,1,10,6
+user_1814,Galle,35,JP,beach,196123,2.7,"history,culture,beach",Heritage,0,high,10,12,4
+user_1815,Polonnaruwa,53,UK,history,70363,2.2,"history,heritage,ruins",Heritage,3000,medium,12,3,6
+user_1816,Colombo,54,RU,wildlife,105490,2.8,"urban,culture,food",City,0,medium,14,12,3
+user_1817,Kandy,57,IN,nature,72118,3.1,"culture,history,temple",Cultural,1500,medium,7,3,5
+user_1818,Galle,61,CA,adventure,324505,2.1,"history,culture,beach",Heritage,0,high,12,5,5
+user_1819,Anuradhapura,64,SG,food,280393,1.9,"history,heritage,culture",Heritage,3500,high,14,10,1
+user_1820,Nuwara Eliya,52,UK,photography,404440,1.1,"nature,scenic,tea",Nature,0,high,13,9,2
+user_1821,Ella,56,ES,nature,142481,4.9,"nature,adventure,scenic",Nature,0,medium,7,9,6
+user_1822,Mirissa,50,DE,beach,449342,2.3,"beach,nature,relaxation",Beach,0,high,13,9,3
+user_1823,Nuwara Eliya,25,IN,nature,352420,2.7,"nature,scenic,tea",Nature,0,high,9,5,3
+user_1824,Polonnaruwa,57,NL,history,143248,1.7,"history,heritage,ruins",Heritage,3000,medium,11,1,5
+user_1825,Ella,58,FR,beach,157233,1.3,"nature,adventure,scenic",Nature,0,high,13,5,1
+user_1826,Mirissa,50,NL,adventure,221754,3.0,"beach,nature,relaxation",Beach,0,high,5,5,3
+user_1827,Sigiriya,41,CA,hiking,43460,3.6,"history,nature,adventure",Heritage,4500,low,7,10,5
+user_1828,Anuradhapura,25,FR,photography,385861,2.5,"history,heritage,culture",Heritage,3500,high,8,4,1
+user_1829,Mirissa,32,FR,wildlife,185593,3.7,"beach,nature,relaxation",Beach,0,high,3,12,2
+user_1830,Polonnaruwa,34,IT,relaxation,478413,2.1,"history,heritage,ruins",Heritage,3000,high,9,12,1
+user_1831,Nuwara Eliya,61,NL,photography,498228,4.6,"nature,scenic,tea",Nature,0,high,2,5,5
+user_1832,Sigiriya,54,DE,wildlife,337429,2.1,"history,nature,adventure",Heritage,4500,high,12,6,2
+user_1833,Ella,44,CA,hiking,354786,2.4,"nature,adventure,scenic",Nature,0,high,11,11,5
+user_1834,Polonnaruwa,55,MY,relaxation,308138,5.0,"history,heritage,ruins",Heritage,3000,high,6,12,3
+user_1835,Kandy,51,MY,nature,378618,2.6,"culture,history,temple",Cultural,1500,high,13,2,5
+user_1836,Colombo,45,UK,hiking,383399,4.7,"urban,culture,food",City,0,high,1,12,1
+user_1837,Sigiriya,59,US,wildlife,278636,2.4,"history,nature,adventure",Heritage,4500,high,10,1,2
+user_1838,Colombo,31,ES,food,476611,2.1,"urban,culture,food",City,0,high,1,11,1
+user_1839,Kandy,44,NL,wildlife,464910,4.9,"culture,history,temple",Cultural,1500,high,1,6,4
+user_1840,Polonnaruwa,18,IN,hiking,243369,4.1,"history,heritage,ruins",Heritage,3000,high,4,11,5
+user_1841,Anuradhapura,49,DE,hiking,251947,4.9,"history,heritage,culture",Heritage,3500,high,10,7,6
+user_1842,Trincomalee,58,RU,hiking,121377,5.0,"beach,nature,diving",Beach,0,medium,3,5,1
+user_1843,Nuwara Eliya,58,AU,wildlife,250476,3.6,"nature,scenic,tea",Nature,0,high,11,10,5
+user_1844,Trincomalee,31,CN,nature,397074,2.7,"beach,nature,diving",Beach,0,high,8,9,5
+user_1845,Trincomalee,54,ES,adventure,365818,1.2,"beach,nature,diving",Beach,0,high,14,12,5
+user_1846,Colombo,65,ES,wildlife,257719,4.0,"urban,culture,food",City,0,high,7,10,6
+user_1847,Galle,30,JP,nature,90763,4.3,"history,culture,beach",Heritage,0,medium,2,1,1
+user_1848,Anuradhapura,43,UK,food,280613,3.6,"history,heritage,culture",Heritage,3500,high,1,9,1
+user_1849,Mirissa,50,IN,history,33741,4.4,"beach,nature,relaxation",Beach,0,low,9,7,4
+user_1850,Colombo,51,MY,history,71710,2.9,"urban,culture,food",City,0,medium,1,6,4
+user_1851,Colombo,20,DE,wildlife,197300,1.3,"urban,culture,food",City,0,high,8,1,6
+user_1852,Colombo,25,US,nature,332909,2.6,"urban,culture,food",City,0,high,7,10,1
+user_1853,Colombo,42,IN,adventure,316714,3.5,"urban,culture,food",City,0,high,11,5,6
+user_1854,Kandy,27,ES,history,231003,4.0,"culture,history,temple",Cultural,1500,high,7,10,5
+user_1855,Trincomalee,65,FR,photography,170332,4.6,"beach,nature,diving",Beach,0,high,10,1,3
+user_1856,Mirissa,62,IT,beach,194143,1.2,"beach,nature,relaxation",Beach,0,high,4,3,4
+user_1857,Polonnaruwa,29,NL,wildlife,343909,3.2,"history,heritage,ruins",Heritage,3000,high,1,1,5
+user_1858,Colombo,23,MY,culture,19570,4.6,"urban,culture,food",City,0,low,6,10,1
+user_1859,Sigiriya,27,IN,hiking,61151,1.5,"history,nature,adventure",Heritage,4500,medium,14,4,4
+user_1860,Colombo,36,FR,relaxation,79131,3.4,"urban,culture,food",City,0,medium,5,2,2
+user_1861,Colombo,20,ES,photography,122140,1.4,"urban,culture,food",City,0,medium,3,2,3
+user_1862,Polonnaruwa,38,US,wildlife,164961,2.0,"history,heritage,ruins",Heritage,3000,high,6,12,2
+user_1863,Mirissa,47,JP,photography,391786,1.3,"beach,nature,relaxation",Beach,0,high,13,10,1
+user_1864,Galle,41,DE,history,377732,4.9,"history,culture,beach",Heritage,0,high,7,4,3
+user_1865,Mirissa,27,RU,wildlife,187415,2.9,"beach,nature,relaxation",Beach,0,high,6,10,4
+user_1866,Polonnaruwa,58,CA,photography,244889,3.5,"history,heritage,ruins",Heritage,3000,high,13,7,2
+user_1867,Anuradhapura,49,ES,culture,57081,3.5,"history,heritage,culture",Heritage,3500,medium,12,5,3
+user_1868,Sigiriya,42,IT,beach,403986,3.7,"history,nature,adventure",Heritage,4500,high,14,1,4
+user_1869,Sigiriya,51,FR,relaxation,274506,1.5,"history,nature,adventure",Heritage,4500,high,4,11,5
+user_1870,Sigiriya,23,UK,adventure,231502,2.2,"history,nature,adventure",Heritage,4500,high,14,2,2
+user_1871,Sigiriya,51,RU,relaxation,222656,4.6,"history,nature,adventure",Heritage,4500,high,2,2,3
+user_1872,Colombo,42,CA,beach,335314,3.8,"urban,culture,food",City,0,high,9,10,1
+user_1873,Galle,34,JP,food,268744,2.1,"history,culture,beach",Heritage,0,high,5,5,1
+user_1874,Trincomalee,22,NL,adventure,59563,3.4,"beach,nature,diving",Beach,0,medium,11,11,3
+user_1875,Ella,22,ES,hiking,287760,3.8,"nature,adventure,scenic",Nature,0,high,5,8,2
+user_1876,Nuwara Eliya,32,US,food,100033,4.9,"nature,scenic,tea",Nature,0,medium,3,6,4
+user_1877,Colombo,55,IN,culture,17229,1.3,"urban,culture,food",City,0,low,10,11,5
+user_1878,Nuwara Eliya,35,JP,history,214336,4.4,"nature,scenic,tea",Nature,0,high,10,12,2
+user_1879,Galle,34,SG,beach,158534,4.1,"history,culture,beach",Heritage,0,high,1,6,4
+user_1880,Ella,36,UK,culture,347654,1.4,"nature,adventure,scenic",Nature,0,high,12,9,2
+user_1881,Galle,21,US,relaxation,128519,3.8,"history,culture,beach",Heritage,0,medium,13,12,1
+user_1882,Sigiriya,63,AU,adventure,188467,3.9,"history,nature,adventure",Heritage,4500,high,7,6,1
+user_1883,Colombo,26,AU,food,490516,4.5,"urban,culture,food",City,0,high,14,12,6
+user_1884,Sigiriya,26,DE,nature,132936,2.0,"history,nature,adventure",Heritage,4500,medium,14,7,5
+user_1885,Kandy,49,AU,history,244656,4.4,"culture,history,temple",Cultural,1500,high,4,10,5
+user_1886,Colombo,31,UK,hiking,202682,2.5,"urban,culture,food",City,0,high,14,7,6
+user_1887,Trincomalee,35,IN,photography,348809,3.4,"beach,nature,diving",Beach,0,high,4,10,6
+user_1888,Anuradhapura,57,IT,history,437805,4.0,"history,heritage,culture",Heritage,3500,high,8,8,4
+user_1889,Mirissa,37,CA,history,448173,1.9,"beach,nature,relaxation",Beach,0,high,4,1,6
+user_1890,Ella,48,ES,food,392269,1.6,"nature,adventure,scenic",Nature,0,high,5,8,2
+user_1891,Polonnaruwa,54,FR,relaxation,147039,4.0,"history,heritage,ruins",Heritage,3000,medium,5,4,5
+user_1892,Galle,34,JP,relaxation,233572,3.2,"history,culture,beach",Heritage,0,high,10,2,6
+user_1893,Nuwara Eliya,45,DE,history,51287,1.1,"nature,scenic,tea",Nature,0,medium,8,2,5
+user_1894,Nuwara Eliya,53,IN,history,323532,4.1,"nature,scenic,tea",Nature,0,high,3,2,1
+user_1895,Kandy,20,DE,hiking,195662,1.5,"culture,history,temple",Cultural,1500,high,8,12,5
+user_1896,Sigiriya,54,CA,beach,242954,4.3,"history,nature,adventure",Heritage,4500,high,12,5,4
+user_1897,Galle,27,CN,beach,205275,4.3,"history,culture,beach",Heritage,0,high,14,2,1
+user_1898,Polonnaruwa,50,SG,adventure,226856,3.8,"history,heritage,ruins",Heritage,3000,high,13,10,2
+user_1899,Sigiriya,61,CA,adventure,64971,3.1,"history,nature,adventure",Heritage,4500,medium,11,2,1
+user_1900,Nuwara Eliya,46,RU,hiking,470591,3.0,"nature,scenic,tea",Nature,0,high,1,6,1
+user_1901,Galle,52,CN,photography,212066,3.1,"history,culture,beach",Heritage,0,high,7,10,4
+user_1902,Ella,24,RU,adventure,420909,1.3,"nature,adventure,scenic",Nature,0,high,6,1,2
+user_1903,Polonnaruwa,56,AU,relaxation,355365,4.5,"history,heritage,ruins",Heritage,3000,high,13,11,6
+user_1904,Polonnaruwa,64,CA,food,166895,2.6,"history,heritage,ruins",Heritage,3000,high,7,7,3
+user_1905,Ella,63,FR,hiking,441143,4.2,"nature,adventure,scenic",Nature,0,high,14,12,4
+user_1906,Ella,37,CA,hiking,434573,1.5,"nature,adventure,scenic",Nature,0,high,5,4,3
+user_1907,Trincomalee,28,MY,food,259104,1.4,"beach,nature,diving",Beach,0,high,9,5,1
+user_1908,Colombo,48,CA,food,24283,3.1,"urban,culture,food",City,0,low,13,2,6
+user_1909,Ella,45,DE,wildlife,447607,1.3,"nature,adventure,scenic",Nature,0,high,4,2,3
+user_1910,Galle,52,NL,wildlife,38245,2.0,"history,culture,beach",Heritage,0,low,7,11,1
+user_1911,Colombo,50,SG,photography,433999,2.1,"urban,culture,food",City,0,high,2,7,1
+user_1912,Colombo,44,ES,adventure,461568,2.1,"urban,culture,food",City,0,high,14,3,2
+user_1913,Colombo,31,CN,food,407961,3.9,"urban,culture,food",City,0,high,5,1,1
+user_1914,Colombo,31,AU,photography,393459,4.2,"urban,culture,food",City,0,high,11,7,3
+user_1915,Colombo,24,NL,hiking,142829,4.8,"urban,culture,food",City,0,medium,13,1,1
+user_1916,Sigiriya,48,IT,food,207292,2.7,"history,nature,adventure",Heritage,4500,high,5,6,6
+user_1917,Trincomalee,25,IN,hiking,474043,3.1,"beach,nature,diving",Beach,0,high,9,2,1
+user_1918,Trincomalee,52,NL,relaxation,148514,5.0,"beach,nature,diving",Beach,0,medium,6,3,6
+user_1919,Kandy,63,FR,adventure,398349,1.8,"culture,history,temple",Cultural,1500,high,10,3,3
+user_1920,Mirissa,47,RU,beach,195503,2.0,"beach,nature,relaxation",Beach,0,high,7,6,6
+user_1921,Galle,60,CA,wildlife,39931,1.7,"history,culture,beach",Heritage,0,low,12,7,5
+user_1922,Colombo,25,UK,adventure,142230,3.4,"urban,culture,food",City,0,medium,4,1,2
+user_1923,Kandy,62,JP,nature,89835,4.4,"culture,history,temple",Cultural,1500,medium,5,6,2
+user_1924,Kandy,19,NL,culture,249407,2.4,"culture,history,temple",Cultural,1500,high,12,6,2
+user_1925,Galle,43,JP,hiking,53934,2.1,"history,culture,beach",Heritage,0,medium,2,5,6
+user_1926,Colombo,30,CN,culture,177395,4.4,"urban,culture,food",City,0,high,11,3,3
+user_1927,Sigiriya,39,MY,hiking,350896,2.1,"history,nature,adventure",Heritage,4500,high,7,3,3
+user_1928,Polonnaruwa,59,NL,history,71440,2.6,"history,heritage,ruins",Heritage,3000,medium,2,1,2
+user_1929,Nuwara Eliya,36,FR,culture,23503,4.2,"nature,scenic,tea",Nature,0,low,10,4,6
+user_1930,Anuradhapura,53,JP,nature,222158,3.4,"history,heritage,culture",Heritage,3500,high,11,2,2
+user_1931,Sigiriya,47,IT,adventure,34590,3.0,"history,nature,adventure",Heritage,4500,low,3,5,5
+user_1932,Polonnaruwa,64,JP,history,210724,3.1,"history,heritage,ruins",Heritage,3000,high,1,5,3
+user_1933,Sigiriya,48,JP,culture,370418,4.1,"history,nature,adventure",Heritage,4500,high,11,9,5
+user_1934,Galle,49,SG,culture,121191,4.3,"history,culture,beach",Heritage,0,medium,10,2,3
+user_1935,Anuradhapura,51,US,nature,201811,4.2,"history,heritage,culture",Heritage,3500,high,8,6,4
+user_1936,Anuradhapura,20,AU,beach,180549,3.0,"history,heritage,culture",Heritage,3500,high,1,2,2
+user_1937,Trincomalee,31,CA,adventure,284568,3.8,"beach,nature,diving",Beach,0,high,3,8,3
+user_1938,Colombo,48,US,nature,280599,1.9,"urban,culture,food",City,0,high,1,3,2
+user_1939,Galle,59,JP,history,236036,2.9,"history,culture,beach",Heritage,0,high,5,8,6
+user_1940,Colombo,46,MY,history,320149,4.6,"urban,culture,food",City,0,high,6,1,1
+user_1941,Nuwara Eliya,25,FR,nature,398295,1.5,"nature,scenic,tea",Nature,0,high,12,9,1
+user_1942,Colombo,49,AU,nature,299542,3.4,"urban,culture,food",City,0,high,13,9,2
+user_1943,Mirissa,53,RU,relaxation,234606,2.7,"beach,nature,relaxation",Beach,0,high,2,4,2
+user_1944,Galle,52,SG,adventure,53454,3.4,"history,culture,beach",Heritage,0,medium,5,5,2
+user_1945,Nuwara Eliya,43,UK,food,196807,4.9,"nature,scenic,tea",Nature,0,high,4,3,1
+user_1946,Sigiriya,39,US,photography,19898,1.5,"history,nature,adventure",Heritage,4500,low,4,3,4
+user_1947,Trincomalee,46,JP,photography,152228,1.6,"beach,nature,diving",Beach,0,high,5,10,4
+user_1948,Polonnaruwa,32,IN,food,187979,1.0,"history,heritage,ruins",Heritage,3000,high,12,1,6
+user_1949,Galle,65,RU,culture,118493,2.1,"history,culture,beach",Heritage,0,medium,10,10,2
+user_1950,Anuradhapura,39,FR,history,126584,1.2,"history,heritage,culture",Heritage,3500,medium,8,7,4
+user_1951,Sigiriya,56,CA,adventure,335464,2.3,"history,nature,adventure",Heritage,4500,high,8,3,3
+user_1952,Sigiriya,38,CA,adventure,180982,3.0,"history,nature,adventure",Heritage,4500,high,5,3,5
+user_1953,Trincomalee,41,ES,food,87469,4.3,"beach,nature,diving",Beach,0,medium,12,12,3
+user_1954,Ella,45,CA,food,70005,2.1,"nature,adventure,scenic",Nature,0,medium,4,4,1
+user_1955,Trincomalee,25,CA,nature,381887,3.2,"beach,nature,diving",Beach,0,high,5,11,6
+user_1956,Nuwara Eliya,22,CN,hiking,334974,3.0,"nature,scenic,tea",Nature,0,high,2,2,4
+user_1957,Anuradhapura,65,CA,wildlife,378256,4.4,"history,heritage,culture",Heritage,3500,high,1,11,6
+user_1958,Colombo,41,IN,relaxation,308906,3.6,"urban,culture,food",City,0,high,1,11,6
+user_1959,Anuradhapura,27,NL,wildlife,267565,3.0,"history,heritage,culture",Heritage,3500,high,5,2,3
+user_1960,Mirissa,30,RU,relaxation,61427,3.7,"beach,nature,relaxation",Beach,0,medium,3,5,6
+user_1961,Nuwara Eliya,23,CA,culture,262261,3.1,"nature,scenic,tea",Nature,0,high,11,12,5
+user_1962,Ella,47,UK,relaxation,187488,1.5,"nature,adventure,scenic",Nature,0,high,5,8,1
+user_1963,Sigiriya,64,FR,wildlife,311973,4.8,"history,nature,adventure",Heritage,4500,high,9,6,5
+user_1964,Polonnaruwa,63,MY,hiking,385200,4.2,"history,heritage,ruins",Heritage,3000,high,7,9,1
+user_1965,Polonnaruwa,20,RU,history,127201,1.5,"history,heritage,ruins",Heritage,3000,medium,3,4,1
+user_1966,Nuwara Eliya,22,RU,wildlife,400096,4.5,"nature,scenic,tea",Nature,0,high,5,8,4
+user_1967,Ella,61,RU,history,136162,2.9,"nature,adventure,scenic",Nature,0,medium,13,11,4
+user_1968,Anuradhapura,59,RU,history,461647,2.9,"history,heritage,culture",Heritage,3500,high,12,8,5
+user_1969,Ella,57,JP,relaxation,435678,4.2,"nature,adventure,scenic",Nature,0,high,14,9,2
+user_1970,Kandy,26,US,culture,204261,1.7,"culture,history,temple",Cultural,1500,high,11,6,3
+user_1971,Kandy,60,IT,relaxation,312707,2.6,"culture,history,temple",Cultural,1500,high,14,7,4
+user_1972,Sigiriya,65,NL,nature,63493,4.7,"history,nature,adventure",Heritage,4500,medium,6,8,3
+user_1973,Anuradhapura,43,NL,nature,460399,4.9,"history,heritage,culture",Heritage,3500,high,14,2,4
+user_1974,Galle,55,IN,relaxation,324453,2.1,"history,culture,beach",Heritage,0,high,8,11,3
+user_1975,Ella,56,US,beach,438615,4.0,"nature,adventure,scenic",Nature,0,high,2,5,6
+user_1976,Nuwara Eliya,32,RU,beach,232873,2.7,"nature,scenic,tea",Nature,0,high,1,7,3
+user_1977,Anuradhapura,18,ES,culture,391388,3.3,"history,heritage,culture",Heritage,3500,high,7,2,3
+user_1978,Ella,55,AU,culture,137387,2.9,"nature,adventure,scenic",Nature,0,medium,3,11,5
+user_1979,Sigiriya,46,SG,wildlife,231495,1.1,"history,nature,adventure",Heritage,4500,high,11,1,6
+user_1980,Kandy,41,NL,food,174580,1.3,"culture,history,temple",Cultural,1500,high,12,5,5
+user_1981,Anuradhapura,22,US,culture,421608,1.7,"history,heritage,culture",Heritage,3500,high,12,3,1
+user_1982,Trincomalee,35,IT,beach,212237,3.8,"beach,nature,diving",Beach,0,high,4,12,5
+user_1983,Polonnaruwa,47,AU,culture,379923,1.3,"history,heritage,ruins",Heritage,3000,high,4,9,6
+user_1984,Sigiriya,32,US,adventure,150733,3.3,"history,nature,adventure",Heritage,4500,high,11,6,4
+user_1985,Nuwara Eliya,29,NL,relaxation,333598,3.7,"nature,scenic,tea",Nature,0,high,8,9,6
+user_1986,Ella,62,RU,wildlife,98118,2.6,"nature,adventure,scenic",Nature,0,medium,8,3,4
+user_1987,Galle,41,IN,adventure,151072,2.1,"history,culture,beach",Heritage,0,high,3,10,3
+user_1988,Nuwara Eliya,52,JP,wildlife,425739,2.6,"nature,scenic,tea",Nature,0,high,9,11,1
+user_1989,Anuradhapura,65,UK,culture,60875,1.2,"history,heritage,culture",Heritage,3500,medium,14,11,6
+user_1990,Polonnaruwa,37,JP,adventure,179575,4.9,"history,heritage,ruins",Heritage,3000,high,9,7,1
+user_1991,Nuwara Eliya,65,CA,adventure,385960,4.0,"nature,scenic,tea",Nature,0,high,4,2,1
+user_1992,Trincomalee,46,JP,wildlife,145128,4.5,"beach,nature,diving",Beach,0,medium,14,8,4
+user_1993,Galle,43,RU,photography,165486,4.7,"history,culture,beach",Heritage,0,high,1,8,3
+user_1994,Galle,49,JP,beach,376376,1.4,"history,culture,beach",Heritage,0,high,9,11,4
+user_1995,Galle,60,UK,relaxation,365745,1.6,"history,culture,beach",Heritage,0,high,12,3,1
+user_1996,Polonnaruwa,34,CA,nature,227399,2.4,"history,heritage,ruins",Heritage,3000,high,14,6,3
+user_1997,Colombo,29,NL,photography,462078,2.0,"urban,culture,food",City,0,high,7,1,4
+user_1998,Polonnaruwa,25,CA,relaxation,392518,2.8,"history,heritage,ruins",Heritage,3000,high,3,5,3
+user_1999,Ella,55,SG,adventure,168398,1.9,"nature,adventure,scenic",Nature,0,high,9,12,2
