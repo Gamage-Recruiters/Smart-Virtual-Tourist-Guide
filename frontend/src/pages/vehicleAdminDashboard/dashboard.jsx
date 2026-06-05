@@ -1,5 +1,6 @@
-import { Bell, Plus, Banknote, Truck, Star, CreditCard } from 'lucide-react';
+import { Bell, Plus, Banknote, Truck, Star, CreditCard} from 'lucide-react';
 import AddVehicleModal from './addVehicle/addVehicleModal';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 // --- MOCK DATA ---
@@ -77,7 +78,7 @@ function Dashboard() {
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-extrabold text-slate-900">LATEST TOURIST REQUESTS</h2>
-            <button className="text-sm font-bold text-blue-600 hover:underline">View All</button>
+            <Link to="/vehicle-admin/requests" className="text-sm font-bold text-blue-600 hover:underline">View All</Link>
           </div>
           
           <div className="overflow-x-auto">
@@ -144,9 +145,9 @@ function Dashboard() {
             ))}
           </div>
 
-          <button className="mt-6 w-full py-3.5 rounded-2xl border-2 border-dashed border-blue-200 text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors">
+          <Link to="/vehicle-admin/fleet" className="mt-6 w-full py-3.5 text-center rounded-2xl border-2 border-dashed border-blue-200 text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors">
             Manage Fleet
-          </button>
+          </Link>
         </div>
 
       </section>
