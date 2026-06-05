@@ -93,7 +93,7 @@ function RentalRequestsPage() {
       </div>
 
       {/* 2. Filter Tabs */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2">
+      <div className="flex items-center gap-3 pb-2">
         {filterTabs.map((tab) => (
           <button
             key={tab}
