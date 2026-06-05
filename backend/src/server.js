@@ -1,4 +1,4 @@
-import dbConfig from '../config/db.config.js';
+import dbConfig from '../src/configs/db.config.js';
 
 const startServer = async () => {
   await dbConfig();
