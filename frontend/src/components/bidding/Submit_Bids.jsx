@@ -4,17 +4,18 @@ import Header from "../Header";
 import bImage from "../../assets/B.png";
 import Footer from "../Footer";
 import { IoCaretBackOutline } from "react-icons/io5";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 export default function Submit_Bids() {
   const { tripId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [bidAmount, setBidAmount] = useState("");
   const [otherBids, setOtherBids] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const driverName = "Kamal";
+  const driverName = location.state?.driverName || "Kamal";
 
   const fetchBids = async () => {
     try {

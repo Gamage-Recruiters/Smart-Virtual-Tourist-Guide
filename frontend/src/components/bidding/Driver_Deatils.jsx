@@ -74,7 +74,7 @@ export default function Driver_Details() {
   };
 
   const goToOtherBidsPage = () => {
-    navigate(`/submit-bids/${tripId}`);
+    navigate(`/submit-bids/${tripId}`, { state: { driverName } });
   };
 
   return (
