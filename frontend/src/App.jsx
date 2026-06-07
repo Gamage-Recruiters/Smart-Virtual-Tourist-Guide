@@ -15,22 +15,22 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken');
   
   if (!token) {
-    // ලොග් වෙලා නැත්නම් Login එකට හරවා යවයි
+    
     return <Navigate to="/login" replace />;
   }
   
-  // ලොග් වෙලා නම්, Sidebar එක සහිත Admin Layout එක ඇතුළේ පිටුව පෙන්වයි
+  
   return <AdminLayout>{children}</AdminLayout>;
 };
 
 function App() {
   return (
     <Routes>
-      {/* Public Routes (ලොග් වෙන්නේ නැතුව යන්න පුළුවන් පිටු) */}
+      {/* Public Routes  */}
       <Route path="/login" element={<Login />} />
       <Route path="/add-admin" element={<AddNewAdmin />} />
 
-      {/* Protected Routes (අනිවාර්යයෙන්ම ලොග් වෙලා ඉන්න ඕනේ පිටු) */}
+      {/* Protected Routes  */}
       <Route path="/" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="/user-management" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
       <Route path="/manage-ads" element={<ProtectedRoute><ManageAds /></ProtectedRoute>} />
