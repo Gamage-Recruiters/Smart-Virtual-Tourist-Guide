@@ -10,15 +10,13 @@ import AddNewAdmin from './pages/AddNewAdmin';
 import ViewFullDetails from './pages/ViewFullDetails';
 import Login from './pages/Login';
 
-// --- ProtectedRoute Component එක ---
+// --- ProtectedRoute Component ---
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('adminToken');
   
   if (!token) {
-    
     return <Navigate to="/login" replace />;
   }
-  
   
   return <AdminLayout>{children}</AdminLayout>;
 };
@@ -30,8 +28,16 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/add-admin" element={<AddNewAdmin />} />
 
+      <Route path="/" element={
+    localStorage.getItem('adminToken') ? (
+      <ProtectedRoute><AdminDashboard /></ProtectedRoute>
+    ) : (
+      <Navigate to="/login" replace />
+    )
+  } />
+
       {/* Protected Routes  */}
-      <Route path="/" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+     
       <Route path="/user-management" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
       <Route path="/manage-ads" element={<ProtectedRoute><ManageAds /></ProtectedRoute>} />
       <Route path="/create-ad" element={<ProtectedRoute><CreateAdvertisement /></ProtectedRoute>} />
@@ -42,16 +48,3 @@ function App() {
 }
 
 export default App;
-import { useState } from 'react'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <h1 class="text-3xl font-bold underline"> Hello world!</h1>
-    </>
-  )
-}
-
-export default App

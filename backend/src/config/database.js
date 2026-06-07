@@ -3,9 +3,13 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
-    // Make sure to use the exact variable name defined in your .env file
-    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/smart-virtual-tourist';
+    // Matched the exact variable name defined in the .env file (MONGODB_URI)
+    const mongoURI = process.env.MONGODB_URI;
     
+    if (!mongoURI) {
+       throw new Error("MONGODB_URI is not defined in the .env file. Please check your environment variables.");
+    }
+
     const connection = await mongoose.connect(mongoURI);
 
     logger.info(`MongoDB connected successfully: ${connection.connection.host}`);

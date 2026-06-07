@@ -9,10 +9,11 @@ const listingRoutes = require('./src/routes/listingRoutes');
 // 1. Load environment variables FIRST before anything else uses them
 dotenv.config();
 
-// 👉 DNS fix (Kept as requested to resolve specific network DNS issues)
+// DNS fix (Kept as requested to resolve specific network DNS issues)
 const dns = require('dns').promises;
 dns.setServers(['1.1.1.1']);
 
+// Initialize express application
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -32,12 +33,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running properly' });
 });
 
+// Admin Control Panel Routes
 app.use('/api/admin/listings', listingRoutes);
-
 app.use('/api/admin/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-
-
 
 // 5. Global Error Handler (Safety net for unhandled errors)
 app.use((err, req, res, next) => {
@@ -49,13 +48,6 @@ app.use((err, req, res, next) => {
 });
 
 // 6. Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-const app = require('./src/app');
-
-const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
