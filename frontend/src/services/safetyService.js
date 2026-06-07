@@ -137,6 +137,17 @@ const safetyService = {
     }
   },
 
+  // 4b. LOCAL POLICE STATIONS (Overpass API — auto-filtered by proximity)
+  async getLocalPoliceStations(params = {}) {
+    try {
+      const response = await apiClient.get('/emergency-locations/local-police', { params })
+      return unwrapList(response)
+    } catch (error) {
+      console.error('Error fetching local police stations:', error)
+      throw error
+    }
+  },
+
   // 5. WEATHER (Cron-job data)
   async getWeatherData(options) {
     try {
@@ -159,32 +170,7 @@ const safetyService = {
     }
   },
 
-  // 7. COMBINED EMERGENCY LOCATIONS (Police + Hospitals)
-  // Fetches all tourist police stations from DB and nearby hospitals from Overpass API
-  async getEmergencyLocations(params = {}) {
-    try {
-      // Pass location params to both police and hospitals for filtering by proximity
-      const [policeStations, hospitals] = await Promise.all([
-        this.getPoliceStations(params).catch(() => []),
-        this.getHospitals(params).catch(() => []),
-      ])
 
-      // Tag hospitals with type since Overpass data doesn't include it
-      const taggedHospitals = hospitals.map((h) => ({ ...h, type: 'hospital' }))
-
-      // Log for debugging
-      console.log('Emergency locations fetched:', {
-        police: policeStations.length,
-        hospitals: taggedHospitals.length,
-        params,
-      })
-
-      return [...policeStations, ...taggedHospitals]
-    } catch (error) {
-      console.error('Error fetching emergency locations:', error)
-      throw error
-    }
-  },
 
   // 8. TOURIST PROFILE
   async getTouristProfile(touristId) {

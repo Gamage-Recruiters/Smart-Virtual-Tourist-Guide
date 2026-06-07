@@ -48,8 +48,16 @@ export function useSafetyData(dataType = 'incidents', options = {}) {
           context.updateWeatherAlerts(response?.alerts || response?.data?.alerts || [])
           break
 
-        case 'emergencyLocations':
-          response = await safetyService.getEmergencyLocations(options)
+        case 'hospitals':
+          response = await safetyService.getHospitals(options)
+          break
+
+        case 'touristPoliceStations':
+          response = await safetyService.getPoliceStations(options)
+          break
+
+        case 'localPoliceStations':
+          response = await safetyService.getLocalPoliceStations(options)
           break
 
         default:
@@ -106,6 +114,14 @@ export function useWeatherAlerts(options = {}) {
   return useSafetyData('weatherAlerts', options)
 }
 
-export function useEmergencyLocations(options = {}) {
-  return useSafetyData('emergencyLocations', options)
+export function useHospitals(options = {}) {
+  return useSafetyData('hospitals', options)
+}
+
+export function useLocalPoliceStations(options = {}) {
+  return useSafetyData('localPoliceStations', options)
+}
+
+export function useTouristPolice(options = {}) {
+  return useSafetyData('touristPoliceStations', options)
 }

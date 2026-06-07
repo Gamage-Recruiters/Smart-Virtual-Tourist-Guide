@@ -110,6 +110,84 @@ exports.getNearbyHospitals = async (req, res, next) => {
   }
 };
 
+// @desc    Get nearby local police stations using Overpass API (OpenStreetMap) — free, no API key
+// @route   GET /api/safety/emergency-locations/local-police?lat=X&lng=Y&radius=15000
+// @access  Public
+exports.getNearbyPoliceStations = async (req, res, next) => {
+  try {
+    const { lat, lng, radius = 15000 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required',
+      });
+    }
+
+    // Convert radius from meters to a bounding box for Overpass API
+    const latDelta = radius / 111320;
+    const lngDelta = radius / (111320 * Math.cos((lat * Math.PI) / 180));
+
+    const south = parseFloat(lat) - latDelta;
+    const north = parseFloat(lat) + latDelta;
+    const west = parseFloat(lng) - lngDelta;
+    const east = parseFloat(lng) + lngDelta;
+
+    // Overpass QL query: fetch police stations within the bounding box
+    const overpassQuery = `[out:json][timeout:30];(node["amenity"="police"](${south},${west},${north},${east});way["amenity"="police"](${south},${west},${north},${east}););out center body;`;
+
+    const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+    const response = await fetch(overpassUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'SmartVirtualTouristGuide/1.0',
+      },
+    });
+
+    if (!response.ok) {
+      logger.error('Overpass API HTTP error (police):', response.status);
+      return res.status(502).json({
+        success: false,
+        message: `Overpass API error: HTTP ${response.status}`,
+      });
+    }
+
+    const data = await response.json();
+
+    // Transform Overpass results into a consistent format
+    const policeStations = (data.elements || [])
+      .map((element) => {
+        const elLat = element.lat || (element.center && element.center.lat);
+        const elLng = element.lon || (element.center && element.center.lon);
+
+        return {
+          name: element.tags?.name || element.tags?.['name:en'] || 'Police Station',
+          type: 'local_police',
+          address: element.tags?.['addr:street']
+            ? `${element.tags['addr:housenumber'] || ''} ${element.tags['addr:street']}, ${element.tags['addr:city'] || ''}`.trim()
+            : element.tags?.['addr:full'] || '',
+          location: {
+            lat: elLat,
+            lng: elLng,
+          },
+          phone: element.tags?.phone || element.tags?.['contact:phone'] || null,
+          website: element.tags?.website || null,
+          osmId: element.id,
+        };
+      })
+      .filter((s) => s.location.lat && s.location.lng);
+
+    res.status(200).json({
+      success: true,
+      count: policeStations.length,
+      data: policeStations,
+    });
+  } catch (error) {
+    logger.error('Error fetching nearby police stations:', error);
+    next(error);
+  }
+};
+
 // @desc    Get all emergency locations (with optional type filter)
 // @route   GET /api/safety/emergency-locations?type=tourist_police
 // @access  Public

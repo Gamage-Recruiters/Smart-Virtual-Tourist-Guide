@@ -43,6 +43,7 @@ router.route('/location/:shareCode')
 
 // --- Emergency Location Routes ---
 router.get('/emergency-locations/police', emergencyLocationController.getPoliceStations);
+router.get('/emergency-locations/local-police', emergencyLocationController.getNearbyPoliceStations);
 router.get('/emergency-locations/hospitals', emergencyLocationController.getNearbyHospitals);
 
 router.route('/emergency-locations')
