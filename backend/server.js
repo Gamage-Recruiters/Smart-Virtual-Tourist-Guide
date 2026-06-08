@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const notificationHandler = require("./socket/notificationHandler");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -24,6 +25,9 @@ const io = new Server(server, {
  * This function handles all room-joining logic and location-based updates.
  */
 notificationHandler(io);
+
+// API Routes
+app.use("/api/notifications", notificationRoutes);
 
 server.listen(5000, () => {
   console.log("Server is running on port 5000");
