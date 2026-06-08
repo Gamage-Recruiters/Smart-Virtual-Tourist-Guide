@@ -5,6 +5,7 @@ const notificationHandler = require("./socket/notificationHandler");
 
 const app = express();
 const server = http.createServer(app);
+app.set("io", io);
 
 /**
  * Initialize the Socket.io server to enable real-time communication.
