@@ -5,6 +5,7 @@ import FinalTripReportPDF from './pages/FinalTripReportPDF';
 import TouristArrivalReport from './pages/TouristArrivalReport';
 import RevenueReport from './pages/RevenueReport';
 import BehaviorStatReport from './pages/BehaviorStatReport';
+import ComplaintReport from './pages/ComplaintReport';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,7 +16,8 @@ function App() {
       {/* <FinalTripReportPDF /> */}
       {/* <TouristArrivalReport /> */}
       {/* <RevenueReport /> */}
-      <BehaviorStatReport />
+      {/* <BehaviorStatReport /> */}
+      {/* <ComplaintReport /> */}
     </>
   )
 }
