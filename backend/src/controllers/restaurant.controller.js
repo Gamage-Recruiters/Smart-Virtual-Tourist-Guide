@@ -6,15 +6,10 @@ const REQUIRED_FIELDS = [
   "ownerName",
   "email",
   "phone",
-  "businessType",
 ];
 
 const isMissingRequired = (body) => {
   return REQUIRED_FIELDS.filter((field) => !body?.[field]);
-};
-
-const isValidFoodType = (value) => {
-  return value === "Restaurant" || value === "Home Based";
 };
 
 const getErrorResponse = (error) => {
@@ -34,13 +29,6 @@ const createRestaurantProfile = async (req, res) => {
       return res.status(400).json({
         message: "Validation error",
         errors: missing.map((field) => `${field} is required`),
-      });
-    }
-
-    if (!isValidFoodType(req.body.businessType)) {
-      return res.status(400).json({
-        message: "Validation error",
-        errors: ["businessType must be Restaurant or Home Based"],
       });
     }
 
@@ -77,13 +65,6 @@ const getAllRestaurants = async (req, res) => {
 
 const updateRestaurantProfile = async (req, res) => {
   try {
-    if (req.body.businessType && !isValidFoodType(req.body.businessType)) {
-      return res.status(400).json({
-        message: "Validation error",
-        errors: ["businessType must be Restaurant or Home Based"],
-      });
-    }
-
     const restaurant = await Restaurant.findByIdAndUpdate(
       req.params.id,
       req.body,

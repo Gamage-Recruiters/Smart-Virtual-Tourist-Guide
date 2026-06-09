@@ -29,11 +29,6 @@ const restaurantSchema = new mongoose.Schema(
     description: { type: String, trim: true },
     address: { type: String, trim: true },
     bannerImage: { type: String, trim: true },
-    businessType: {
-      type: String,
-      enum: ["Restaurant", "Home Based"],
-      required: true,
-    },
     socialLinks: socialLinksSchema,
     operatingHours: [operatingHourSchema],
   },
