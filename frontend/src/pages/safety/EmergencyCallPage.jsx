@@ -99,9 +99,9 @@ export default function EmergencyCallPage() {
   // If GPS is still loading and we don't have a real location yet, pass null to prevent fetching
   // If GPS finishes loading and fails (or user denies), then we fallback to the mapCenter.
   const shouldFetch = hasRealLocation || (!isLocationLoading && locationError);
-  
-  const locationParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 15000 } : null;
-  const localPoliceParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 15000 } : null;
+
+  const locationParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 20000 } : null;
+  const localPoliceParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 20000 } : null;
 
   // ── Police stations: from backend DB (instant map load, no GPS wait) ──
   const { data: rawTouristPoliceLocations = [], isLoading: isLoadingTouristPolice } = useTouristPolice({})
@@ -114,7 +114,7 @@ export default function EmergencyCallPage() {
     if (hasRealLocation && location?.latitude && location?.longitude) {
       stations = stations.map((s) => ({
         ...s,
-        distanceKm: s.location?.lat && s.location?.lng 
+        distanceKm: s.location?.lat && s.location?.lng
           ? haversineDistance(location.latitude, location.longitude, s.location.lat, s.location.lng)
           : Infinity,
       }));
