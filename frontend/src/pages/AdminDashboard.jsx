@@ -22,14 +22,14 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
+        setLoading(true);
+        // apiClient automatically handles the token and response parsing
         const result = await apiClient.get('/admin/dashboard-stats');
         
-        
-       
         console.log("Data received from Backend:", result);
 
-        if (response.ok && result.success) {
-         
+        // Fixed: Check 'result' directly instead of the undefined 'response' variable
+        if (result && result.success) {
           setStats(result.data);
         } else {
           console.error("Backend returned an error:", result.message);
