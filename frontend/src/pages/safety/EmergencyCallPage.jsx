@@ -79,7 +79,7 @@ export default function EmergencyCallPage() {
 
   // ── REQUIRE REAL GPS LOCATION ONLY ───────────────────────────────────────────
 
-  const { location } = useGeolocation()
+  const { location, isLoading: isLocationLoading, error: locationError } = useGeolocation()
 
   // Only fetch emergency locations when real GPS location is available
   const hasRealLocation = location.latitude && location.longitude
@@ -91,9 +91,12 @@ export default function EmergencyCallPage() {
     ? [location.latitude, location.longitude]
     : [7.8731, 80.7718]; // Sri Lanka island center
 
-  // Fetch params (use mapCenter as fallback so data loads even without GPS)
-  const locationParams = { lat: mapCenter[0], lng: mapCenter[1], radius: 30000 };
-  const localPoliceParams = { lat: mapCenter[0], lng: mapCenter[1], radius: 15000 };
+  // If GPS is still loading and we don't have a real location yet, pass null to prevent fetching
+  // If GPS finishes loading and fails (or user denies), then we fallback to the mapCenter.
+  const shouldFetch = hasRealLocation || (!isLocationLoading && locationError);
+  
+  const locationParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 15000 } : null;
+  const localPoliceParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 15000 } : null;
 
   // ── Police stations: from backend DB (instant map load, no GPS wait) ──
   const { data: rawTouristPoliceLocations = [], isLoading: isLoadingTouristPolice } = useTouristPolice({})

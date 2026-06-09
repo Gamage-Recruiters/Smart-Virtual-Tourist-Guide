@@ -1,6 +1,18 @@
 const EmergencyLocation = require('../models/EmergencyLocation');
 const logger = require('../utils/logger');
 
+// --- In-Memory Cache for Overpass API ---
+const apiCache = new Map();
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const getCacheKey = (type, lat, lng, radius) => {
+  // Round to 2 decimal places to group queries within ~1km of each other
+  const rLat = parseFloat(lat).toFixed(2);
+  const rLng = parseFloat(lng).toFixed(2);
+  return `${type}_${rLat}_${rLng}_${radius}`;
+};
+// ----------------------------------------
+
 // @desc    Get all Tourist Police stations from the database
 // @route   GET /api/safety/emergency-locations/police
 // @access  Public
@@ -27,13 +39,29 @@ exports.getPoliceStations = async (req, res, next) => {
 // @access  Public
 exports.getNearbyHospitals = async (req, res, next) => {
   try {
-    const { lat, lng, radius = 5000 } = req.query;
+    const { lat, lng, radius = 15000 } = req.query;
 
     if (!lat || !lng) {
       return res.status(400).json({
         success: false,
         message: 'Latitude and longitude are required',
       });
+    }
+
+    // Check cache first
+    const cacheKey = getCacheKey('hospital', lat, lng, radius);
+    if (apiCache.has(cacheKey)) {
+      const cachedData = apiCache.get(cacheKey);
+      if (Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
+        return res.status(200).json({
+          success: true,
+          count: cachedData.data.length,
+          data: cachedData.data,
+          isCached: true
+        });
+      } else {
+        apiCache.delete(cacheKey); // Expired
+      }
     }
 
     // Convert radius from meters to a bounding box for Overpass API
@@ -59,9 +87,14 @@ exports.getNearbyHospitals = async (req, res, next) => {
 
     if (!response.ok) {
       logger.error('Overpass API HTTP error:', response.status);
-      return res.status(502).json({
-        success: false,
-        message: `Overpass API error: HTTP ${response.status}`,
+      
+      // Fallback: Query database for all hospitals
+      const fallbackHospitals = await EmergencyLocation.find({ type: 'hospital', isActive: true });
+      return res.status(200).json({
+        success: true,
+        count: fallbackHospitals.length,
+        data: fallbackHospitals,
+        isFallback: true
       });
     }
 
@@ -99,14 +132,29 @@ exports.getNearbyHospitals = async (req, res, next) => {
       })
       .filter((h) => h.location.lat && h.location.lng); // Filter out entries without valid coordinates
 
+    // Save to cache
+    apiCache.set(cacheKey, { timestamp: Date.now(), data: hospitals });
+
     res.status(200).json({
       success: true,
       count: hospitals.length,
       data: hospitals,
     });
   } catch (error) {
-    logger.error('Error fetching nearby hospitals:', error);
-    next(error);
+    logger.error('Error fetching nearby hospitals (Overpass API failed):', error);
+    
+    try {
+      // Fallback on Exception
+      const fallbackHospitals = await EmergencyLocation.find({ type: 'hospital', isActive: true });
+      return res.status(200).json({
+        success: true,
+        count: fallbackHospitals.length,
+        data: fallbackHospitals,
+        isFallback: true
+      });
+    } catch (fallbackError) {
+      next(error);
+    }
   }
 };
 
@@ -122,6 +170,22 @@ exports.getNearbyPoliceStations = async (req, res, next) => {
         success: false,
         message: 'Latitude and longitude are required',
       });
+    }
+
+    // Check cache first
+    const cacheKey = getCacheKey('police', lat, lng, radius);
+    if (apiCache.has(cacheKey)) {
+      const cachedData = apiCache.get(cacheKey);
+      if (Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
+        return res.status(200).json({
+          success: true,
+          count: cachedData.data.length,
+          data: cachedData.data,
+          isCached: true
+        });
+      } else {
+        apiCache.delete(cacheKey); // Expired
+      }
     }
 
     // Convert radius from meters to a bounding box for Overpass API
@@ -146,9 +210,14 @@ exports.getNearbyPoliceStations = async (req, res, next) => {
 
     if (!response.ok) {
       logger.error('Overpass API HTTP error (police):', response.status);
-      return res.status(502).json({
-        success: false,
-        message: `Overpass API error: HTTP ${response.status}`,
+      
+      // Fallback: Query database for local police stations
+      const fallbackPolice = await EmergencyLocation.find({ type: 'local_police', isActive: true });
+      return res.status(200).json({
+        success: true,
+        count: fallbackPolice.length,
+        data: fallbackPolice,
+        isFallback: true
       });
     }
 
@@ -177,14 +246,29 @@ exports.getNearbyPoliceStations = async (req, res, next) => {
       })
       .filter((s) => s.location.lat && s.location.lng);
 
+    // Save to cache
+    apiCache.set(cacheKey, { timestamp: Date.now(), data: policeStations });
+
     res.status(200).json({
       success: true,
       count: policeStations.length,
       data: policeStations,
     });
   } catch (error) {
-    logger.error('Error fetching nearby police stations:', error);
-    next(error);
+    logger.error('Error fetching nearby police stations (Overpass API failed):', error);
+    
+    try {
+      // Fallback on Exception
+      const fallbackPolice = await EmergencyLocation.find({ type: 'local_police', isActive: true });
+      return res.status(200).json({
+        success: true,
+        count: fallbackPolice.length,
+        data: fallbackPolice,
+        isFallback: true
+      });
+    } catch (fallbackError) {
+      next(error);
+    }
   }
 };
 

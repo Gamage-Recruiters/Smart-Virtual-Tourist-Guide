@@ -9,7 +9,7 @@ const emergencyLocationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['tourist_police', 'hospital', 'fire_station'],
+      enum: ['tourist_police', 'hospital', 'fire_station', 'local_police'],
       required: true,
     },
     address: {
