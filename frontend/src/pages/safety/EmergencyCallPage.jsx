@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { FaPhoneAlt, FaAmbulance, FaShieldAlt, FaFire, FaMapMarkerAlt } from 'react-icons/fa';
@@ -14,6 +14,11 @@ import { haversineDistance, policeIcon, nearestPoliceIcon, hospitalIcon, localPo
 export default function EmergencyCallPage() {
   const navigate = useNavigate();
   const [activeEmergency, setActiveEmergency] = useState(null);
+
+  // Auto-scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const emergencyActionsData = {
     police: {
