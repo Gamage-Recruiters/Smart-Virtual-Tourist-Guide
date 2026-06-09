@@ -1,80 +1,96 @@
-/**
- * Notification & Alerts Socket Handler
- * This file manages real-time communication, room joining, and live location updates.
- */
+const Driver = require("../src/models/Driver.js");
+const Tourist = require("../src/models/Tourist.js");
+const { getRegionFromCoords } = require("../src/utils/locationHelper.js");
+const mongoose = require("mongoose");
+const AppError = require("../src/errors/appError.js"); 
 
-const Driver = require('../models/Driver'); 
-
-/**
- * Main Socket Logic
- * @param {Object} io - The Socket.io server instance
- */
 module.exports = (io) => {
+  io.on("connection", (socket) => {
     
-    // Triggered whenever a new user connects to the app
-    io.on('connection', (socket) => {
-        
-        // 1. Get user data (ID, Role, Area) sent from the Frontend during connection
-        const { userId, role, initialRegion } = socket.handshake.query;
+    // --- Error Handling Helper for Socket ---
+    const handleSocketError = (err) => {
+      console.error(`❌ Socket Error [${socket.id}]:`, err.message);
+      socket.emit("error", {
+        status: err.status || "error",
+        message: err.message || "Something went wrong on the server",
+      });
+    };
 
-        if (userId && role) {
-            // Join a private room for personal notifications (Unicast)
-            socket.join(`user_${userId}`);
+    const { userId, role, initialRegion } = socket.handshake.query;
 
-            // Join a role-based room (Multicast - e.g., all DRIVERS or all TOURISTS)
-            socket.join(`role_${role}`);
+    if (!userId || !role) {
+       return handleSocketError(new AppError("Authentication failed: userId and role are required", 401));
+    }
 
-            // Join a region-based room for local alerts (e.g., Colombo area)
-            if (initialRegion) {
-                socket.join(`region_${initialRegion}`);
-                socket.currentRegion = initialRegion; // Remember current area in socket memory
-            }
-            
-            socket.userId = userId; // Store userId in the socket object for later use
+    console.log(`🔔 New Connection! UserID: ${userId}, Role: ${role}`);
+
+    try {
+      socket.join(`user_${userId}`);
+      socket.join(`role_${role}`);
+
+      if (initialRegion) {
+        socket.join(`region_${initialRegion}`);
+        const combinedRoom = `region_${initialRegion}_role_${role}`;
+        socket.join(combinedRoom);
+        socket.currentRegion = initialRegion;
+      }
+
+      socket.userId = userId;
+      socket.userRole = role; 
+    } catch (err) {
+      handleSocketError(err);
+    }
+
+    // --- Update Location Event with Error Handling ---
+    socket.on("update_location", async (data) => {
+      try {
+        const { lat, lng } = data;
+
+        if (lat === undefined || lng === undefined) {
+          throw new AppError("Invalid data: Latitude and Longitude are required", 400);
         }
 
-        /**
-         * Event: update_location
-         * Triggered when a user (especially a Driver) moves and sends new coordinates
-         */
-        socket.on('update_location', async (data) => {
-            const { lat, lng } = data;
-            
-            try {
-                // Determine the city/area based on coordinates (Logic to be added)
-                const newRegion = "Colombo"; // Example placeholder
+        const newRegion = await getRegionFromCoords(lat, lng);
 
-                // If the user enters a NEW area (e.g., moving from Galle to Colombo)
-                if (newRegion && newRegion !== socket.currentRegion) {
-                    
-                    // Leave the old region room
-                    if (socket.currentRegion) {
-                        socket.leave(`region_${socket.currentRegion}`);
-                    }
+        if (newRegion && newRegion !== socket.currentRegion) {
+          if (socket.currentRegion) {
+            socket.leave(`region_${socket.currentRegion}`);
+            socket.leave(`region_${socket.currentRegion}_role_${socket.userRole}`);
+          }
 
-                    // Join the new region room to receive local alerts
-                    socket.join(`region_${newRegion}`);
-                    socket.currentRegion = newRegion; // Update current area in memory
-                }
+          socket.join(`region_${newRegion}`);
+          const newCombinedRoom = `region_${newRegion}_role_${socket.userRole}`;
+          socket.join(newCombinedRoom);
 
-                // If the user is a DRIVER, update their live location in the Database
-                if (role === 'DRIVER') {
-                    await Driver.findByIdAndUpdate(userId, {
-                        currentLocation: { 
-                            type: 'Point', 
-                            coordinates: [lng, lat] 
-                        },
-                        showCurrentLocation: true
-                    });
-                }
-            } catch (error) {
-                console.error("Location update error:", error);
-            }
-        });
+          socket.currentRegion = newRegion;
+          console.log(`🔄 Room switched to: ${newCombinedRoom}`);
+        }
 
-        // Triggered when the user closes the app or loses internet
-        socket.on('disconnect', () => {
-            console.log(`User ${userId} disconnected`);
-        });
+        // Database Updates
+        if (socket.userRole === "DRIVER") {
+          const updated = await Driver.findOneAndUpdate(
+            { _id: socket.userId.trim() },
+            { currentLocation: { type: "Point", coordinates: [lng, lat] }, showCurrentLocation: true },
+            { new: true, runValidators: true }
+          );
+          if (!updated) throw new AppError("Driver not found in database", 404);
+        } 
+        else if (socket.userRole === "TOURIST") {
+          const updated = await Tourist.findOneAndUpdate(
+            { _id: socket.userId.trim() },
+            { currentLocation: { type: "Point", coordinates: [lng, lat] } },
+            { new: true, runValidators: true }
+          );
+          if (!updated) throw new AppError("Tourist not found in database", 404);
+        }
+
+      } catch (error) {
+        handleSocketError(error);
+      }
     });
+
+    socket.on("disconnect", () => {
+      console.log(`User ${userId} disconnected`);
+    });
+  });
 };

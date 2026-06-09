@@ -12,6 +12,8 @@ const {
   getUnreadCount,
 } = require("../controllers/notificationController");
 
+const exampleController = require("../controllers/exampleController");
+
 /**
  * Route: GET /
  * Description: Get all notifications for the logged-in user.
@@ -32,5 +34,16 @@ router.get("/unread-count", getUnreadCount);
  * @param {string} id - The ID of the notification passed in the URL.
  */
 router.patch("/:id/read", markAsRead);
+
+router.post(
+  "/simulate-booking-confirm",
+  exampleController.simulateBookingConfirm,
+);
+router.post("/simulate-system-update", exampleController.simulateSystemUpdate);
+router.post("/simulate-trip-request", exampleController.simulateTripRequest);
+router.post(
+  "/simulate-emergency-alert",
+  exampleController.simulateEmergencyAlert,
+);
 
 module.exports = router;
