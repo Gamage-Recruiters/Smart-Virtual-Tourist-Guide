@@ -21,7 +21,26 @@ const listingSchema = new mongoose.Schema({
         enum: ['Pending', 'Approved', 'Rejected'], 
         default: 'Pending' 
     },
-    imageUrl: { type: String }
+    imageUrl: { type: String },
+    
+    // --- අලුතින් එකතු කළ Tracking Fields ---
+    approvedBy: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Admin' 
+    },
+    approvedAt: { 
+        type: Date 
+    },
+    rejectedBy: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Admin' 
+    },
+    rejectedAt: { 
+        type: Date 
+    },
+    rejectionReason: { 
+        type: String 
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Listing', listingSchema);

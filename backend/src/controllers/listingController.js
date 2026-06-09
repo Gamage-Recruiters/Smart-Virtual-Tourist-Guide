@@ -1,40 +1,55 @@
 const Listing = require('../models/Listing');
 
-// Fetch all listings and calculate statistics for the approval dashboard
+// Fetch all listings and calculate statistics using MongoDB Aggregation (Optimized)
 const getAllListings = async (req, res) => {
     try {
-        const listings = await Listing.find().sort({ createdAt: -1 });
-        
-        const pendingCount = await Listing.countDocuments({ status: 'Pending' });
-        const approvedCount = await Listing.countDocuments({ status: 'Approved' });
-        const rejectedCount = await Listing.countDocuments({ status: 'Rejected' });
+        // Using Promise.all to fetch listings and aggregate stats concurrently
+        const [listings, statsAggregate] = await Promise.all([
+            Listing.find().sort({ createdAt: -1 }),
+            Listing.aggregate([
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 }
+                    }
+                }
+            ])
+        ]);
+
+        // Format the aggregation results into a clean object
+        let stats = { pendingCount: 0, approvedCount: 0, rejectedCount: 0 };
+        statsAggregate.forEach(stat => {
+            if (stat._id === 'Pending') stats.pendingCount = stat.count;
+            if (stat._id === 'Approved') stats.approvedCount = stat.count;
+            if (stat._id === 'Rejected') stats.rejectedCount = stat.count;
+        });
 
         res.status(200).json({ 
             success: true, 
             data: {
                 listings,
-                stats: { pendingCount, approvedCount, rejectedCount }
+                stats
             }
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error fetching listings' });
+        console.error('Error fetching listings:', error);
+        res.status(500).json({ success: false, message: 'Error fetching listings from database' });
     }
 };
 
-// Update the status of a specific listing (Approve or Reject)
-const updateListingStatus = async (req, res) => {
+// Approve a specific listing and record the admin who approved it
+const approveListing = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-
-        const validStatuses = ['Pending', 'Approved', 'Rejected'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ success: false, message: 'Invalid status provided.' });
-        }
+        const adminId = req.admin._id; 
 
         const updatedListing = await Listing.findByIdAndUpdate(
             id,
-            { status },
+            { 
+                status: 'Approved',
+                approvedBy: adminId,
+                approvedAt: new Date()
+            },
             { new: true }
         );
 
@@ -44,15 +59,54 @@ const updateListingStatus = async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            message: `Listing marked as ${status}`,
+            message: 'Listing approved successfully',
             data: updatedListing 
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error updating listing status' });
+        console.error('Error approving listing:', error);
+        res.status(500).json({ success: false, message: 'Server error while approving listing' });
+    }
+};
+
+// Reject a specific listing with a mandatory reason
+const rejectListing = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body; 
+        const adminId = req.admin._id;
+
+        if (!reason || reason.trim() === '') {
+            return res.status(400).json({ success: false, message: 'Rejection reason is required.' });
+        }
+
+        const updatedListing = await Listing.findByIdAndUpdate(
+            id,
+            { 
+                status: 'Rejected',
+                rejectedBy: adminId,
+                rejectedAt: new Date(),
+                rejectionReason: reason
+            },
+            { new: true }
+        );
+
+        if (!updatedListing) {
+            return res.status(404).json({ success: false, message: 'Listing not found.' });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Listing rejected successfully',
+            data: updatedListing 
+        });
+    } catch (error) {
+        console.error('Error rejecting listing:', error);
+        res.status(500).json({ success: false, message: 'Server error while rejecting listing' });
     }
 };
 
 module.exports = {
     getAllListings,
-    updateListingStatus
+    approveListing,
+    rejectListing
 };
