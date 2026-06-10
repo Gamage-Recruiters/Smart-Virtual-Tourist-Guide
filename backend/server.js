@@ -6,13 +6,13 @@ const { Server } = require("socket.io");
 const notificationHandler = require("./socket/notificationHandler");
 const notificationRoutes = require("./src/routes/notificationRoutes.js");
 const globalErrorHandler = require("./src/middleware/errorMiddleware");
-
+require("./src/configs/firebaseConfig");
+  
 const app = express();
 const server = http.createServer(app);
 
 // Middleware
 app.use(express.json()); // JSON data handle
-app.use(globalErrorHandler);
 
 /**
  * MongoDB Connection Logic
@@ -46,6 +46,8 @@ notificationHandler(io);
 
 // API Routes
 app.use("/api/notifications", notificationRoutes);
+
+app.use(globalErrorHandler);
 
 // Server Port management
 const PORT = process.env.PORT || 5000;

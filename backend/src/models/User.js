@@ -1,0 +1,94 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const { Schema } = mongoose;
+
+const userSchema = new Schema({
+  fullName: {
+    type: String,
+    required: [true, "Full name is required"],
+    trim: true
+  },
+  email: {
+    type: String,
+    required: [true, "Email is required"],
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: [true, "Password is required"],
+    minlength: 6
+  },
+  role: {
+    type: String,
+    enum: ['TOURIST', 'DRIVER', 'HOTEL_OWNER', 'ADMIN'],
+    required: true
+  },
+  contactNumber: {
+    type: String,
+    trim: true
+  },
+
+  currentLocation: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point',
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      default: [0, 0],
+    },
+  },
+  
+  fcmToken: {
+    type: String,
+    default: null
+  },
+
+  showCurrentLocation: {
+    type: Boolean,
+    default: true
+  },
+
+  touristDetails: {
+    country: String,
+    languagePreference: { type: String, default: 'en' },
+    travelPreferences: [String], 
+    emergencyContact: {
+      name: String,
+      phone: String
+    }
+  },
+
+  driverDetails: {
+    vehicleName: String,
+    vehicleNumber: String,
+    vehicleColor: String,
+    licenseNumber: String,
+    availability: { type: Boolean, default: false },
+    rating: { type: Number, default: 5 }
+  }
+
+}, {
+  timestamps: true 
+});
+
+/**
+ * 2dsphere Index
+ */
+userSchema.index({ currentLocation: '2dsphere' });
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+module.exports = mongoose.model('User', userSchema);
