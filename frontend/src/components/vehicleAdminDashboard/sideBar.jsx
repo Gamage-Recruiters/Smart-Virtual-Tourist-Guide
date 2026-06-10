@@ -15,8 +15,8 @@ function Sidebar() {
       <div>
         {/* Logo Area */}
         <div className="mb-10 px-4">
-          <h1 className="text-sm font-bold text-slate-800 tracking-wide">VEHICLES</h1>
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Admin Portal</p>
+          <h1 className="text-lg font-extrabold text-slate-800 tracking-wide">VEHICLES</h1>
+          <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">Admin Portal</p>
         </div>
 
         {/* Navigation Links */}
@@ -27,10 +27,10 @@ function Sidebar() {
               to={item.path}
               end = {item.end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-semibold transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200' // Styling for the active page
-                    : 'text-slate-500 hover:bg-blue-100 hover:text-blue-600' // Styling for inactive pages
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                    : 'text-slate-500 hover:bg-blue-100 hover:text-blue-600'
                 }`
               }
             >
