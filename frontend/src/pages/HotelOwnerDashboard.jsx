@@ -151,8 +151,8 @@ const latestReservations = [
 ]
 function HotelOwnerDashboard() {
 	return (
-		<div className="min-h-screen min-w-full text-slate-800">
-			<div className="mx-auto flex min-h-screen w-auto flex-col gap-6 py-3">
+        <div className="min-h-screen w-full overflow-x-hidden text-slate-800">
+            <div className="mx-auto flex min-h-screen w-auto flex-col gap-6">
 				<Header />
 
 				<main className="flex flex-1 flex-col gap-6">

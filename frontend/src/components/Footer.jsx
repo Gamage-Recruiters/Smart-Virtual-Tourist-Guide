@@ -6,8 +6,8 @@ import footerDesign from '../assets/Footer Design.png'
 
 function Footer() {
 	return (
-		<footer className="relative left-1/2 mt-8 min-h-90 w-screen -translate-x-1/2 overflow-hidden bg-sky-50 mb-0">
-			<img src={lotus} alt="lotus" className="pointer-events-none absolute left-14 top-0 hidden h-90 w-auto -translate-x-1/3 md:block opacity-95" />
+		<footer className="relative mt-8 min-h-90 w-full overflow-hidden bg-sky-50 mb-0">
+			<img src={lotus} alt="lotus" className="pointer-events-none absolute left-11 top-3 hidden h-90 w-auto -translate-x-1/3 md:block opacity-95" />
 			<img src={footerDesign} alt="footer design" className="pointer-events-none absolute bottom-0 right-0 hidden w-2xl max-w-none md:block opacity-55" />
 
 			<div className="w-full px-4 py-8 sm:px-6 lg:px-8">
@@ -91,7 +91,7 @@ function Footer() {
 					</div>
 				</div>
 
-				<div className="mt-6 flex items-center justify-center border-t border-slate-200 pt-4">
+				<div className="mt-6 flex items-center justify-center">
 					<div className="text-center text-sm text-sky-600">SVGT©2026 all rights reserved</div>
 				</div>
 			</div>
