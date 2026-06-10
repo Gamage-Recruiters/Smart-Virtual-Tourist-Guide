@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./src/configs/database.js";
 import { configureCloudinary } from "./src/configs/cloudinary.js";
 import activityRoutes from "./src/routes/activity.routes.js";
+import activityCalenderRoutes from "./src/routes/activityCalender.routes.js";
 
 // Configure cloudinary
 configureCloudinary();
@@ -17,6 +18,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/activities', activityRoutes);
+// Mount calendar routes so `:activityId` is a parent param
+app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // Port
 const PORT = process.env.PORT || 5000;
