@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import {connectDB} from './configs/database.js';
+import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 
 // Load environment variables
 dotenv.config();
@@ -13,6 +14,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB();
+
+// Vehicle routes
+app.use('/api/vehicle', vehicleRouter);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

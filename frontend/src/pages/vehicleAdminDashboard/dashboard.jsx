@@ -84,7 +84,7 @@ function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <tr className="text-xs text-slate-400 uppercase tracking-widest border-b border-slate-100">
                   <th className="pb-4 font-bold">Tourist</th>
                   <th className="pb-4 font-bold">Vehicle Type</th>
                   <th className="pb-4 font-bold">Route / Duration</th>
