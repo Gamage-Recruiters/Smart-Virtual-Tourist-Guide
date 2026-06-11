@@ -1,15 +1,15 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./configs/database');
+import express, { json, urlencoded } from 'express';
+import { config } from 'dotenv';
+import connectDB from "./configs/database.js";
 
 // Load environment variables
-dotenv.config();
+config();
 
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB();
@@ -25,4 +25,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-module.exports = app;
+export default app;

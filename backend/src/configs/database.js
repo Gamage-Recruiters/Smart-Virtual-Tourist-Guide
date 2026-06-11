@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoConn from 'mongoose';
+const { connect, connection } = mongoConn;
 
 const connectDB = async () => {
   try {
@@ -8,14 +9,14 @@ const connectDB = async () => {
       throw new Error('MONGODB_URI is not defined in .env file');
     }
 
-    await mongoose.connect(mongoURI);
+    await connect(mongoURI);
 
     console.log('MongoDB connected successfully');
-    return mongoose.connection;
+    return connection;
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
     process.exit(1);
   }
 };
 
-module.exports = connectDB;
+export default connectDB;
