@@ -55,6 +55,39 @@ const activitySchema = new mongoose.Schema(
         message: 'Cannot upload more than 8 images',
       },
     },
+    timeSlotTemplates: {
+      type: [
+        {
+          label: {
+            type: String,
+            required: [true, 'Time slot label is required'],
+            trim: true,
+            maxlength: [50, 'Label cannot exceed 50 characters'],
+          },
+          startTime: {
+            type: String,
+            required: [true, 'Start time is required'],
+            match: [/^([01]\d|2[0-3]):([0-5]\d)$/, 'Start time must be in HH:mm format'],
+          },
+          endTime: {
+            type: String,
+            required: [true, 'End time is required'],
+            match: [/^([01]\d|2[0-3]):([0-5]\d)$/, 'End time must be in HH:mm format'],
+          },
+          capacity: {
+            type: Number,
+            required: [true, 'Capacity is required'],
+            min: [1, 'Capacity must be at least 1'],
+            max: [500, 'Capacity cannot exceed 500'],
+          },
+        },
+      ],
+      default: [],
+      validate: {
+        validator: (arr) => arr.length <= 6,
+        message: 'Cannot define more than 6 time slot templates',
+      },
+    },
     status: {
       type: String,
       enum: ['draft', 'active', 'inactive'],

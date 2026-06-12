@@ -8,6 +8,31 @@ const normalizeImages = (images = []) =>
       .filter((image) => image && image !== '/uploads/undefined')
   )].slice(0, 8);
 
+const parseTimeSlotTemplates = (raw, fallback = []) => {
+  let templates = raw;
+
+  if (typeof templates === 'string') {
+    try {
+      templates = JSON.parse(templates);
+    } catch {
+      return fallback;
+    }
+  }
+
+  if (!Array.isArray(templates)) return fallback;
+
+  return templates
+    .filter((t) => t && typeof t === 'object')
+    .map((t) => ({
+      label: String(t.label || '').trim(),
+      startTime: String(t.startTime || '').trim(),
+      endTime: String(t.endTime || '').trim(),
+      capacity: parseInt(t.capacity, 10),
+    }))
+    .filter((t) => t.label && t.startTime && t.endTime && Number.isFinite(t.capacity) && t.capacity > 0)
+    .slice(0, 6);
+};
+
 // GET /api/activities
 // Query params: category, status, search, page, limit
 export const getActivities = async (req, res) => {
@@ -77,6 +102,8 @@ export const createActivity = async (req, res) => {
       try { equipment = JSON.parse(requiredEquipment); } catch { equipment = []; }
     }
 
+    const timeSlotTemplates = parseTimeSlotTemplates(req.body.timeSlotTemplates, []);
+
     const activity = await Activity.create({
       title,
       category,
@@ -89,6 +116,7 @@ export const createActivity = async (req, res) => {
       safetyNotes: safetyNotes || '',
       images,
       status: status || 'draft',
+      timeSlotTemplates,
     });
 
     res.status(201).json({ success: true, data: activity, message: 'Activity created successfully' });
@@ -127,6 +155,10 @@ export const updateActivity = async (req, res) => {
       try { equipment = JSON.parse(requiredEquipment); } catch { equipment = activity.requiredEquipment; }
     }
 
+    const timeSlotTemplates = req.body.timeSlotTemplates !== undefined
+      ? parseTimeSlotTemplates(req.body.timeSlotTemplates, activity.timeSlotTemplates)
+      : activity.timeSlotTemplates;
+
     const updated = await Activity.findByIdAndUpdate(
       req.params.id,
       {
@@ -141,6 +173,7 @@ export const updateActivity = async (req, res) => {
         safetyNotes: safetyNotes !== undefined ? safetyNotes : activity.safetyNotes,
         images: normalizeImages([...kept, ...newImages]),
         status: status || activity.status,
+        timeSlotTemplates,
       },
       { returnDocument: 'after', runValidators: true }
     );

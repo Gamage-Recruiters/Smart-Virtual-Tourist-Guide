@@ -1,11 +1,36 @@
 import Calendar from '../models/activityCalender.model.js';
+import Activity from '../models/activity.model.js';
 
-// Default time slots used when creating a new calendar entry
-const DEFAULT_SLOTS = [
-  { label: '08:00 AM – 12:00 PM', startTime: '08:00', endTime: '12:00', capacity: 15, booked: 0, isActive: true },
-  { label: '01:00 PM – 05:00 PM', startTime: '13:00', endTime: '17:00', capacity: 15, booked: 0, isActive: true },
-  { label: '06:00 PM – 09:00 PM', startTime: '18:00', endTime: '21:00', capacity: 15, booked: 0, isActive: false },
+// Last-resort fallback if an activity has zero time slot templates defined.
+// Gives the activity a single full-day slot sized to its maxParticipants.
+const fallbackSlots = (maxParticipants) => [
+  {
+    label: 'Full Day',
+    startTime: '08:00',
+    endTime: '17:00',
+    capacity: maxParticipants || 15,
+    booked: 0,
+    isActive: true,
+  },
 ];
+
+// Build a fresh set of calendar time slots from an activity's templates.
+const slotsFromTemplates = (activity) => {
+  const templates = activity.timeSlotTemplates;
+
+  if (Array.isArray(templates) && templates.length > 0) {
+    return templates.map((t) => ({
+      label: t.label,
+      startTime: t.startTime,
+      endTime: t.endTime,
+      capacity: t.capacity,
+      booked: 0,
+      isActive: true,
+    }));
+  }
+
+  return fallbackSlots(activity.maxParticipants);
+};
 
 // ─── GET /api/calendar/:activityId/month?year=2025&month=6 ────────────────────
 // Returns all calendar entries for a given month (for dot rendering on calendar)
@@ -35,15 +60,19 @@ const getMonthCalendar = async (req, res) => {
 };
 
 // ─── GET /api/calendar/:activityId/date/:date ─────────────────────────────────
-// Returns full detail for one date including time slots and booked tourist info
 const getDateDetail = async (req, res) => {
   try {
     const { activityId, date } = req.params;
 
     let entry = await Calendar.findOne({ activityId, date });
 
-    // If no entry exists yet, return a default available structure
     if (!entry) {
+      const activity = await Activity.findById(activityId).select('timeSlotTemplates maxParticipants');
+
+      if (!activity) {
+        return res.status(404).json({ success: false, message: 'Activity not found' });
+      }
+
       return res.json({
         success: true,
         data: {
@@ -51,7 +80,7 @@ const getDateDetail = async (req, res) => {
           date,
           status: 'available',
           isUnavailable: false,
-          timeSlots: DEFAULT_SLOTS,
+          timeSlots: slotsFromTemplates(activity),
           notes: '',
           isDefault: true,    // signals frontend this hasn't been saved yet
         },
@@ -70,6 +99,19 @@ const saveCalendarDate = async (req, res) => {
   try {
     const { activityId, date } = req.params;
     const { timeSlots, isUnavailable, notes } = req.body;
+
+    // Guard: capacity can never be reduced below already-confirmed bookings
+    if (Array.isArray(timeSlots)) {
+      const invalid = timeSlots.find(
+        (s) => typeof s.capacity === 'number' && typeof s.booked === 'number' && s.capacity < s.booked
+      );
+      if (invalid) {
+        return res.status(400).json({
+          success: false,
+          message: `Capacity for "${invalid.label}" cannot be less than the ${invalid.booked} bookings already made`,
+        });
+      }
+    }
 
     const entry = await Calendar.findOneAndUpdate(
       { activityId, date },
@@ -116,9 +158,10 @@ const getSummary = async (req, res) => {
     const monthStart = `${y}-${m}-01`;
     const monthEnd   = `${y}-${m}-31`;
 
-    const [todayEntry, monthEntries] = await Promise.all([
+    const [todayEntry, monthEntries, activity] = await Promise.all([
       Calendar.findOne({ activityId, date: today }),
       Calendar.find({ activityId, date: { $gte: monthStart, $lte: monthEnd } }),
+      Activity.findById(activityId).select('pricePerPerson'),
     ]);
 
     const todayBookings = todayEntry
@@ -132,14 +175,15 @@ const getSummary = async (req, res) => {
 
     const monthActiveDays = monthEntries.filter((e) => !e.isUnavailable).length;
 
+    const pricePerPerson = activity?.pricePerPerson || 0;
+
     res.json({
       success: true,
       data: {
         todayBookings,
         monthBookings,
         monthActiveDays,
-        // Earnings placeholder — wire to real booking prices when Booking module is ready
-        earnings: monthBookings * 8500,
+        earnings: monthBookings * pricePerPerson,
       },
     });
   } catch (err) {
