@@ -4,6 +4,7 @@ import calendarAPI from '../../services/calendarAPI.js';
 import { activityAPI } from '../../services/activityAPI.js';
 import ActivityProviderSidebar from '../../components/ActivityProviderSidebar.jsx';
 import EditAvailabilityModal from './EditAvailabilityModal.jsx';
+import heroBanner from '../../assets/hotel.png';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -24,7 +25,6 @@ const formatDisplayDate = (dateStr) => {
 
 const slotBadge = (slot) => `(${slot.booked}/${slot.capacity})`;
 
-// Placeholder until the Bookings module provides real per-slot tourist data
 const DEMO_TOURISTS = [
   { name: 'Emma L.', country: 'USA', time: '08:00 AM' },
   { name: 'James K.', country: 'UK', time: '01:00 PM' },
@@ -36,6 +36,27 @@ const STATUS_CONFIG = {
   fully_booked: { label: 'Fully Booked', badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',          dot: 'bg-rose-500' },
   unavailable:  { label: 'Unavailable',  badge: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',      dot: 'bg-slate-400' },
 };
+
+// ─── Shared Hero Banner ───────────────────────────────────────────────────────
+const HeroBanner = () => (
+  <div className="relative overflow-hidden" style={{ height: '280px' }}>
+    <img
+      src={heroBanner}
+      alt=""
+      className="absolute inset-0 w-full h-full object-cover"
+    />
+   <div className="absolute inset-0 bg-gradient-to-r from-[#264653]/85 via-[#2d6a4f]/75 to-[#1a6fdb]/65" />
+    <div className="relative z-10 px-7 h-full flex flex-col justify-end pb-6 text-white">
+      <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">
+        Activity Management
+      </p>
+      <h2 className="text-2xl font-bold tracking-tight">Manage Calendar</h2>
+      <p className="text-slate-200 text-sm mt-1">
+        Control availability, time slots, and bookings for your activity.
+      </p>
+    </div>
+  </div>
+);
 
 const ManageCalendar = () => {
   const today = new Date();
@@ -61,7 +82,7 @@ const ManageCalendar = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // ── Load provider's activities for the selector ─────────────────────────────
+  // ── Load provider's activities ───────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -91,7 +112,7 @@ const ManageCalendar = () => {
     }
   }, [currentActivityId, viewYear, viewMonth]);
 
-  // ── Select a date and load its detail ───────────────────────────────────────
+  // ── Select a date ────────────────────────────────────────────────────────────
   const selectDate = useCallback(async (dateStr) => {
     if (!currentActivityId) return;
     setSelectedDate(dateStr);
@@ -106,7 +127,6 @@ const ManageCalendar = () => {
     }
   }, [currentActivityId]);
 
-  // When activity changes: refresh month + select today
   useEffect(() => {
     if (!currentActivityId) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -116,11 +136,9 @@ const ManageCalendar = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentActivityId]);
 
-  // Refresh dots when month navigation changes
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchMonth(); }, [fetchMonth]);
 
-  // ── Summary stats ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentActivityId) return;
     calendarAPI.getSummary(currentActivityId)
@@ -128,7 +146,7 @@ const ManageCalendar = () => {
       .catch(() => {});
   }, [currentActivityId]);
 
-  // ── Toggle slot in right panel ──────────────────────────────────────────────
+  // ── Toggle slot ──────────────────────────────────────────────────────────────
   const toggleSlot = (slotId) => {
     setDateDetail((prev) => ({
       ...prev,
@@ -246,12 +264,8 @@ const ManageCalendar = () => {
           </div>
         )}
 
-        {/* Hero */}
-        <div className="bg-gradient-to-r from-[#264653] via-[#2d6a4f] to-[#1a6fdb] px-7 py-6 text-white">
-          <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">Activity Management</p>
-          <h2 className="text-2xl font-bold tracking-tight">Manage Calendar</h2>
-          <p className="text-slate-200 text-sm mt-1">Control availability, time slots, and bookings for your activity.</p>
-        </div>
+        {/* Hero Banner with background image */}
+        <HeroBanner />
 
         {/* Body */}
         <div className="flex-1 px-6 py-5">
@@ -452,7 +466,7 @@ const ManageCalendar = () => {
 
                   <div className="border-t border-slate-100 my-4" />
 
-                  {/* Booked Tourists (placeholder until Bookings module is ready) */}
+                  {/* Booked Tourists */}
                   <div className="mb-5">
                     <h4 className="text-sm font-semibold text-slate-700 mb-3">
                       Booked Tourists
