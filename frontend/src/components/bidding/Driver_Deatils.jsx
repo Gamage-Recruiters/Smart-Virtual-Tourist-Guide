@@ -41,7 +41,7 @@ export default function Driver_Details() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/drivers", {
+      const response = await fetch("/api/drivers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -74,7 +74,7 @@ export default function Driver_Details() {
   };
 
   const goToOtherBidsPage = () => {
-    navigate(`/submit-bids/${tripId}`, { state: { driverName } });
+    navigate(`/other-drivers`, { state: { driverName } });
   };
 
   return (

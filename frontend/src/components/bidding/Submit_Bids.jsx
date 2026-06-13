@@ -21,7 +21,7 @@ export default function Submit_Bids() {
     try {
       if (!tripId) return;
 
-      const response = await fetch(`http://localhost:5000/api/bids/${tripId}`);
+      const response = await fetch(`/api/bids/${tripId}`);
       const result = await response.json();
 
       if (result.success) {
@@ -52,7 +52,7 @@ export default function Submit_Bids() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/bids", {
+      const response = await fetch("/api/bids", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

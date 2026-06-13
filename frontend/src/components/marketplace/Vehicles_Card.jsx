@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaCogs, FaUsers
 } from 'react-icons/fa';
@@ -56,6 +57,9 @@ const vehiclesData = [
 ];
 
 const Vehicles_Card = () => {
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6"> 
@@ -167,7 +171,7 @@ const Vehicles_Card = () => {
 
           {/* Vehicles Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {vehiclesData.map((vehicle, index) => (
+            {vehiclesData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle, index) => (
               <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
                 
                 {/* Vehicle Image section */}
@@ -206,7 +210,9 @@ const Vehicles_Card = () => {
                           <span className="text-xs font-bold text-blue-600"> LKR</span>
                         </div>
                       </div>
-                      <button className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors shadow-xs">
+                      <button 
+                        className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
+                      >
                         Rent Vehicle
                       </button>
                     </div>
@@ -219,13 +225,42 @@ const Vehicles_Card = () => {
           </div>
 
           {/* Pagination Footer */}
-          <div className="flex justify-center items-center space-x-2 pt-4">
-            <button className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-40" disabled>&lt;</button>
-            <button className="w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center">1</button>
-            <button className="w-8 h-8 rounded-lg bg-white text-gray-500 hover:bg-gray-100 font-bold text-xs flex items-center justify-center border border-gray-200">2</button>
-            <button className="w-8 h-8 rounded-lg bg-white text-gray-500 hover:bg-gray-100 font-bold text-xs flex items-center justify-center border border-gray-200">3</button>
-            <button className="p-2 text-gray-400 hover:text-gray-600">&gt;</button>
-          </div>
+          {(() => {
+            const totalPages = Math.ceil(vehiclesData.length / itemsPerPage);
+            return totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-2 pt-4">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-40"
+                >
+                  &lt;
+                </button>
+                
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center border ${
+                      currentPage === i + 1 
+                        ? 'bg-blue-600 text-white border-blue-600' 
+                        : 'bg-white text-gray-500 hover:bg-gray-100 border-gray-200'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-40"
+                >
+                  &gt;
+                </button>
+              </div>
+            );
+          })()}
           
         </div> 
 
