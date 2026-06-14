@@ -1,0 +1,3 @@
+# Temporary Test Files & Environment Variables
+.env
+server.js
