@@ -5,8 +5,11 @@ import TechSpecsStep from './techSpecsStep';
 import AddDocumentsStep from './addDocumentsStep';
 import AddPhotosStep from './addPhotosStep';
 import ProgressBar from './progressBar';
+import axios from 'axios';
+import uploadFileToSupabase from '../../../utils/fileUpload.js';
 
 function AddVehicleModal({ isOpen, onClose }) {
+
   // 1. State to track the current step (1 to 4)
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -31,6 +34,53 @@ function AddVehicleModal({ isOpen, onClose }) {
     },
     rentalPrice: "",
   });
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    // Upload PDFs
+    const insuranceUrl = await uploadFileToSupabase(formData.vehicleInsurance, 'documents');
+    const licenseUrl = await uploadFileToSupabase(formData.revenueLicense, 'documents');
+
+    // Upload Photos
+    const exteriorUrl = await uploadFileToSupabase(formData.photos.exterior, 'photos');
+    const interiorUrl = await uploadFileToSupabase(formData.photos.interior, 'photos');
+    const sideUrl = await uploadFileToSupabase(formData.photos.side, 'photos');
+    const dashboardUrl = await uploadFileToSupabase(formData.photos.dashboard, 'photos');
+
+    // Build the clean JSON payload for Mongoose
+    const finalPayload = {
+      brand: formData.brand,
+      model: formData.model,
+      year: Number(formData.year),
+      licensePlate: formData.licensePlate,
+      transmission: formData.transmission,
+      fuelType: formData.fuelType,
+      passengers: Number(formData.passengers),
+      luggage: Number(formData.luggage),
+      dailyRentalPrice: Number(formData.rentalPrice),
+      currentLocation: formData.location,
+      photos: {
+        exterior: exteriorUrl,
+        interior: interiorUrl,
+        side: sideUrl, 
+        dashboard: dashboardUrl
+      },
+      documents: {
+        vehicleInsurance: insuranceUrl,
+        revenueLicense: licenseUrl
+      }
+    };
+
+    // Send to your backend running on port 5000
+    const response = await axios.post(import.meta.env.VITE_BACKEND_URL + '/api/vehicle', finalPayload);
+    console.log("Saved successfully!", response.data);
+
+  } catch (error) {
+    console.error("Error during submission process:", error);
+  }
+};
 
   // Early return if the modal shouldn't be visible
   if (!isOpen) return null;
@@ -80,7 +130,7 @@ function AddVehicleModal({ isOpen, onClose }) {
           </button>
           
           <button 
-            onClick={currentStep === 4 ? () => console.log('Submit', formData) : nextStep}
+            onClick={currentStep === 4 ? handleSubmit : nextStep}
             className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm bg-[#0B57D0] text-white hover:bg-blue-700 shadow-md transition-all cursor-pointer"
           >
             {currentStep === 4 ? 'Submit Vehicle' : 'Next Step'} <ArrowRight size={18} />
