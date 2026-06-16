@@ -12,8 +12,8 @@ function App() {
 
   return (
     <>
-      {/* <FinalTripReport /> */}
-      <FinalTripReportPDF />
+      <FinalTripReport />
+      {/* <FinalTripReportPDF /> */}
       {/* <TouristArrivalReport /> */}
       {/* <RevenueReport /> */}
       {/* <BehaviorStatReport /> */}
