@@ -1,20 +1,30 @@
 const User = require('../models/User');
 const Admin = require('../models/Admin');
-
+const Advertisement = require('../models/Advertisement');
 // Fetch dashboard statistics
 const getDashboardStats = async (req, res) => {
     try {
-        const totalUsers = await User.countDocuments();
-        const travelAgencies = await User.countDocuments({ role: 'Travel Agency' });
-        const registeredDrivers = await User.countDocuments({ role: 'Driver' });
-        const hotelPartners = await User.countDocuments({ role: 'Hotel Owner' });
+        // Run queries concurrently for high performance
+        const [totalUsers, travelAgencies, registeredDrivers, hotelPartners] = await Promise.all([
+            User.countDocuments({}), 
+            User.countDocuments({ role: 'Travel Agency' }), 
+            User.countDocuments({ role: 'Driver' }), 
+            User.countDocuments({ role: 'Hotel Owner' }) 
+        ]);
 
+        // Structuring the response exactly as Frontend expects
         res.status(200).json({
             success: true,
-            data: { totalUsers, travelAgencies, registeredDrivers, hotelPartners }
+            data: {
+                totalUsers,
+                travelAgencies,
+                registeredDrivers,
+                hotelPartners
+            }
         });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        console.error("Dashboard Stats Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while fetching analytics' });
     }
 };
 
@@ -68,9 +78,109 @@ const updateUserStatus = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error while updating status' });
     }
 };
+// Get all ads with optional status filter
+const getAllAds = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = status ? { status } : {};
+        const ads = await Advertisement.find(filter).sort({ createdAt: -1 });
+        
+        res.status(200).json({ success: true, data: ads });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error fetching ads' });
+    }
+};
+
+// Update Ad Status (Active/Paused)
+const updateAdStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { new: true });
+        if (!updatedAd) return res.status(404).json({ success: false, message: 'Ad not found' });
+
+        res.status(200).json({ success: true, message: `Ad marked as ${status}`, data: updatedAd });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating ad' });
+    }
+};
+// Create a new advertisement
+const createAdvertisement = async (req, res) => {
+    try {
+        const { title, description, type, budget, startDate, endDate, imageUrl } = req.body;
+
+        // Create new Ad object
+        const newAd = new Advertisement({
+            title,
+            description,
+            companyName: 'System Admin', // Fallback for required fields
+            targetUrl: '#',
+            type, // Banner Ad, Sidebar Ad etc.
+            // Remove any '$' or letters from budget if user typed them
+            budget: Number(budget.toString().replace(/[^0-9.-]+/g,"")), 
+            startDate,
+            endDate,
+            // If no image uploaded, use a nice default travel image
+            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=800&q=80',
+            status: 'Active',
+            clicks: 0,
+            impressions: 0
+        });
+
+        await newAd.save();
+        res.status(201).json({ success: true, message: 'Advertisement created successfully', data: newAd });
+    } catch (error) {
+        console.error("Create Ad Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while creating advertisement' });
+    }
+};
+// Get single advertisement by ID for viewing/editing
+const getAdvertisementById = async (req, res) => {
+    try {
+        const ad = await Advertisement.findById(req.params.id);
+        if (!ad) {
+            return res.status(404).json({ success: false, message: 'Advertisement not found' });
+        }
+        res.status(200).json({ success: true, data: ad });
+    } catch (error) {
+        console.error("Get Ad By ID Error:", error);
+        res.status(500).json({ success: false, message: 'Server error fetching advertisement' });
+    }
+};
+
+// Update an existing advertisement
+const updateAdvertisement = async (req, res) => {
+    try {
+        const updatedAd = await Advertisement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedAd) {
+            return res.status(404).json({ success: false, message: 'Advertisement not found' });
+        }
+        res.status(200).json({ success: true, message: 'Advertisement updated successfully', data: updatedAd });
+    } catch (error) {
+        console.error("Update Ad Error:", error);
+        res.status(500).json({ success: false, message: 'Server error updating advertisement' });
+    }
+};
+
+// Delete an advertisement
+const deleteAdvertisement = async (req, res) => {
+    try {
+        await Advertisement.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: 'Ad deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting ad' });
+    }
+};
 
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
-    updateUserStatus 
+    updateUserStatus,
+    getAllAds,
+    updateAdStatus,
+    createAdvertisement,
+    getAdvertisementById,
+    updateAdvertisement,
+    deleteAdvertisement
 };

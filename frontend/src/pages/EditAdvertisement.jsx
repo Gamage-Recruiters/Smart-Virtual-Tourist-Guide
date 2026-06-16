@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiUploadCloud, FiType, FiAlignLeft, FiTag, FiDollarSign, FiCalendar, FiImage, FiAward, FiLink, FiX } from 'react-icons/fi';
-import apiClient from '../services/api'; 
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FiUploadCloud, FiType, FiAlignLeft, FiTag, FiDollarSign, FiCalendar, FiImage, FiEdit, FiLink, FiX } from 'react-icons/fi';
+import apiClient from '../services/api';
 
-const CreateAdvertisement = () => {
+const EditAdvertisement = () => {
+  const { id } = useParams(); // Get the advertisement ID from the URL
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -14,13 +15,54 @@ const CreateAdvertisement = () => {
     budget: '',
     startDate: '',
     endDate: '',
-    imageUrl: '' // Will store either Base64 string or pasted URL
+    imageUrl: ''
   });
 
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
-  const [uploadMode, setUploadMode] = useState('file'); // 'file' or 'url'
+  const [uploadMode, setUploadMode] = useState('file'); 
   const [dragActive, setDragActive] = useState(false);
+
+  // Helper function to format MongoDB ISO dates to HTML date input format (YYYY-MM-DD)
+  const formatForDateInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
+
+  // Fetch existing advertisement data on component mount
+  useEffect(() => {
+    const fetchAdDetails = async () => {
+      try {
+        const response = await apiClient.get(`/admin/ads/${id}`);
+        if (response && response.success) {
+          const ad = response.data;
+          setFormData({
+            title: ad.title,
+            description: ad.description,
+            type: ad.type || 'Banner Ad',
+            budget: ad.budget,
+            startDate: formatForDateInput(ad.startDate),
+            endDate: formatForDateInput(ad.endDate),
+            imageUrl: ad.imageUrl || ''
+          });
+          if (ad.imageUrl && ad.imageUrl.startsWith('http')) {
+            setUploadMode('url');
+          }
+        } else {
+          setError('Failed to fetch advertisement details.');
+        }
+      } catch (err) {
+        console.error("Error fetching ad details:", err);
+        setError('Server error while fetching advertisement.');
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchAdDetails();
+  }, [id]);
 
   // Handle standard input changes
   const handleChange = (e) => {
@@ -40,7 +82,6 @@ const CreateAdvertisement = () => {
     }
   };
 
-  // Handle file selection from button click
   const handleFileSelect = (e) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
@@ -48,7 +89,6 @@ const CreateAdvertisement = () => {
     }
   };
 
-  // Drag and Drop handlers
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -68,34 +108,41 @@ const CreateAdvertisement = () => {
     }
   };
 
-  // Remove selected image
   const clearImage = () => {
     setFormData({ ...formData, imageUrl: '' });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Submit form data
+  // Submit updated form data
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await apiClient.post('/admin/ads', formData);
+      const response = await apiClient.put(`/admin/ads/${id}`, formData);
       
       if (response && response.success) {
-        alert("Advertisement Created Successfully!");
+        alert("Advertisement Updated Successfully!");
         navigate('/manage-ads');
       } else {
-        setError(response.message || "Failed to create advertisement");
+        setError(response.message || "Failed to update advertisement");
       }
     } catch (err) {
-      console.error("Error submitting ad:", err);
+      console.error("Error updating ad:", err);
       setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (fetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#EBF4FF]">
+        <p className="text-gray-500 font-medium">Loading advertisement details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-16 pt-8 px-6 md:px-12">
@@ -103,11 +150,11 @@ const CreateAdvertisement = () => {
         
         {/* Header Section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center bg-[#86D889] text-white px-3 py-1 rounded-full text-[12px] font-bold tracking-wide mb-4 shadow-sm">
-            <FiAward className="mr-1" /> NEW
+          <div className="inline-flex items-center justify-center bg-[#1877F2] text-white px-3 py-1 rounded-full text-[12px] font-bold tracking-wide mb-4 shadow-sm">
+            <FiEdit className="mr-1" /> EDITING
           </div>
-          <h1 className="text-[32px] font-bold text-[#111111] mb-2">Create New Advertisement</h1>
-          <p className="text-[15px] text-gray-500">Set up a new promotional campaign for your travel packages</p>
+          <h1 className="text-[32px] font-bold text-[#111111] mb-2">Edit Advertisement</h1>
+          <p className="text-[15px] text-gray-500">Update the details of your promotional campaign</p>
         </div>
 
         {error && (
@@ -130,8 +177,7 @@ const CreateAdvertisement = () => {
                 value={formData.title}
                 onChange={handleChange}
                 required
-                placeholder="e.g., Summer Special - 20% Off" 
-                className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors placeholder-gray-400"
+                className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors"
               />
             </div>
 
@@ -146,8 +192,7 @@ const CreateAdvertisement = () => {
                 value={formData.description}
                 onChange={handleChange}
                 required
-                placeholder="Describe Your Promotional Offer......" 
-                className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors placeholder-gray-400 resize-none"
+                className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors resize-none"
               ></textarea>
             </div>
 
@@ -180,8 +225,7 @@ const CreateAdvertisement = () => {
                   value={formData.budget}
                   onChange={handleChange}
                   required
-                  placeholder="$500" 
-                  className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors placeholder-gray-400"
+                  className="w-full px-4 py-3 rounded-[8px] border border-gray-200 bg-gray-50/50 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-[#1877F2] transition-colors"
                 />
               </div>
             </div>
@@ -223,7 +267,6 @@ const CreateAdvertisement = () => {
                   <FiImage className="text-[#1877F2]" /> Advertisement Image
                 </label>
                 
-                {/* Toggle Upload Mode */}
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button 
                     type="button"
@@ -242,7 +285,6 @@ const CreateAdvertisement = () => {
                 </div>
               </div>
 
-              {/* Image Preview Area */}
               {formData.imageUrl ? (
                 <div className="relative mt-2 rounded-[12px] overflow-hidden border border-gray-200">
                   <img src={formData.imageUrl} alt="Advertisement Preview" className="w-full h-[200px] object-cover" />
@@ -257,7 +299,6 @@ const CreateAdvertisement = () => {
               ) : (
                 <div className="mt-2">
                   {uploadMode === 'file' ? (
-                    /* Drag & Drop File Area */
                     <div 
                       onDragEnter={handleDrag}
                       onDragLeave={handleDrag}
@@ -284,7 +325,6 @@ const CreateAdvertisement = () => {
                       </div>
                     </div>
                   ) : (
-                    /* Paste URL Input */
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <FiLink className="text-gray-400" />
@@ -315,7 +355,7 @@ const CreateAdvertisement = () => {
                 disabled={loading || (!formData.imageUrl && uploadMode === 'file')}
                 className={`w-full sm:w-auto px-10 py-3 ${loading || (!formData.imageUrl && uploadMode === 'file') ? 'bg-blue-300 cursor-not-allowed' : 'bg-[#1877F2] hover:bg-blue-600'} border border-transparent rounded-full text-[14px] font-bold text-white transition-colors shadow-sm flex justify-center items-center`}
               >
-                {loading ? 'Creating...' : 'Create Advertisement'}
+                {loading ? 'Updating...' : 'Update Advertisement'}
               </button>
             </div>
             
@@ -327,4 +367,4 @@ const CreateAdvertisement = () => {
   );
 };
 
-export default CreateAdvertisement;
+export default EditAdvertisement;

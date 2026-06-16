@@ -1,73 +1,93 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEdit, FiTrash2, FiPlus, FiTrendingUp, FiTrendingDown, FiDollarSign, FiMousePointer, FiBarChart2, FiUsers, FiCalendar } from 'react-icons/fi';
+import apiClient from '../services/api'; 
 
 const ManageAds = () => {
+  const [ads, setAds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Calculate top statistics based on fetched database values
+  const totalBudget = ads.reduce((sum, ad) => sum + ad.rawBudget, 0);
+  const totalClicks = ads.reduce((sum, ad) => sum + ad.rawClicks, 0);
+  const totalImpressions = ads.reduce((sum, ad) => sum + ad.rawImpressions, 0);
+  const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : 0;
+
   const statCards = [
-    { id: 1, title: 'Total Budget', value: '$6570', trend: '+12.5%', isUp: true, icon: <FiDollarSign size={20} className="text-[#1877F2]" /> },
-    { id: 2, title: 'Total Clicks', value: '16,570', trend: '+4.2%', isUp: true, icon: <FiMousePointer size={20} className="text-[#1877F2]" /> },
-    { id: 3, title: 'Total Impressions', value: '158,568', trend: '-1.5%', isUp: false, icon: <FiBarChart2 size={20} className="text-[#1877F2]" /> },
-    { id: 4, title: 'Average CTR', value: '3.15%', trend: '+0.4%', isUp: true, icon: <FiUsers size={20} className="text-[#1877F2]" /> },
+    { id: 1, title: 'Total Budget', value: `$${totalBudget}`, trend: 'Live', isUp: true, icon: <FiDollarSign size={20} className="text-[#1877F2]" /> },
+    { id: 2, title: 'Total Clicks', value: totalClicks.toString(), trend: 'Live', isUp: true, icon: <FiMousePointer size={20} className="text-[#1877F2]" /> },
+    { id: 3, title: 'Total Impressions', value: totalImpressions.toString(), trend: 'Live', isUp: true, icon: <FiBarChart2 size={20} className="text-[#1877F2]" /> },
+    { id: 4, title: 'Average CTR', value: `${avgCtr}%`, trend: 'Live', isUp: true, icon: <FiUsers size={20} className="text-[#1877F2]" /> },
   ];
 
-  const adsData = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=800&q=80',
-      title: 'Ella Adventure Experience',
-      badge: '- Book Now',
-      badgeColor: 'text-red-500',
-      duration: '5 Days | Scenic Train & Hiking',
-      description: 'Explore the beauty of Ella including Nine Arches Bridge, Little Adam\'s Peak, and scenic train rides with expert travel guides.',
-      date: 'May 5, 2026 - Jul 20, 2026',
-      price: '$400',
-      clicks: '6853',
-      impressions: '43675',
-      ctr: '3.5%'
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1588598198321-16d1d07ec682?w=800&q=80',
-      title: 'Sigiriya Rock Adventure',
-      badge: '- 20% Off',
-      badgeColor: 'text-[#1877F2]',
-      duration: '3 Days | Scenic Train & Hiking',
-      description: 'Explore Sigiriya Rock with our discounted tour. Enjoy guided climbing, rich history, and stunning views. Limited-time offer!',
-      date: 'May 5, 2026 - Jul 20, 2026',
-      price: '$560',
-      clicks: '4589',
-      impressions: '28685',
-      ctr: '2.5%'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1586861115462-817abdc16c73?w=800&q=80',
-      title: 'Mirissa Whale Watching Tour',
-      badge: '',
-      badgeColor: '',
-      duration: '2 Days | Marine Safari',
-      description: 'Join our unforgettable whale watching tour in Mirissa and experience the beauty of Sri Lanka\'s marine wildlife.',
-      date: 'Apr 10, 2026 - Aug 10, 2026',
-      price: '$150',
-      clicks: '5682',
-      impressions: '71245',
-      ctr: '3.1%'
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-      title: 'Tropical Beach Escape',
-      badge: '- 20% Off',
-      badgeColor: 'text-[#1877F2]',
-      duration: '1 Days | Cultural & Heritage Package',
-      description: 'Experience luxury beachfront stays, guided tours, and unforgettable ocean views.',
-      date: 'Apr 15, 2026 - Aug 10, 2026',
-      price: '$280',
-      clicks: '2705',
-      impressions: '13030',
-      ctr: '1.8%'
+  // Fetch advertisements from backend
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get('/admin/ads');
+        
+        if (response && response.success && response.data.length > 0) {
+          const formattedAds = response.data.map(ad => ({
+            id: ad._id,
+            image: ad.imageUrl || 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=800&q=80',
+            title: ad.title,
+            badge: ad.status === 'Active' ? '- Active' : '- Paused',
+            badgeColor: ad.status === 'Active' ? 'text-green-500' : 'text-red-500',
+            duration: 'Campaign Duration',
+            description: `Company: ${ad.companyName}`,
+            date: `${new Date(ad.startDate).toLocaleDateString()} - ${new Date(ad.endDate).toLocaleDateString()}`,
+            price: `$${ad.budget}`,
+            clicks: ad.clicks.toString(),
+            impressions: ad.impressions.toString(),
+            ctr: ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) + '%' : '0%',
+            
+            rawBudget: ad.budget,
+            rawClicks: ad.clicks,
+            rawImpressions: ad.impressions
+          }));
+          setAds(formattedAds);
+        } else {
+          setAds([]); 
+        }
+      } catch (error) {
+        console.error("Error fetching ads:", error);
+        setAds([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAds();
+  }, []);
+
+  // Action Handlers for View, Edit, Delete
+  const handleView = (id) => {
+    // Navigates to a view page (You will need to create ViewAdvertisement.jsx later)
+    navigate(`/view-ad/${id}`);
+  };
+
+  const handleEdit = (id) => {
+    // Navigates to an edit page (You will need to create EditAdvertisement.jsx later)
+    navigate(`/edit-ad/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    // Prompts admin for confirmation before executing API call
+    if (window.confirm("Are you sure you want to completely remove this advertisement? This action cannot be undone.")) {
+      try {
+        const response = await apiClient.delete(`/admin/ads/${id}`);
+        if (response && response.success) {
+          // Instantly update UI without reloading the page
+          setAds(ads.filter(ad => ad.id !== id));
+        }
+      } catch (error) {
+        console.error("Error deleting ad:", error);
+        alert("Failed to delete advertisement. Please check your connection.");
+      }
     }
-  ];
+  };
 
   return (
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
@@ -127,7 +147,7 @@ const ManageAds = () => {
 
         {/* Action Bar */}
         <div className="flex justify-end mb-6">
-          <Link to="/create-ad"> {/* Will link to Create Ad page later */}
+          <Link to="/create-ad">
             <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white px-6 py-3 rounded-[8px] font-medium hover:bg-blue-600 transition-colors shadow-sm">
               <FiPlus size={20} /> Create Advertisement
             </button>
@@ -136,74 +156,107 @@ const ManageAds = () => {
 
         {/* Ad Listings */}
         <div className="flex flex-col gap-6 mb-12">
-          {adsData.map((ad) => (
-            <div key={ad.id} className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col md:flex-row overflow-hidden hover:shadow-md transition-shadow">
-              
-              <div className="md:w-1/3 h-56 md:h-auto">
-                <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" />
-              </div>
-
-              <div className="md:w-2/3 p-6 flex flex-col justify-between">
+          {loading ? (
+             <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 p-12 text-center text-gray-500 font-medium">
+               Loading actual advertisements...
+             </div>
+          ) : ads.length === 0 ? (
+             <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 p-12 text-center flex flex-col items-center">
+               <h3 className="text-[20px] font-bold text-[#111111] mb-2">No Advertisements Found</h3>
+               <p className="text-[15px] text-gray-500 mb-6">There are no active campaigns in the database right now.</p>
+               <Link to="/create-ad">
+                 <button className="flex items-center gap-2 bg-white border border-gray-200 text-[#111111] px-6 py-2.5 rounded-[8px] font-medium hover:bg-gray-50 transition-colors">
+                   <FiPlus size={18} /> Add Your First Ad
+                 </button>
+               </Link>
+             </div>
+          ) : (
+            ads.map((ad) => (
+              <div key={ad.id} className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col md:flex-row overflow-hidden hover:shadow-md transition-shadow">
                 
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-[20px] font-bold text-[#111111]">
-                      {ad.title} <span className={ad.badgeColor}>{ad.badge}</span>
-                    </h2>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <button className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-[#1877F2] transition-colors"><FiEye size={16}/></button>
-                      <button className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-green-600 transition-colors"><FiEdit size={16}/></button>
-                      <button className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-red-500 transition-colors"><FiTrash2 size={16}/></button>
+                <div className="md:w-1/3 h-56 md:h-auto">
+                  <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" />
+                </div>
+
+                <div className="md:w-2/3 p-6 flex flex-col justify-between">
+                  
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <h2 className="text-[20px] font-bold text-[#111111]">
+                        {ad.title} <span className={`text-[14px] ${ad.badgeColor}`}>{ad.badge}</span>
+                      </h2>
+                      
+                      {/* Interactive Buttons */}
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <button 
+                          onClick={() => handleView(ad.id)} 
+                          title="View Details"
+                          className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-[#1877F2] transition-colors"
+                        >
+                          <FiEye size={16}/>
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(ad.id)} 
+                          title="Edit Advertisement"
+                          className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-green-600 transition-colors"
+                        >
+                          <FiEdit size={16}/>
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(ad.id)} 
+                          title="Delete Advertisement"
+                          className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-red-500 transition-colors"
+                        >
+                          <FiTrash2 size={16}/>
+                        </button>
+                      </div>
+
+                    </div>
+
+                    <p className="text-[14px] font-medium text-gray-700 mb-2">{ad.duration}</p>
+                    <p className="text-[13px] text-gray-500 line-clamp-2 mb-4">{ad.description}</p>
+                    
+                    <div className="flex items-center gap-4 text-[13px] font-medium text-[#111111] mb-6">
+                      <span className="flex items-center gap-2"><FiCalendar className="text-gray-400"/> {ad.date}</span>
+                      <span>{ad.price}</span>
                     </div>
                   </div>
 
-                  <p className="text-[14px] font-medium text-gray-700 mb-2">{ad.duration}</p>
-                  <p className="text-[13px] text-gray-500 line-clamp-2 mb-4">{ad.description}</p>
-                  
-                  <div className="flex items-center gap-4 text-[13px] font-medium text-[#111111] mb-6">
-                    <span className="flex items-center gap-2"><FiCalendar className="text-gray-400"/> {ad.date}</span>
-                    <span>{ad.price}</span>
+                  <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-4 text-center md:text-left">
+                    <div>
+                      <p className="text-[12px] text-[#1877F2] font-medium mb-1">Clicks</p>
+                      <p className="text-[14px] font-bold text-[#111111]">{ad.clicks}</p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[#1877F2] font-medium mb-1">Impressions</p>
+                      <p className="text-[14px] font-bold text-[#111111]">{ad.impressions}</p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[#1877F2] font-medium mb-1">CTR</p>
+                      <p className="text-[14px] font-bold text-[#111111]">{ad.ctr}</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-4 text-center md:text-left">
-                  <div>
-                    <p className="text-[12px] text-[#1877F2] font-medium mb-1">Clicks</p>
-                    <p className="text-[14px] font-bold text-[#111111]">{ad.clicks}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] text-[#1877F2] font-medium mb-1">Impressions</p>
-                    <p className="text-[14px] font-bold text-[#111111]">{ad.impressions}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] text-[#1877F2] font-medium mb-1">CTR</p>
-                    <p className="text-[14px] font-bold text-[#111111]">{ad.ctr}</p>
-                  </div>
                 </div>
-
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center items-center gap-2 pb-8">
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
-             &lt;
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[#A855F7] text-white font-medium shadow-sm">
-             1
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-             2
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
-             3
-           </button>
-           <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
-             &gt;
-           </button>
-        </div>
+        {ads.length > 0 && (
+          <div className="flex justify-center items-center gap-2 pb-8">
+             <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+               &lt;
+             </button>
+             <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[#A855F7] text-white font-medium shadow-sm">
+               1
+             </button>
+             <button className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+               &gt;
+             </button>
+          </div>
+        )}
 
       </div>
     </div>

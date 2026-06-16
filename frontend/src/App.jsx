@@ -9,6 +9,8 @@ import CreateAdvertisement from './pages/CreateAdvertisement';
 import AddNewAdmin from './pages/AddNewAdmin';
 import ViewFullDetails from './pages/ViewFullDetails';
 import Login from './pages/Login';
+import EditAdvertisement from './pages/EditAdvertisement';
+import ViewAdvertisement from './pages/ViewAdvertisement';
 
 // --- ProtectedRoute Component ---
 const ProtectedRoute = ({ children }) => {
@@ -43,6 +45,8 @@ function App() {
       <Route path="/create-ad" element={<ProtectedRoute><CreateAdvertisement /></ProtectedRoute>} />
       <Route path="/approve-listings" element={<ProtectedRoute><ApproveListings /></ProtectedRoute>} />
       <Route path="/view-details/:id" element={<ProtectedRoute><ViewFullDetails /></ProtectedRoute>} />
+      <Route path="/edit-ad/:id" element={<EditAdvertisement />} />
+      <Route path="/view-ad/:id" element={<ViewAdvertisement />} />
     </Routes>
   );
 }
