@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+// import { useParams } from 'react-router-dom';
+import { fetchItinerary } from '../services/itineraryService';
 
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
@@ -13,7 +15,48 @@ import Footer from "../components/Footer";
 
 const FinalTripReport = () => {
 
+  // const { touristId, tripId } = useParams();
+
+  const touristId = "6a28dc49a14342989f1e4ee4";
+  const tripId = "6a28dc49a14342989f1e4ee5";
+
+  const [itinerary, setItinerary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+
+  useEffect(() => {
+    const loadItinerary = async () => {
+      try {
+        const result = await fetchItinerary(touristId, tripId);
+        if (result.success) {
+          setItinerary(result.data);
+        } else {
+          setError(result.message);
+        }
+      } catch (err) {
+        setError("An error occurred while retrieving data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (touristId && tripId) {
+      loadItinerary();
+    }
+  }, [touristId, tripId]);
+
+  const formatDateRange = (start, end) => {
+    if (!start || !end) return "";
+    const s = new Date(start).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const e = new Date(end).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    return `${s} - ${e}`;
+  };
+
+  if (loading) return <div className="text-center py-10 font-bold">Loading...</div>;
+  if (error) return <div className="text-center py-10 text-red-500 font-bold">Error: {error}</div>;
+  if (!itinerary) return <div className="text-center py-10">Data not found.</div>;
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter',sans-serif" }}>
@@ -34,10 +77,12 @@ const FinalTripReport = () => {
             Your Complete Trip Report
           </h2>
           <p className="text-gray-600 text-xs sm:text-sm md:text-base mt-2 font-medium">
-            March 15 - March 22, 2025
+            {formatDateRange(itinerary.start_date, itinerary.end_date)}
           </p>
-          <div className="mt-4 px-10 py-2.5 bg-gradient-to-b from-white to-[#C8E7FD] text-[#1C2C3F] text-xs sm:text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(180,215,245,0.4)] border border-[#B3DCFB]">
-            Completed
+
+          {/* 5. Dynamic Status (Capitalized) */}
+          <div className="mt-4 px-10 py-2.5 bg-gradient-to-b from-white to-[#C8E7FD] text-[#1C2C3F] text-xs sm:text-sm font-bold rounded-2xl shadow-[0_4px_12px_rgba(180,215,245,0.4)] border border-[#B3DCFB] capitalize">
+            {itinerary.status}
           </div>
         </div>
 
