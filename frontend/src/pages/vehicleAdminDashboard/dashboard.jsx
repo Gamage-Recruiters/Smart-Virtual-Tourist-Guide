@@ -128,9 +128,9 @@ function Dashboard() {
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 flex flex-col h-full">
           <h2 className="text-lg font-extrabold text-slate-900 mb-6">FLEET STATUS</h2>
           
-          <div className="flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             {fleetData.map((car) => (
-              <div key={car.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+              <div key={car.id} className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
                 <img src={car.img} alt={car.name} className="w-16 h-16 rounded-xl object-cover bg-slate-100" />
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-bold text-slate-900 leading-none">{car.name}</p>

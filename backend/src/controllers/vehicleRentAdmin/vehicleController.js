@@ -151,3 +151,18 @@ export const getVehicleById = async (req, res) => {
       });
   }
 };
+
+// get five recent vehicles
+export const getRecentVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find().sort({ createdAt: -1 }).limit(5);
+    res.status(200).json(vehicles);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Server error while fetching recent vehicles",
+        error: error.message,
+      });
+  }
+}
