@@ -37,7 +37,10 @@ function AddDocumentsStep({ formData, setFormData }) {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   return (
@@ -251,7 +254,7 @@ function AddDocumentsStep({ formData, setFormData }) {
           type="text"
           name="location"
           placeholder="Colombo"
-          value={formData.location || ""}
+          value={formData.location}
           onChange={handleChange}
           className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3.5 px-4 text-sm font-bold text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
         />

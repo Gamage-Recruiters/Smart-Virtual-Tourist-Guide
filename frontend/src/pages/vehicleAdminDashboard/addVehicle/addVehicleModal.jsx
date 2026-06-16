@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import BasicInfoStep from './basicInfoStep';
 import TechSpecsStep from './techSpecsStep';
 import AddDocumentsStep from './addDocumentsStep';
@@ -12,6 +12,9 @@ function AddVehicleModal({ isOpen, onClose }) {
 
   // 1. State to track the current step (1 to 4)
   const [currentStep, setCurrentStep] = useState(1);
+
+  // 2. State to track if the form is currently uploading/saving
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 2. State to hold all the form data across all steps
   const [formData, setFormData] = useState({
@@ -37,17 +40,26 @@ function AddVehicleModal({ isOpen, onClose }) {
 
  const handleSubmit = async (e) => {
   e.preventDefault();
+  setIsSubmitting(true);
 
   try {
-    // Upload PDFs
-    const insuranceUrl = await uploadFileToSupabase(formData.vehicleInsurance, 'documents');
-    const licenseUrl = await uploadFileToSupabase(formData.revenueLicense, 'documents');
-
-    // Upload Photos
-    const exteriorUrl = await uploadFileToSupabase(formData.photos.exterior, 'photos');
-    const interiorUrl = await uploadFileToSupabase(formData.photos.interior, 'photos');
-    const sideUrl = await uploadFileToSupabase(formData.photos.side, 'photos');
-    const dashboardUrl = await uploadFileToSupabase(formData.photos.dashboard, 'photos');
+    console.time('upload time');
+   const [
+      insuranceUrl,
+      licenseUrl,
+      exteriorUrl,
+      interiorUrl,
+      sideUrl,
+      dashboardUrl
+    ] = await Promise.all([
+      uploadFileToSupabase(formData.vehicleInsurance, 'documents'),
+      uploadFileToSupabase(formData.revenueLicense, 'documents'),
+      uploadFileToSupabase(formData.photos.exterior, 'photos'),
+      uploadFileToSupabase(formData.photos.interior, 'photos'),
+      uploadFileToSupabase(formData.photos.side, 'photos'),
+      uploadFileToSupabase(formData.photos.dashboard, 'photos')
+    ]);
+    console.timeEnd('upload time');
 
     // Build the clean JSON payload for Mongoose
     const finalPayload = {
@@ -60,7 +72,7 @@ function AddVehicleModal({ isOpen, onClose }) {
       passengers: Number(formData.passengers),
       luggage: Number(formData.luggage),
       dailyRentalPrice: Number(formData.rentalPrice),
-      currentLocation: formData.location,
+      location: formData.location,
       photos: {
         exterior: exteriorUrl,
         interior: interiorUrl,
@@ -73,12 +85,21 @@ function AddVehicleModal({ isOpen, onClose }) {
       }
     };
 
+    // console.log(finalPayload);
+    // console.log(formData);
+
     // Send to your backend running on port 5000
     const response = await axios.post(import.meta.env.VITE_BACKEND_URL + '/api/vehicle', finalPayload);
     console.log("Saved successfully!", response.data);
 
+    setIsSubmitting(false);
+    setCurrentStep(1);
+    setFormData({});
+    onClose();
+
   } catch (error) {
     console.error("Error during submission process:", error);
+    setIsSubmitting(false);
   }
 };
 
@@ -91,7 +112,7 @@ function AddVehicleModal({ isOpen, onClose }) {
 
   return (
     // Backdrop (Dark semi-transparent background)
-    <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-slate-200/20 z-50 flex items-center justify-center p-4">
       
       {/* Modal Container */}
       <div className="bg-white rounded-4xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -100,7 +121,7 @@ function AddVehicleModal({ isOpen, onClose }) {
         <div className="px-8 pt-8 pb-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900">Add New Vehicle</h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <button onClick={onClose} disabled={isSubmitting} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
               <X size={24} />
             </button>
           </div>
@@ -131,9 +152,25 @@ function AddVehicleModal({ isOpen, onClose }) {
           
           <button 
             onClick={currentStep === 4 ? handleSubmit : nextStep}
-            className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm bg-[#0B57D0] text-white hover:bg-blue-700 shadow-md transition-all cursor-pointer"
+            disabled={isSubmitting}
+            className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-all ${
+              isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-[#0B57D0] hover:bg-blue-700 cursor-pointer'
+            }`}
           >
-            {currentStep === 4 ? 'Submit Vehicle' : 'Next Step'} <ArrowRight size={18} />
+            {currentStep === 4 ? (
+              isSubmitting ? (
+                <>
+                <span>Submitting... </span>
+                <Loader2 size={18} className="animate-spin" />
+                </>
+              ) : (
+               <>
+                <span>Submit Vehicle</span> <ArrowRight size={18} /></>
+              )) : (
+              <>
+                <span>Next Step</span> <ArrowRight size={18} />
+              </>
+            )} 
           </button>
         </div>
 

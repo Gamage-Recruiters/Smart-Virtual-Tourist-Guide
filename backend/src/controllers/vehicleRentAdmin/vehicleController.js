@@ -13,6 +13,7 @@ export const addVehicle = async (req, res) => {
       passengers,
       luggage,
       dailyRentalPrice,
+      location,
       photos,
       documents,
     } = req.body;
@@ -37,6 +38,7 @@ export const addVehicle = async (req, res) => {
       passengers,
       luggage,
       dailyRentalPrice,
+      currentLocation: req.body.location,
       photos,
       documents,
     });
