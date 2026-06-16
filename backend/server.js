@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
@@ -24,3 +25,12 @@ app.use('/api/itinerary', itineraryRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+=======
+const app = require('./src/app');
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+>>>>>>> ebada5d5c29fc1294a4f406fc35c04308fdb4ea9
