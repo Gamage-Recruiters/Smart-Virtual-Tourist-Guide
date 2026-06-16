@@ -7,6 +7,7 @@ import AddPhotosStep from './addPhotosStep';
 import ProgressBar from './progressBar';
 import axios from 'axios';
 import uploadFileToSupabase from '../../../utils/fileUpload.js';
+import toast from 'react-hot-toast';
 
 function AddVehicleModal({ isOpen, onClose }) {
 
@@ -43,7 +44,6 @@ function AddVehicleModal({ isOpen, onClose }) {
   setIsSubmitting(true);
 
   try {
-    console.time('upload time');
    const [
       insuranceUrl,
       licenseUrl,
@@ -59,8 +59,7 @@ function AddVehicleModal({ isOpen, onClose }) {
       uploadFileToSupabase(formData.photos.side, 'photos'),
       uploadFileToSupabase(formData.photos.dashboard, 'photos')
     ]);
-    console.timeEnd('upload time');
-
+    
     // Build the clean JSON payload for Mongoose
     const finalPayload = {
       brand: formData.brand,
@@ -85,12 +84,9 @@ function AddVehicleModal({ isOpen, onClose }) {
       }
     };
 
-    // console.log(finalPayload);
-    // console.log(formData);
-
     // Send to your backend running on port 5000
-    const response = await axios.post(import.meta.env.VITE_BACKEND_URL + '/api/vehicle', finalPayload);
-    console.log("Saved successfully!", response.data);
+    await axios.post(import.meta.env.VITE_BACKEND_URL + '/api/vehicle', finalPayload);
+    toast.success("Saved successfully!");
 
     setIsSubmitting(false);
     setCurrentStep(1);
@@ -100,6 +96,7 @@ function AddVehicleModal({ isOpen, onClose }) {
   } catch (error) {
     console.error("Error during submission process:", error);
     setIsSubmitting(false);
+    toast.error("Something went wrong! Please try again.");
   }
 };
 

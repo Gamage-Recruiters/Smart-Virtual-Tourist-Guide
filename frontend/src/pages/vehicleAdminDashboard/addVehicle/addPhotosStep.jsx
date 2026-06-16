@@ -103,7 +103,10 @@ function AddPhotosStep({ formData, setFormData }) {
   
   // Handler for the Rental Price text input
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value
+    }));
   };
 
   // Handler passed down to our sub-components to update the specific photo slot
@@ -147,7 +150,7 @@ function AddPhotosStep({ formData, setFormData }) {
           Daily Rental Price
         </label>
         <input
-          type="text"
+          type="number"
           name="rentalPrice"
           placeholder="15 000 LKR"
           value={formData.rentalPrice || ''}
