@@ -27,7 +27,7 @@ const restaurantSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
-    address: { type: String, trim: true },
+    address: { type: String, required: true, trim: true },
     bannerImage: { type: String, trim: true },
     socialLinks: socialLinksSchema,
     operatingHours: [operatingHourSchema],
