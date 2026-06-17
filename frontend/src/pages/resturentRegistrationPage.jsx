@@ -4,6 +4,8 @@ import { FcGoogle } from 'react-icons/fc'
 import { FaApple } from 'react-icons/fa'
 import bgImage from '../assets/resturent_bg_login_&_register.jpg'
 
+const AMENITY_OPTIONS = ['Free WiFi', 'Parking', 'Outdoor Seating', 'Live Music']
+
 function ResturentRegistrationPage() {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ function ResturentRegistrationPage() {
     phone: '',
     description: '',
     address: '',
+    amenities: [],
     password: '',
     confirmPassword: ''
   })
@@ -34,6 +37,19 @@ function ResturentRegistrationPage() {
         [name]: ''
       }))
     }
+  }
+
+  const handleAmenityChange = (amenity) => {
+    setFormData(prev => {
+      const amenities = prev.amenities.includes(amenity)
+        ? prev.amenities.filter(item => item !== amenity)
+        : [...prev.amenities, amenity]
+
+      return {
+        ...prev,
+        amenities
+      }
+    })
   }
 
   const validateForm = () => {
@@ -73,6 +89,7 @@ function ResturentRegistrationPage() {
           phone: formData.phone,
           description: formData.description,
           address: formData.address,
+          amenities: formData.amenities,
           password: formData.password
         })
       })
@@ -227,6 +244,26 @@ function ResturentRegistrationPage() {
               }`}
             />
             {errors.address && <p className="text-xs text-red-500 mb-4">{errors.address}</p>}
+
+            {/* Amenities */}
+            <fieldset className="mb-4">
+              <legend className="mb-2 block text-xs font-medium text-slate-700">
+                Amenities
+              </legend>
+              <div className="grid gap-3 rounded-xl bg-sky-50 p-4 ring-1 ring-blue-100 sm:grid-cols-2">
+                {AMENITY_OPTIONS.map((amenity) => (
+                  <label key={amenity} className="flex items-center gap-3 text-sm text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={formData.amenities.includes(amenity)}
+                      onChange={() => handleAmenityChange(amenity)}
+                      className="h-4 w-4 rounded border-blue-400 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>{amenity}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
             {/* Description (Optional) */}
             <label htmlFor="description" className="block mb-1 text-xs text-slate-700 font-medium">

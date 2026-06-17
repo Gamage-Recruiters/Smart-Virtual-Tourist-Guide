@@ -19,6 +19,13 @@ const socialLinksSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const AMENITY_OPTIONS = [
+  "Free WiFi",
+  "Parking",
+  "Outdoor Seating",
+  "Live Music",
+];
+
 const restaurantSchema = new mongoose.Schema(
   {
     restaurantName: { type: String, required: true, trim: true },
@@ -28,6 +35,11 @@ const restaurantSchema = new mongoose.Schema(
     phone: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
     address: { type: String, required: true, trim: true },
+    amenities: {
+      type: [String],
+      enum: AMENITY_OPTIONS,
+      default: [],
+    },
     bannerImage: { type: String, trim: true },
     socialLinks: socialLinksSchema,
     operatingHours: [operatingHourSchema],
