@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import bgImage from '../assets/Resturent_Menu.png'
 
-const categoryOptions = ['Authentic Sri Lanka', 'Appetizer', 'Main Course', 'Dessert']
+const categoryOptions = ['Authentic Sri Lanka', 'Appetizer', 'Main Course', 'Dessert', 'Beverage']
 
 function ResturentAddMenuPage() {
   const navigate = useNavigate()
