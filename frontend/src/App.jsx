@@ -4,6 +4,7 @@ import ResturentRegistrationPage from './pages/resturentRegistrationPage'
 import ResturentSidebar from './components/resturentSidebar'
 import ResturentDashboardPage from './pages/resturentDashboardPage'
 import ResturentMenuPage from './pages/resturentMenuPage'
+import ResturentAddMenuPage from './pages/resturentAddMenuPage'
 import ResturentReservationPage from './pages/resturentReservationPage'
 import ResturentOfferPage from './pages/resturentOfferPage'
 import ResturentReviewPage from './pages/resturentReviewPage'
@@ -20,6 +21,7 @@ function App() {
         <Route path="/dashboard" element={<ResturentSidebar />}>
           <Route index element={<ResturentDashboardPage />} />
           <Route path="menu" element={<ResturentMenuPage />} />
+          <Route path="menu/add" element={<ResturentAddMenuPage />} />
           <Route path="reservation" element={<ResturentReservationPage />} />
           <Route path="offers" element={<ResturentOfferPage />} />
           <Route path="reviews" element={<ResturentReviewPage />} />

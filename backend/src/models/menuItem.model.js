@@ -18,6 +18,7 @@ const menuItemSchema = new mongoose.Schema(
       default: "Non-Vegetarian",
     },
     isAvailable: { type: Boolean, default: true },
+    isVegan: { type: Boolean, default: false },
     preparationTime: { type: Number,  min: 0 },
     ingredients: [{ type: String, trim: true }],
   },

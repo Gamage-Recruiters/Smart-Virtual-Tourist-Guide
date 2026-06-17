@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import bgImage from '../assets/Resturent_Menu.png'
 
 const filters = [
@@ -18,6 +19,8 @@ const menuItems = [
 ]
 
 function ResturentMenuPage() {
+  const navigate = useNavigate()
+
   return (
     <section className="overflow-hidden rounded-3xl bg-slate-50 shadow-xl ring-1 ring-slate-200">
       <header className="relative min-h-[420px] overflow-hidden md:min-h-[520px]">
@@ -75,6 +78,7 @@ function ResturentMenuPage() {
               <div className="lg:pl-3 lg:border-l lg:border-slate-200">
                 <button
                   type="button"
+                  onClick={() => navigate('/dashboard/menu/add')}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
                 >
                   + Add Item
