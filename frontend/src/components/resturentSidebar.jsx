@@ -19,9 +19,7 @@ function ResturentSidebar() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
             Resturent Panel
           </p>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
-            ResturentSidebar
-          </h1>
+
           <p className="mt-1 text-sm text-slate-500">
             Manage your restaurant workspace.
           </p>
