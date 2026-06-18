@@ -1,4 +1,3 @@
-import React from 'react';
 import { FiX } from 'react-icons/fi';
 
 export default function EmergencyActionModal({ isOpen, onClose, data, onAction }) {

@@ -1,5 +1,4 @@
-import React from 'react';
-import { FaCar, FaMotorcycle, FaBus, FaWalking } from 'react-icons/fa';
+import { FaCar, FaMotorcycle, FaWalking } from 'react-icons/fa';
 import { formatDuration } from '../../utils/formatDuration';
 
 const MODES = [

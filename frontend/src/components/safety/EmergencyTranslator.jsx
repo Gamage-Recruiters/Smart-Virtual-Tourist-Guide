@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaExchangeAlt } from 'react-icons/fa';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -102,11 +101,10 @@ export default function EmergencyTranslator() {
               <button
                 id="copy-translation-btn"
                 onClick={copyTranslation}
-                className={`absolute bottom-4 right-4 flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md transition-all ${
-                  copied
+                className={`absolute bottom-4 right-4 flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md transition-all ${copied
                     ? 'bg-green-100 text-green-700'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
                 title="Copy translation"
               >
                 {copied ? <><FiCheck size={14} /> Copied!</> : <><FiCopy size={14} /> Copy</>}

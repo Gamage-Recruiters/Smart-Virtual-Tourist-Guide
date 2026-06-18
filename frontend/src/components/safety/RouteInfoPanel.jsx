@@ -1,4 +1,3 @@
-import React from 'react';
 import { FiShare2, FiX } from 'react-icons/fi';
 import VehicleModeSelector from './VehicleModeSelector';
 import { formatDuration, formatDistance } from '../../utils/formatDuration';

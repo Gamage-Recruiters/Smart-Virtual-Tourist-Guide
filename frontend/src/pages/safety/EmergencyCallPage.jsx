@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import L from 'leaflet';
 import { FaPhoneAlt, FaAmbulance, FaShieldAlt, FaFire, FaMapMarkerAlt } from 'react-icons/fa';
 import ChatbotPanel from '../../components/safety/ChatbotPanel';
 import MapContainer from '../../components/safety/MapContainer';

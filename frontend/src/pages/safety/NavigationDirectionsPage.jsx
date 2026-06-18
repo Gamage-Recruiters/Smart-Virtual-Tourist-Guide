@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import MapContainer from '../../components/safety/MapContainer';
 import RouteInfoPanel from '../../components/safety/RouteInfoPanel';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { fetchAllRoutes } from '../../services/routingService';
-import { FaMapMarkerAlt } from 'react-icons/fa';
+
 
 export default function NavigationDirectionsPage() {
   const navigate = useNavigate();
@@ -33,23 +33,26 @@ export default function NavigationDirectionsPage() {
     if (!originLat || !originLng || !destLat || !destLng) return;
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
+    const fetchRoutes = async () => {
+      setLoading(true);
+      setError(null);
 
-    fetchAllRoutes(originLat, originLng, destLat, destLng)
-      .then((routes) => {
+      try {
+        const routes = await fetchAllRoutes(originLat, originLng, destLat, destLng);
         if (!cancelled) {
           setAllRoutes(routes);
           setLoading(false);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         if (!cancelled) {
           console.error('Failed to fetch routes:', err);
           setError('Could not calculate routes. Please try again.');
           setLoading(false);
         }
-      });
+      }
+    };
+
+    fetchRoutes();
 
     return () => { cancelled = true; };
   }, [originLat, originLng, destLat, destLng]);
@@ -168,7 +171,7 @@ export default function NavigationDirectionsPage() {
   }, [navigate]);
 
   // Destination type label
-  const typeLabel = destType === 'hospital' ? 'Hospital' : 'Police Station';
+
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] pb-12 font-sans relative">

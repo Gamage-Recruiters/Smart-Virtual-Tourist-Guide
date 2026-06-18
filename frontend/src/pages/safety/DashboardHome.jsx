@@ -16,7 +16,8 @@ export default function DashboardHome() {
         setError('')
         const data = await safetyService.getPublicIncidents({ limit: 20 })
         if (isMounted) setIncidents(Array.isArray(data) ? data : [])
-      } catch (error) {
+      } catch (err) {
+        console.error('Error fetching incidents:', err)
         if (isMounted) {
           setIncidents([])
           setError('Could not load public incidents from the backend.')

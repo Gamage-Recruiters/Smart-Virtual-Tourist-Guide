@@ -1,22 +1,20 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MapContainer from './MapContainer'
 import backgroundPath from '../../assets/safety/back_dp.png'
 
-export default function IncidentReportSuccess({ referenceNumber, location, district, images = [], onClose, onViewDashboard }) {
+export default function IncidentReportSuccess({ referenceNumber, location, images = [], onClose, onViewDashboard }) {
   const navigate = useNavigate()
-  const [mapKey, setMapKey] = useState(0)
 
   const locationMarkers = location
     ? [
-        {
-          id: 'incident-location',
-          lat: location.lat,
-          lng: location.lng,
-          color: 'red',
-          popup: 'Incident Location',
-        },
-      ]
+      {
+        id: 'incident-location',
+        lat: location.lat,
+        lng: location.lng,
+        color: 'red',
+        popup: 'Incident Location',
+      },
+    ]
     : []
 
   const handleViewDashboard = () => {
@@ -28,7 +26,7 @@ export default function IncidentReportSuccess({ referenceNumber, location, distr
   }
 
   return (
-    <div 
+    <div
       className="relative min-h-screen bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${backgroundPath})` }}
     >
@@ -67,7 +65,6 @@ export default function IncidentReportSuccess({ referenceNumber, location, distr
                 <div className="h-48 bg-slate-200">
                   {location ? (
                     <MapContainer
-                      key={mapKey}
                       center={[location.lat, location.lng]}
                       zoom={12}
                       markers={locationMarkers}
@@ -87,11 +84,11 @@ export default function IncidentReportSuccess({ referenceNumber, location, distr
             <div className="mt-6">
               <p className="text-sm font-semibold text-slate-800 mb-3 text-left pl-1">Uploaded Photo</p>
               <div className="h-48 w-full overflow-hidden rounded-lg border-2 border-slate-300 bg-slate-200 shadow-md">
-                  <img 
-                    src={images[0] || "https://images.unsplash.com/photo-1552423151-512534575825?auto=format&fit=crop&w=400&q=80"} 
-                    className="h-full w-full object-cover" 
-                    alt="Evidence Preview" 
-                  />
+                <img
+                  src={images[0] || "https://images.unsplash.com/photo-1552423151-512534575825?auto=format&fit=crop&w=400&q=80"}
+                  className="h-full w-full object-cover"
+                  alt="Evidence Preview"
+                />
               </div>
             </div>
 
