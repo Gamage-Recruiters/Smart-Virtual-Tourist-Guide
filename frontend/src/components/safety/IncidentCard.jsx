@@ -1,5 +1,6 @@
 import { FiMapPin } from 'react-icons/fi'
 import incidentImage from '../../assets/safety/Nine-Arches-Bridge 1.png'
+import MapContainer from './MapContainer'
 
 export default function IncidentCard({ incident }) {
   const category = incident.incidentCategory || incident.category || incident.type || 'Incident'
@@ -22,7 +23,7 @@ export default function IncidentCard({ incident }) {
         />
       </div>
 
-      <div className="space-y-4 px-2 py-3 text-sm text-black">
+      <div className="flex h-full flex-col justify-between px-2 py-3 text-sm text-black">
         <p>
           <span className="font-extrabold">Incident Type:</span> {category}
         </p>
@@ -36,13 +37,23 @@ export default function IncidentCard({ incident }) {
 
       <div className="px-4 py-2">
         <p className="mb-2 text-sm font-extrabold text-black">Location Map</p>
-        <div className="flex h-[74px] w-[134px] items-center justify-center bg-[#bde3f4]">
-          <FiMapPin className="text-red-600" size={20} />
-        </div>
-        {location.lat && location.lng && (
-          <p className="mt-1 text-[10px] text-slate-500">
-            {Number(location.lat).toFixed(2)}, {Number(location.lng).toFixed(2)}
-          </p>
+        {location.lat && location.lng ? (
+          <div className="h-[74px] w-[134px] overflow-hidden border border-slate-200">
+            <MapContainer
+              latitude={location.lat}
+              longitude={location.lng}
+              zoom={12}
+              minHeight="100%"
+              className="!rounded-none !shadow-none"
+              interactive={false}
+              showControls={false}
+              markers={[{ lat: location.lat, lng: location.lng, color: 'red' }]}
+            />
+          </div>
+        ) : (
+          <div className="flex h-[74px] w-[134px] items-center justify-center bg-[#bde3f4] border border-slate-200">
+            <FiMapPin className="text-red-600" size={20} />
+          </div>
         )}
       </div>
     </article>

@@ -40,6 +40,7 @@ export default function MapContainer({
   polyline = null,
   polylineColor = '#2563EB',
   onPopupAction = null,
+  showControls = true,
 }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
@@ -56,13 +57,15 @@ export default function MapContainer({
         scrollWheelZoom: interactive,
         dragging: interactive,
         touchZoom: interactive,
+        attributionControl: showControls,
+        zoomControl: showControls,
       }).setView([mapCenterLat, mapCenterLng], zoom)
 
       L.tileLayer(tileProvider, { attribution }).addTo(map)
 
       mapInstanceRef.current = map
     }
-  }, [interactive, tileProvider, attribution, mapCenterLat, mapCenterLng, zoom])
+  }, [interactive, showControls, tileProvider, attribution, mapCenterLat, mapCenterLng, zoom])
 
   //add smooth pan animation so the re-center is visible
   useEffect(() => {
