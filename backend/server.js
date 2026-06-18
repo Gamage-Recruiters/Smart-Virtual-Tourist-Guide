@@ -7,50 +7,72 @@ const notificationHandler = require("./socket/notificationHandler");
 const notificationRoutes = require("./src/routes/notificationRoutes.js");
 const globalErrorHandler = require("./src/middleware/errorMiddleware");
 require("./src/configs/firebaseConfig");
-  
+const seedRegions = require("./src/utils/dbSeeder");
+const socketAuth = require('./src/middleware/socketAuthMiddleware');
+
 const app = express();
 const server = http.createServer(app);
 
-// Middleware
-app.use(express.json()); // JSON data handle
+app.use(express.json());
 
-/**
- * MongoDB Connection Logic
- * Connects to the database using the URI provided in the .env file.
- */
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("MongoDB Connected Successfully"))
-  .catch((err) => console.error("MongoDB Connection Error:", err));
+const morgan = require("morgan");
+app.use(morgan("dev"));
 
-/**
- * Initialize the Socket.io server to enable real-time communication.
- */
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
-/**
- * Global access for 'io' instance.
- * We set this AFTER 'io' is initialized so other services can use it.
+// --- NOTIFICATION ENGINE SETUP START ---
+
+/* 
+ * Make the Socket.io instance globally available in the Express app.
+ * This allows our external controllers (e.g., exampleController) to access 'io' 
+ * and send real-time notifications via req.app.get('io').
  */
 app.set("io", io);
 
-/**
- * Connect the Socket instance to our Notification & Alerts Engine.
+/* 
+ * Secure the notification socket connection.
+ * This middleware ensures that only authenticated users with a valid JWT can receive live alerts.
+ */
+io.use(socketAuth); 
+
+/* 
+ * Initialize the core real-time notification engine.
+ * This handles user room joining, FCM topic subscriptions, and live GPS tracking/throttling.
  */
 notificationHandler(io);
 
-// API Routes
+/* 
+ * Register the HTTP routes for the notification system.
+ * This handles fetching message history, marking messages as read, and unread counts.
+ */
 app.use("/api/notifications", notificationRoutes);
+
+// --- NOTIFICATION ENGINE SETUP END ---
 
 app.use(globalErrorHandler);
 
-// Server Port management
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log("DB connection successful!");
+
+    /* 
+     * Auto-seed geographic regions on startup.
+     * This is required for the Notification Engine's local geo-fencing (location-based alerts) to work properly.
+     */
+    await seedRegions();
+
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB Connection Error:", err.message);
+  });

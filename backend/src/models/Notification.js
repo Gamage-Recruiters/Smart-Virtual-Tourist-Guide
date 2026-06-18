@@ -10,23 +10,23 @@ const {
 
 const notificationSchema = new Schema(
   {
-    // 1. Target Audience
+    // 1. Target Audience (Who receives the notification)
     scope: {
       type: String,
       enum: Object.values(NOTIFICATION_SCOPES),
       required: [true, "Notification scope is required"],
     },
 
-    // Required for UNICAST
+    // recipientId is only required for private messages (UNICAST)
     recipientId: {
       type: Schema.Types.ObjectId,
-      ref: 'User', 
+      ref: "User",
       required: function () {
         return this.scope === NOTIFICATION_SCOPES.UNICAST;
       },
     },
 
-    // Required for MULTICAST
+    // recipientRole is only required for group messages (MULTICAST)
     recipientRole: {
       type: String,
       enum: Object.values(RECIPIENT_ROLES),
@@ -35,9 +35,10 @@ const notificationSchema = new Schema(
       },
     },
 
-    senderId: { type: Schema.Types.ObjectId, ref: 'User' },
+    // Optional field to track who sent the notification
+    senderId: { type: Schema.Types.ObjectId, ref: "User" },
 
-    // 2. Content
+    // 2. Content (The actual message details)
     title: { type: String, required: true, trim: true, maxlength: 100 },
     message: { type: String, required: true },
 
@@ -53,15 +54,17 @@ const notificationSchema = new Schema(
       default: NOTIFICATION_PRIORITIES.MEDIUM,
     },
 
-    // 3. Location Data (For Regional Alerts)
-    region: { type: String, trim: true },
+    // 3. Location Data (Used for targeting specific geographic areas)
+    region: { type: String, trim: true }, // Divisional Secretariat (NAME_2)
+    district: { type: String, trim: true }, // District Name (NAME_1)
 
+    // Specific GPS coordinates for radius-based alerts
     location: {
       type: { type: String, enum: ["Point"] },
-      coordinates: { type: [Number] }, // [longitude, latitude]
+      coordinates: { type: [Number] }, // Format must be: [longitude, latitude]
     },
 
-    // 4. Metadata (Relationship to Bids/Bookings)
+    // 4. Metadata (Links the notification to a specific booking, bid, etc.)
     metadata: {
       relatedId: { type: Schema.Types.ObjectId },
       entityType: {
@@ -71,52 +74,71 @@ const notificationSchema = new Schema(
     },
 
     // 5. Action & Status
+    // The URL the user will be redirected to when they click the notification
     actionUrl: { type: String, required: true },
-    isRead: { type: Boolean, default: false }, // Only for UNICAST
-
-    // For MULTICAST and BROADCAST
-    readBy: [
-      {
-        userId: { type: Schema.Types.ObjectId, ref: 'User' },
-        readAt: { type: Date, default: Date.now },
-      },
-    ],
+    
+    // Tracks if a private message is read. 
+    // Note: Group message read statuses are handled in the 'NotificationReadStatus' collection.
+    isRead: { type: Boolean, default: false }, 
 
     // 6. Maintenance & Push
-    fcmToken: { type: String, default: null }, // Track which token was used (Optional)
-    expiresAt: { type: Date }, // For Auto-deletion (TTL)
+    fcmToken: { type: String, default: null }, // Tracks which Firebase token was used
+    expiresAt: { type: Date }, // Used for automatically deleting old notifications
   },
-  { 
-    timestamps: true 
-  }
+  {
+    timestamps: true,
+  },
 );
 
-// --- INDEXES (For Performance) ---
+// --- INDEXES (For Performance Optimization) ---
 
-// 1. Nearby search (Geospatial)
+// 1. Geospatial index for fast location-based searches
 notificationSchema.index({ location: "2dsphere" }, { sparse: true });
 
-// 2. Fast history loading for a user
-notificationSchema.index({ recipientId: 1, createdAt: -1 });
+// 2. Indexes for fast history loading (Optimizes the Aggregation Pipeline in the controller)
+notificationSchema.index({ recipientId: 1, createdAt: -1 }); // For UNICAST
+notificationSchema.index({ scope: 1, recipientRole: 1, createdAt: -1 }); // For MULTICAST (Role)
+notificationSchema.index({ scope: 1, region: 1, createdAt: -1 }); // For MULTICAST (Region)
+notificationSchema.index({ scope: 1, district: 1, createdAt: -1 }); // For MULTICAST (District)
+notificationSchema.index({ scope: 1, createdAt: -1 }); // For BROADCAST
 
-// 3. Auto-delete expired notifications (TTL Index)
+// 3. TTL (Time-To-Live) Index to automatically delete documents when 'expiresAt' time is reached
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-
-// --- PRE-SAVE HOOK (Validation & Cleanup) ---
+// --- PRE-SAVE HOOK (Data Validation & Cleanup) ---
 notificationSchema.pre("save", async function () {
-  if (this.scope === NOTIFICATION_SCOPES.UNICAST && this.isModified("recipientId")) {
-    const User = mongoose.model("User");
-    const userExists = await User.exists({ _id: this.recipientId });
+  try {
+    // If it's a private message, check if the recipient actually exists in the User collection
+    if (
+      this.scope === NOTIFICATION_SCOPES.UNICAST &&
+      this.isModified("recipientId")
+    ) {
+      // Use mongoose.models to prevent schema missing errors during server startup
+      const User = mongoose.models.User || mongoose.model("User");
+      const userExists = await User.exists({ _id: this.recipientId });
 
-    if (!userExists) {
-      throw new Error(`Recipient User with ID ${this.recipientId} not found in the system.`);
+      if (!userExists) {
+        throw new Error(
+          `Recipient User with ID ${this.recipientId} does not exist.`,
+        );
+      }
     }
-  }
 
-  if (this.location && (!this.location.coordinates || this.location.coordinates.length < 2)) {
-    this.location = undefined; 
+    // Clean up invalid location data before saving to prevent MongoDB index errors
+    if (this.location) {
+      if (
+        !this.location.coordinates ||
+        this.location.coordinates.length < 2 ||
+        this.location.coordinates.some((c) => c === null || c === undefined)
+      ) {
+        this.location = undefined;
+      }
+    }
+
+  } catch (error) {
+    // Throw the error to be handled by the calling service
+    throw error;
   }
 });
 
-module.exports = mongoose.model('Notification', notificationSchema);
+module.exports = mongoose.model("Notification", notificationSchema);

@@ -18,3 +18,5 @@ build/
 Thumbs.db
 
 firebase-service-account.json
+
+logs/

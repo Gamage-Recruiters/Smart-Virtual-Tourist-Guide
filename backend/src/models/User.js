@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { Schema } = mongoose;
+const { RECIPIENT_ROLES } = require('../constants/notificationConstants');
 
 const userSchema = new Schema({
   fullName: {
@@ -21,10 +22,10 @@ const userSchema = new Schema({
     minlength: 6
   },
   role: {
-    type: String,
-    enum: ['TOURIST', 'DRIVER', 'HOTEL_OWNER', 'ADMIN'],
-    required: true
-  },
+  type: String,
+  enum: Object.values(RECIPIENT_ROLES),
+  required: true
+},
   contactNumber: {
     type: String,
     trim: true
