@@ -152,16 +152,38 @@ export const getVehicleById = async (req, res) => {
   }
 };
 
-// get five recent vehicles
+//6. get five recent vehicles
 export const getRecentVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find().sort({ createdAt: -1 }).limit(5);
+    const vehicles = await Vehicle.find().sort({ createdAt: -1 }).limit(3);
     res.status(200).json(vehicles);
   } catch (error) {
     res
       .status(500)
       .json({
         message: "Server error while fetching recent vehicles",
+        error: error.message,
+      });
+  }
+}
+
+// 7. search vehicles by licensePlate, model, brand
+export const searchVehicles = async (req, res) => {
+  try {
+    const { query } = req.query;
+    const vehicles = await Vehicle.find({
+      $or: [
+        { licensePlate: { $regex: query, $options: "i" } },
+        { model: { $regex: query, $options: "i" } },
+        { brand: { $regex: query, $options: "i" } },
+      ],
+    });
+    res.status(200).json(vehicles);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Server error while searching vehicles",
         error: error.message,
       });
   }

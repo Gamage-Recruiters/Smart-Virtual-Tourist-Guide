@@ -1,75 +1,27 @@
 import 'react';
 import { Bell, Plus, Search, Filter, ArrowUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AddVehicleModal from './addVehicle/addVehicleModal';
-
-// --- MOCK DATA ---
-const fleetData = [
-  {
-    id: 1,
-    name: 'Toyota Land Cruiser', // Note: The mockup image shows a scooter, but text says Land Cruiser!
-    plate: 'ABC-1234',
-    status: 'Available',
-    trips: '42 completed',
-    location: 'Colombo',
-    img: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=400&auto=format&fit=crop' // Scooter placeholder
-  },
-  {
-    id: 2,
-    name: 'Bajaj Tuk Tuk',
-    plate: 'ABC-1234',
-    status: 'Rented',
-    trips: '15 completed',
-    location: 'On Trip',
-    img: 'https://images.unsplash.com/photo-1627998687799-7333a3621da2?q=80&w=400&auto=format&fit=crop' // Tuk Tuk placeholder
-  },
-  {
-    id: 3,
-    name: 'Toyota Dolphin',
-    plate: 'ABC-1234',
-    status: 'Available',
-    trips: '10 completed',
-    location: 'Colombo',
-    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=400&auto=format&fit=crop' // Van placeholder
-  },
-  {
-    id: 4,
-    name: 'Honda Vezel',
-    plate: 'ABC-1234',
-    status: 'Available',
-    trips: '35 completed',
-    location: 'Colombo',
-    img: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=400&auto=format&fit=crop' // SUV placeholder
-  },
-  {
-    id: 5,
-    name: 'Mitsubishi Montero',
-    plate: 'ABC-1234',
-    status: 'Available',
-    trips: '23 completed',
-    location: 'Colombo',
-    img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=400&auto=format&fit=crop' // SUV placeholder
-  },
-  {
-    id: 6,
-    name: 'Toyota Land Cruiser',
-    plate: 'ABC-1234',
-    status: 'Available',
-    trips: '42 completed',
-    location: 'Colombo',
-    img: 'https://images.unsplash.com/photo-1503376760367-13eea7dfc914?q=80&w=400&auto=format&fit=crop' // SUV placeholder
-  },
-];
+import axios from 'axios';
 
 function MyFleetPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fleetData, setFleetData] = useState([]);
+
+  useEffect(()=>{
+    axios.get(import.meta.env.VITE_BACKEND_URL + '/api/vehicle').then((res)=>{
+      setFleetData(res.data)
+    }).catch((e)=>{
+      console.log(e.message)
+    })
+  },[])
   
   // Helper to style the status badges dynamically
   const getStatusBadge = (status) => {
     if (status === 'Available') {
       return (
         <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-green-700 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
           Available
         </span>
       );
@@ -112,7 +64,7 @@ function MyFleetPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Search by plate, model or status..." 
+            placeholder="Search by plate, model or brand name..." 
             className="w-full bg-white text-sm py-3 pl-11 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400 text-slate-700 shadow-sm border border-slate-100/50"
           />
         </div>
@@ -133,13 +85,13 @@ function MyFleetPage() {
       {/* 3. Vehicle Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-10">
         {fleetData.map((car) => (
-          <div key={car.id} className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100/50 flex flex-col hover:shadow-md transition-shadow duration-300">
+          <div key={car._id} className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100/50 flex flex-col hover:shadow-md transition-shadow duration-300">
             
             {/* Image & Status Badge */}
             <div className="relative w-full h-48 mb-4 rounded-2xl overflow-hidden bg-slate-100">
               <img 
-                src={car.img} 
-                alt={car.name} 
+                src={car.photos.exterior} 
+                alt={car.model} 
                 className="w-full h-full object-cover"
               />
               {getStatusBadge(car.status)}
@@ -147,20 +99,20 @@ function MyFleetPage() {
 
             {/* Vehicle Info */}
             <div className="px-2">
-              <h3 className="text-lg font-extrabold text-slate-900 leading-tight">{car.name}</h3>
+              <h3 className="text-lg font-extrabold text-slate-900 leading-tight">{car.model} <span className='text-slate-600 font-bold text-sm'>({car.brand})</span> </h3>
               <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mt-1 mb-5">
-                {car.plate}
+                {car.licensePlate}
               </p>
 
               {/* Stats Box */}
               <div className="flex items-center gap-3 mb-5">
                 <div className="flex-1 bg-slate-50 rounded-xl p-3">
                   <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Trips</p>
-                  <p className="text-sm font-bold text-slate-800">{car.trips}</p>
+                  <p className="text-sm font-bold text-slate-800">{car.tripsCompleted}</p>
                 </div>
                 <div className="flex-1 bg-slate-50 rounded-xl p-3">
                   <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Location</p>
-                  <p className="text-sm font-bold text-slate-800">{car.location}</p>
+                  <p className="text-sm font-bold text-slate-800">{car.currentLocation}</p>
                 </div>
               </div>
 

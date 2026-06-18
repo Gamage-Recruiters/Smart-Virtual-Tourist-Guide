@@ -7,7 +7,6 @@ import {
   Download,
 } from "lucide-react";
 import { useState } from "react";
-// 1. Import the necessary Recharts components
 import {
   LineChart,
   Line,

@@ -1,7 +1,8 @@
-import { Bell, Plus, Banknote, Truck, Star, CreditCard} from 'lucide-react';
+import { Bell, Plus, Banknote, Truck, Star, CreditCard, Loader2, Car } from 'lucide-react';
 import AddVehicleModal from './addVehicle/addVehicleModal';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 // --- MOCK DATA ---
 const statsData = [
@@ -17,14 +18,23 @@ const requestsData = [
   { id: 3, name: 'Sarah Jenkins', country: 'UK 🇬🇧', type: 'SEDAN', typeColor: 'text-green-600 bg-green-50', route: 'Galle Coast', duration: '1 Day (Tomorrow)' },
 ];
 
-const fleetData = [
-  { id: 1, name: 'Toyota Dolphin', plate: 'WP CAD-5042', status: 'AVAILABLE', img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=200&auto=format&fit=crop' },
-  { id: 2, name: 'Honda Vezel', plate: 'WP CAD-5042', status: 'AVAILABLE', img: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=200&auto=format&fit=crop' },
-  { id: 3, name: 'M Montero', plate: 'WP CAD-5042', status: 'AVAILABLE', img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=200&auto=format&fit=crop' },
-];
-
 function Dashboard() {
   const [isModdalOpen, setIsModdalOpen] = useState(false);
+  const [fleetData, setFleetData] = useState([]);
+  const [isFleetLoading, setIsFleetLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get(import.meta.env.VITE_BACKEND_URL + "/api/vehicle/recent")
+      .then((res) => {
+        setFleetData(res.data);
+        setIsFleetLoading(false);
+      })
+      .catch((e) => {
+        console.error(e.message);
+        setIsFleetLoading(false);
+      });
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       {/* 1. Header Section */}
@@ -43,7 +53,7 @@ function Dashboard() {
             ADD NEW VEHICLE
           </button>
         </div>
-          <AddVehicleModal isOpen={isModdalOpen} onClose={() => setIsModdalOpen(false)} />
+        <AddVehicleModal isOpen={isModdalOpen} onClose={() => setIsModdalOpen(false)} />
       </header>
 
       {/* 2. Stats Grid */}
@@ -74,7 +84,7 @@ function Dashboard() {
       {/* 3. Main Content (Requests & Fleet) */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: Latest Tourist Requests (Takes up 2 fractions of the grid) */}
+        {/* Left Column: Latest Tourist Requests */}
         <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-extrabold text-slate-900">LATEST TOURIST REQUESTS</h2>
@@ -124,28 +134,50 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Fleet Status */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 flex flex-col h-full">
+        {/* Right Column: Fleet Status with conditional rendering states */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/50 flex flex-col h-full min-h-95">
           <h2 className="text-lg font-extrabold text-slate-900 mb-6">FLEET STATUS</h2>
           
-          <div className="flex flex-col gap-1 flex-1">
-            {fleetData.map((car) => (
-              <div key={car.id} className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                <img src={car.img} alt={car.name} className="w-16 h-16 rounded-xl object-cover bg-slate-100" />
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-bold text-slate-900 leading-none">{car.name}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{car.plate}</p>
-                  <div>
-                    <span className="inline-block text-[9px] font-extrabold text-green-600 bg-green-50 px-2 py-0.5 rounded uppercase tracking-wider">
-                      {car.status}
-                    </span>
-                  </div>
-                </div>
+          <div className="flex flex-col gap-2 flex-1 justify-center">
+            {isFleetLoading ? (
+              <div className="flex flex-col gap-4 items-center justify-center py-8 text-slate-400">
+                <Loader2 size={28} className="animate-spin text-blue-600 mb-2" />
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Fetching fleet data...</p>
               </div>
-            ))}
+            ) : fleetData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-8 px-4 border border-dashed border-slate-100 rounded-2xl bg-slate-50/50 my-auto">
+                <div className="p-4 bg-slate-100 rounded-full text-slate-400 mb-3">
+                  <Car size={32} strokeWidth={1.5} />
+                </div>
+                <h3 className="text-sm font-extrabold text-slate-800">No Vehicles Registered</h3>
+                <p className="text-xs text-slate-400 font-medium max-w-50 mt-1 leading-normal">
+                  Your vehicle listing is currently empty.
+                </p>
+              </div>
+            ) : (
+  
+              <div className="flex flex-col gap-1 overflow-y-auto max-h-80 pr-1">
+                {fleetData.map((car) => (
+                  <div key={car._id} className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                    <img src={car?.photos?.exterior} alt={car.brand} className="w-16 h-16 rounded-xl object-cover bg-slate-100" />
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm font-bold text-slate-900 leading-none">{car.brand} {car.model}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{car.licensePlate}</p>
+                      <div>
+                        <span className={`inline-block text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wider ${
+                          car.status === 'Available' ? 'text-green-600 bg-green-50' : 'text-orange-600 bg-orange-50'
+                        }`}>
+                          {car.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <Link to="/vehicle-admin/fleet" className="mt-6 w-full py-3.5 text-center rounded-2xl border-2 border-dashed border-blue-200 text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors">
+          <Link to="/vehicle-admin/fleet" className="mt-6 w-full py-3.5 text-center rounded-2xl border-2 border-dashed border-blue-200 text-blue-600 font-bold text-sm hover:bg-blue-50 transition-colors block">
             Manage Fleet
           </Link>
         </div>
