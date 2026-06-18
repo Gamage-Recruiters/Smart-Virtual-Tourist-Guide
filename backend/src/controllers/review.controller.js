@@ -1,25 +1,16 @@
-const Review = require('../models/Review');
+const reviewService = require('../services/review.service');
+const { calculateRatingStats } = require('../utils/rating.util');
+const Review = require('../models/Review'); 
 
 /**
- * @desc    Create a new review for a service provider
+ * @desc    Create a new review
  * @route   POST /api/reviews
- * @access  Private (Only logged-in tourists can review)
+ * @access  Private
  */
-
 const createReview = async (req, res) => {
     try {
-        const { touristId, targetProviderId, targetType, rating, reviewText } = req.body;
-
-        // Create and save the new review to the database
-        const newReview = new Review({
-            touristId,
-            targetProviderId,
-            targetType,
-            rating,
-            reviewText
-        });
-
-        const savedReview = await newReview.save();
+        const reviewData = req.body;
+        const savedReview = await reviewService.createReviewService(reviewData);
 
         res.status(201).json({
             success: true,
@@ -32,7 +23,7 @@ const createReview = async (req, res) => {
 };
 
 /**
- * @desc    Get all reviews and calculate the overall rating for a specific provider
+ * @desc    Get reviews and stats for a specific provider
  * @route   GET /api/reviews/provider/:targetType/:targetProviderId
  * @access  Public
  */
@@ -40,30 +31,17 @@ const getProviderReviews = async (req, res) => {
     try {
         const { targetType, targetProviderId } = req.params;
 
-        // Fetch all reviews for this specific provider
-        // populate('touristId') will fetch the actual tourist name from the User collection
-        const reviews = await Review.find({ targetProviderId, targetType })
-                                    .populate('touristId', 'name country') // Assuming User model has name & country
-                                    .sort({ createdAt: -1 }); // Sort by newest first
+        // Service eken reviews gannawa
+        const reviews = await reviewService.getReviewsByProviderService(targetType, targetProviderId);
 
-        // Calculate overall rating and star distribution for the UI progress bars
-        let totalRating = 0;
-        let starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-
-        reviews.forEach(review => {
-            totalRating += review.rating;
-            starCounts[review.rating] += 1;
-        });
-
-        const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : 0;
+        // Util eken calculations tika karanawa (Average & Star Counts)
+        const stats = calculateRatingStats(reviews);
 
         res.status(200).json({
             success: true,
             data: {
                 reviews,
-                totalReviews: reviews.length,
-                averageRating,
-                starCounts // This will be used for the progress bars in the View Ratings UI
+                stats
             }
         });
     } catch (error) {
@@ -79,9 +57,8 @@ const getProviderReviews = async (req, res) => {
 const reportReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { reportReason } = req.body; // e.g., 'Spam', 'Inappropriate Language'
+        const { reportReason } = req.body;
 
-        // Update the review status to reported
         const updatedReview = await Review.findByIdAndUpdate(
             id,
             { isReported: true, reportReason: reportReason },
@@ -94,7 +71,7 @@ const reportReview = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Review reported successfully. Admins will review it.',
+            message: 'Review reported successfully.',
             data: updatedReview
         });
     } catch (error) {
@@ -103,14 +80,14 @@ const reportReview = async (req, res) => {
 };
 
 /**
- * @desc    Increment the helpful/unhelpful count 
+ * @desc    Increment the helpful/unhelpful count (Was this helpful? 👍 👎)
  * @route   PATCH /api/reviews/:id/helpful
  * @access  Private
  */
 const markHelpful = async (req, res) => {
     try {
         const { id } = req.params;
-        const { isHelpful } = req.body; // Boolean: true for false
+        const { isHelpful } = req.body; // true for 👍, false for 👎
 
         const updateQuery = isHelpful 
             ? { $inc: { helpfulCount: 1 } } 
