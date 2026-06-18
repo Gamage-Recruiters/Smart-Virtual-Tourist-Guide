@@ -6,6 +6,14 @@ function PhotoUploadBox({ id, label, file, onFileSelect }) {
   const [error, setError] = useState('');
   const inputRef = useRef(null);
 
+  const getImagePreviewSrc = (photoAsset) => {
+    if (!photoAsset) return "";
+    // If it's already an active string URL from database, return it directly
+    if (typeof photoAsset === "string") return photoAsset;
+    // Only generate a blob URL if it is a newly uploaded local File instance object
+    return URL.createObjectURL(photoAsset);
+  };
+
   const processFile = (selectedFile) => {
     setError('');
     if (!selectedFile) return;
@@ -66,7 +74,7 @@ function PhotoUploadBox({ id, label, file, onFileSelect }) {
         {file ? (
           <>
             <img 
-              src={URL.createObjectURL(file)} 
+              src={getImagePreviewSrc(file)} 
               alt={label} 
               className="w-full h-full object-cover opacity-90 group-hover:opacity-60 transition-opacity"
             />

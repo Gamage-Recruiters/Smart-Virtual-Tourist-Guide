@@ -9,33 +9,30 @@ import axios from "axios";
 import uploadFileToSupabase from "../../../utils/fileUpload.js";
 import toast from "react-hot-toast";
 
-function AddVehicleModal({ isOpen, onClose }) {
-  // 1. State to track the current step (1 to 4)
+function AddVehicleModal({ isOpen, onClose, editData = null }) {
+  // ✅ Added editData prop default fallback
   const [currentStep, setCurrentStep] = useState(1);
-
-  // 2. State to track if the form is currently uploading/saving
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 2. State to hold all the form data across all steps
   const [formData, setFormData] = useState({
-    brand: "",
-    model: "",
-    year: "",
-    licensePlate: "",
-    transmission: "Automatic",
-    fuelType: "Hybrid",
-    passengers: 1,
-    luggage: 1,
-    vehicleInsurance: null,
-    revenueLicense: null,
-    location: "",
+    brand: editData?.brand || "",
+    model: editData?.model || "",
+    year: editData?.year || "",
+    licensePlate: editData?.licensePlate || "",
+    transmission: editData?.transmission || "Automatic",
+    fuelType: editData?.fuelType || "Hybrid",
+    passengers: editData?.passengers || 1,
+    luggage: editData?.luggage || 1,
+    location: editData?.currentLocation || "",
+    rentalPrice: editData?.dailyRentalPrice || "",
+    vehicleInsurance: editData?.documents?.vehicleInsurance || null,
+    revenueLicense: editData?.documents?.revenueLicense || null,
     photos: {
-      exterior: "",
-      interior: "",
-      side: "",
-      dashboard: "",
+      exterior: editData?.photos?.exterior || "",
+      interior: editData?.photos?.interior || "",
+      side: editData?.photos?.side || "",
+      dashboard: editData?.photos?.dashboard || "",
     },
-    rentalPrice: "",
   });
 
   const handleSubmit = async (e) => {
@@ -43,6 +40,14 @@ function AddVehicleModal({ isOpen, onClose }) {
     setIsSubmitting(true);
 
     try {
+      // 🔄 Helper logic: Only upload to Supabase if the file field value is an actual File object type instance (not a string URL)
+      const uploadOrKeepUrl = async (fileOrUrl, folder) => {
+        if (!fileOrUrl) return "";
+        if (typeof fileOrUrl === "string") return fileOrUrl; // Already uploaded URL string asset
+        return await uploadFileToSupabase(fileOrUrl, folder);
+      };
+
+      // Handle file configurations concurrently
       const [
         insuranceUrl,
         licenseUrl,
@@ -51,15 +56,14 @@ function AddVehicleModal({ isOpen, onClose }) {
         sideUrl,
         dashboardUrl,
       ] = await Promise.all([
-        uploadFileToSupabase(formData.vehicleInsurance, "documents"),
-        uploadFileToSupabase(formData.revenueLicense, "documents"),
-        uploadFileToSupabase(formData.photos.exterior, "photos"),
-        uploadFileToSupabase(formData.photos.interior, "photos"),
-        uploadFileToSupabase(formData.photos.side, "photos"),
-        uploadFileToSupabase(formData.photos.dashboard, "photos"),
+        uploadOrKeepUrl(formData.vehicleInsurance, "documents"),
+        uploadOrKeepUrl(formData.revenueLicense, "documents"),
+        uploadOrKeepUrl(formData.photos.exterior, "photos"),
+        uploadOrKeepUrl(formData.photos.interior, "photos"),
+        uploadOrKeepUrl(formData.photos.side, "photos"),
+        uploadOrKeepUrl(formData.photos.dashboard, "photos"),
       ]);
 
-      // Build the clean JSON payload for Mongoose
       const finalPayload = {
         brand: formData.brand,
         model: formData.model,
@@ -83,35 +87,22 @@ function AddVehicleModal({ isOpen, onClose }) {
         },
       };
 
-      // Send to your backend running on port 5000
-      await axios.post(
-        import.meta.env.VITE_BACKEND_URL + "/api/vehicle",
-        finalPayload,
-      );
-      toast.success("Saved successfully!");
+      // ✅ Dynamic Routing: Use PUT if editData exists, otherwise use POST
+      if (editData) {
+        await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}/api/vehicle/${editData._id}`,
+          finalPayload,
+        );
+        toast.success("Vehicle updated successfully!");
+      } else {
+        await axios.post(
+          import.meta.env.VITE_BACKEND_URL + "/api/vehicle",
+          finalPayload,
+        );
+        toast.success("Vehicle saved successfully!");
+      }
 
       setIsSubmitting(false);
-      setCurrentStep(1);
-      setFormData({
-        brand: "",
-        model: "",
-        year: "",
-        licensePlate: "",
-        transmission: "Automatic",
-        fuelType: "Hybrid",
-        passengers: 1,
-        luggage: 1,
-        vehicleInsurance: null,
-        revenueLicense: null,
-        location: "",
-        photos: {
-          exterior: "",
-          interior: "",
-          side: "",
-          dashboard: "",
-        },
-        rentalPrice: "",
-      });
       onClose();
     } catch (error) {
       console.error("Error during submission process:", error);
@@ -120,23 +111,20 @@ function AddVehicleModal({ isOpen, onClose }) {
     }
   };
 
-  // Early return if the modal shouldn't be visible
   if (!isOpen) return null;
 
-  // Handlers for navigation
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    // Backdrop (Dark semi-transparent background)
     <div className="fixed inset-0 backdrop-blur-sm bg-slate-200/20 z-50 flex items-center justify-center p-4">
-      {/* Modal Container */}
       <div className="bg-white rounded-4xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header & Progress Bar */}
+        {/* Header Section */}
         <div className="px-8 pt-8 pb-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900">
-              Add New Vehicle
+              {/* ✅ Dynamic Title Label Text */}
+              {editData ? "Edit Vehicle Details" : "Add New Vehicle"}
             </h2>
             <button
               onClick={onClose}
@@ -146,8 +134,6 @@ function AddVehicleModal({ isOpen, onClose }) {
               <X size={24} />
             </button>
           </div>
-
-          {/* Progress Indicator */}
           <ProgressBar currentStep={currentStep} />
         </div>
 
@@ -171,7 +157,7 @@ function AddVehicleModal({ isOpen, onClose }) {
         <div className="px-8 py-6 bg-white border-t border-slate-100 flex justify-between items-center mt-auto">
           <button
             onClick={prevStep}
-            disabled={currentStep === 1}
+            disabled={currentStep === 1 || isSubmitting}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all border border-slate-200 cursor-pointer ${
               currentStep === 1
                 ? "opacity-0 pointer-events-none"
@@ -193,12 +179,13 @@ function AddVehicleModal({ isOpen, onClose }) {
             {currentStep === 4 ? (
               isSubmitting ? (
                 <>
-                  <span>Submitting... </span>
+                  <span>Updating... </span>
                   <Loader2 size={18} className="animate-spin" />
                 </>
               ) : (
                 <>
-                  <span>Submit Vehicle</span> <ArrowRight size={18} />
+                  <span>{editData ? "Save Changes" : "Submit Vehicle"}</span>{" "}
+                  <ArrowRight size={18} />
                 </>
               )
             ) : (

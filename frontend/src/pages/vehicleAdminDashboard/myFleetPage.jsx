@@ -15,6 +15,7 @@ import axios from "axios";
 
 function MyFleetPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState(null)
   const [fleetData, setFleetData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFleetLoading, setIsFleetLoading] = useState(true);
@@ -111,8 +112,13 @@ function MyFleetPage() {
           </button>
         </div>
         <AddVehicleModal
+          key={selectedVehicle ? `edit-${selectedVehicle._id}` : 'add-new'}
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedVehicle(null);
+          }}
+          editData={selectedVehicle}
         />
       </header>
 
@@ -351,7 +357,12 @@ function MyFleetPage() {
                 </div>
 
                 {/* Action Button */}
-                <button className="w-full bg-[#2563EB] text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 text-sm mt-auto">
+                <button className="w-full bg-[#2563EB] text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 text-sm mt-auto"
+                onClick={()=>{
+                  setSelectedVehicle(car)
+                  setIsModalOpen(true)
+                }}
+                >
                   Edit Info
                 </button>
               </div>
