@@ -104,9 +104,22 @@ const rejectListing = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error while rejecting listing' });
     }
 };
-
+// Get a single listing by ID for ViewFullDetails page
+const getListingById = async (req, res) => {
+    try {
+        const listing = await Listing.findById(req.params.id);
+        if (!listing) {
+            return res.status(404).json({ success: false, message: 'Listing not found.' });
+        }
+        res.status(200).json({ success: true, data: listing });
+    } catch (error) {
+        console.error('Error fetching listing details:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching listing.' });
+    }
+};
 module.exports = {
     getAllListings,
     approveListing,
-    rejectListing
+    rejectListing,
+    getListingById
 };

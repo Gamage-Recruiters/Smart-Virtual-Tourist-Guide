@@ -7,9 +7,9 @@ const getDashboardStats = async (req, res) => {
         // Run queries concurrently for high performance
         const [totalUsers, travelAgencies, registeredDrivers, hotelPartners] = await Promise.all([
             User.countDocuments({}), 
-            User.countDocuments({ role: 'Travel Agency' }), 
-            User.countDocuments({ role: 'Driver' }), 
-            User.countDocuments({ role: 'Hotel Owner' }) 
+            User.countDocuments({ role: { $in: ['Travel Agency', 'TRAVEL_AGENCY'] } }), 
+            User.countDocuments({ role: { $in: ['Driver', 'DRIVER'] } }), 
+            User.countDocuments({ role: { $in: ['Hotel Owner', 'HOTEL_OWNER'] } })
         ]);
 
         // Structuring the response exactly as Frontend expects
@@ -172,6 +172,29 @@ const deleteAdvertisement = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error deleting ad' });
     }
 };
+// Delete a user or admin account permanently
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Check and delete from User collection first
+        let deletedAccount = await User.findByIdAndDelete(id);
+
+        // 2. If not found in User, check and delete from Admin collection
+        if (!deletedAccount) {
+            deletedAccount = await Admin.findByIdAndDelete(id);
+        }
+
+        if (!deletedAccount) {
+            return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Account successfully deleted' });
+    } catch (error) {
+        console.error("Delete User Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while deleting account' });
+    }
+};
 
 module.exports = { 
     getDashboardStats, 
@@ -182,5 +205,6 @@ module.exports = {
     createAdvertisement,
     getAdvertisementById,
     updateAdvertisement,
-    deleteAdvertisement
+    deleteAdvertisement,
+    deleteUser
 };

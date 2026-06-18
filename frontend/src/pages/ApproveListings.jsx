@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield } from 'react-icons/fi';
+import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import apiClient from '../services/api';
-
-// Import newly created components
 import ListingCard from '../components/admin/ListingCard';
 import RejectModal from '../components/admin/RejectModal';
 
 const ApproveListings = () => {
-  // States
   const [listingsData, setListingsData] = useState([]);
   const [stats, setStats] = useState({ pendingCount: 0, approvedCount: 0, rejectedCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // States for Reject Modal control
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; 
+
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState({ id: null, providerName: '' });
 
-  // 1. Fetch Listings Data
   const fetchListings = async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/admin/listings/all');
-      
       if (response.success) {
         setListingsData(response.data.listings);
         setStats(response.data.stats);
@@ -31,8 +29,7 @@ const ApproveListings = () => {
         setError('Failed to load listings data.');
       }
     } catch (err) {
-      console.error("Error fetching listings:", err);
-      setError('Cannot connect to the server. Please ensure the backend is running.');
+      setError('Cannot connect to the server.');
     } finally {
       setLoading(false);
     }
@@ -42,51 +39,52 @@ const ApproveListings = () => {
     fetchListings();
   }, []);
 
-  // 2. Handle Approve Listing
   const handleApprove = async (listingId, providerName) => {
-    if (!window.confirm(`Are you sure you want to approve the listing from ${providerName}?`)) {
-      return;
-    }
+    if (!window.confirm(`Are you sure you want to approve the listing from ${providerName}?`)) return;
     try {
-      // Using the newly created patch route
       const response = await apiClient.patch(`/admin/listings/${listingId}/approve`, {});
       if (response.success) {
-        alert(`Listing successfully approved.`);
-        fetchListings(); // Refresh data
-      } else {
-        alert(response.message || 'Failed to approve listing.');
+        fetchListings(); 
       }
     } catch (err) {
-      console.error("Approve error:", err);
-      alert('Error approving listing. Please try again.');
+      alert('Error approving listing.');
     }
   };
 
-  // 3. Open Reject Modal
   const openRejectModal = (listingId, providerName) => {
     setSelectedListing({ id: listingId, providerName });
     setIsRejectModalOpen(true);
   };
 
-  // 4. Handle Reject Submit (after receiving reason from modal)
   const handleRejectSubmit = async (reason) => {
     try {
-      // Sending the patch request along with the rejection reason
       const response = await apiClient.patch(`/admin/listings/${selectedListing.id}/reject`, { reason });
       if (response.success) {
-        alert(`Listing successfully rejected.`);
-        setIsRejectModalOpen(false); // Close modal
-        fetchListings(); // Refresh data
-      } else {
-        alert(response.message || 'Failed to reject listing.');
+        setIsRejectModalOpen(false); 
+        fetchListings(); 
       }
     } catch (err) {
-      console.error("Reject error:", err);
-      alert('Error rejecting listing. Please try again.');
+      alert('Error rejecting listing.');
     }
   };
 
-  // Stat Cards
+  const filteredListings = listingsData.filter(listing => 
+    listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    listing.providerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    listing.location?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredListings.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredListings.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const statCards = [
     { id: 1, title: 'Pending Review', value: stats.pendingCount, subText: 'High priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
     { id: 2, title: 'Rejected', value: stats.rejectedCount, subText: 'Needs revision', subTextColor: 'text-red-500', icon: <FiXCircle size={20} className="text-red-500" /> },
@@ -97,21 +95,21 @@ const ApproveListings = () => {
   return (
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
       
-      {/* Hero Section */}
+      {/* 100% FIXED HERO SECTION - Matches UserManagement */}
       <div 
-        className="relative w-full h-[300px] bg-cover bg-center flex items-center px-6 md:px-16"
+        className="relative w-full h-[350px] bg-cover bg-center flex items-center mb-8"
         style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544085311-11a028465b03?w=1600&q=80')` }}
       >
-        <div className="absolute inset-0 bg-black/30"></div> 
-        <div className="relative z-10 text-white drop-shadow-md">
-          <h1 className="text-[36px] font-bold mb-2 text-white">Listing Management</h1>
-          <p className="text-[16px] font-medium text-white/90">Review and approve travel package submissions</p>
+        <div className="absolute inset-0 bg-black/20"></div> 
+        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
+          <h1 className="text-[40px] font-bold text-white mb-2 drop-shadow-md">Listing Management</h1>
+          <p className="text-[16px] font-medium text-white/90 drop-shadow-md">Review and approve travel package submissions</p>
         </div>
       </div>
 
-      <div className="px-6 md:px-12 max-w-7xl mx-auto -mt-12 relative z-20">
+      {/* Removed the negative margin (-mt-12) to match standard spacing */}
+      <div className="px-6 md:px-12 max-w-7xl mx-auto w-full">
         
-        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statCards.map((stat) => (
             <div key={stat.id} className="bg-gradient-to-br from-white to-[#F8FAFC] p-6 rounded-[12px] shadow-sm border border-white flex flex-col gap-4">
@@ -131,8 +129,8 @@ const ApproveListings = () => {
           ))}
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* FIXED TABS CONTAINER - Matches ManageAds/UserManagement */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-[#D3E8FA] p-6 rounded-[12px]">
            <Link to="/user-management" className="block w-full">
              <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
                User Management
@@ -150,7 +148,6 @@ const ApproveListings = () => {
            </Link>
         </div>
 
-        {/* Search Input */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="relative w-full md:w-1/2 lg:w-1/3">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -158,22 +155,25 @@ const ApproveListings = () => {
             </div>
             <input 
               type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by title, provider, or location" 
-              className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2] sm:text-sm transition-colors"
             />
           </div>
         </div>
 
-        {/* Assembled Listing Cards */}
         {loading ? (
            <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-xl shadow-sm">Loading listings data...</div>
         ) : error ? (
            <div className="text-center py-10 text-red-500 font-medium bg-white rounded-xl shadow-sm">{error}</div>
-        ) : listingsData.length === 0 ? (
-           <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-xl shadow-sm">No listings found in the database.</div>
+        ) : currentItems.length === 0 ? (
+           <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-xl shadow-sm">
+             {searchTerm ? "No results found for your search." : "No listings found in the database."}
+           </div>
         ) : (
-          <div className="flex flex-col gap-6 mb-12">
-            {listingsData.map((listing) => (
+          <div className="flex flex-col gap-6 mb-8">
+            {currentItems.map((listing) => (
               <ListingCard 
                 key={listing._id} 
                 listing={listing} 
@@ -184,9 +184,38 @@ const ApproveListings = () => {
           </div>
         )}
 
+        {!loading && filteredListings.length > 0 && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 pb-8">
+             <button 
+               onClick={() => paginate(currentPage - 1)}
+               disabled={currentPage === 1}
+               className={`w-10 h-10 flex items-center justify-center rounded-[8px] border border-gray-200 transition-colors ${currentPage === 1 ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+             >
+               <FiChevronLeft size={20} />
+             </button>
+             
+             {[...Array(totalPages)].map((_, index) => (
+               <button 
+                 key={index + 1}
+                 onClick={() => paginate(index + 1)}
+                 className={`w-10 h-10 flex items-center justify-center rounded-[8px] font-medium shadow-sm transition-colors ${currentPage === index + 1 ? 'bg-[#A855F7] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+               >
+                 {index + 1}
+               </button>
+             ))}
+
+             <button 
+               onClick={() => paginate(currentPage + 1)}
+               disabled={currentPage === totalPages}
+               className={`w-10 h-10 flex items-center justify-center rounded-[8px] border border-gray-200 transition-colors ${currentPage === totalPages ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+             >
+               <FiChevronRight size={20} />
+             </button>
+          </div>
+        )}
+
       </div>
 
-      {/* Assembled Reject Modal */}
       <RejectModal 
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}

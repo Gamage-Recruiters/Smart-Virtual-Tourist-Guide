@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDashboardStats, getAllUsers, updateUserStatus, getAllAds, updateAdStatus, createAdvertisement, deleteAdvertisement, getAdvertisementById, updateAdvertisement } = require('../controllers/adminController');
+const { getDashboardStats, getAllUsers, updateUserStatus, getAllAds, updateAdStatus, createAdvertisement, deleteAdvertisement, getAdvertisementById, updateAdvertisement,deleteUser } = require('../controllers/adminController');
 const { protectAdmin } = require('../middleware/authMiddleware');
 
 // Apply JWT protection to all routes below this line
@@ -17,5 +17,6 @@ router.get('/ads/:id', getAdvertisementById);
 router.put('/ads/:id', updateAdvertisement);
 router.post('/ads', createAdvertisement);
 router.delete('/ads/:id', deleteAdvertisement);
+router.delete('/users/:id', deleteUser);
 
 module.exports = router;
