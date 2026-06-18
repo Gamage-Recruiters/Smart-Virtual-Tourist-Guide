@@ -7,7 +7,7 @@ const items = [
   { key: 'add', label: 'Add Activity', icon: <FiPlus className="w-5 h-5" />, to: '/activityprovider/activities/new', exact: true },
   { key: 'calendar', label: 'Calendar', icon: <FiCalendar className="w-5 h-5" />, to: '/activityprovider/calendar', exact: true },
   { key: 'bookings', label: 'Bookings', icon: <FiBookmark className="w-5 h-5" />, to: '/activityprovider/bookings', exact: true },
-  { key: 'ratings', label: 'Ratings & Reviews', icon: <FiStar className="w-5 h-5" />, to: '/activityprovider/ratings', exact: true },
+  { key: 'ratings', label: 'Ratings & Reviews', icon: <FiStar className="w-5 h-5" />, to: '/activityprovider/viewratings', exact: true },
 ];
 
 const ActivityProviderSidebar = () => {
