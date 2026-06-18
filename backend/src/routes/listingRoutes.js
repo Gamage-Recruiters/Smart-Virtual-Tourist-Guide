@@ -3,7 +3,8 @@ const router = express.Router();
 const { 
     getAllListings, 
     approveListing, 
-    rejectListing 
+    rejectListing,
+    getListingById 
 } = require('../controllers/listingController');
 const { protectAdmin, authorizeRoles } = require('../middleware/authMiddleware');
 
@@ -19,4 +20,5 @@ router.patch('/:id/approve', authorizeRoles('Administrator', 'Moderator'), appro
 // Route to reject a listing (Restricted to Administrator and Moderator only)
 router.patch('/:id/reject', authorizeRoles('Administrator', 'Moderator'), rejectListing);
 
+router.get('/:id', authorizeRoles('Administrator', 'Moderator', 'Editor'), getListingById);
 module.exports = router;
