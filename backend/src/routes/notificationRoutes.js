@@ -1,49 +1,53 @@
 /**
  * Notification Routes
+ * 
+ * Description: 
  * This file defines the API endpoints (URL paths) for the notification system.
- * It connects the web requests to the logic defined in the controller.
+ * It acts as a bridge, connecting incoming web requests from the frontend to the logic in the controllers.
  */
 
 const express = require("express");
+
+// Create an Express router to handle these specific routes
 const router = express.Router();
+
+// Import the main notification logic (Controllers)
 const {
   getNotifications,
   markAsRead,
   getUnreadCount,
 } = require("../controllers/notificationController");
 
-const exampleController = require("../controllers/exampleController");
+// Import the testing/simulation controller
+const { triggerSimulation } = require("../controllers/exampleController");
 
 /**
  * Route: GET /
- * Description: Get all notifications for the logged-in user.
- * This includes personal messages, group alerts, and public broadcasts.
+ * Description: Fetches all notifications (with pagination) for the logged-in user.
+ * This includes personal messages (UNICAST), group alerts (MULTICAST), and public broadcasts.
  */
 router.get("/", getNotifications);
 
 /**
  * Route: GET /unread-count
- * Description: Get the total number of messages that the user has not read yet.
- * Used to show the red number on the notification bell icon.
+ * Description: Gets the total number of messages that the user has not read yet.
+ * This is used to display the red badge/number on the notification bell icon.
  */
 router.get("/unread-count", getUnreadCount);
 
 /**
  * Route: PATCH /:id/read
- * Description: Mark a specific notification as "read" using its unique ID.
- * @param {string} id - The ID of the notification passed in the URL.
+ * Description: Marks a specific notification as "read".
+ * @param {string} id - The unique ID of the notification passed in the URL.
  */
 router.patch("/:id/read", markAsRead);
 
-router.post(
-  "/simulate-booking-confirm",
-  exampleController.simulateBookingConfirm,
-);
-router.post("/simulate-system-update", exampleController.simulateSystemUpdate);
-router.post("/simulate-trip-request", exampleController.simulateTripRequest);
-router.post(
-  "/simulate-emergency-alert",
-  exampleController.simulateEmergencyAlert,
-);
+/**
+ * Route: POST /simulate-system-update
+ * Description: A special testing route to manually trigger different notification scenarios via Postman.
+ * Note: Keep this route only for development/testing purposes.
+ */
+router.post("/simulate-system-update", triggerSimulation);
 
+// Export the router so it can be registered in the main server.js file
 module.exports = router;

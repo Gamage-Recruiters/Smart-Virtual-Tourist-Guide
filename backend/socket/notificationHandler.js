@@ -1,107 +1,202 @@
-const User = require("../src/models/User.js"); // පරණ models දෙක වෙනුවට මේක විතරක් ගන්න
+const User = require("../src/models/User.js");
 const { getRegionFromCoords } = require("../src/utils/locationHelper.js");
-const mongoose = require("mongoose");
-const AppError = require("../src/errors/appError.js");
+const socketService = require("../src/services/delivery/socketService");
+const fcmService = require("../src/services/delivery/fcmService");
+const calculateDistance = require("../src/utils/geoUtils.js");
+const AppError = require("../src/errors/appError");
+const logger = require("../src/utils/logger");
 
 module.exports = (io) => {
-  io.on("connection", (socket) => {
-    const handleSocketError = (err) => {
-      console.error(`❌ Socket Error [${socket.id}]:`, err.message);
+  io.on("connection", async (socket) => {
+    // Get user details attached by the Socket Auth Middleware
+    const userId = socket.userId;
+    const role = socket.userRole;
+
+    logger.info(
+      `🔒 Secure Socket Connected: User=${userId}, Role=${role}, SocketID=${socket.id}`,
+    );
+
+    // Join the basic private room and role-specific room
+    socket.join(`user_${userId}`);
+    socket.join(`role_${role}`);
+
+    /**
+     * Helper function to handle and emit socket errors to the frontend.
+     * Prevents the server from crashing when an error occurs inside the socket.
+     */
+    const handleSocketError = (err, eventName) => {
+      const statusCode = err.statusCode || 500;
+      const message = err.message || "Internal Socket Error";
+
+      logger.error(`❌ [Socket ${eventName}] User=${userId}: ${message}`);
+
+      // Send the error back to the client
       socket.emit("error", {
         status: err.status || "error",
-        message: err.message || "Something went wrong on the server",
+        statusCode,
+        message,
+        event: eventName,
       });
     };
 
-    const { userId, role, initialRegion } = socket.handshake.query;
-
-    if (!userId || !role) {
-      return handleSocketError(
-        new AppError(
-          "Authentication failed: userId and role are required",
-          401,
-        ),
-      );
-    }
-
-    console.log(`🔔 New Connection! UserID: ${userId}, Role: ${role}`);
-
+    // --- INITIAL SYNC ---
+    // When the user connects, load their last known location and add them to regional rooms
     try {
-      // 1. Unicast Room (Individual)
-      socket.join(`user_${userId}`);
+      const user = await User.findById(userId).select(
+        "currentLocation fcmToken",
+      );
 
-      // 2. Multicast Room (By Role)
-      socket.join(`role_${role}`);
+      if (!user) throw new AppError("User not found during initial sync", 404);
 
-      // 3. Regional & Combined Rooms
-      if (initialRegion) {
-        socket.join(`region_${initialRegion}`);
-        const combinedRoom = `region_${initialRegion}_role_${role}`;
-        socket.join(combinedRoom);
-        socket.currentRegion = initialRegion;
+      // Attach FCM token to the socket session for later use
+      socket.fcmToken = user.fcmToken;
+
+      if (user.currentLocation?.coordinates) {
+        // MongoDB uses [longitude, latitude] format
+        const [lng, lat] = user.currentLocation.coordinates;
+        const regionData = await getRegionFromCoords(lat, lng);
+
+        if (regionData && typeof regionData === "object") {
+          // Add user to the relevant Socket rooms
+          socketService.manageRegionalRooms(socket, regionData, role, "join");
+
+          // Subscribe user to the relevant Firebase (FCM) topics
+          if (socket.fcmToken) {
+            await fcmService.manageRegionalTopics(
+              socket.fcmToken,
+              regionData,
+              role,
+              "subscribe",
+            );
+          }
+
+          // Save current location details in the socket session to track future movements
+          socket.currentDivision = regionData.division;
+          socket.currentDistrict = regionData.district;
+
+          logger.info(
+            `Initial Sync Success: User=${userId}, Region=${regionData.division}`,
+          );
+
+          // For debugging purposes: Print the rooms the user is currently in
+          setTimeout(() => {
+            const activeRooms = Array.from(socket.rooms);
+            console.log("-----------------------------------------");
+            console.log(` User ${userId} is now in these Rooms:`);
+            console.table(activeRooms);
+            console.log("-----------------------------------------");
+          }, 1000);
+        }
       }
-
-      socket.userId = userId;
-      socket.userRole = role;
     } catch (err) {
-      handleSocketError(err);
+      handleSocketError(err, "initial_sync");
     }
 
-    // --- Update Location Event ---
+    // --- LOCATION UPDATE ---
+    // Listens to live GPS updates from the client app
     socket.on("update_location", async (data) => {
       try {
         const { lat, lng } = data;
 
         if (lat === undefined || lng === undefined) {
-          throw new AppError(
-            "Invalid data: Latitude and Longitude are required",
-            400,
-          );
+          throw new AppError("Latitude and Longitude are required", 400);
         }
 
-        const newRegion = await getRegionFromCoords(lat, lng);
+        // PERFORMANCE OPTIMIZATION (Throttling)
+        // If the user moved less than 100 meters, skip the expensive region check
+        if (socket.lastLat && socket.lastLng) {
+          const distance = calculateDistance(
+            socket.lastLat,
+            socket.lastLng,
+            lat,
+            lng,
+          );
+          if (distance < 100) {
+            return await updateDBLocation(userId, lat, lng, role);
+          }
+        }
 
-        if (newRegion && newRegion !== socket.currentRegion) {
-          if (socket.currentRegion) {
-            socket.leave(`region_${socket.currentRegion}`);
-            socket.leave(
-              `region_${socket.currentRegion}_role_${socket.userRole}`,
+        // Update last known coordinates in the socket session
+        socket.lastLat = lat;
+        socket.lastLng = lng;
+
+        // Check if the user entered a new region
+        const regionData = await getRegionFromCoords(lat, lng);
+
+        if (
+          regionData &&
+          typeof regionData === "object" &&
+          regionData.division !== socket.currentDivision
+        ) {
+          
+          // 1. Leave the old socket rooms and unsubscribe from old FCM topics
+          socketService.manageRegionalRooms(
+            socket,
+            {
+              division: socket.currentDivision,
+              district: socket.currentDistrict,
+            },
+            role,
+            "leave",
+          );
+
+          if (socket.fcmToken) {
+            await fcmService.manageRegionalTopics(
+              socket.fcmToken,
+              {
+                division: socket.currentDivision,
+                district: socket.currentDistrict,
+              },
+              role,
+              "unsubscribe",
             );
           }
 
-          socket.join(`region_${newRegion}`);
-          const newCombinedRoom = `region_${newRegion}_role_${socket.userRole}`;
-          socket.join(newCombinedRoom);
+          // 2. Join the new socket rooms and subscribe to new FCM topics
+          socketService.manageRegionalRooms(socket, regionData, role, "join");
+          
+          if (socket.fcmToken) {
+            await fcmService.manageRegionalTopics(
+              socket.fcmToken,
+              regionData,
+              role,
+              "subscribe",
+            );
+          }
 
-          socket.currentRegion = newRegion;
-          console.log(
-            `🔄 User ${socket.userId} (${socket.userRole}) switched to: ${newCombinedRoom}`,
+          logger.info(
+            `🔄 Region Switch: User=${userId}, From=${socket.currentDivision}, To=${regionData.division}`,
           );
+
+          // Update the current region in the socket session
+          socket.currentDivision = regionData.division;
+          socket.currentDistrict = regionData.district;
         }
 
-        const updatedUser = await User.findOneAndUpdate(
-          { _id: socket.userId.trim() },
-          {
-            currentLocation: { type: "Point", coordinates: [lng, lat] },
-            ...(socket.userRole === "DRIVER" && { showCurrentLocation: true }),
-          },
-          { returnDocument: "after", runValidators: true },
-        );
-
-        if (!updatedUser) {
-          throw new AppError("User not found in database", 404);
-        }
-
-        console.log(
-          `✅ DB Updated for ${socket.userRole}: ${updatedUser.fullName}`,
-        );
+        // Always update the exact GPS location in the Database
+        await updateDBLocation(userId, lat, lng, role);
       } catch (error) {
-        handleSocketError(error);
+        handleSocketError(error, "update_location");
       }
     });
 
     socket.on("disconnect", () => {
-      console.log(`User ${userId} disconnected`);
+      logger.info(`👋 Socket Disconnected: User=${userId}`);
     });
   });
+};
+
+/**
+ * Helper function to update the user's live location in MongoDB.
+ * If the user is a DRIVER, it also sets 'showCurrentLocation' to true.
+ */
+const updateDBLocation = async (userId, lat, lng, role) => {
+  try {
+    await User.findByIdAndUpdate(userId, {
+      currentLocation: { type: "Point", coordinates: [lng, lat] }, // [longitude, latitude]
+      ...(role === "DRIVER" && { showCurrentLocation: true }),
+    });
+  } catch (err) {
+    logger.error(` DB Update Failed for User=${userId}: ${err.message}`);
+  }
 };
