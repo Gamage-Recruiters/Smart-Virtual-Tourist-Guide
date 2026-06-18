@@ -3,6 +3,7 @@ import ActivityProviderDashboard from './pages/ActivityProvider/ActivityProvider
 import ActivityList from './pages/ActivityProvider/ActivityList.jsx';
 import Activity from './pages/ActivityProvider/AddActivity.jsx';
 import ManageCalendar from './pages/ActivityProvider/ManageCalendar.jsx';
+import ViewRatings from './pages/ActivityProvider/ViewRatings.jsx';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/activityprovider/activities/edit/:id" element={<Activity />} />
         <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
         <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
+        <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
       </Routes>
     </BrowserRouter>
   );
