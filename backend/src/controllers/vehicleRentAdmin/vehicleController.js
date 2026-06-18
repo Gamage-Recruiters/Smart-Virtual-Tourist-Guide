@@ -171,6 +171,9 @@ export const getRecentVehicles = async (req, res) => {
 export const searchVehicles = async (req, res) => {
   try {
     const { query } = req.query;
+    if(!query){
+      return res.status(400).json({ message: "Please provide a search query" });
+    }
     const vehicles = await Vehicle.find({
       $or: [
         { licensePlate: { $regex: query, $options: "i" } },
