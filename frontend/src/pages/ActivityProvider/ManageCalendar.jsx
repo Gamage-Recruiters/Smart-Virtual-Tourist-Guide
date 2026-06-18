@@ -45,7 +45,7 @@ const HeroBanner = () => (
       alt=""
       className="absolute inset-0 w-full h-full object-cover"
     />
-   <div className="absolute inset-0 bg-gradient-to-r from-[#264653]/85 via-[#2d6a4f]/75 to-[#1a6fdb]/65" />
+   <div className="absolute inset-0 bg-black/40" />
     <div className="relative z-10 px-7 h-full flex flex-col justify-end pb-6 text-white">
       <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">
         Activity Management
