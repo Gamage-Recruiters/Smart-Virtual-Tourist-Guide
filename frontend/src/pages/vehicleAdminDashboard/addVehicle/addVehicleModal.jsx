@@ -9,7 +9,7 @@ import axios from "axios";
 import uploadFileToSupabase from "../../../utils/fileUpload.js";
 import toast from "react-hot-toast";
 
-function AddVehicleModal({ isOpen, onClose, editData = null }) {
+function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }) {
   // ✅ Added editData prop default fallback
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +100,10 @@ function AddVehicleModal({ isOpen, onClose, editData = null }) {
           finalPayload,
         );
         toast.success("Vehicle saved successfully!");
+      }
+
+      if(onMutationSuccess){
+        onMutationSuccess();
       }
 
       setIsSubmitting(false);

@@ -23,6 +23,7 @@ function MyFleetPage() {
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("none");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -49,7 +50,7 @@ function MyFleetPage() {
       setIsFleetLoading(true);
       clearTimeout(delayDebounceFn);
     };
-  }, [searchTerm]);
+  }, [searchTerm, refreshTrigger]);
 
   // Helper to style the status badges dynamically
   const getStatusBadge = (status) => {
@@ -119,6 +120,7 @@ function MyFleetPage() {
             setSelectedVehicle(null);
           }}
           editData={selectedVehicle}
+          onMutationSuccess={() => setRefreshTrigger(prev => prev + 1)}
         />
       </header>
 
