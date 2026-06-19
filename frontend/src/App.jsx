@@ -1,28 +1,26 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import MainPage from './pages/touristMainPage.jsx/mainPage.jsx';
-import Dashboard from './pages/touristDashboard/dashboard.jsx';
-import { RentVehiclePage } from './pages/rentVehicle/rentVehiclePage.jsx';
-import VehicleDetailsPage from './pages/rentVehicle/vehicleDetailsPage.jsx';
-import FindHotelPage from './pages/findHotel/FindHotelPage.jsx'
-import HotelDetails from './pages/findHotel/HotelDetails.jsx'
-import BookDriver from './pages/bookDriver/BookDriver.jsx'
-
+import BookingPage from './pages/booking&reservation/BookingPage.jsx'
+import ActivityBooking from './pages/more_details_services_booking/ActivityBooking.jsx'
+import HotelBooking from './pages/more_details_services_booking/HotelBooking.jsx'
+import DriverBooking from './pages/more_details_services_booking/DriverBooking.jsx'
+import VehicleBooking from './pages/more_details_services_booking/VehicleBooking.jsx'
+import GuideBooking from './pages/more_details_services_booking/GuideBooking.jsx'
+import RestaurantBooking from './pages/more_details_services_booking/RestaurantBooking.jsx'
 
 function App() {
 
   return (
     <Router>
       <Routes>
-        {/* MainPage acts as the parent layout wrapper */}
-        <Route element={<MainPage />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/rent-vehicle" element={<RentVehiclePage />} />
-          <Route path="/vehicle-details/:id" element={<VehicleDetailsPage />} />
-          <Route path="/find-hotel" element={<FindHotelPage/>} />
-          <Route path="/hotel-details/:id" element={<HotelDetails/>} />
-          <Route path="/book-driver" element={<BookDriver/>} />
-        </Route>
+      
+          <Route path="/booking-page" element={<BookingPage/>} />
+          <Route path="/activity-booking" element={<ActivityBooking/>} />
+          <Route path="/hotel-booking" element={<HotelBooking/>} />
+          <Route path="/driver-booking" element={<DriverBooking/>} />
+          <Route path="/vehicle-booking" element={<VehicleBooking/>} />
+          <Route path="/guide-booking" element={<GuideBooking/>} />
+          <Route path="/restaurant-booking" element={<RestaurantBooking/>} />
+
       </Routes>
     </Router>    
   )
