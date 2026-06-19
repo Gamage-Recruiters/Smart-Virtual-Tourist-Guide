@@ -6,6 +6,7 @@ import DriverBooking from './pages/more_details_services_booking/DriverBooking.j
 import VehicleBooking from './pages/more_details_services_booking/VehicleBooking.jsx'
 import GuideBooking from './pages/more_details_services_booking/GuideBooking.jsx'
 import RestaurantBooking from './pages/more_details_services_booking/RestaurantBooking.jsx'
+import MyBookings from './pages/booking&reservation/MyBookings.jsx'
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/vehicle-booking" element={<VehicleBooking/>} />
           <Route path="/guide-booking" element={<GuideBooking/>} />
           <Route path="/restaurant-booking" element={<RestaurantBooking/>} />
+          <Route path="/my-bookings" element={<MyBookings/>} />
 
       </Routes>
     </Router>    

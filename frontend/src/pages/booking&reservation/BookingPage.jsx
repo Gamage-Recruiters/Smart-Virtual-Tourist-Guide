@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import BookingProgressBar from "../../components/booking&reservation/bookingSummary/BookingProgressBar";
 import ServiceDetailsCard from "../../components/booking&reservation/bookingSummary/ServiceDetailsCard";
 import BookingDetailsCard from "../../components/booking&reservation/bookingSummary/BookingDetailsCard";
@@ -40,6 +40,7 @@ const BookingPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [bookingResult, setBookingResult] = useState(null);
+    const navigate = useNavigate();
 
     const submitBookingData = async () => {
         setIsSubmitting(true);
@@ -532,6 +533,7 @@ const BookingPage = () => {
                                 </button>
                             ) : (
                                 <button
+                                    onClick={() => navigate('/my-bookings', { state: { bookingId: bookingResult?._id || bookingResult?.id } })}
                                     className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
                                 >
                                     Go To My Bookings
