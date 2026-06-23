@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PDF_PNG from "../assets/pdf.png";
@@ -18,9 +19,42 @@ import {
 
 const TouristArrivalReport = () => {
 
-    const handleDownloadPDF = () => {
-        // Pass the current React page URL to the download service
-        downloadReportPDF(window.location.href);
+    const [showAlert, setShowAlert] = useState(false);
+
+    const handleDownloadPDF = async () => {
+        try {
+            const currentUrl = window.location.href; // Get current page URL
+
+            // 2. Fetch PDF blob via service layer
+            const result = await downloadReportPDF(currentUrl);
+
+            if (!result.success) {
+                alert("PDF download failed.");
+                return;
+            }
+
+            // 3. Create a temporary local URL for the fetched Blob
+            const fileUrl = window.URL.createObjectURL(result.blob);
+
+            // 4. Create a temporary hidden anchor to trigger save dialog
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.setAttribute('download', 'Tourist_Arrival_Report.pdf'); // Output filename
+            document.body.appendChild(link);
+            link.click();
+
+            // 5. Clean up temporary DOM elements
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(fileUrl);
+
+            // 6. Show the success alert only after the download completes successfully
+            setShowAlert(true);
+            setTimeout(() => setShowAlert(false), 3500); // Hide alert after 3.5 seconds
+
+        } catch (error) {
+            console.error("PDF download failed:", error);
+            alert("PDF download failed.");
+        }
     };
 
     const chartData = [
@@ -261,6 +295,34 @@ const TouristArrivalReport = () => {
             <div className="print:hidden">
                 <Footer />
             </div>
+
+            {/* PDF Downloaded Success Alert */}
+            {showAlert && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-300">
+                    <div className="bg-white rounded-3xl p-10 flex flex-col items-center text-center shadow-2xl border border-gray-100 max-w-[340px] transform scale-100 transition-transform">
+
+                        {/* Green Checkmark Circle */}
+                        <div className="w-16 h-16 bg-[#00C853] rounded-full flex items-center justify-center mb-6 shadow-md">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth="3.5"
+                                stroke="white"
+                                className="w-8 h-8"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                        </div>
+
+                        {/* Alert Text */}
+                        <h4 className="text-lg sm:text-xl font-bold text-gray-900 select-none">
+                            PDF has been downloaded
+                        </h4>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };
