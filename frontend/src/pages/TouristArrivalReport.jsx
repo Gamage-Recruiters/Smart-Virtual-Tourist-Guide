@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PDF_PNG from "../assets/pdf.png";
+
+import { downloadReportPDF } from "../services/pdfService";
 
 import {
     ResponsiveContainer,
@@ -14,8 +16,12 @@ import {
     Cell
 } from 'recharts';
 
-
 const TouristArrivalReport = () => {
+
+    const handleDownloadPDF = () => {
+        // Pass the current React page URL to the download service
+        downloadReportPDF(window.location.href);
+    };
 
     const chartData = [
         { label: "Asia", value: 500000, colorHex: "#0B53A4" },
@@ -92,7 +98,39 @@ const TouristArrivalReport = () => {
     return (
         <div className="min-h-screen bg-[#EAF4FC]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-            <Header />
+            {/* Google Fonts */}
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+                * { box-sizing: border-box; }
+
+                @media print {
+                    @page {
+                        margin: 0; 
+                    }
+                    html, body, #root, .min-h-screen {
+                        height: auto !important;
+                        min-height: 0 !important;
+                    }
+                    body {
+                        padding: 15mm 20mm; 
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        background-color: #EAF4FC !important; 
+                    }
+    
+                    table {
+                        min-width: 100% !important;
+                        font-size: 10px !important;
+                    }
+                    th, td {
+                        padding: 5px 3px !important;
+                    }
+                }
+            `}</style>
+
+            <div className="print:hidden">
+                <Header />
+            </div>
 
             <main className="w-full px-4 sm:px-6 md:px-10 lg:px-16 py-10 flex flex-col items-center">
 
@@ -108,54 +146,55 @@ const TouristArrivalReport = () => {
                     </h4>
 
                     {/* Legend/Key Box */}
-                    <div className="absolute top-6 right-6 sm:right-10 bg-[#B9E3FB]/60 rounded-xl p-3 text-[10px] sm:text-xs font-semibold text-gray-700 leading-relaxed max-w-[190px] border border-[#A2D5FF]/30 shadow-sm hidden sm:block">
+                    <div className="absolute top-6 right-6 sm:right-10 bg-[#B9E3FB]/60 rounded-xl p-3 text-[10px] sm:text-xs font-semibold text-gray-700 leading-relaxed max-w-[190px] border border-[#A2D5FF]/30 shadow-sm hidden sm:block print:hidden">
                         <p>X - Region categories</p>
                         <p>Y - Total Tourist Arrivals</p>
                     </div>
 
                     {/* Recharts Plot Area */}
-                    <div className="relative w-full h-[285px] mt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={chartData}
-                                margin={{ top: 10, right: 10, left: 10, bottom: 30 }}
-                            >
-                                {/* dashed horizontal lines */}
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#D1D5DB" />
+                    <div className="relative w-full h-[285px] mt-4 flex justify-center">
+                        {/* Render BarChart with a static width to ensure stable layout in headless PDF generation */}
+                        <BarChart
+                            width={780}
+                            height={285}
+                            data={chartData}
+                            margin={{ top: 10, right: 40, left: 10, bottom: 30 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#D1D5DB" />
 
-                                {/* X-Axis with rotated labels */}
-                                <XAxis
-                                    dataKey="label"
-                                    tick={{ fill: '#374151', fontSize: 11, fontWeight: 'bold' }}
-                                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
-                                    tickLine={false}
-                                    angle={-45}
-                                    textAnchor="end"
-                                />
+                            <XAxis
+                                dataKey="label"
+                                tick={{ fill: '#374151', fontSize: 11, fontWeight: 'bold' }}
+                                axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
+                                tickLine={false}
+                                angle={-45}
+                                textAnchor="end"
+                            />
 
-                                {/* Y-Axis with correct width to prevent clipping */}
-                                <YAxis
-                                    width={55}
-                                    tick={{ fill: '#4B5563', fontSize: 11, fontWeight: 'bold' }}
-                                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
-                                    tickLine={false}
-                                />
+                            <YAxis
+                                width={55}
+                                tick={{ fill: '#4B5563', fontSize: 11, fontWeight: 'bold' }}
+                                axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
+                                tickLine={false}
+                            />
 
-                                <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
+                            <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
 
-                                {/* Bars with custom hex colors from db */}
-                                <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45}>
-                                    {chartData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.colorHex} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                            <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45}>
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.colorHex} />
+                                ))}
+                            </Bar>
+                        </BarChart>
                     </div>
                 </div>
 
-                <div className="w-full max-w-[1000px] flex justify-end mb-4 pr-1 transform transition-transform duration-300 xl:translate-x-[110px] 2xl:translate-x-[220px] z-20">
-                    <button className="flex items-center gap-2 bg-[#1E50FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all">
+                <div className="w-full max-w-[1000px] flex justify-end mb-4 pr-1 transform transition-transform duration-300 xl:translate-x-[110px] 2xl:translate-x-[220px] z-20 print:hidden">
+
+                    <button
+                        onClick={handleDownloadPDF}
+                        className="flex items-center gap-2 bg-[#1E50FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all"
+                    >
                         <img
                             src={PDF_PNG}
                             alt="PDF Icon"
@@ -165,9 +204,9 @@ const TouristArrivalReport = () => {
                     </button>
                 </div>
 
-                <div className="w-full max-w-[1000px] overflow-x-auto rounded-2xl border border-gray-300 shadow-sm bg-white mb-10">
-                    <table className="w-full text-xs sm:text-sm text-gray-800 border-collapse min-w-[850px]">
-   
+                <div className="w-full max-w-[1000px] overflow-x-auto rounded-2xl border border-gray-300 shadow-sm bg-white mb-10 print:mb-0">
+                    <table className="w-full text-xs sm:text-sm text-gray-800 border-collapse min-w-[850px] print:min-w-0">
+
                         <thead>
                             <tr className="bg-[#B6C9D6] text-gray-900 font-extrabold text-center border-b border-gray-300">
                                 <th className="px-2 py-4 border-r border-gray-300 w-16">Age</th>
@@ -219,10 +258,11 @@ const TouristArrivalReport = () => {
 
             </main>
 
-            <Footer />
+            <div className="print:hidden">
+                <Footer />
+            </div>
         </div>
     );
-
 };
 
 export default TouristArrivalReport;

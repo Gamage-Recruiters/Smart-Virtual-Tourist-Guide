@@ -6,6 +6,8 @@ const connectDB = require('./src/configs/database');
 
 const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const itineraryRoutes = require('./src/routes/itineraryRoutes');
+const reportRoutes = require('./src/routes/reportRoutes');
+const pdfRoutes = require('./src/routes/pdfRoutes');
 
 connectDB();
 
@@ -20,6 +22,8 @@ app.use(
 
 app.use('/api/feedback', feedbackRoutes); 
 app.use('/api/itinerary', itineraryRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/export', pdfRoutes);
 
 
 const PORT = process.env.PORT || 5000;
