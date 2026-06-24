@@ -1,25 +1,64 @@
 import React from 'react';
+import { useState } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 
-import { 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Cell, 
-  LineChart, 
-  Line 
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+  LineChart,
+  Line
 } from 'recharts';
 
 import PDF_PNG from "../assets/pdf.png";
+import { downloadReportPDF } from "../services/pdfService";
 
 const RevenueReport = () => {
 
+  const [showAlert, setShowAlert] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    try {
+      const currentUrl = window.location.href; // Get current page URL
+
+      // Fetch PDF blob via service layer
+      const result = await downloadReportPDF(currentUrl);
+
+      if (!result.success) {
+        alert("PDF download failed.");
+        return;
+      }
+
+      // Create a temporary local URL for the fetched Blob
+      const fileUrl = window.URL.createObjectURL(result.blob);
+
+      // Create a temporary hidden anchor to trigger save dialog
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.setAttribute('download', 'Revenue_Stat_Report.pdf'); // Output filename
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up temporary DOM elements
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(fileUrl);
+
+      // Show the success alert only after the download completes successfully
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 3500); // Hide alert after 3.5 seconds
+
+    } catch (error) {
+      console.error("PDF download failed:", error);
+      alert("PDF download failed.");
+    }
+  };
 
   const dbBarChartData = [
     { label: "Event", value: 500000, colorHex: "#2EC4B6" },
@@ -34,7 +73,12 @@ const RevenueReport = () => {
     { label: "Apr", value: 4000 },
     { label: "May", value: 3000 },
     { label: "Jun", value: 6000 },
-    { label: "Jul", value: 6000 }
+    { label: "Jul", value: 3500 },
+    { label: "Ags", value: 2100 },
+    { label: "Sep", value: 1100 },
+    { label: "Oct", value: 5500 },
+    { label: "Nov", value: 4500 },
+    { label: "Dec", value: 5100 }
   ];
 
   const tableData = [
@@ -78,7 +122,91 @@ const RevenueReport = () => {
   return (
     <div className="min-h-screen bg-[#EAF4FC]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      <Header />
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        * { box-sizing: border-box; }
+
+        @media print {
+            @page {
+                margin: 0; 
+            }
+            html, body, #root, .min-h-screen {
+                height: auto !important;
+                min-height: 0 !important;
+                background-color: #EAF4FC !important; 
+            }
+            body {
+                padding: 15mm 20mm; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background-color: #EAF4FC !important; 
+            }
+
+            header, footer {
+                display: none !important;
+            }
+
+            .grid {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 20px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .grid > div {
+                width: 100% !important;
+                max-width: 100% !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            .overflow-x-auto {
+                page-break-before: always !important; 
+                break-before: page !important;        
+                overflow: visible !important;
+                max-width: 100% !important;
+                width: 100% !important;
+
+                position: relative !important;
+                top: 15mm !important; 
+            }
+
+            table {
+                min-width: 100% !important;
+                width: 100% !important;
+                table-layout: fixed !important;
+                font-size: 11px !important; 
+            }
+            th, td {
+                padding: 6px 4px !important;
+                word-wrap: break-word !important;
+            }
+
+            thead tr th:first-child {
+                border-top-left-radius: 16px !important;
+            }
+            thead tr th:last-child {
+                border-top-right-radius: 16px !important;
+            }
+            tbody tr:last-child td:first-child {
+                border-bottom-left-radius: 16px !important;
+            }
+            tbody tr:last-child td:last-child {
+                border-bottom-right-radius: 16px !important;
+            }
+
+            tr {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+      `}</style>
+
+
+      <div className="print:hidden">
+        <Header />
+      </div>
 
       <main className="w-full px-4 sm:px-6 md:px-10 lg:px-16 py-10 flex flex-col items-center gap-10">
 
@@ -103,33 +231,33 @@ const RevenueReport = () => {
             {/* Plot Area - Recharts Bar Chart */}
             <div className="relative w-full h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={dbBarChartData} 
+                <BarChart
+                  data={dbBarChartData}
                   margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
                 >
                   {/* Dashed gridlines */}
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  
+
                   {/* X-Axis with rotated labels */}
-                  <XAxis 
-                    dataKey="label" 
-                    tick={{ fill: '#374151', fontSize: 11, fontWeight: 'bold' }} 
-                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }} 
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: '#374151', fontSize: 11, fontWeight: 'bold' }}
+                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
                     tickLine={false}
                     angle={-45}
                     textAnchor="end"
                   />
-                  
+
                   {/* Y-Axis */}
-                  <YAxis 
-                    tick={{ fill: '#4B5563', fontSize: 11, fontWeight: 'bold' }} 
-                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }} 
+                  <YAxis
+                    tick={{ fill: '#4B5563', fontSize: 11, fontWeight: 'bold' }}
+                    axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
                     tickLine={false}
                   />
-                  
+
                   {/* Tooltip on hover */}
                   <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
-                  
+
                   {/* Bar rendering with unique custom colors */}
                   <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45}>
                     {dbBarChartData.map((entry, index) => (
@@ -154,39 +282,39 @@ const RevenueReport = () => {
 
             <div className="relative w-full h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart 
-                  data={dbLineChartData} 
+                <LineChart
+                  data={dbLineChartData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
                 >
                   {/* Dashed gridlines */}
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#D1D5DB" />
-                  
+
                   {/* X-Axis */}
-                  <XAxis 
-                    dataKey="label" 
-                    tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }} 
-                    axisLine={false} 
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }}
+                    axisLine={false}
                     tickLine={false}
                   />
-                  
+
                   {/* Y-Axis (with Dollar prefix) */}
-                  <YAxis 
+                  <YAxis
                     tickFormatter={(val) => `$${val}`}
-                    tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }} 
-                    axisLine={false} 
+                    tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }}
+                    axisLine={false}
                     tickLine={false}
                   />
-                  
+
                   {/* Tooltip on hover */}
                   <Tooltip />
-                  
+
                   {/* Smooth red line with white bordered dots */}
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#F87171" 
-                    strokeWidth={2.5} 
-                    dot={{ r: 4, fill: '#F87171', strokeWidth: 1.5, stroke: '#FFFFFF' }} 
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#F87171"
+                    strokeWidth={2.5}
+                    dot={{ r: 4, fill: '#F87171', strokeWidth: 1.5, stroke: '#FFFFFF' }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
@@ -196,8 +324,10 @@ const RevenueReport = () => {
 
         </div>
 
-        <div className="w-full max-w-[1100px] flex justify-end mb-4 mr-12 pr-1 transform transition-transform duration-300 xl:translate-x-[110px] 2xl:translate-x-[220px]">
-          <button className="flex items-center gap-2 bg-[#1E50FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all">
+        <div className="w-full max-w-[1100px] flex justify-end mb-4 mr-12 pr-1 transform transition-transform duration-300 xl:translate-x-[110px] 2xl:translate-x-[220px] print:hidden">
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 bg-[#1E50FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-all">
             <img src={PDF_PNG} alt="PDF" className="w-5 h-5 object-contain" />
             <span>Download PDF</span>
           </button>
@@ -205,7 +335,7 @@ const RevenueReport = () => {
 
         <div className="w-full max-w-[1100px] overflow-x-auto rounded-2xl border border-gray-300 shadow-sm bg-white mb-10">
           <table className="w-full text-xs sm:text-sm text-gray-800 border-collapse min-w-[700px]">
-    
+
             <thead>
               <tr className="bg-[#59C1D9] text-gray-900 font-extrabold text-center border-b border-gray-300">
                 <th className="px-4 py-4 border-r border-gray-300 w-52">Month</th>
@@ -219,7 +349,7 @@ const RevenueReport = () => {
             <tbody>
               {tableData.map((row, idx) => (
                 <tr key={idx} className="border-b border-gray-300 text-center font-semibold hover:bg-slate-50/50 transition-colors">
-  
+
                   <td className={`px-4 py-3 border-r border-gray-300 font-bold ${monthColors[idx]}`}>
                     {row.month}
                   </td>
@@ -242,7 +372,36 @@ const RevenueReport = () => {
 
       </main>
 
-      <Footer />
+      <div className="print:hidden">
+        <Footer />
+      </div>
+
+      {/* PDF Downloaded Success Alert */}
+      {showAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-300">
+          <div className="bg-white rounded-3xl p-10 flex flex-col items-center text-center shadow-2xl border border-gray-100 max-w-[340px] transform scale-100 transition-transform">
+
+            {/* Green Checkmark Circle */}
+            <div className="w-16 h-16 bg-[#00C853] rounded-full flex items-center justify-center mb-6 shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="3.5"
+                stroke="white"
+                className="w-8 h-8"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+
+            {/* Alert Text */}
+            <h4 className="text-lg sm:text-xl font-bold text-gray-900 select-none">
+              PDF has been downloaded
+            </h4>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

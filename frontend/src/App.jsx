@@ -14,8 +14,8 @@ function App() {
     <>
       {/* <FinalTripReport /> */}
       {/* <FinalTripReportPDF /> */}
-      <TouristArrivalReport />
-      {/* <RevenueReport /> */}
+      {/* <TouristArrivalReport /> */}
+      <RevenueReport />
       {/* <BehaviorStatReport /> */}
       {/* <ComplaintReport /> */}
 
