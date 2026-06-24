@@ -25,6 +25,7 @@ router.route('/security-alerts/:id')
 // --- Incident Routes ---
 // Public incidents route MUST come before /:id to avoid "public" being treated as an id
 router.get('/incidents/public', incidentController.getPublicIncidents);
+router.get('/incidents/count', incidentController.getIncidentCount);
 
 router.get('/incidents', incidentController.getIncidents);
 router.post('/incidents', upload.array('images', 5), incidentController.createIncident);

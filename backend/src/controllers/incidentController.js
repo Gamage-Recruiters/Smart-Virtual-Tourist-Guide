@@ -113,6 +113,32 @@ exports.getPublicIncidents = async (req, res, next) => {
   }
 };
 
+// @desc    Get count of incidents (optionally filtered by touristId)
+// @route   GET /api/safety/incidents/count
+// @access  Private (Report Generator/Tourist)
+exports.getIncidentCount = async (req, res, next) => {
+  try {
+    const query = {};
+    if (req.query.touristId) query.touristId = req.query.touristId;
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.incidentCategory) query.incidentCategory = req.query.incidentCategory;
+
+    // Date range filter for the trip duration
+    if (req.query.startDate || req.query.endDate) {
+      query.createdAt = {};
+      if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+      if (req.query.endDate) query.createdAt.$lte = new Date(req.query.endDate);
+    }
+
+    const count = await Incident.countDocuments(query);
+    
+    res.status(200).json({ success: true, count });
+  } catch (error) {
+    logger.error('Error fetching incident count:', error);
+    next(error);
+  }
+};
+
 // @desc    Get single incident
 // @route   GET /api/safety/incidents/:id
 // @access  Private
