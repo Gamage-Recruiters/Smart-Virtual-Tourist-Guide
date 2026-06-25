@@ -1,14 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// Tourist routes
-import SignupForm from './pages/Tourist/SignupForm1';
-import TravelSafetyInfo from './pages/Tourist/SignupForm2';
-import DummyPageTourist from './pages/Tourist/dummyPage';
-
 // Login / Auth routes
 import LoginScreen from './pages/Login/LoginScreen';
 import ForgotPasswordScreen from './pages/Login/ForgotPasswordScreen';
 import NewPasswordCreate from './pages/Login/NewPasswordCreate';
+
+// Tourist routes
+import SignupForm from './pages/Tourist/SignupForm1';
+import TravelSafetyInfo from './pages/Tourist/SignupForm2';
+import DummyPageTourist from './pages/Tourist/dummyPage';
 
 // Hotel Owner routes
 import HotelOwnerSignup from './pages/HotelOwner/SignUp';
@@ -46,31 +46,25 @@ import DummyPageGovernment from './pages/Government/dummyPage';
 import AdminLogin from './pages/Admin/LoginPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
 
-// Driver routes
-import DriverSignUp1 from './pages/Driver/SignUpForm1';
-import DriverSignUp2 from './pages/Driver/SignUpForm2';
-import DriverSignUp3 from './pages/Driver/SignUpForm3';
-import DriverSignUp4 from './pages/Driver/SignUpForm4';
-import DummyPageDriver from './pages/Driver/dummyPage';
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Default / Login */}
         <Route path="/" element={<LoginScreen />} />
+        <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/create-password" element={<NewPasswordCreate />} />
+
+        {/* ─── HOTEL OWNER ─── */}
+        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
+        <Route path="/hotel-info" element={<HotelInfo />} />
+        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
 
         {/* Tourist */}
         <Route path="/tourist" element={<SignupForm />} />
         <Route path="/travel-safety" element={<TravelSafetyInfo />} />
         <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
-
-        {/* Hotel Owner */}
-        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
-        <Route path="/hotel-info" element={<HotelInfo />} />
-        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
 
         {/* Restaurant (signup flow) */}
         <Route path="/restuarant" element={<RestuarantSignup />} />
@@ -106,12 +100,12 @@ function App() {
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
 
-        {/* Driver */}
-        <Route path="/driver-signup1" element={<DriverSignUp1 />} />
-        <Route path="/driver-signup2" element={<DriverSignUp2 />} />
-        <Route path="/driver-signup3" element={<DriverSignUp3 />} />
-        <Route path="/driver-signup4" element={<DriverSignUp4 />} />
-        <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
+        {/* Driver routes — awaiting Driver team pages */}
+        {/* <Route path="/driver-signup1" element={<DriverSignUp1 />} /> */}
+        {/* <Route path="/driver-signup2" element={<DriverSignUp2 />} /> */}
+        {/* <Route path="/driver-signup3" element={<DriverSignUp3 />} /> */}
+        {/* <Route path="/driver-signup4" element={<DriverSignUp4 />} /> */}
+        {/* <Route path="/dashboard-Driver" element={<DummyPageDriver />} /> */}
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
