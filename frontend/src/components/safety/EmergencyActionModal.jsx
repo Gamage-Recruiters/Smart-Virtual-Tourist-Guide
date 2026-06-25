@@ -1,6 +1,35 @@
 import { FiX } from 'react-icons/fi';
+import { useState, useEffect, useMemo } from 'react';
+import MapContainer from './MapContainer';
 
-export default function EmergencyActionModal({ isOpen, onClose, data, onAction }) {
+export default function EmergencyActionModal({ isOpen, onClose, data, onAction, isLocationShare, currentLocation }) {
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  useEffect(() => {
+    if (isOpen && isLocationShare && currentLocation) {
+      setSelectedLocation(currentLocation);
+    } else {
+      setSelectedLocation(null);
+    }
+  }, [isOpen, isLocationShare, currentLocation]);
+
+  const selectedMarker = useMemo(() => {
+    if (!selectedLocation) return [];
+    return [
+      {
+        id: 'selected-location',
+        lat: selectedLocation.lat,
+        lng: selectedLocation.lng,
+        color: 'red',
+        popup: 'Selected Location',
+      },
+    ];
+  }, [selectedLocation]);
+
+  const handleAction = () => {
+    onAction(selectedLocation);
+  };
+
   if (!isOpen || !data) return null;
 
   return (
@@ -40,13 +69,38 @@ export default function EmergencyActionModal({ isOpen, onClose, data, onAction }
           <p className="text-[13.5px] md:text-sm text-slate-700 leading-relaxed">
             {data.description}
           </p>
+
+          {isLocationShare && (
+            <div className="mt-4">
+              <div className="overflow-hidden rounded-lg bg-sky-100 border border-slate-200 shadow-sm">
+                <div className="h-[200px]">
+                  <MapContainer
+                    center={selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : (currentLocation ? [currentLocation.lat, currentLocation.lng] : [7.8731, 80.7718])}
+                    zoom={selectedLocation || currentLocation ? 13 : 8}
+                    markers={selectedMarker}
+                    minHeight="200px"
+                    onMapClick={(lat, lng) => setSelectedLocation({ lat, lng })}
+                  />
+                </div>
+                {currentLocation && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLocation(currentLocation)}
+                    className="block w-full bg-[#e2e8f0] px-4 py-2 text-center text-[11.5px] font-extrabold text-slate-700 hover:bg-slate-300 transition-colors"
+                  >
+                    Reset to My Current Location
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action Footer */}
         <div className="px-6 pb-5">
           <button
-            onClick={onAction}
-            className={`w-full py-3.5 rounded-lg font-bold text-white transition-all transform hover:scale-[1.02] active:scale-95 shadow-md ${data.color} hover:brightness-110 text-sm tracking-wide`}
+            onClick={handleAction}
+            className={`w-full py-3.5 rounded-lg font-bold text-white transition-all active:scale-95 shadow-md ${data.color} hover:brightness-110 text-sm tracking-wide`}
           >
             {data.actionText || 'Proceed'}
           </button>

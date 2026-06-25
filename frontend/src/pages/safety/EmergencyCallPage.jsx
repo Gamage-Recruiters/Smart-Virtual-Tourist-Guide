@@ -61,17 +61,15 @@ export default function EmergencyCallPage() {
       assistanceLabel: 'SHARE YOUR EXACT GPS COORDINATES',
       phone: null,
       color: 'bg-[#5CB85C]',
-      description:
-        'Your live location sharing request has been initiated. In a web application context, we are now preparing a shareable link containing your real-time GPS coordinates, nearby landmark information, and a direct Google Maps reference for your trusted emergency contacts.',
       actionText: 'Share Location Link'
     }
   };
 
-  const handleEmergencyAction = () => {
+  const handleEmergencyAction = (selectedLocation) => {
     if (!activeEmergency) return;
 
     if (activeEmergency === 'location') {
-      shareLocation();
+      shareLocation(selectedLocation);
     } else {
       callNumber(emergencyActionsData[activeEmergency].phone);
     }
@@ -223,12 +221,15 @@ export default function EmergencyCallPage() {
     ...createMarkers(hospitalLocations, hospitalIcon, 'hospital'),
   ];
 
-  const shareLocation = async () => {
-    if (!location.latitude) {
-      alert('Location not available. Please enable location services.');
+  const shareLocation = async (selectedLocation) => {
+    const shareLat = selectedLocation?.lat || location.latitude;
+    const shareLng = selectedLocation?.lng || location.longitude;
+
+    if (!shareLat) {
+      alert('Location not available. Please enable location services or select a point on the map.');
       return;
     }
-    const text = `My current location: https://maps.google.com/?q=${location.latitude},${location.longitude}`;
+    const text = `My location: https://maps.google.com/?q=${shareLat},${shareLng}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Emergency location', text });
@@ -506,6 +507,8 @@ export default function EmergencyCallPage() {
         onClose={() => setActiveEmergency(null)}
         data={activeEmergency ? emergencyActionsData[activeEmergency] : null}
         onAction={handleEmergencyAction}
+        isLocationShare={activeEmergency === 'location'}
+        currentLocation={hasRealLocation ? { lat: location.latitude, lng: location.longitude } : null}
       />
     </div>
   )
