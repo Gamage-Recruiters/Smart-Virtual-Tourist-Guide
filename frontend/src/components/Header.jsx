@@ -28,11 +28,11 @@ function Header() {
             </div>
 
             <nav className="flex flex-wrap items-center justify-start gap-4 text-sm font-bold text-slate-500 md:justify-center">
-                <a className="transition hover:text-sky-800" href="hotel-owner-dashboard">Overview</a>
+                <a className="transition hover:text-sky-800" href="/">Overview</a>
                 <a className="transition hover:text-sky-800" href="view-rooms-packages">Rooms</a>
-                <a className="transition hover:text-sky-800" href="#availability">Availability</a>
-                <a className="transition hover:text-sky-800" href="#bookings">Bookings</a>
-                <a className="transition hover:text-sky-800" href="#revenue">Revenue</a>
+                <a className="transition hover:text-sky-800" href="manage-availability">Availability</a>
+                <a className="transition hover:text-sky-800" href="view-reservations">Bookings</a>
+                <a className="transition hover:text-sky-800" href="financial-analysis">Revenue</a>
             </nav>
 
             <div className="flex flex-wrap items-center gap-3 md:justify-end">

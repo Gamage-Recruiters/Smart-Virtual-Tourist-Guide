@@ -7,6 +7,7 @@ import AddSpecialPackages from './pages/AddSpecialPackages.jsx'
 import ManageRoomAvailability from './pages/ManageRoomAvailability.jsx'
 import ViewRoomAvailabilityCalenderPage from './pages/ViewRoomAvailabilityCalenderPage.jsx'
 import ViewRoomReservation from './pages/ViewRoomReservation.jsx'
+import FinancialAnalysisDashboard from './pages/FinancialAnalysisDashboard.jsx'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/manage-availability" element={<ManageRoomAvailability />} />
           <Route path="/view-availability-calendar" element={<ViewRoomAvailabilityCalenderPage />} />
           <Route path="/view-reservations" element={<ViewRoomReservation />} />
+          <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
           <Route path="*" element={<h1 className="text-center mt-20 text-3xl font-bold">404 - Page Not Found</h1>} />
         </Routes>
       </div>

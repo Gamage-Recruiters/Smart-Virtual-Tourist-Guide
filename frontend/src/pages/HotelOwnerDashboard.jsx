@@ -180,7 +180,7 @@ function HotelOwnerDashboard() {
 								<button className="inline-flex h-12 items-center gap-2 rounded-xl bg-sky-800 px-5 font-extrabold text-white shadow-lg shadow-sky-900/20 transition hover:bg-sky-900" type="button">
 									Explore More <FaArrowRight />
 								</button>
-								<button className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky-200 bg-white/90 px-5 font-extrabold text-sky-900 transition hover:border-sky-300 hover:bg-white" type="button">
+								<button onClick={() => (location.href = 'add-room-package')} className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky-200 bg-white/90 px-5 font-extrabold text-sky-900 transition hover:border-sky-300 hover:bg-white" type="button">
 									<FaPlus /> Add New Room
 								</button>
 							</div>

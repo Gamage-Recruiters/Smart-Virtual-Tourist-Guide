@@ -1,9 +1,11 @@
+import React, { useState } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer.jsx";
 import ViewCurrentRoomImg from "../assets/ViewCurrentRoomImg.png";
 import { FaArrowRight, FaPlus } from "react-icons/fa";
 import BgForCurrentRooms from "../assets/BgForViewCurrentRoom.png";
 import RoomCard from "../components/RoomCard.jsx";
+import PackageCard from '../components/PackageCard.jsx';
 import { href } from "react-router-dom";
 
 const sampleRooms = [
@@ -54,8 +56,52 @@ const sampleRooms = [
   }
 ];
 
-function ViewCurrentRoomsPackages() {
-  return (
+const samplePackages = [
+  {
+    id: 1,
+    name: 'Honeymoon Packages',
+    image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=400',
+    capacity: '4 Adults',
+    price: '250 $',
+    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
+  },
+  {
+    id: 2,
+    name: 'Standard Double Room with Fan',
+    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=400',
+    capacity: '2 Adults',
+    price: '98 $',
+    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
+  },
+  {
+    id: 3,
+    name: 'Family Room with Garden View',
+    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=400',
+    capacity: '5 Adults',
+    price: '189 $',
+    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
+  },
+  {
+    id: 4,
+    name: 'Deluxe King Suite',
+    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
+    capacity: '2 Adults & 1 Child',
+    price: '119 $',
+    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
+  },
+  {
+    id: 4,
+    name: 'Deluxe King Suite',
+    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
+    capacity: '2 Adults & 1 Child',
+    price: '119 $',
+    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
+  }
+];
+
+export default function ViewCurrentRoomsPackages() {
+    const [activeTab, setActiveTab] = useState('rooms');
+    return (
     <div>
         <div>
             <Header/>
@@ -74,10 +120,12 @@ function ViewCurrentRoomsPackages() {
                 <div className="flex max-w-3xl flex-col justify-center gap-5 text-slate-900">
                     <span className="text-[0.78rem] font-extrabold uppercase tracking-[0.14em] text-sky-800">Hotel owner dashboard</span>
                     <p className="font-black text-slate-950 sm:text-4xl">
-                        Add Rooms of Accomadations
+                        {activeTab === 'rooms' ? 'Add Rooms of Accommodations' : 'Exclusive Special Packages'}
                     </p>
                     <p className="max-w-2xl text-base leading-7 text-slate-700 sm:text-lg">
-                        Fill in the Details to Create a New Room for Your Hotel !
+                        {activeTab === 'rooms' 
+                          ? 'Fill in the Details to Create a New Room for Your Hotel !' 
+                          : 'Explore and attach seasonal dynamic discount packs to active room layouts.'}
                     </p>
 
                     <div className="flex flex-wrap gap-3">
@@ -104,30 +152,51 @@ function ViewCurrentRoomsPackages() {
                     
                     {/* Header Tab & Action Section */}
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10 border-b border-gray-100 pb-5">
-                    <div className="flex bg-gray-100 p-1.5 rounded-xl w-full sm:w-auto">
-                        <button className="flex-1 sm:flex-initial text-center px-6 py-2 rounded-lg text-sm font-bold bg-gray-300 text-slate-900 shadow-sm">
-                            Room Types
-                        </button>
-                        <button className="flex-1 sm:flex-initial text-center px-6 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors">
-                            Special Packages
-                        </button>
-                    </div>
+                        <div className="flex bg-gray-100 p-1.5 rounded-xl w-full sm:w-auto">
+                            <button 
+                                onClick={() => setActiveTab('rooms')}
+                                className={`flex-1 sm:flex-initial text-center px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    activeTab === 'rooms' 
+                                        ? 'bg-gray-300 text-slate-900 shadow-sm' 
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                Room Types
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('packages')}
+                                className={`flex-1 sm:flex-initial text-center px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    activeTab === 'packages' 
+                                        ? 'bg-gray-300 text-slate-900 shadow-sm' 
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                Special Packages
+                            </button>
+                        </div>
                     
-                    <button className="bg-[#007bff] hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition-colors shadow-sm self-end sm:self-center">
-                        + Add Room Type
-                    </button>
+                        <button className="bg-[#007bff] hover:bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition-colors shadow-sm self-end sm:self-center">
+                            {activeTab === 'rooms' ? '+ Add Room Type' : '+ Create Package'}
+                        </button>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {sampleRooms.map((roomItem) => (
-                            <RoomCard key={roomItem.id} room={roomItem} />
-                        ))}
-                    </div>
+
+                    {activeTab === 'rooms' ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {sampleRooms.map((roomItem, index) => (
+                                <RoomCard key={`${roomItem.id}-${index}`} room={roomItem} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {samplePackages.map((packageItem, index) => (
+                                <PackageCard key={`${packageItem.id}-${index}`} room={packageItem} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
         </main>
         <Footer/>
     </div>
-  );
-}
-
-export default ViewCurrentRoomsPackages;
+    );
+};
