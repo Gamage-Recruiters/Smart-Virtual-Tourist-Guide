@@ -1,6 +1,6 @@
 const reviewService = require('../services/review.service');
 const { calculateRatingStats } = require('../utils/rating.util');
-const Review = require('../models/Review'); 
+const Review = require('../models/Review.model'); 
 
 /**
  * @desc    Create a new review
