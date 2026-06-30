@@ -32,7 +32,7 @@ function ResturentLogingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: formData.email.trim().toLowerCase(),
+          identifier: formData.email.trim().toLowerCase(), // backend uses 'identifier' field
           password: formData.password,
         }),
       })
@@ -41,6 +41,12 @@ function ResturentLogingPage() {
 
       if (!res.ok) {
         setError(data.message || 'Invalid email or password.')
+        return
+      }
+
+      // Guard: only allow restaurant_user role
+      if (data.user?.role !== 'restaurant_user') {
+        setError('Access denied. This login is for restaurant accounts only.')
         return
       }
 

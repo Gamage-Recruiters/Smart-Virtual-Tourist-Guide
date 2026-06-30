@@ -97,7 +97,6 @@ function ResturentProfilePage() {
           ownerName: form.ownerName,
           phone: form.phone,
           address: form.address,
-          description: form.description,
           amenities: form.amenities,
           socialLinks: form.socialLinks,
           operatingHours: activeHours,
@@ -163,10 +162,6 @@ function ResturentProfilePage() {
             <div className="sm:col-span-2">
               <label className="block mb-1 text-xs font-medium text-slate-700">Address</label>
               <input name="address" value={form.address} onChange={handleChange} type="text" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white" />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block mb-1 text-xs font-medium text-slate-700">Description</label>
-              <textarea name="description" value={form.description} onChange={handleChange} rows="3" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white resize-none" />
             </div>
           </div>
         </div>
