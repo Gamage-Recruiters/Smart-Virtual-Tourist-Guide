@@ -65,6 +65,35 @@ exports.createAlert = async (req, res, next) => {
     };
 
     const alert = await SecurityAlert.create(alertData);
+
+    // --- Trigger Notification Engine ---
+    // Push this security alert to all connected users via Socket.io
+    try {
+      const { sendNotification } = require('../services/NotificationService');
+      const io = req.app.get('io');
+      if (io) {
+        await sendNotification(io, {
+          scope: 'BROADCAST',
+          title: `🚨 ${alert.title}`,
+          message: alert.description,
+          category: 'SAFETY',
+          priority: alert.severity === 'critical' ? 'critical' : alert.severity === 'high' ? 'high' : 'medium',
+          actionUrl: '/safety/security-alerts',
+          metadata: {
+            relatedId: alert._id,
+            entityType: 'SecurityAlert',
+          },
+          location: alert.location,
+          district: alert.district || alert.region,
+          expiresAt: alert.expiresAt,
+        });
+        logger.info(`Notification dispatched for security alert: ${alert._id}`);
+      }
+    } catch (notifErr) {
+      // Non-blocking: alert creation succeeds even if notification fails
+      logger.error('Notification dispatch failed (non-blocking):', notifErr.message);
+    }
+
     res.status(201).json({ success: true, data: alert });
   } catch (error) {
     logger.error('Error creating alert:', error);

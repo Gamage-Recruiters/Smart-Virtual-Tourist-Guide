@@ -147,7 +147,7 @@ function mapStatusToSeverity(status) {
  * Fetch live weather for all 25 districts from OpenWeather and upsert
  * SecurityAlert documents. Deduplicates by externalId.
  */
-async function syncWeatherAlerts() {
+async function syncWeatherAlerts(io) {
   const apiKey = process.env.OPENWEATHER_API_KEY;
   if (!apiKey || apiKey === 'your_openweather_api_key_here') {
     logger.error('[AlertSync] OPENWEATHER_API_KEY not configured');
@@ -207,6 +207,27 @@ async function syncWeatherAlerts() {
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
       synced++;
+
+      // --- Trigger Notification Engine ---
+      // Push weather alerts to all connected users via Socket.io
+      if (io) {
+        try {
+          const { sendNotification } = require('../services/NotificationService');
+          await sendNotification(io, {
+            scope: 'BROADCAST',
+            title: `${data.weather?.[0]?.main || 'Weather'} Alert — ${place.district}`,
+            message: risk,
+            category: 'SAFETY',
+            priority: status === 'Critical' ? 'critical' : status === 'High' ? 'high' : 'medium',
+            actionUrl: '/safety/weather-alerts',
+            location: { type: 'Point', coordinates: [place.lng, place.lat] },
+            district: place.district,
+            expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+          });
+        } catch (notifErr) {
+          logger.error(`[AlertSync] Notification failed for ${place.district}:`, notifErr.message);
+        }
+      }
     } catch (err) {
       logger.error(`[AlertSync] Error processing ${place.district}:`, err.message);
       errors++;
