@@ -10,7 +10,16 @@ const FOOD_TYPE_COLORS = {
   Vegan: 'bg-emerald-100 text-emerald-700',
 }
 
-const ALL_FILTERS = ['All Items', 'Vegetarian', 'Non-Vegetarian', 'Vegan']
+const ALL_FILTERS = [
+  'All Items',
+  'Vegetarian',
+  'Non-Vegetarian',
+  'Vegan',
+  'Appetizer',
+  'Main Course',
+  'Dessert',
+  'Beverage'
+]
 
 function ResturentMenuPage() {
   const navigate = useNavigate()
@@ -56,7 +65,13 @@ function ResturentMenuPage() {
   useEffect(() => {
     let result = menuItems
     if (activeFilter !== 'All Items') {
-      result = result.filter(item => item.foodType === activeFilter)
+      const foodTypes = ['Vegetarian', 'Non-Vegetarian', 'Vegan']
+      if (foodTypes.includes(activeFilter)) {
+        result = result.filter(item => item.foodType === activeFilter)
+      } else {
+        // Filter by Category
+        result = result.filter(item => item.category === activeFilter)
+      }
     }
     if (search.trim()) {
       const q = search.trim().toLowerCase()
@@ -69,6 +84,7 @@ function ResturentMenuPage() {
     }
     setFiltered(result)
   }, [search, activeFilter, menuItems])
+
 
   const handleToggleAvailability = async (id) => {
     try {
