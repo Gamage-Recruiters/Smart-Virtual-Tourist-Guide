@@ -812,7 +812,7 @@ const LoginScreen = () => {
             </Link>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
-            <Link to="/restuarant" className="flex-1 btn-primary bg-purple-600 hover:bg-purple-700 py-3 text-center text-sm">
+            <Link to="/resturent/register" className="flex-1 btn-primary bg-purple-600 hover:bg-purple-700 py-3 text-center text-sm">
               Restaurant Register
             </Link>
             <Link to="/renter" className="flex-1 btn-primary bg-teal-600 hover:bg-teal-700 py-3 text-center text-sm">

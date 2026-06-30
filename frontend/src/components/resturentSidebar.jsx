@@ -2,13 +2,13 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { FiGrid, FiList, FiCalendar, FiTag, FiMessageSquare, FiCreditCard, FiUser } from 'react-icons/fi'
 
 const navigationItems = [
-  { label: 'Dashboard', to: '/dashboard', icon: FiGrid, end: true },
-  { label: 'Menu', to: '/dashboard/menu', icon: FiList },
-  { label: 'Reservation', to: '/dashboard/reservation', icon: FiCalendar },
-  { label: 'Offers', to: '/dashboard/offers', icon: FiTag },
-  { label: 'Reviews', to: '/dashboard/reviews', icon: FiMessageSquare },
-  { label: 'Revenue', to: '/dashboard/revenue', icon: FiCreditCard },
-  { label: 'Profile', to: '/dashboard/profile', icon: FiUser }
+  { label: 'Dashboard', to: '/resturent/dashboard', icon: FiGrid, end: true },
+  { label: 'Menu', to: '/resturent/dashboard/menu', icon: FiList },
+  { label: 'Reservation', to: '/resturent/dashboard/reservation', icon: FiCalendar },
+  { label: 'Offers', to: '/resturent/dashboard/offers', icon: FiTag },
+  { label: 'Reviews', to: '/resturent/dashboard/reviews', icon: FiMessageSquare },
+  { label: 'Revenue', to: '/resturent/dashboard/revenue', icon: FiCreditCard },
+  { label: 'Profile', to: '/resturent/dashboard/profile', icon: FiUser }
 ]
 
 function ResturentSidebar() {

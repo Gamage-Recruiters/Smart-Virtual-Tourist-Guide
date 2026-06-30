@@ -16,19 +16,17 @@ import HotelInfo from './pages/HotelOwner/HotelInfo';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 
 // Restaurant routes
-import RestuarantSignup from './pages/Restuarant/SignupPage';
-import DummyPageRestaurant from './pages/Restuarant/dummyPage';
-import ResturentLogingPage from './pages/resturentLogingPage';
-import ResturentRegistrationPage from './pages/resturentRegistrationPage';
+import ResturentLogingPage from './pages/Restuarant/resturentLogingPage';
+import ResturentRegistrationPage from './pages/Restuarant/resturentRegistrationPage';
 import ResturentSidebar from './components/resturentSidebar';
-import ResturentDashboardPage from './pages/resturentDashboardPage';
-import ResturentMenuPage from './pages/resturentMenuPage';
-import ResturentAddMenuPage from './pages/resturentAddMenuPage';
-import ResturentReservationPage from './pages/resturentReservationPage';
-import ResturentOfferPage from './pages/resturentOfferPage';
-import ResturentReviewPage from './pages/resturentReviewPage';
-import ResturentRevenuePage from './pages/resturentRevenuePage';
-import ResturentProfilePage from './pages/resturentProfilePage';
+import ResturentDashboardPage from './pages/Restuarant/resturentDashboardPage';
+import ResturentMenuPage from './pages/Restuarant/resturentMenuPage';
+import ResturentAddMenuPage from './pages/Restuarant/resturentAddMenuPage';
+import ResturentReservationPage from './pages/Restuarant/resturentReservationPage';
+import ResturentOfferPage from './pages/Restuarant/resturentOfferPage';
+import ResturentReviewPage from './pages/Restuarant/resturentReviewPage';
+import ResturentRevenuePage from './pages/Restuarant/resturentRevenuePage';
+import ResturentProfilePage from './pages/Restuarant/resturentProfilePage';
 
 // Guide routes
 import GuideSignup from './pages/Guide/SignupPage';
@@ -66,11 +64,7 @@ function App() {
         <Route path="/travel-safety" element={<TravelSafetyInfo />} />
         <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
 
-        {/* Restaurant (signup flow) */}
-        <Route path="/restuarant" element={<RestuarantSignup />} />
-        <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
-
-        {/* Restaurant Management (dashboard) */}
+        {/* Restaurant Management */}
         <Route path="/resturent/login" element={<ResturentLogingPage />} />
         <Route path="/resturent/register" element={<ResturentRegistrationPage />} />
         <Route path="/resturent/dashboard" element={<ResturentSidebar />}>
