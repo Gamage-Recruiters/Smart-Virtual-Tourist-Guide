@@ -19,6 +19,7 @@ import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import ResturentLogingPage from './pages/Restuarant/resturentLogingPage';
 import ResturentRegistrationPage from './pages/Restuarant/resturentRegistrationPage';
 import ResturentSidebar from './components/resturentSidebar';
+import ProtectedRoute from './components/ProtectedRoute';
 import ResturentDashboardPage from './pages/Restuarant/resturentDashboardPage';
 import ResturentMenuPage from './pages/Restuarant/resturentMenuPage';
 import ResturentAddMenuPage from './pages/Restuarant/resturentAddMenuPage';
@@ -67,7 +68,14 @@ function App() {
         {/* Restaurant Management */}
         <Route path="/resturent/login" element={<ResturentLogingPage />} />
         <Route path="/resturent/register" element={<ResturentRegistrationPage />} />
-        <Route path="/resturent/dashboard" element={<ResturentSidebar />}>
+        <Route
+          path="/resturent/dashboard"
+          element={
+            <ProtectedRoute>
+              <ResturentSidebar />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<ResturentDashboardPage />} />
           <Route path="menu" element={<ResturentMenuPage />} />
           <Route path="menu/add" element={<ResturentAddMenuPage />} />

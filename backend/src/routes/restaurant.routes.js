@@ -1,14 +1,43 @@
 const express = require("express");
 const restaurantController = require("../controllers/restaurant.controller");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", restaurantController.createRestaurantProfile);
+// ── Public routes (tourists can browse) ─────────────────────────────────────
 router.get("/", restaurantController.getAllRestaurants);
 router.get("/:id", restaurantController.getRestaurantProfileById);
-router.put("/:id", restaurantController.updateRestaurantProfile);
-router.delete("/:id", restaurantController.deleteRestaurantProfile);
-router.put("/:id/banner", restaurantController.updateBannerImage);
-router.put("/:id/hours", restaurantController.updateOperatingHours);
+
+// ── Protected routes (restaurant_user only) ──────────────────────────────────
+router.post(
+  "/",
+  protect,
+  authorizeRoles("restaurant_user"),
+  restaurantController.createRestaurantProfile
+);
+router.put(
+  "/:id",
+  protect,
+  authorizeRoles("restaurant_user"),
+  restaurantController.updateRestaurantProfile
+);
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("restaurant_user"),
+  restaurantController.deleteRestaurantProfile
+);
+router.put(
+  "/:id/banner",
+  protect,
+  authorizeRoles("restaurant_user"),
+  restaurantController.updateBannerImage
+);
+router.put(
+  "/:id/hours",
+  protect,
+  authorizeRoles("restaurant_user"),
+  restaurantController.updateOperatingHours
+);
 
 module.exports = router;
