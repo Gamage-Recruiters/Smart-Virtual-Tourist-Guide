@@ -11,6 +11,9 @@ function ResturentProfilePage() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [form, setForm] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
 
   useEffect(() => {
     const init = async () => {
@@ -25,6 +28,7 @@ function ResturentProfilePage() {
 
         if (matched) {
           setRestaurant(matched)
+          setImagePreview(matched.bannerImage || '')
           setForm({
             restaurantName: matched.restaurantName || '',
             ownerName: matched.ownerName || '',
@@ -33,6 +37,7 @@ function ResturentProfilePage() {
             address: matched.address || '',
             description: matched.description || '',
             amenities: matched.amenities || [],
+            bannerImage: matched.bannerImage || '',
             socialLinks: {
               website: matched.socialLinks?.website || '',
               facebook: matched.socialLinks?.facebook || '',
@@ -81,12 +86,41 @@ function ResturentProfilePage() {
     })
   }
 
+  const handleFileSelected = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setSelectedFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
     setSaveMsg('')
     try {
       const token = localStorage.getItem('token')
+      let bannerImageUrl = form.bannerImage
+
+      if (selectedFile) {
+        setUploading(true)
+        const uploadData = new FormData()
+        uploadData.append('image', selectedFile)
+
+        const uploadRes = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: uploadData
+        })
+        const uploadResult = await uploadRes.json()
+        if (uploadRes.ok && uploadResult.success) {
+          bannerImageUrl = uploadResult.imageUrl
+        }
+        setUploading(false)
+      }
+
       const activeHours = form.operatingHours.filter(h => h.enabled).map(({ day, open, close }) => ({ day, open, close }))
 
       const res = await fetch(`${API_BASE}/restaurants/${restaurant._id}`, {
@@ -100,12 +134,14 @@ function ResturentProfilePage() {
           amenities: form.amenities,
           socialLinks: form.socialLinks,
           operatingHours: activeHours,
+          bannerImage: bannerImageUrl
         }),
       })
 
       if (res.ok) {
         const updated = await res.json()
         setRestaurant(updated)
+        setForm(prev => ({ ...prev, bannerImage: updated.bannerImage }))
         setSaveMsg('Profile saved successfully!')
       } else {
         setSaveMsg('Failed to save. Please try again.')
@@ -162,6 +198,31 @@ function ResturentProfilePage() {
             <div className="sm:col-span-2">
               <label className="block mb-1 text-xs font-medium text-slate-700">Address</label>
               <input name="address" value={form.address} onChange={handleChange} type="text" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block mb-1 text-xs font-medium text-slate-700">Restaurant Banner Image / Profile Pic</label>
+              <div className="mt-2 flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelected}
+                  className="hidden"
+                  id="profile-pic-upload"
+                />
+                <label
+                  htmlFor="profile-pic-upload"
+                  className="cursor-pointer rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  Choose New Photo
+                </label>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="h-16 w-28 object-cover rounded-lg border border-slate-200"
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>

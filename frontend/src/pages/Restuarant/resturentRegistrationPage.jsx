@@ -18,12 +18,14 @@ function ResturentRegistrationPage() {
     phone: '',
     address: '',
     amenities: [],
+    bannerImage: '',
     password: '',
     confirmPassword: ''
   })
 
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [apiError, setApiError] = useState('')
 
   const handleChange = (e) => {
@@ -31,6 +33,42 @@ function ResturentRegistrationPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     if (apiError) setApiError('')
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    setUploading(true)
+    setApiError('')
+
+    const uploadData = new FormData()
+    uploadData.append('image', file)
+
+    try {
+      // Temporarily use registration password/email context if registering, but since we are not authenticated yet we don't have token.
+      // Wait, the `/api/upload` endpoint was protected by `protect`. Let's allow unauthenticated uploads for signup or modify the /api/upload route to allow unauthenticated upload?
+      // Since it's safer to have open upload or token-based upload. Wait, during sign up, the user first calls `/auth/register/restaurant` which returns a token, and then calls `/restaurants` profile post.
+      // So we can upload the file AFTER the first register step or make uploading open, or wait until register creates the token, then upload, then create profile.
+      // Even simpler: we can do the file upload right during the handleSubmit once the token is obtained! Let's do that to keep it secure.
+      // We will store the selected file in state first.
+    } catch (err) {
+      setApiError('Image upload failed.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // We will store the local file in a separate state
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
+
+  const handleFileSelected = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setSelectedFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
   }
 
   const handleAmenityChange = (amenity) => {
@@ -80,6 +118,7 @@ function ResturentRegistrationPage() {
       const authData = await authRes.json()
       if (!authRes.ok) {
         setApiError(authData.message || 'Registration failed. Please try again.')
+        setLoading(false)
         return
       }
 
@@ -87,6 +126,27 @@ function ResturentRegistrationPage() {
       const token = authData.token
       localStorage.setItem('token', token)
       localStorage.setItem('restaurantUser', JSON.stringify(authData.user))
+
+      // Step 1.5: If a file is selected, upload it to Cloudinary using the new token
+      let bannerImageUrl = ''
+      if (selectedFile) {
+        setUploading(true)
+        const uploadData = new FormData()
+        uploadData.append('image', selectedFile)
+        
+        const uploadRes = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: uploadData
+        })
+        const uploadResult = await uploadRes.json()
+        if (uploadRes.ok && uploadResult.success) {
+          bannerImageUrl = uploadResult.imageUrl
+        }
+        setUploading(false)
+      }
 
       // Step 2: Create restaurant profile
       const profileRes = await fetch(`${API_BASE}/restaurants`, {
@@ -103,11 +163,11 @@ function ResturentRegistrationPage() {
           phone: formData.phone,
           address: formData.address,
           amenities: formData.amenities,
+          bannerImage: bannerImageUrl
         }),
       })
 
       if (!profileRes.ok) {
-        // Auth succeeded but profile creation failed — still navigate to dashboard
         console.warn('Restaurant profile creation issue:', await profileRes.json())
       }
 
@@ -119,6 +179,7 @@ function ResturentRegistrationPage() {
       setLoading(false)
     }
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50">
@@ -238,7 +299,7 @@ function ResturentRegistrationPage() {
             />
             {errors.phone && <p className="text-xs text-red-500 mb-4">{errors.phone}</p>}
 
-            {/* Address */}
+             {/* Address */}
             <label htmlFor="address" className="block mb-1 text-xs text-slate-700 font-medium">
               Address
             </label>
@@ -252,6 +313,34 @@ function ResturentRegistrationPage() {
               className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.address ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             />
             {errors.address && <p className="text-xs text-red-500 mb-4">{errors.address}</p>}
+
+            {/* Profile Picture Upload */}
+            <label className="block mb-1 text-xs text-slate-700 font-medium">
+              Restaurant Profile Picture / Banner
+            </label>
+            <div className="mb-4 flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelected}
+                className="hidden"
+                id="profile-pic-upload"
+              />
+              <label
+                htmlFor="profile-pic-upload"
+                className="cursor-pointer rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                Choose Photo
+              </label>
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-12 w-12 object-cover rounded-lg border border-slate-200"
+                />
+              )}
+            </div>
+
 
             {/* Amenities */}
             <fieldset className="mb-4">

@@ -6,6 +6,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const restaurantRoutes = require('./routes/restaurant.routes');
 const menuItemRoutes = require('./routes/menuItem.routes');
 const offerRoutes = require('./routes/offer.routes');
+const uploadRoutes = require('./routes/upload.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -30,6 +31,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/menu', menuItemRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/upload', uploadRoutes);
+
 
 // Error handling middleware
 app.use(errorHandler);

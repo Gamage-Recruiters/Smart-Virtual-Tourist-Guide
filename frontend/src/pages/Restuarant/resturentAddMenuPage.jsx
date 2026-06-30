@@ -16,7 +16,10 @@ function ResturentAddMenuPage() {
   const [formData, setFormData] = useState({ name: '', description: '', price: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [apiError, setApiError] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
 
   const categoryPreview = useMemo(() => selectedCategory, [selectedCategory])
 
@@ -25,6 +28,14 @@ function ResturentAddMenuPage() {
     setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     if (apiError) setApiError('')
+  }
+
+  const handleFileSelected = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setSelectedFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
   }
 
   const validate = () => {
@@ -56,7 +67,29 @@ function ResturentAddMenuPage() {
 
       if (!matched) {
         setApiError('Restaurant profile not found. Please complete registration first.')
+        setLoading(false)
         return
+      }
+
+      // Step 1: Upload photo if selected
+      let uploadedImageUrl = ''
+      if (selectedFile) {
+        setUploading(true)
+        const uploadData = new FormData()
+        uploadData.append('image', selectedFile)
+
+        const uploadRes = await fetch(`${API_BASE}/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: uploadData
+        })
+        const uploadResult = await uploadRes.json()
+        if (uploadRes.ok && uploadResult.success) {
+          uploadedImageUrl = uploadResult.imageUrl
+        }
+        setUploading(false)
       }
 
       const res = await fetch(`${API_BASE}/menu`, {
@@ -71,6 +104,7 @@ function ResturentAddMenuPage() {
           foodType,
           isAvailable: isAvailableToday,
           isVegan,
+          imageUrl: uploadedImageUrl
         }),
       })
 
@@ -87,6 +121,7 @@ function ResturentAddMenuPage() {
       setLoading(false)
     }
   }
+
 
   return (
     <section className="overflow-hidden rounded-3xl bg-slate-50 shadow-xl ring-1 ring-slate-200">
@@ -122,20 +157,37 @@ function ResturentAddMenuPage() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-          {/* Photo Upload Placeholder */}
+           {/* Photo Upload Placeholder */}
           <aside className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h3 className="text-lg font-semibold text-slate-900">Dish Photography</h3>
             <div className="mt-4 rounded-2xl bg-blue-50 p-5 text-center ring-1 ring-blue-100">
-              <div className="flex h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-white text-blue-500">
-                <div className="rounded-full bg-blue-50 p-3 text-2xl">📷</div>
-                <p className="mt-4 text-sm font-semibold text-slate-700">Click to upload</p>
-                <p className="mt-1 text-xs text-slate-400">High-res JPG or PNG</p>
-              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelected}
+                className="hidden"
+                id="menu-photo-upload"
+              />
+              <label
+                htmlFor="menu-photo-upload"
+                className="flex h-44 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-white text-blue-500 cursor-pointer overflow-hidden"
+              >
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                ) : (
+                  <>
+                    <div className="rounded-full bg-blue-50 p-3 text-2xl">📷</div>
+                    <p className="mt-4 text-sm font-semibold text-slate-700">Click to upload</p>
+                    <p className="mt-1 text-xs text-slate-400">High-res JPG or PNG</p>
+                  </>
+                )}
+              </label>
               <div className="mt-4 rounded-xl bg-white p-3 text-left text-xs text-slate-500 ring-1 ring-slate-200">
                 Bright, natural lighting works best for food shots to attract international travelers.
               </div>
             </div>
           </aside>
+
 
           {/* Form */}
           <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-6">
