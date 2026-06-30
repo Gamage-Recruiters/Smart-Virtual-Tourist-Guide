@@ -24,6 +24,7 @@ const ALL_FILTERS = [
 function ResturentMenuPage() {
   const navigate = useNavigate()
   const [menuItems, setMenuItems] = useState([])
+  const [offers, setOffers] = useState([])
   const [filtered, setFiltered] = useState([])
   const [activeFilter, setActiveFilter] = useState('All Items')
   const [search, setSearch] = useState('')
@@ -47,6 +48,11 @@ function ResturentMenuPage() {
         if (!matched) { setLoading(false); return }
 
         setRestaurantId(matched._id)
+
+        // Fetch active offers for this restaurant
+        const offersRes = await fetch(`${API_BASE}/offers/restaurant/${matched._id}`, { headers })
+        const offersData = await offersRes.json()
+        setOffers(Array.isArray(offersData) ? offersData.filter(o => o.isActive) : [])
 
         const menuRes = await fetch(`${API_BASE}/menu/restaurant/${matched._id}`, { headers })
         const items = await menuRes.json()
@@ -84,6 +90,7 @@ function ResturentMenuPage() {
     }
     setFiltered(result)
   }, [search, activeFilter, menuItems])
+
 
 
   const handleToggleAvailability = async (id) => {
@@ -231,7 +238,20 @@ function ResturentMenuPage() {
                   <span className={`absolute top-3 right-3 rounded-full px-2 py-1 text-[10px] font-semibold ${item.isAvailable ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                     {item.isAvailable ? 'Available' : 'Unavailable'}
                   </span>
+                  
+                  {/* Discount percentage badge */}
+                  {offers.length > 0 && (() => {
+                    const bestOffer = offers.reduce((prev, current) => 
+                      (prev.discountPercentage > current.discountPercentage) ? prev : current
+                    );
+                    return (
+                      <span className="absolute top-3 left-3 rounded-full bg-emerald-100 px-2..5 py-1 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                        {bestOffer.discountPercentage}% OFF
+                      </span>
+                    );
+                  })()}
                 </div>
+
 
                 <div className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -247,13 +267,37 @@ function ResturentMenuPage() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-slate-900">
-                      LKR {item.price?.toFixed(2)}
-                    </span>
+                    <div>
+                      {offers.length > 0 ? (
+                        (() => {
+                          // Find largest active offer discount
+                          const bestOffer = offers.reduce((prev, current) => 
+                            (prev.discountPercentage > current.discountPercentage) ? prev : current
+                          );
+                          const discount = bestOffer.discountPercentage;
+                          const discountedPrice = item.price * (1 - discount / 100);
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-red-500 line-through">
+                                LKR {item.price?.toFixed(2)}
+                              </span>
+                              <span className="text-lg font-bold text-slate-900">
+                                LKR {discountedPrice?.toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-lg font-bold text-slate-900">
+                          LKR {item.price?.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                     <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                       {item.category}
                     </span>
                   </div>
+
 
                   <div className="flex gap-2 pt-1">
                     <button
