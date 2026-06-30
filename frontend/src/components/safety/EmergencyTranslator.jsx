@@ -29,7 +29,7 @@ export default function EmergencyTranslator() {
               id="source-lang-select"
               value={sourceLang}
               onChange={(e) => setSourceLang(e.target.value)}
-              className="h-5 w-full border border-black bg-white px-2 text-xs font-normal"
+              className="h-7 sm:h-5 w-full border border-black bg-white px-2 text-xs font-normal rounded"
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>
@@ -72,7 +72,7 @@ export default function EmergencyTranslator() {
               id="target-lang-select"
               value={targetLang}
               onChange={(e) => setTargetLang(e.target.value)}
-              className="h-5 w-full border border-black bg-white px-2 text-xs font-normal"
+              className="h-7 sm:h-5 w-full border border-black bg-white px-2 text-xs font-normal rounded"
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>

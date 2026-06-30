@@ -48,7 +48,7 @@ export default function IncidentTrackingPage() {
 
   return (
     <main
-      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-6 py-9 md:px-14"
+      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-4 py-6 sm:px-6 sm:py-9 md:px-14"
       style={{ backgroundImage: `linear-gradient(rgba(214, 234, 244, 0.68), rgba(214, 234, 244, 0.68)), url(${backgroundImage})` }}
     >
       <div className="mx-auto max-w-6xl">
@@ -59,7 +59,7 @@ export default function IncidentTrackingPage() {
             <select
               value={month}
               onChange={(event) => setMonth(event.target.value)}
-              className="h-5 w-40 border border-black bg-white px-2 text-xs"
+              className="h-8 w-full sm:h-5 sm:w-40 border border-black bg-white px-2 text-xs rounded"
             >
               <option value="all">All</option>
               <option value="01">January</option>
@@ -135,7 +135,7 @@ function HorizontalBarChart({ data }) {
   return (
     <div className="space-y-3">
       {entries.map(([label, value]) => (
-        <div key={label} className="grid grid-cols-[120px_1fr_36px] items-center gap-3 text-xs">
+        <div key={label} className="grid grid-cols-[80px_1fr_30px] sm:grid-cols-[120px_1fr_36px] items-center gap-2 sm:gap-3 text-xs">
           <span className="truncate text-right font-semibold text-slate-700">{label}</span>
           <div className="h-6 bg-slate-100">
             <div className="flex h-6 items-center justify-end bg-gradient-to-r from-sky-300 to-blue-600 pr-2 text-[10px] font-bold text-white" style={{ width: `${Math.max((value / max) * 100, 8)}%` }}>

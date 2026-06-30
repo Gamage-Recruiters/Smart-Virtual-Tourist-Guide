@@ -40,7 +40,7 @@ export default function DashboardHome() {
 
   return (
     <main
-      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-6 py-10 md:px-14"
+      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-4 py-6 sm:px-6 sm:py-10 md:px-14"
       style={{ backgroundImage: `linear-gradient(rgba(214, 234, 244, 0.68), rgba(214, 234, 244, 0.68)), url(${backgroundImage})` }}
     >
       <div className="mx-auto max-w-5xl">

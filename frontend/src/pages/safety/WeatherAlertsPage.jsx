@@ -241,7 +241,7 @@ export default function WeatherAlertsPage() {
   const selectedRisk = assessWeatherRisk(openWeather)
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <header>
           <h2 className="text-sm font-extrabold uppercase text-black">Weather alerts and recommendations</h2>
@@ -267,7 +267,7 @@ export default function WeatherAlertsPage() {
                 <select
                   value={district}
                   onChange={(event) => setDistrict(event.target.value)}
-                  className="h-5 w-40 border border-black bg-white px-2 text-xs font-normal"
+                  className="h-8 w-full sm:h-5 sm:w-40 border border-black bg-white px-2 text-xs font-normal rounded"
                 >
                   {DISTRICT_NAMES.map(dist => (
                     <option key={dist} value={dist}>{dist}</option>
@@ -335,7 +335,7 @@ export default function WeatherAlertsPage() {
                   Refresh
                 </button>
               </div>
-              <div className="mt-4 overflow-x-auto overflow-y-auto max-h-64 flex-1 rounded-md border border-slate-100 custom-scrollbar">
+              <div className="mt-4 overflow-x-auto overflow-y-auto max-h-48 sm:max-h-64 flex-1 rounded-md border border-slate-100 custom-scrollbar">
                 <table className="w-full min-w-full text-left text-sm relative">
                   <thead className="bg-slate-50 text-slate-600 sticky top-0 shadow-sm z-10">
                     <tr>
@@ -365,17 +365,37 @@ export default function WeatherAlertsPage() {
               <div className="mb-4">
                 <h2 className="text-xl font-bold text-slate-900">Live weather map</h2>
               </div>
-              {/* Map + legend wrapper — position:relative so the legend overlay is anchored */}
-              <div className="relative h-[560px]">
+              {/* Map container */}
+              <div className="relative h-[300px] sm:h-[400px] lg:h-[560px] rounded-lg overflow-hidden">
                 <MapContainer center={[7.25, 80.75]} zoom={8} markers={markers} />
 
-                <MapLegend title="Risk Level" position="bottom-left" layout="horizontal" />
+                {/* Legend overlay — hidden on mobile, shown on sm+ */}
+                <div className="hidden sm:block">
+                  <MapLegend title="Risk Level" position="bottom-left" layout="horizontal" />
+                </div>
+              </div>
+              {/* Legend below map on mobile */}
+              <div className="sm:hidden mt-3 flex flex-wrap items-center gap-3 rounded-lg bg-white/90 border border-slate-200 px-3 py-2">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Risk Level</span>
+                <div className="flex flex-wrap items-center gap-3">
+                  {[
+                    { color: '#22c55e', label: 'Low' },
+                    { color: '#eab308', label: 'Medium' },
+                    { color: '#f97316', label: 'High' },
+                    { color: '#ef4444', label: 'Critical' },
+                  ].map(({ color, label }) => (
+                    <div key={label} className="flex items-center gap-1.5">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: color, border: '2px solid rgba(0,0,0,0.15)' }} />
+                      <span className="text-[11px] font-bold uppercase text-slate-500">{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm flex flex-col">
               <h2 className="text-xl font-bold text-slate-900">7-day forecast</h2>
-              <div className="mt-4 grid grid-cols-7 gap-3">
+              <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-3">
                 {forecastList.map((day) => (
                   <div key={day.day} className="rounded-lg border border-slate-200 p-3 flex flex-col items-center text-center">
                     <p className="font-bold text-slate-900">{day.day}</p>

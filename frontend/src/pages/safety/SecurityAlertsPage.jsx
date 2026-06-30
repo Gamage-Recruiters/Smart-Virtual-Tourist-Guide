@@ -54,7 +54,7 @@ export default function SecurityAlertsPage() {
   }, [alerts]);
 
   return (
-    <main className="min-h-screen bg-[#F6F8FA] px-6 py-7 md:px-9">
+    <main className="min-h-screen bg-[#F6F8FA] px-4 py-5 sm:px-6 md:px-9 sm:py-7">
       {/* Main Content Area */}
       <div className="mx-auto max-w-[1160px]">
 
@@ -91,7 +91,7 @@ export default function SecurityAlertsPage() {
             </div>
 
             {/* 4. The Live Feed Sidebar */}
-            <div className="order-1 xl:order-2 flex flex-col h-[543px]">
+            <div className="order-1 xl:order-2 flex flex-col h-[320px] sm:h-[400px] xl:h-[543px]">
               <div className="mb-4">
                 <h2 className="text-lg font-extrabold text-black">Alerts Feed</h2>
                 <p className="text-xs text-slate-500">Live Active Alerts</p>

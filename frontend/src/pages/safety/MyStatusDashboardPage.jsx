@@ -109,7 +109,7 @@ export default function MyStatusDashboardPage() {
 
   return (
     <main
-      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-6 py-9 md:px-14"
+      className="min-h-screen bg-cover bg-center bg-[#eef8ff] px-4 py-6 sm:px-6 sm:py-9 md:px-14"
       style={{ backgroundImage: `linear-gradient(rgba(214, 234, 244, 0.68), rgba(214, 234, 244, 0.68)), url(${backgroundImage})` }}
     >
       <div className="mx-auto max-w-5xl">
@@ -138,7 +138,49 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile card layout */}
+      <div className="space-y-3 sm:hidden">
+        {incidents.map((incident, index) => {
+          const referenceNumber = getReferenceNumber(incident, index)
+          const isHighlighted = highlightedReferenceNumber && highlightedReferenceNumber === referenceNumber
+
+          return (
+            <div key={incident._id || incident.id || referenceNumber} className={`rounded-lg border p-4 shadow-sm ${isHighlighted ? 'bg-orange-50 border-orange-200' : 'bg-white/80 border-slate-200'}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-slate-900 truncate">{referenceNumber}</p>
+                  <p className="text-[13px] font-semibold text-slate-700 mt-1">{getIncidentCategory(incident)}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatStatusDate(incident.incidentDate || incident.createdAt)}</p>
+                </div>
+                <StatusBadge status={incident.status} />
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={() => onDelete(incident._id || incident.id)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
+                  title="Delete Report"
+                >
+                  <FiTrash2 size={14} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          )
+        })}
+        {!loading && incidents.length === 0 && (
+          <div className="rounded-lg border border-slate-200 bg-white/80 px-3 py-8 text-center text-xs font-semibold text-slate-600">
+            No submitted incident requests yet.
+          </div>
+        )}
+        {loading && (
+          <div className="rounded-lg border border-slate-200 bg-white/80 px-3 py-8 text-center text-xs font-semibold text-slate-600">
+            Loading request status...
+          </div>
+        )}
+      </div>
+
+      {/* Desktop table layout */}
+      <div className="overflow-x-auto hidden sm:block">
         <table className="w-full min-w-[720px] border border-black bg-white/80 text-left text-[13px] text-black">
           <thead>
             <tr className="bg-white/40">

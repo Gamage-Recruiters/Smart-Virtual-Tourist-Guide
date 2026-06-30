@@ -253,7 +253,7 @@ export default function EmergencyCallPage() {
     <div className="min-h-screen bg-[#F0F4F8] pb-12 font-sans">
       {/* Hero Section */}
       <div
-        className="relative h-[280px] md:h-[350px] w-full flex flex-col items-center justify-center bg-cover bg-center"
+        className="relative h-[200px] sm:h-[280px] md:h-[350px] w-full flex flex-col items-center justify-center bg-cover bg-center"
         style={{ backgroundImage: `url('${heroBg}')` }}
       >
         <div className="absolute inset-0 bg-black/30"></div>
@@ -265,9 +265,9 @@ export default function EmergencyCallPage() {
         >
           &larr;
         </button>
-        <div className="relative z-10 max-w-4xl px-4 text-center flex flex-col items-center gap-6 mt-6">
-          <div className="bg-black/50 backdrop-blur-sm border border-white/10 p-6 md:p-8 rounded-lg shadow-xl max-w-3xl">
-            <p className="text-white text-base md:text-lg lg:text-xl font-medium leading-relaxed">
+        <div className="relative z-10 max-w-4xl px-4 text-center flex flex-col items-center gap-3 sm:gap-6 mt-4 sm:mt-6">
+          <div className="bg-black/50 backdrop-blur-sm border border-white/10 p-4 sm:p-6 md:p-8 rounded-lg shadow-xl max-w-3xl">
+            <p className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-medium leading-relaxed">
               "These updates are intended for international visitors who are currently in Sri Lanka as well as those planning a trip to the country."
             </p>
           </div>
@@ -286,7 +286,7 @@ export default function EmergencyCallPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-8 lg:gap-12">
             {/* Left Column: Action Buttons */}
-            <div className="flex flex-col gap-2.5 max-w-[420px]">
+            <div className="flex flex-col gap-2.5 w-full lg:max-w-[420px]">
               {/* Police */}
               <button onClick={() => setActiveEmergency('police')} className="flex items-center gap-3.5 bg-[#232B7A] text-white py-2.5 px-4 rounded-lg hover:bg-blue-900 transition-colors text-left group shadow-sm">
                 <div className="bg-white/10 p-2.5 rounded-full group-hover:scale-110 transition-transform">
@@ -344,7 +344,7 @@ export default function EmergencyCallPage() {
             </div>
 
             {/* Right Column: Informational Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Card 1 */}
               <div className="bg-white rounded-lg overflow-hidden flex flex-col shadow-sm border border-slate-100">
                 <div className="bg-[#E6F3FF] px-4 py-3 border-b border-blue-100 text-center">
@@ -385,7 +385,7 @@ export default function EmergencyCallPage() {
         </div>
 
         {/* Maps Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Police Map — Tourist Police (static) + Local Police (Overpass) */}
           <div>
             <div className="flex items-center justify-between mb-4 ml-1">
@@ -417,7 +417,7 @@ export default function EmergencyCallPage() {
                 )}
               </div>
             </div>
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[300px] sm:h-[400px] lg:h-[450px]">
               <div className="h-full rounded-lg overflow-hidden relative">
                 {(isLoadingLocalPolice || isLoadingTouristPolice) && hasRealLocation && (
                   <div className="absolute top-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
@@ -454,7 +454,7 @@ export default function EmergencyCallPage() {
                 </span>
               )}
             </div>
-            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[300px] sm:h-[400px] lg:h-[450px]">
               <div className="h-full rounded-lg overflow-hidden relative">
                 {!hasRealLocation ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-white">
@@ -491,7 +491,7 @@ export default function EmergencyCallPage() {
         <div className="pt-4">
           <h2 className="text-[15px] font-bold text-slate-900 mb-6 ml-1">Translator & AI Assistant</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             {/* ── Live Translator (MyMemory API) ────────────────────────────── */}
             <EmergencyTranslator />
 

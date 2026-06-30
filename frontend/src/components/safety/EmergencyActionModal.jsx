@@ -34,7 +34,7 @@ export default function EmergencyActionModal({ isOpen, onClose, data, onAction, 
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       {/* Modal Container */}
@@ -59,7 +59,7 @@ export default function EmergencyActionModal({ isOpen, onClose, data, onAction, 
         </div>
 
         {/* Body Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           {/* Assistance Call Line */}
           <h3 className="text-[15px] md:text-base font-extrabold text-slate-900 uppercase leading-snug">
             {data.assistanceLabel}

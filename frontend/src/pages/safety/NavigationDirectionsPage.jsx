@@ -179,7 +179,7 @@ export default function NavigationDirectionsPage() {
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="absolute left-4 top-4 md:left-8 md:top-8 z-40 flex h-9 w-9 items-center justify-center text-xl font-bold text-slate-700 hover:text-slate-900 transition-colors"
+        className="absolute left-2 top-2 sm:left-4 sm:top-4 md:left-8 md:top-8 z-40 flex h-9 w-9 items-center justify-center text-xl font-bold text-slate-700 hover:text-slate-900 transition-colors"
         style={{ zIndex: 1001 }}
         aria-label="Go back"
       >
@@ -187,9 +187,9 @@ export default function NavigationDirectionsPage() {
       </button>
 
       {/* Main content container shifted downwards */}
-      <div className="mx-auto max-w-7xl px-4 md:px-8 mt-16 md:mt-20 space-y-6">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 md:px-8 mt-12 sm:mt-16 md:mt-20 space-y-6">
         {/* Map Container styled like EmergencyCallPage */}
-        <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[450px]">
+        <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 h-[300px] sm:h-[400px] md:h-[450px]">
           <div className="h-full rounded-lg overflow-hidden relative">
             {!destLat || !destLng ? (
               <div className="h-full flex items-center justify-center text-slate-400">
@@ -228,7 +228,7 @@ export default function NavigationDirectionsPage() {
 
             {/* Location and Destination box on the top right of the map */}
             <div
-              className="absolute right-4 top-4 z-40 flex items-start gap-2 border border-slate-300 rounded-md p-2 bg-white shadow-md max-w-[280px] w-full md:max-w-xs text-left"
+              className="absolute right-2 top-2 sm:right-4 sm:top-4 z-40 flex items-start gap-2 border border-slate-300 rounded-md p-2 bg-white shadow-md max-w-[200px] sm:max-w-[280px] w-full md:max-w-xs text-left"
               style={{ zIndex: 1001 }}
             >
               {/* Dots connector */}

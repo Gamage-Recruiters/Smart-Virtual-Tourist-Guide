@@ -48,7 +48,7 @@ export default function ChatbotPanel() {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col shadow-sm h-full" style={{ minHeight: '340px', maxHeight: '380px' }}>
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col shadow-sm h-full min-h-[280px] max-h-[320px] sm:min-h-[340px] sm:max-h-[380px]">
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white shrink-0">

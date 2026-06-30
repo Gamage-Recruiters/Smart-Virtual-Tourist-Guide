@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom'
-import { FiClipboard, FiAlertTriangle, FiFileText, FiActivity, FiCloud } from 'react-icons/fi'
+import { NavLink, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { FiClipboard, FiAlertTriangle, FiFileText, FiActivity, FiCloud, FiX } from 'react-icons/fi'
 
 const navLinks = [
   { to: '/safety', text: 'Public Incident List', icon: <FiClipboard className="text-amber-700" /> },
@@ -9,13 +10,26 @@ const navLinks = [
   { to: '/safety/weather', text: 'Live Weather', icon: <FiCloud className="text-blue-500" /> },
 ]
 
-export default function SafetySidebar() {
-  return (
-    <aside className="sticky top-0 h-screen hidden bg-[#f5fbff] px-8 py-10 shadow-sm md:block overflow-y-auto">
-      <button type="button" className="mb-5 text-slate-400" aria-label="Back">
-        &larr;
-      </button>
+export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileMenu = () => {} }) {
+  const location = useLocation()
 
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    onCloseMobileMenu()
+  }, [location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isMobileMenuOpen])
+
+  const sidebarContent = (
+    <>
       <p className="text-base font-bold text-black">Security Alerts</p>
       <p className="mt-4 text-xs font-bold text-black">Sidebar</p>
 
@@ -26,7 +40,7 @@ export default function SafetySidebar() {
             to={to}
             end={to === '/safety'} // Use `end` to prevent matching child routes
             className={({ isActive }) =>
-              `flex items-center gap-3 px-2 py-1.5 text-black ${isActive ? 'bg-sky-200' : 'hover:bg-sky-100'}`
+              `flex items-center gap-3 px-2 py-1.5 text-black rounded-md transition-colors ${isActive ? 'bg-sky-200' : 'hover:bg-sky-100'}`
             }
           >
             {icon}
@@ -36,6 +50,48 @@ export default function SafetySidebar() {
       </nav>
 
       <div className="mt-36 text-center text-sm font-semibold text-white">SOS</div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — unchanged behavior */}
+      <aside className="sticky top-0 h-screen hidden bg-[#f5fbff] px-8 py-10 shadow-sm md:block overflow-y-auto">
+        <button type="button" className="mb-5 text-slate-400" aria-label="Back">
+          &larr;
+        </button>
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile sidebar overlay */}
+      <div
+        className={`fixed inset-0 z-[9999] md:hidden transition-opacity duration-300 ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={onCloseMobileMenu}
+        />
+
+        {/* Slide-in panel */}
+        <aside
+          className={`absolute left-0 top-0 h-full w-[260px] bg-[#f5fbff] px-6 py-6 shadow-xl overflow-y-auto transition-transform duration-300 ease-out ${
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={onCloseMobileMenu}
+            className="mb-5 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+            aria-label="Close navigation menu"
+          >
+            <FiX size={20} />
+          </button>
+          {sidebarContent}
+        </aside>
+      </div>
+    </>
   )
 }

@@ -14,12 +14,12 @@ export default function IncidentCard({ incident }) {
     : incident.image || incidentImage
 
   return (
-    <article className="grid border border-black bg-white shadow-md md:grid-cols-[150px_1fr_275px]">
+    <article className="grid grid-cols-1 border border-black bg-white shadow-md md:grid-cols-[150px_1fr_275px]">
       <div className="p-3">
         <img
           src={displayImage}
           alt={category}
-          className="h-20 w-full border border-slate-200 object-cover"
+          className="h-32 w-full border border-slate-200 object-cover md:h-20"
         />
       </div>
 
@@ -38,7 +38,7 @@ export default function IncidentCard({ incident }) {
       <div className="px-4 py-2">
         <p className="mb-2 text-sm font-extrabold text-black">Location Map</p>
         {location.lat && location.lng ? (
-          <div className="h-[74px] w-[134px] overflow-hidden border border-slate-200">
+          <div className="h-[100px] w-full overflow-hidden border border-slate-200 md:h-[74px] md:w-[134px]">
             <MapContainer
               latitude={location.lat}
               longitude={location.lng}
@@ -51,7 +51,7 @@ export default function IncidentCard({ incident }) {
             />
           </div>
         ) : (
-          <div className="flex h-[74px] w-[134px] items-center justify-center bg-[#bde3f4] border border-slate-200">
+          <div className="flex h-[100px] w-full items-center justify-center bg-[#bde3f4] border border-slate-200 md:h-[74px] md:w-[134px]">
             <FiMapPin className="text-red-600" size={20} />
           </div>
         )}

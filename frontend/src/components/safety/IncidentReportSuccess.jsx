@@ -34,12 +34,12 @@ export default function IncidentReportSuccess({ referenceNumber, location, image
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Scrollable container for the card */}
-      <div className="relative z-10 w-full px-4 py-16">
+      <div className="relative z-10 w-full px-3 py-10 sm:px-4 sm:py-16">
         {/* Central Glassmorphism Card */}
         <div className="mx-auto h-fit w-full max-w-md rounded-xl border border-white/30 bg-white/95 shadow-2xl backdrop-blur-md">
-          <div className="p-8 text-center">
+          <div className="p-5 sm:p-8 text-center">
             {/* Status Header */}
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 uppercase">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase">
               Incident Report Submitted Successfully
             </h2>
 

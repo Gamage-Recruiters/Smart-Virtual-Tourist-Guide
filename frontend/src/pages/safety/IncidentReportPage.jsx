@@ -183,7 +183,7 @@ export default function IncidentReportPage() {
 
   return (
     <div className="min-h-screen bg-[#e5f6ff] text-slate-950">
-      <main className="relative min-h-screen overflow-hidden px-4 pb-16 pt-[28vh] md:px-8 md:pt-[30vh]">
+      <main className="relative min-h-screen overflow-hidden px-3 pb-16 pt-[20vh] sm:px-4 md:px-8 sm:pt-[28vh] md:pt-[30vh]">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${backgroundImage})` }}
@@ -193,13 +193,13 @@ export default function IncidentReportPage() {
           <button
             type="button"
             onClick={goToReportsPage}
-            className="absolute left-0 top-[-24vh] flex h-9 w-9 items-center justify-center text-xl font-bold text-white/90 hover:text-white"
+            className="absolute left-0 top-[-18vh] sm:top-[-24vh] flex h-9 w-9 items-center justify-center text-xl font-bold text-white/90 hover:text-white"
             aria-label="Back to reports"
           >
             &larr;
           </button>
 
-          <div className="mx-auto w-full max-w-[650px] rounded-lg border border-[#2367bc] bg-white px-6 py-6 shadow-sm md:px-7">
+          <div className="mx-auto w-full max-w-[650px] rounded-lg border border-[#2367bc] bg-white px-4 py-4 shadow-sm sm:px-6 md:px-7 sm:py-6">
             <>
               <h1 className="m-0 mb-6 text-center text-[16px] font-semibold uppercase leading-tight tracking-normal text-black">
                 Online Incident Reporting Form
@@ -286,7 +286,7 @@ export default function IncidentReportPage() {
 
                 {errors.submit && <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-bold text-red-700">{errors.submit}</p>}
 
-                <div className="grid grid-cols-2 gap-14 px-3 pt-5">
+                <div className="grid grid-cols-2 gap-4 sm:gap-8 md:gap-14 px-3 pt-5">
                   <button type="button" onClick={submitReport} disabled={isSubmitting} className="h-9 rounded-lg bg-[#087af6] px-4 text-[12px] font-extrabold uppercase text-white hover:bg-[#0067d7] disabled:bg-slate-300">
                     {isSubmitting ? 'Submitting...' : 'Submit Report'}
                   </button>
