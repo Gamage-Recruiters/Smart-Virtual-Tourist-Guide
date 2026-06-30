@@ -16,7 +16,6 @@ function ResturentRegistrationPage() {
     registrationNo: '',
     email: '',
     phone: '',
-    description: '',
     address: '',
     amenities: [],
     password: '',
@@ -102,7 +101,6 @@ function ResturentRegistrationPage() {
           ownerName: formData.ownerName,
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone,
-          description: formData.description,
           address: formData.address,
           amenities: formData.amenities,
         }),
@@ -272,20 +270,6 @@ function ResturentRegistrationPage() {
                 ))}
               </div>
             </fieldset>
-
-            {/* Description */}
-            <label htmlFor="description" className="block mb-1 text-xs text-slate-700 font-medium">
-              Description <span className="text-gray-400">(Optional)</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              placeholder="Brief description of your restaurant"
-              value={formData.description}
-              onChange={handleChange}
-              rows="3"
-              className="w-full px-3 py-2 mb-4 text-sm bg-blue-50 border border-transparent rounded-lg focus:bg-white focus:border-blue-400 focus:outline-none transition-colors resize-none"
-            />
 
             {/* Password */}
             <label htmlFor="password" className="block mb-1 text-xs text-slate-700 font-medium">

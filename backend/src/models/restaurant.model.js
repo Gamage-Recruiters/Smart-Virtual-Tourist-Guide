@@ -33,7 +33,6 @@ const restaurantSchema = new mongoose.Schema(
     ownerName: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, required: true, trim: true },
-    description: { type: String, trim: true },
     address: { type: String, required: true, trim: true },
     amenities: {
       type: [String],
