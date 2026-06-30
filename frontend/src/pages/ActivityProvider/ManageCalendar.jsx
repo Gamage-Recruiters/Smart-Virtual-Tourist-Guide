@@ -16,6 +16,13 @@ const MONTH_NAMES = [
 const toDateString = (year, month, day) =>
   `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
+// Returns true if dateStr is strictly before today (today itself is NOT locked)
+const isPastDate = (dateStr) => {
+  const now = new Date();
+  const todayStr = toDateString(now.getFullYear(), now.getMonth(), now.getDate());
+  return dateStr < todayStr;
+};
+
 const formatDisplayDate = (dateStr) => {
   if (!dateStr) return '';
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -37,7 +44,7 @@ const STATUS_CONFIG = {
   unavailable:  { label: 'Unavailable',  badge: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',      dot: 'bg-slate-400' },
 };
 
-// ─── Shared Hero Banner ───────────────────────────────────────────────────────
+// ─── Hero Banner ──────────────────────────────────────────────────────────────
 const HeroBanner = () => (
   <div className="relative overflow-hidden" style={{ height: '280px' }}>
     <img
@@ -45,7 +52,7 @@ const HeroBanner = () => (
       alt=""
       className="absolute inset-0 w-full h-full object-cover"
     />
-   <div className="absolute inset-0 bg-black/40" />
+    <div className="absolute inset-0 bg-black/40" />
     <div className="relative z-10 px-7 h-full flex flex-col justify-end pb-6 text-white">
       <p className="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">
         Activity Management
@@ -146,7 +153,7 @@ const ManageCalendar = () => {
       .catch(() => {});
   }, [currentActivityId]);
 
-  // ── Toggle slot ──────────────────────────────────────────────────────────────
+  // ── Toggle slot in right panel ──────────────────────────────────────────────
   const toggleSlot = (slotId) => {
     setDateDetail((prev) => ({
       ...prev,
@@ -241,7 +248,7 @@ const ManageCalendar = () => {
   const progressPct = dateDetail
     ? (() => {
         const active = (dateDetail.timeSlots || []).filter((s) => s.isActive);
-        const total = active.reduce((s, x) => s + x.capacity, 0);
+        const total  = active.reduce((s, x) => s + x.capacity, 0);
         const booked = active.reduce((s, x) => s + x.booked, 0);
         return total > 0 ? Math.round((booked / total) * 100) : 0;
       })()
@@ -264,7 +271,7 @@ const ManageCalendar = () => {
           </div>
         )}
 
-        {/* Hero Banner with background image */}
+        {/* Hero */}
         <HeroBanner />
 
         {/* Body */}
@@ -334,7 +341,7 @@ const ManageCalendar = () => {
                   </div>
                 </div>
 
-                {/* Grid */}
+                {/* Calendar grid */}
                 <div className="grid grid-cols-7 px-3 pb-4">
                   {DAYS_OF_WEEK.map((d) => (
                     <div key={d} className="text-center text-[10px] font-semibold text-slate-400 py-2 uppercase tracking-wider">
@@ -343,25 +350,30 @@ const ManageCalendar = () => {
                   ))}
                   {cells.map((day, idx) => {
                     if (!day) return <div key={`e-${idx}`} />;
-                    const dateStr = toDateString(viewYear, viewMonth, day);
-                    const status = monthData[dateStr];
-                    const isToday = dateStr === todayStr;
+                    const dateStr    = toDateString(viewYear, viewMonth, day);
+                    const status     = monthData[dateStr];
+                    const isToday    = dateStr === todayStr;
+                    const isPast     = isPastDate(dateStr);
                     const isSelected = dateStr === selectedDate;
 
                     return (
                       <button
                         key={dateStr}
-                        onClick={() => selectDate(dateStr)}
+                        onClick={() => !isPast && selectDate(dateStr)}
+                        disabled={isPast}
                         className={`relative flex flex-col items-center justify-center py-2 rounded-lg text-[13px] transition-all duration-100 select-none
-                          ${isSelected
-                            ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-200'
-                            : isToday
-                              ? 'font-bold text-blue-600 hover:bg-blue-50'
-                              : 'text-slate-700 hover:bg-slate-50'
+                          ${isPast
+                            ? 'text-slate-300 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-blue-600 text-white font-semibold shadow-md shadow-blue-200'
+                              : isToday
+                                ? 'font-bold text-blue-600 hover:bg-blue-50'
+                                : 'text-slate-700 hover:bg-slate-50'
                           }`}
                       >
                         {day}
-                        {status && (
+                        {/* Only show status dots on non-past dates */}
+                        {status && !isPast && (
                           <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
                             isSelected ? 'bg-white/70' : STATUS_CONFIG[status]?.dot || 'bg-slate-300'
                           }`} />
@@ -389,30 +401,42 @@ const ManageCalendar = () => {
                   <div className="col-span-2 rounded-xl border border-slate-100 bg-slate-50 p-3.5">
                     <span className="text-lg">💰</span>
                     <p className="text-[11px] text-slate-400 mt-2">Monthly Earnings</p>
-                    <p className="text-sm font-semibold text-slate-800 mt-0.5">LKR {summary.earnings?.toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                      LKR {summary.earnings?.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Right column ──────────────────────────────────────────────── */}
+            {/* ── Right column: date detail panel ───────────────────────── */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+
+              {/* Date header */}
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Selected Date</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1">
+                    Selected Date
+                  </p>
                   <p className="text-base font-semibold text-slate-800">
                     {selectedDate ? formatDisplayDate(selectedDate) : '—'}
                   </p>
                 </div>
-                {selectedDate && (
+                {selectedDate && !isPastDate(selectedDate) && (
                   <span className={`text-xs font-medium px-3 py-1 rounded-full ${STATUS_CONFIG[selectedStatus].badge}`}>
                     {STATUS_CONFIG[selectedStatus].label}
+                  </span>
+                )}
+                {selectedDate && isPastDate(selectedDate) && (
+                  <span className="text-xs font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-400 ring-1 ring-slate-200">
+                    Past
                   </span>
                 )}
               </div>
 
               <div className="border-t border-slate-100 my-4" />
 
+              {/* Content */}
               {!currentActivityId ? (
                 <div className="py-16 text-center text-sm text-slate-400">
                   Select an activity to manage its calendar
@@ -424,100 +448,132 @@ const ManageCalendar = () => {
                 </div>
               ) : dateDetail ? (
                 <>
-                  {/* Time Slots */}
-                  <div className="mb-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-slate-700">Time Slots</h4>
-                      <button
-                        onClick={() => setModalOpen(true)}
-                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                      >
-                        <FiEdit3 className="w-3.5 h-3.5" /> Edit
-                      </button>
+                  {selectedDate && isPastDate(selectedDate) ? (
+                    /* ── Past date: read-only ──────────────────────────────── */
+                    <div className="py-6 text-center">
+                      <div className="text-4xl mb-3">🔒</div>
+                      <h4 className="text-sm font-semibold text-slate-600 mb-1">Past Date</h4>
+                      <p className="text-xs text-slate-400 mb-6">
+                        This date has already passed and can no longer be edited.
+                      </p>
+                      {(dateDetail.timeSlots || []).length > 0 && (
+                        <div className="text-left space-y-1">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 mb-2">
+                            Time Slots (read-only)
+                          </p>
+                          {dateDetail.timeSlots.map((slot) => (
+                            <div
+                              key={slot._id || slot.label}
+                              className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 opacity-60"
+                            >
+                              <span className="text-sm text-slate-500">{slot.label}</span>
+                              <span className="text-xs text-slate-400">{slotBadge(slot)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-
-                    <div className="space-y-1">
-                      {(dateDetail.timeSlots || []).map((slot) => (
-                        <div
-                          key={slot._id || slot.label}
-                          className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors"
-                        >
-                          <div>
-                            <span className={`text-sm font-medium ${slot.isActive ? 'text-slate-800' : 'text-slate-400'}`}>
-                              {slot.label}
-                            </span>
-                            <span className="text-xs text-slate-400 ml-2">{slotBadge(slot)}</span>
-                          </div>
+                  ) : (
+                    /* ── Today / future date: full edit UI ────────────────── */
+                    <>
+                      {/* Time Slots */}
+                      <div className="mb-5">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-slate-700">Time Slots</h4>
                           <button
-                            onClick={() => toggleSlot(slot._id || slot.label)}
-                            aria-label={slot.isActive ? 'Disable slot' : 'Enable slot'}
-                            className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                              slot.isActive ? 'bg-emerald-500' : 'bg-slate-300'
-                            }`}
+                            onClick={() => setModalOpen(true)}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                           >
-                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                              slot.isActive ? 'translate-x-5' : 'translate-x-0'
-                            }`} />
+                            <FiEdit3 className="w-3.5 h-3.5" /> Edit
                           </button>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="border-t border-slate-100 my-4" />
-
-                  {/* Booked Tourists */}
-                  <div className="mb-5">
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3">
-                      Booked Tourists
-                      <span className="ml-2 text-xs font-normal text-slate-400">({DEMO_TOURISTS.length})</span>
-                    </h4>
-                    <div className="space-y-1">
-                      {DEMO_TOURISTS.map((t) => (
-                        <div key={t.name} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50">
-                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm flex-shrink-0">
-                            👤
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">{t.name}, {t.country}</p>
-                            <p className="text-xs text-slate-400">{t.time}</p>
-                          </div>
+                        <div className="space-y-1">
+                          {(dateDetail.timeSlots || []).map((slot) => (
+                            <div
+                              key={slot._id || slot.label}
+                              className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors"
+                            >
+                              <div>
+                                <span className={`text-sm font-medium ${slot.isActive ? 'text-slate-800' : 'text-slate-400'}`}>
+                                  {slot.label}
+                                </span>
+                                <span className="text-xs text-slate-400 ml-2">{slotBadge(slot)}</span>
+                              </div>
+                              <button
+                                onClick={() => toggleSlot(slot._id || slot.label)}
+                                aria-label={slot.isActive ? 'Disable slot' : 'Enable slot'}
+                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${
+                                  slot.isActive ? 'bg-emerald-500' : 'bg-slate-300'
+                                }`}
+                              >
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                                  slot.isActive ? 'translate-x-5' : 'translate-x-0'
+                                }`} />
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  {/* Capacity progress */}
-                  <div className="mb-6">
-                    <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-                      <span>Capacity</span>
-                      <span>{progressPct}% filled</span>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                        style={{ width: `${progressPct}%` }}
-                      />
-                    </div>
-                  </div>
+                      <div className="border-t border-slate-100 my-4" />
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-3">
-                    <button
-                      onClick={handleMarkUnavailable}
-                      disabled={saving}
-                      className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
-                    >
-                      Mark Unavailable
-                    </button>
-                    <button
-                      onClick={handleSaveChanges}
-                      disabled={saving}
-                      className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
-                    >
-                      {saving ? 'Saving…' : 'Save Changes'}
-                    </button>
-                  </div>
+                      {/* Booked Tourists */}
+                      <div className="mb-5">
+                        <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                          Booked Tourists
+                          <span className="ml-2 text-xs font-normal text-slate-400">
+                            ({DEMO_TOURISTS.length})
+                          </span>
+                        </h4>
+                        <div className="space-y-1">
+                          {DEMO_TOURISTS.map((t) => (
+                            <div key={t.name} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50">
+                              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm flex-shrink-0">
+                                👤
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-slate-800">{t.name}, {t.country}</p>
+                                <p className="text-xs text-slate-400">{t.time}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Capacity progress */}
+                      <div className="mb-6">
+                        <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+                          <span>Capacity</span>
+                          <span>{progressPct}% filled</span>
+                        </div>
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-3">
+                        <button
+                          onClick={handleMarkUnavailable}
+                          disabled={saving}
+                          className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
+                        >
+                          Mark Unavailable
+                        </button>
+                        <button
+                          onClick={handleSaveChanges}
+                          disabled={saving}
+                          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
+                        >
+                          {saving ? 'Saving…' : 'Save Changes'}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <div className="py-16 text-center text-sm text-slate-400">
@@ -528,8 +584,8 @@ const ManageCalendar = () => {
           </div>
         </div>
 
-        {/* Modal */}
-        {modalOpen && dateDetail && (
+        {/* Edit Availability Modal — only opens for non-past dates */}
+        {modalOpen && dateDetail && selectedDate && !isPastDate(selectedDate) && (
           <EditAvailabilityModal
             date={selectedDate}
             slots={dateDetail.timeSlots}
