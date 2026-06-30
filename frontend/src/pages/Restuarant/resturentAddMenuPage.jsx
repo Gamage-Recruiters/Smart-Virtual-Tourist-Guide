@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMemo, useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import bgImage from '../../assets/Resturent_Menu.png'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
@@ -9,6 +9,9 @@ const foodTypeOptions = ['Vegetarian', 'Non-Vegetarian', 'Vegan']
 
 function ResturentAddMenuPage() {
   const navigate = useNavigate()
+  const { id } = useParams() // Get menu item ID if in Edit Mode
+  const isEditMode = !!id
+
   const [selectedCategory, setSelectedCategory] = useState('Authentic Sri Lanka')
   const [foodType, setFoodType] = useState('Non-Vegetarian')
   const [isAvailableToday, setIsAvailableToday] = useState(true)
@@ -22,6 +25,38 @@ function ResturentAddMenuPage() {
   const [imagePreview, setImagePreview] = useState('')
 
   const categoryPreview = useMemo(() => selectedCategory, [selectedCategory])
+
+  // Fetch menu item data if in Edit Mode
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchMenuItem = async () => {
+        try {
+          const token = localStorage.getItem('token')
+          const res = await fetch(`${API_BASE}/menu/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          if (res.ok) {
+            const data = await res.json()
+            setFormData({
+              name: data.name || '',
+              description: data.description || '',
+              price: data.price || ''
+            })
+            setSelectedCategory(data.category || 'Authentic Sri Lanka')
+            setFoodType(data.foodType || 'Non-Vegetarian')
+            setIsAvailableToday(data.isAvailable !== false)
+            setIsVegan(!!data.isVegan)
+            if (data.imageUrl) {
+              setImagePreview(data.imageUrl)
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching menu item details:', err)
+        }
+      }
+      fetchMenuItem()
+    }
+  }, [id, isEditMode])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -72,7 +107,7 @@ function ResturentAddMenuPage() {
       }
 
       // Step 1: Upload photo if selected
-      let uploadedImageUrl = ''
+      let uploadedImageUrl = imagePreview // Keep existing if no new file chosen
       if (selectedFile) {
         setUploading(true)
         const uploadData = new FormData()
@@ -92,8 +127,11 @@ function ResturentAddMenuPage() {
         setUploading(false)
       }
 
-      const res = await fetch(`${API_BASE}/menu`, {
-        method: 'POST',
+      const url = isEditMode ? `${API_BASE}/menu/${id}` : `${API_BASE}/menu`
+      const method = isEditMode ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           restaurantId: matched._id,
@@ -110,7 +148,7 @@ function ResturentAddMenuPage() {
 
       const data = await res.json()
       if (!res.ok) {
-        setApiError(data.message || 'Failed to add menu item.')
+        setApiError(data.message || 'Failed to save menu item.')
         return
       }
 
@@ -121,6 +159,7 @@ function ResturentAddMenuPage() {
       setLoading(false)
     }
   }
+
 
 
   return (
@@ -139,14 +178,18 @@ function ResturentAddMenuPage() {
               Menu Builder
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">
-              Upload New Menu Item
+              {isEditMode ? 'Edit Menu Item' : 'Upload New Menu Item'}
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85 md:text-base">
-              Add a new dish to your digital showcase for international travelers and locals.
+              {isEditMode 
+                ? 'Modify your dish details, pricing, availability status, or update photography.' 
+                : 'Add a new dish to your digital showcase for international travelers and locals.'
+              }
             </p>
           </div>
         </div>
       </header>
+
 
       <main className="bg-blue-50 px-5 py-6 md:px-8 md:py-8">
         {/* API Error */}

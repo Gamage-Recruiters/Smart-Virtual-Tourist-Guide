@@ -223,17 +223,21 @@ function ResturentMenuPage() {
                 key={item._id}
                 className="overflow-hidden rounded-2xl border border-sky-100 bg-sky-50 shadow-sm"
               >
-                <div className="flex h-48 items-center justify-center bg-gradient-to-br from-sky-100 via-white to-amber-50 text-center relative">
+                <div 
+                  onClick={() => navigate(`/resturent/dashboard/menu/edit/${item._id}`)}
+                  className="flex h-48 items-center justify-center bg-gradient-to-br from-sky-100 via-white to-amber-50 text-center relative cursor-pointer group"
+                >
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300" />
                   ) : (
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
                         {item.category}
                       </p>
-                      <h4 className="mt-3 text-2xl font-bold text-slate-900">{item.name}</h4>
+                      <h4 className="mt-3 text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.name}</h4>
                     </div>
                   )}
+
                   {/* Availability badge */}
                   <span className={`absolute top-3 right-3 rounded-full px-2 py-1 text-[10px] font-semibold ${item.isAvailable ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                     {item.isAvailable ? 'Available' : 'Unavailable'}
@@ -307,6 +311,12 @@ function ResturentMenuPage() {
                       {item.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
                     </button>
                     <button
+                      onClick={() => navigate(`/resturent/dashboard/menu/edit/${item._id}`)}
+                      className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-100 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDelete(item._id)}
                       className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 transition-colors"
                     >
@@ -315,6 +325,7 @@ function ResturentMenuPage() {
                   </div>
                 </div>
               </article>
+
             ))}
           </div>
         )}

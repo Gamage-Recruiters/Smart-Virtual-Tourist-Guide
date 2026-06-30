@@ -79,7 +79,9 @@ function App() {
           <Route index element={<ResturentDashboardPage />} />
           <Route path="menu" element={<ResturentMenuPage />} />
           <Route path="menu/add" element={<ResturentAddMenuPage />} />
+          <Route path="menu/edit/:id" element={<ResturentAddMenuPage />} />
           <Route path="reservation" element={<ResturentReservationPage />} />
+
           <Route path="offers" element={<ResturentOfferPage />} />
           <Route path="reviews" element={<ResturentReviewPage />} />
           <Route path="revenue" element={<ResturentRevenuePage />} />
