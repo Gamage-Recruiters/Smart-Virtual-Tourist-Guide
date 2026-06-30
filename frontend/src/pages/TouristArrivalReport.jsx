@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PDF_PNG from "../assets/pdf.png";
@@ -18,14 +17,23 @@ import {
 } from 'recharts';
 
 const TouristArrivalReport = () => {
-
     const [showAlert, setShowAlert] = useState(false);
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const exportMode = queryParams.get('export') === 'true';
+
+    useEffect(() => {
+        if (exportMode) {
+            document.title = "Tourist_Arrival_Report";
+        }
+    }, [exportMode]);
 
     const handleDownloadPDF = async () => {
         try {
-            const currentUrl = window.location.href; // Get current page URL
 
-            // 2. Fetch PDF blob via service layer
+            const currentUrl = `${window.location.origin}${window.location.pathname}?export=true`;
+
+            // Fetch PDF blob via service layer
             const result = await downloadReportPDF(currentUrl);
 
             if (!result.success) {
@@ -33,21 +41,21 @@ const TouristArrivalReport = () => {
                 return;
             }
 
-            // 3. Create a temporary local URL for the fetched Blob
+            // Create a temporary local URL for the fetched Blob
             const fileUrl = window.URL.createObjectURL(result.blob);
 
-            // 4. Create a temporary hidden anchor to trigger save dialog
+            // Create a temporary hidden anchor to trigger save dialog
             const link = document.createElement('a');
             link.href = fileUrl;
             link.setAttribute('download', 'Tourist_Arrival_Report.pdf'); // Output filename
             document.body.appendChild(link);
             link.click();
 
-            // 5. Clean up temporary DOM elements
+            // Clean up temporary DOM elements
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(fileUrl);
 
-            // 6. Show the success alert only after the download completes successfully
+            // Show the success alert only after the download completes successfully
             setShowAlert(true);
             setTimeout(() => setShowAlert(false), 3500); // Hide alert after 3.5 seconds
 
@@ -187,7 +195,6 @@ const TouristArrivalReport = () => {
 
                     {/* Recharts Plot Area */}
                     <div className="relative w-full h-[285px] mt-4 flex justify-center">
-                        {/* Render BarChart with a static width to ensure stable layout in headless PDF generation */}
                         <BarChart
                             width={780}
                             height={285}
@@ -214,7 +221,7 @@ const TouristArrivalReport = () => {
 
                             <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
 
-                            <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45}>
+                            <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45} isAnimationActive={false}>
                                 {chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.colorHex} />
                                 ))}

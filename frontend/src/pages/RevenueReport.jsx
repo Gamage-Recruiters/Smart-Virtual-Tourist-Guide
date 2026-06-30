@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -24,9 +24,18 @@ const RevenueReport = () => {
 
   const [showAlert, setShowAlert] = useState(false);
 
+  const queryParams = new URLSearchParams(window.location.search);
+  const exportMode = queryParams.get('export') === 'true';
+
+  useEffect(() => {
+    if (exportMode) {
+      document.title = "Revenue_Stat_Report";
+    }
+  }, [exportMode]);
+
   const handleDownloadPDF = async () => {
     try {
-      const currentUrl = window.location.href; // Get current page URL
+      const currentUrl = `${window.location.origin}${window.location.pathname}?export=true`;
 
       // Fetch PDF blob via service layer
       const result = await downloadReportPDF(currentUrl);
@@ -235,10 +244,8 @@ const RevenueReport = () => {
                   data={dbBarChartData}
                   margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
                 >
-                  {/* Dashed gridlines */}
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
 
-                  {/* X-Axis with rotated labels */}
                   <XAxis
                     dataKey="label"
                     tick={{ fill: '#374151', fontSize: 11, fontWeight: 'bold' }}
@@ -248,18 +255,16 @@ const RevenueReport = () => {
                     textAnchor="end"
                   />
 
-                  {/* Y-Axis */}
                   <YAxis
                     tick={{ fill: '#4B5563', fontSize: 11, fontWeight: 'bold' }}
                     axisLine={{ stroke: '#1f2937', strokeWidth: 2 }}
                     tickLine={false}
                   />
 
-                  {/* Tooltip on hover */}
                   <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.04)' }} />
 
-                  {/* Bar rendering with unique custom colors */}
-                  <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45}>
+                  {/* isAnimationActive={false} to disable animation */}
+                  <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={45} isAnimationActive={false}>
                     {dbBarChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.colorHex} />
                     ))}
@@ -269,7 +274,7 @@ const RevenueReport = () => {
             </div>
           </div>
 
-          {/* RIGHT CHART - Recharts Line Chart (Revenue Trends of 2025) */}
+          {/* RIGHT CHART - Recharts Line Chart */}
           <div className="bg-gradient-to-b from-[#BEE3FC] to-[#F4F9FC]/40 rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-100 flex flex-col justify-between">
             <div>
               <h4 className="font-bold text-gray-900 text-sm sm:text-base leading-none">
@@ -286,10 +291,8 @@ const RevenueReport = () => {
                   data={dbLineChartData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
                 >
-                  {/* Dashed gridlines */}
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#D1D5DB" />
 
-                  {/* X-Axis */}
                   <XAxis
                     dataKey="label"
                     tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }}
@@ -297,7 +300,6 @@ const RevenueReport = () => {
                     tickLine={false}
                   />
 
-                  {/* Y-Axis (with Dollar prefix) */}
                   <YAxis
                     tickFormatter={(val) => `$${val}`}
                     tick={{ fill: '#9CA3AF', fontSize: 10, fontWeight: 'bold' }}
@@ -305,10 +307,8 @@ const RevenueReport = () => {
                     tickLine={false}
                   />
 
-                  {/* Tooltip on hover */}
                   <Tooltip />
 
-                  {/* Smooth red line with white bordered dots */}
                   <Line
                     type="monotone"
                     dataKey="value"
@@ -316,10 +316,12 @@ const RevenueReport = () => {
                     strokeWidth={2.5}
                     dot={{ r: 4, fill: '#F87171', strokeWidth: 1.5, stroke: '#FFFFFF' }}
                     activeDot={{ r: 6 }}
+                    isAnimationActive={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
+
           </div>
 
         </div>

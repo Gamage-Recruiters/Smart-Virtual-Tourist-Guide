@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -24,6 +24,14 @@ const BehaviorStatReport = () => {
 
   const queryParams = new URLSearchParams(window.location.search);
   const exportType = queryParams.get('export');
+
+  useEffect(() => {
+    if (exportType === 'food') {
+      document.title = "Famous_Foods_Report";
+    } else if (exportType === 'travel') {
+      document.title = "Travel_Methods_Report";
+    }
+  }, [exportType]);
 
   // A. For Famous Foods Chart 
   const foodChartData = [
@@ -147,7 +155,7 @@ const BehaviorStatReport = () => {
     return (
       <div className="min-h-screen bg-[#EAF4FC] p-10 flex flex-col items-center gap-12" style={{ fontFamily: "'Inter', sans-serif" }}>
         <style>{printStyles}</style>
-        <h2 className="text-3xl font-extrabold text-gray-900 text-center w-full">
+        <h2 className="text-3xl font-bold text-gray-900 text-center w-full">
           Most Perches Famous foods count
         </h2>
 
@@ -215,7 +223,7 @@ const BehaviorStatReport = () => {
     return (
       <div className="min-h-screen bg-[#EAF4FC] p-10 flex flex-col items-center gap-12" style={{ fontFamily: "'Inter', sans-serif" }}>
         <style>{printStyles}</style>
-        <h2 className="text-3xl font-extrabold text-gray-900 text-center w-full">
+        <h2 className="text-3xl font-bold text-gray-900 text-center w-full">
           Most used Travel methods count
         </h2>
 
@@ -300,7 +308,7 @@ const BehaviorStatReport = () => {
       <main className="w-full px-4 sm:px-6 md:px-10 lg:px-16 py-10 flex flex-col items-center gap-12">
 
         {/* --- SECTION 1: FAMOUS FOODS --- */}
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight text-center w-full mt-6">
+        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-center w-full mt-6">
           Most Perches Famous foods count
         </h2>
 
@@ -375,7 +383,7 @@ const BehaviorStatReport = () => {
 
 
         {/* --- SECTION 2: TRAVEL METHODS --- */}
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight text-center w-full mt-10">
+        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-center w-full mt-10">
           Most used Travel methods count
         </h2>
 

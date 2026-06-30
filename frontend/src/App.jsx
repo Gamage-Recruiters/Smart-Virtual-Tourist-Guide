@@ -12,11 +12,11 @@ function App() {
 
   return (
     <>
-      {/* <FinalTripReport /> */}
+      <FinalTripReport />
       {/* <FinalTripReportPDF /> */}
       {/* <TouristArrivalReport /> */}
       {/* <RevenueReport /> */}
-      <BehaviorStatReport />
+      {/* <BehaviorStatReport /> */}
       {/* <ComplaintReport /> */}
 
     </>
