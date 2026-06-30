@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer.jsx";
 import ViewCurrentRoomImg from "../assets/ViewCurrentRoomImg.png";
@@ -6,101 +6,48 @@ import { FaArrowRight, FaPlus } from "react-icons/fa";
 import BgForCurrentRooms from "../assets/BgForViewCurrentRoom.png";
 import RoomCard from "../components/RoomCard.jsx";
 import PackageCard from '../components/PackageCard.jsx';
-import { href } from "react-router-dom";
-
-const sampleRooms = [
-  {
-    id: 1,
-    name: 'Deluxe Double Room',
-    image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=400',
-    capacity: '4 Adults',
-    size: '55 Sqm',
-    price: '250 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 2,
-    name: 'Standard Double Room with Fan',
-    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=400',
-    capacity: '2 Adults',
-    size: '55 Sqm',
-    price: '98 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 3,
-    name: 'Family Room with Garden View',
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=400',
-    capacity: '5 Adults',
-    size: '55 Sqm',
-    price: '189 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 4,
-    name: 'Deluxe King Suite',
-    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
-    capacity: '2 Adults & 1 Child',
-    size: '55 Sqm',
-    price: '119 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 4,
-    name: 'Deluxe King Suite',
-    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
-    capacity: '2 Adults & 1 Child',
-    size: '55 Sqm',
-    price: '119 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  }
-];
-
-const samplePackages = [
-  {
-    id: 1,
-    name: 'Honeymoon Packages',
-    image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=400',
-    capacity: '4 Adults',
-    price: '250 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 2,
-    name: 'Standard Double Room with Fan',
-    image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=400',
-    capacity: '2 Adults',
-    price: '98 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 3,
-    name: 'Family Room with Garden View',
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=400',
-    capacity: '5 Adults',
-    price: '189 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 4,
-    name: 'Deluxe King Suite',
-    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
-    capacity: '2 Adults & 1 Child',
-    price: '119 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  },
-  {
-    id: 4,
-    name: 'Deluxe King Suite',
-    image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?q=80&w=400',
-    capacity: '2 Adults & 1 Child',
-    price: '119 $',
-    amenities: { terrace: true, gardenView: true, wifi: true, ac: true }
-  }
-];
 
 export default function ViewCurrentRoomsPackages() {
     const [activeTab, setActiveTab] = useState('rooms');
+    
+    // API State management buckets
+    const [rooms, setRooms] = useState([]);
+    const [packages, setPackages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // Fetch rooms and packages from backend routes on component mount
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                setError('');
+
+                // 1. Fetch live rooms database records
+                // Replace with your production domain address if not running on localhost:5000
+                const roomsResponse = await fetch('http://localhost:5000/api/rooms');
+                if (!roomsResponse.ok) throw new Error('Failed to retrieve inventory rooms data.');
+                const roomsData = await roomsResponse.json();
+                setRooms(roomsData);
+
+                // 2. Fetch live packages database records 
+                // Adjust route address if your package model controller is mounted elsewhere
+                // const packagesResponse = await fetch('http://localhost:5000/api/packages');
+                // if (!packagesResponse.ok) throw new Error('Failed to retrieve special packages data.');
+                // const packagesData = await packagesResponse.json();
+                // setPackages(packagesData);
+
+            } catch (err) {
+                console.error("Database fetch error: ", err);
+                setError(err.message || 'An error occurred while synchronizing data components.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
     return (
     <div>
         <div>
@@ -132,12 +79,13 @@ export default function ViewCurrentRoomsPackages() {
                         <button className="inline-flex h-12 items-center gap-2 rounded-xl bg-sky-800 px-5 font-extrabold text-white shadow-lg shadow-sky-900/20 transition hover:bg-sky-900" type="button">
                             Explore Rooms <FaArrowRight />
                         </button>
-                        <button onClick={() => (location.href = 'add-room-package')} className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky-200 bg-white/90 px-5 font-extrabold text-sky-900 transition hover:border-sky-300 hover:bg-white" type="button">
+                        <button onClick={() => (window.location.href = '/add-room-package')} className="inline-flex h-12 items-center gap-2 rounded-xl border border-sky-200 bg-white/90 px-5 font-extrabold text-sky-900 transition hover:border-sky-300 hover:bg-white" type="button">
                             <FaPlus /> Add New Room
                         </button>
                     </div>
                 </div>
             </section>
+
             <section 
                 id="overview"
                 className="w-full min-h-screen border border-slate-200/80 p-5 md:p-10 backdrop-blur"
@@ -180,18 +128,40 @@ export default function ViewCurrentRoomsPackages() {
                         </button>
                     </div>
 
-                    {activeTab === 'rooms' ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {sampleRooms.map((roomItem, index) => (
-                                <RoomCard key={`${roomItem.id}-${index}`} room={roomItem} />
-                            ))}
+                    {/* Handling API Request Async States */}
+                    {loading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <p className="text-slate-600 font-semibold animate-pulse">Syncing dashboard data records from backend node cluster...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl font-medium text-sm">
+                            ⚠️ Error: {error}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {samplePackages.map((packageItem, index) => (
-                                <PackageCard key={`${packageItem.id}-${index}`} room={packageItem} />
-                            ))}
-                        </div>
+                        <>
+                            {/* Tab Content Display */}
+                            {activeTab === 'rooms' ? (
+                                rooms.length === 0 ? (
+                                    <p className="text-center text-slate-500 py-10">No room configurations found in the active inventory database.</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {rooms.map((roomItem) => (
+                                            <RoomCard key={roomItem._id || roomItem.id} room={roomItem} />
+                                        ))}
+                                    </div>
+                                )
+                            ) : (
+                                packages.length === 0 ? (
+                                    <p className="text-center text-slate-500 py-10">No special premium package records found in database collection entries.</p>
+                                ) : (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {packages.map((packageItem) => (
+                                            <PackageCard key={packageItem._id || packageItem.id} room={packageItem} />
+                                        ))}
+                                    </div>
+                                )
+                            )}
+                        </>
                     )}
                 </div>
             </section>
@@ -199,4 +169,4 @@ export default function ViewCurrentRoomsPackages() {
         <Footer/>
     </div>
     );
-};
+}
