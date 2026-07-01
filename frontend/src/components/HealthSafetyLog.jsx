@@ -1,5 +1,30 @@
+import React, { useState, useEffect } from 'react';
+import { fetchIncidentCount } from '../services/incidentService';
 
-const HealthSafetyLog = () => {
+const HealthSafetyLog = ({ touristId }) => {
+
+    const [incidentCount, setIncidentCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const getCount = async () => {
+            if (!touristId) return;
+
+            try {
+
+                const result = await fetchIncidentCount(touristId);
+                if (result.success) {
+                    setIncidentCount(result.count); 
+                }
+            } catch (error) {
+                console.error("Failed to load incident count:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getCount();
+    }, [touristId]);
 
     const medicalCheckpoints = [
         "Pre-departure health screening - March 14",
@@ -79,7 +104,7 @@ const HealthSafetyLog = () => {
                         Insurance
                     </h4>
                     <p className="text-sm sm:text-base md:text-lg text-gray-600 font-medium leading-relaxed pl-1">
-                        0 incidents
+                        <span>{loading ? "Loading..." : `${incidentCount} incidents`}</span> 
                     </p>
                 </div>
 

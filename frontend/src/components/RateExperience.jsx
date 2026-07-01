@@ -2,12 +2,9 @@ import React, { useState } from "react";
 // import { useParams } from "react-router-dom";
 import { submitTripFeedback } from "../services/feedbackService";
 
-const RateExperience = () => {
+const RateExperience = ({ touristId, tripId }) => {
 
     // const { touristId, tripId } = useParams();
-
-    const touristId = "6a28dc49a14342989f1e4ee4";
-    const tripId = "6a28dc49a14342989f1e4ee5";
 
     const [feedbackStarHover, setFeedbackStarHover] = useState(0);
     const [feedbackStarPick, setFeedbackStarPick] = useState(5);

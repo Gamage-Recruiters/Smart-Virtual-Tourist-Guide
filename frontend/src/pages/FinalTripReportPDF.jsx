@@ -6,15 +6,15 @@ import HealthSafetyLogPDF from "../components/HealthSafetyLogPDF";
 import RateExperiencePDF from "../components/RateExperiencePDF";
 
 
-const FinalTripReportPDF = () => {
+const FinalTripReportPDF = ({ touristId, tripId }) => {
 
   return (
     <>
       {/* Section 01 */}
-      <TripCoverPagePDF />
+      <TripCoverPagePDF touristId={touristId} tripId={tripId} />
 
       {/* Section 02 */}
-      <TripItineraryPDF />
+      <TripItineraryPDF touristId={touristId} tripId={tripId} />
 
       {/* Section 03 */}
       <FinancialSummaryPDF />

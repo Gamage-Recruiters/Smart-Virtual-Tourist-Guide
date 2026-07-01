@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 // import { useParams } from 'react-router-dom';
 import { fetchItinerary } from '../services/itineraryService';
 
-import { downloadReportPDF } from '../services/pdfService'; 
+import { downloadReportPDF } from '../services/pdfService';
 
 import FinalTripReportPDF from "./FinalTripReportPDF";
 
@@ -77,10 +77,10 @@ const FinalTripReport = () => {
       }
 
       const sizeInMB = (result.blob.size / (1024 * 1024)).toFixed(2) + " MB";
-      
+
       setFileSize(sizeInMB);
       setDownloadedBlob(result.blob);
-      setIsDownloadOpen(true); 
+      setIsDownloadOpen(true);
 
     } catch (error) {
       console.error("PDF download failed:", error);
@@ -121,7 +121,7 @@ const FinalTripReport = () => {
 
   // --- CONDITIONAL RENDERING FOR PDF EXPORT (A4) ---
   if (exportMode) {
-    return <FinalTripReportPDF itinerary={itinerary} />;
+    return <FinalTripReportPDF touristId={touristId} tripId={tripId} />;
   }
 
   // --- DEFAULT DASHBOARD VIEW ---
@@ -178,12 +178,12 @@ const FinalTripReport = () => {
 
         {/* Main Section */}
         <main className="w-full min-h-screen bg-gradient-to-b from-[#D3EEFD] to-[#F4F9FF] px-4 sm:px-6 md:px-10 lg:px-16 py-7 space-y-7 flex flex-col items-center">
-          <TripItinerary />
+          <TripItinerary touristId={touristId} tripId={tripId}/>
           <FinancialSummary />
           <ServiceProviders />
-          <HealthSafetyLog />
+          <HealthSafetyLog touristId={touristId} />
           <TripHighlights />
-          <RateExperience />
+          <RateExperience touristId={touristId} tripId={tripId} />
         </main>
 
         {/* Bottom Action Section */}
@@ -255,7 +255,7 @@ const FinalTripReport = () => {
 
               <p className="text-sm sm:text-base font-bold text-white/90 leading-relaxed max-w-[290px] mb-8 select-none">
                 Final_Trip_Report.pdf <br />
-                <span className="opacity-80">{fileSize}</span> 
+                <span className="opacity-80">{fileSize}</span>
               </p>
 
               <button

@@ -8,6 +8,7 @@ const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const itineraryRoutes = require('./src/routes/itineraryRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
 const pdfRoutes = require('./src/routes/pdfRoutes');
+const incidentRoutes = require('./src/routes/incidentRoutes');
 
 connectDB();
 
@@ -24,6 +25,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/export', pdfRoutes);
+app.use('/api/safety/incidents', incidentRoutes);
 
 
 const PORT = process.env.PORT || 5000;

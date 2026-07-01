@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
-// import { useParams } from 'react-router-dom';
 import { fetchItinerary } from '../services/itineraryService'; 
 
-const TripItineraryPDF = () => {
- 
-  // const { touristId, tripId } = useParams();
-  const touristId = "6a28dc49a14342989f1e4ee4";
-  const tripId = "6a28dc49a14342989f1e4ee5";
+const TripItineraryPDF = ({ touristId, tripId }) => {
 
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(true);
