@@ -1,12 +1,10 @@
-import { useState } from 'react'
+import TripItinerary from './components/TripItinerary'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1 class="text-3xl font-bold underline"> Hello world!</h1>
-    </>
+    <div>
+      <TripItinerary itineraryId="6a2a3044cc161c9a51ffb170" />
+    </div>
   )
 }
 

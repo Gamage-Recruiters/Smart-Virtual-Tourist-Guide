@@ -5,6 +5,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 const mlService = require('../ml_gateway/mlService');
+const Itinerary = require('../models/Itinerary');
 
 // ── Generate Itinerary ────────────────────────────────────────────────────────
 const generateItinerary = async (req, res) => {
@@ -97,8 +98,35 @@ const checkHealth = async (req, res) => {
     }
 };
 
+// ── Get Itinerary by MongoDB _id ──────────────────────────────────────────────
+const getItinerary = async (req, res) => {
+    try {
+        const itinerary = await Itinerary.findById(req.params.id);
+        if (!itinerary) return res.status(404).json({ status: 'error', message: 'Itinerary not found' });
+        return res.status(200).json({ status: 'success', itinerary });
+    } catch (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
+const getItineraryByTouristAndTrip = async (req, res) => {
+    try {
+        const { tourist_id, trip_id } = req.params;
+        const itinerary = await Itinerary.findOne({
+            tourist_id: tourist_id,
+            _id:        trip_id,
+        });
+        if (!itinerary) return res.status(404).json({ status: 'error', message: 'Itinerary not found' });
+        return res.status(200).json({ status: 'success', itinerary });
+    } catch (error) {
+        return res.status(500).json({ status: 'error', message: error.message });
+    }
+};
+
 module.exports = {
     generateItinerary,
+    getItinerary,
+    getItineraryByTouristAndTrip,  // ← add this
     detectAnomaly,
     getRecommendations,
     checkHealth,

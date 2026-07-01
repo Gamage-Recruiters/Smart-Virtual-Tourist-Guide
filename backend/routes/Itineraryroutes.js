@@ -1,9 +1,3 @@
-// ══════════════════════════════════════════════════════════════════════════════
-// Itinerary Routes
-// Smart Virtual Tourist Guide — Sri Lanka
-// Location: backend/routes/itineraryRoutes.js
-// ══════════════════════════════════════════════════════════════════════════════
-
 const express    = require('express');
 const router     = express.Router();
 const controller = require('../controllers/itineraryController');
@@ -19,5 +13,11 @@ router.post('/recommendations',   controller.getRecommendations);
 
 // Health check — Flask server status
 router.get('/health',             controller.checkHealth);
+
+// ── ADD THIS LINE ──────────────────────────────────────────────────────────
+router.get('/:id',                controller.getItinerary);
+
+// Get itinerary by tourist_id + trip_id
+router.get('/tourist/:tourist_id/:trip_id', controller.getItineraryByTouristAndTrip);
 
 module.exports = router;
