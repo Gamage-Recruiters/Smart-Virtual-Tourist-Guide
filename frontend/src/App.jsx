@@ -12,9 +12,9 @@ function App() {
 
   return (
     <>
-      <FinalTripReport />
+      {/* <FinalTripReport /> */}
       {/* <FinalTripReportPDF /> */}
-      {/* <TouristArrivalReport /> */}
+      <TouristArrivalReport />
       {/* <RevenueReport /> */}
       {/* <BehaviorStatReport /> */}
       {/* <ComplaintReport /> */}

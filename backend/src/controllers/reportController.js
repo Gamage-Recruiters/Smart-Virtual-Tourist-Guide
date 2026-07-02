@@ -4,37 +4,40 @@ const { countries } = require('countries-list');
 const getRegion = (countryName) => {
     if (!countryName) return 'Asia';
 
-    // Find the country by name in the dataset
-    const countryData = countries.find(
-        (c) => c.name.common.toLowerCase() === countryName.trim().toLowerCase()
+    const countryData = Object.values(countries).find(
+        (c) => c.name.toLowerCase() === countryName.trim().toLowerCase()
     );
 
     if (countryData) {
-        const { region, subregion } = countryData;
+        const continentCode = countryData.continent; // 'AS', 'EU', 'AF', 'OC', 'NA', 'SA' 
 
-        // Map Middle East & North Africa (Western Asia or Northern Africa)
-        if (subregion === 'Western Asia' || subregion === 'Northern Africa') {
+        // Middle East 
+        const middleEastCountries = [
+            "Egypt", "Saudi Arabia", "United Arab Emirates", "Turkey", "Israel", 
+            "Iran", "Iraq", "Qatar", "Kuwait", "Jordan", "Oman", "Lebanon"
+        ];
+        if (middleEastCountries.includes(countryData.name)) {
             return 'Middle East & North Africa';
         }
 
-        if (region === 'Oceania') {
-            return 'Oceania';
-        }
-
-        // Map Asia-Pacific (Eastern/South-Eastern Asia or Oceania)
-        if (subregion === 'Eastern Asia' || subregion === 'South-Eastern Asia') {
+        // Asia-Pacific
+        const asiaPacificCountries = [
+            "Japan", "South Korea", "China", "Taiwan", "Singapore", "Thailand", 
+            "Vietnam", "Indonesia", "Malaysia", "Philippines"
+        ];
+        if (asiaPacificCountries.includes(countryData.name)) {
             return 'Asia-Pacific';
         }
 
-        // Map standard world regions
-        if (region === 'Asia') return 'Asia';
-        if (region === 'Africa') return 'Africa';
-        if (region === 'Europe') return 'Europe';
-        if (region === 'Americas') return 'Americas';
+        if (continentCode === 'OC') return 'Oceania';
+        if (continentCode === 'AS') return 'Asia';
+        if (continentCode === 'AF') return 'Africa';
+        if (continentCode === 'EU') return 'Europe';
+        if (continentCode === 'NA' || continentCode === 'SA') return 'Americas';
     }
 
-    return 'Asia';
-}
+    return 'Asia'; // Default fallback
+};
 
 const getTouristArrivalStats = async (req, res) => {
     try {
