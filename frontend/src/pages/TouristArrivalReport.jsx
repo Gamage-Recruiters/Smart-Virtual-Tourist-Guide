@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PDF_PNG from "../assets/pdf.png";
 
 import { downloadReportPDF } from "../services/pdfService";
+import { fetchTouristArrivalStats } from "../services/reportService";
 
 import {
     ResponsiveContainer,
@@ -19,6 +20,11 @@ import {
 const TouristArrivalReport = () => {
     const [showAlert, setShowAlert] = useState(false);
 
+    const [chartData, setChartData] = useState([]);
+    const [tableData, setTableData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const queryParams = new URLSearchParams(window.location.search);
     const exportMode = queryParams.get('export') === 'true';
 
@@ -28,9 +34,28 @@ const TouristArrivalReport = () => {
         }
     }, [exportMode]);
 
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                const result = await fetchTouristArrivalStats();
+                console.log(result)
+                if (result.success) {
+                    setChartData(result.data.chartData);
+                    setTableData(result.data.tableData);
+                } else {
+                    setError(result.message);
+                }
+            } catch (err) {
+                setError("Failed to fetch tourist stats from server.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadStats();
+    }, []);
+
     const handleDownloadPDF = async () => {
         try {
-
             const currentUrl = `${window.location.origin}${window.location.pathname}?export=true`;
 
             // Fetch PDF blob via service layer
@@ -65,16 +90,6 @@ const TouristArrivalReport = () => {
         }
     };
 
-    const chartData = [
-        { label: "Asia", value: 500000, colorHex: "#0B53A4" },
-        { label: "Africa", value: 400000, colorHex: "#247BB2" },
-        { label: "Europe", value: 300000, colorHex: "#2EC4B6" },
-        { label: "Americas", value: 350000, colorHex: "#4CC9F0" },
-        { label: "Oceania", value: 440000, colorHex: "#72EFDD" },
-        { label: "Asia-Pacific", value: 170000, colorHex: "#F1C40F" },
-        { label: "Middle East", value: 450000, colorHex: "#F39C12" },
-    ];
-
     const regionColors = [
         "bg-[#0B53A4] text-white",           // Asia (Dark Blue)
         "bg-[#247BB2] text-white",           // Africa (Medium Blue)
@@ -85,57 +100,8 @@ const TouristArrivalReport = () => {
         "bg-[#D8F3DC] text-gray-900"         // Middle East & North Africa (Very Pale Green)
     ];
 
-    const tableData = [
-        {
-            region: "Asia",
-            rows: [
-                { gender: "Male", monthly: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500], total: "18,000" },
-                { gender: "Female", monthly: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500], total: "6,000" }
-            ]
-        },
-        {
-            region: "Africa",
-            rows: [
-                { gender: "Male", monthly: [1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450], total: "17,400" },
-                { gender: "Female", monthly: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000], total: "12,000" }
-            ]
-        },
-        {
-            region: "Europe",
-            rows: [
-                { gender: "Male", monthly: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500], total: "6,000" },
-                { gender: "Female", monthly: [1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450], total: "17,400" }
-            ]
-        },
-        {
-            region: "Americas",
-            rows: [
-                { gender: "Male", monthly: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000], total: "12,000" },
-                { gender: "Female", monthly: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500], total: "6,000" }
-            ]
-        },
-        {
-            region: "Oceania",
-            rows: [
-                { gender: "Male", monthly: [1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450], total: "17,400" },
-                { gender: "Female", monthly: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000], total: "12,000" }
-            ]
-        },
-        {
-            region: "Asia-Pacific",
-            rows: [
-                { gender: "Male", monthly: [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500], total: "6,000" },
-                { gender: "Female", monthly: [1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450, 1450], total: "17,400" }
-            ]
-        },
-        {
-            region: "Middle East & North Africa",
-            rows: [
-                { gender: "Male", monthly: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000], total: "12,000" },
-                { gender: "Female", monthly: [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000], total: "12,000" }
-            ]
-        }
-    ];
+    if (loading) return <div className="text-center py-10 font-bold">Loading tourist stats...</div>;
+    if (error) return <div className="text-center py-10 text-red-500 font-bold">Error: {error}</div>;
 
     return (
         <div className="min-h-screen bg-[#EAF4FC]" style={{ fontFamily: "'Inter', sans-serif" }}>

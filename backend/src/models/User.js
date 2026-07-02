@@ -22,11 +22,16 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false
+  },
+  googleId: {
+    type: String,
+    trim: true,
+    sparse: true
   },
   role: {
     type: String,
-    enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver'],
+    enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'admin'],
     required: true
   },
   contactNumber: {
@@ -63,15 +68,18 @@ const userSchema = new mongoose.Schema({
     country: { type: String }
   },
   // Hotel Owner specific fields — array to support multiple hotels per owner
-  hotels: [
-    {
-      hotelName: { type: String, trim: true },
-      hotelRegistrationNo: { type: String, trim: true },
-      hotelEmail: { type: String, trim: true, lowercase: true },
-      hotelRegisteredYear: { type: String, trim: true },
-      hotelContactNumber: { type: String, trim: true },
-    }
-  ],
+  hotels: {
+    type: [
+      {
+        hotelName: { type: String, trim: true },
+        hotelRegistrationNo: { type: String, trim: true },
+        hotelEmail: { type: String, trim: true, lowercase: true },
+        hotelRegisteredYear: { type: String, trim: true },
+        hotelContactNumber: { type: String, trim: true },
+      }
+    ],
+    default: undefined
+  },
   // Guide specific fields
   guideId: {
     type: String,
