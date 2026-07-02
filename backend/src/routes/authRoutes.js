@@ -26,6 +26,7 @@ const {
   validateHotelInfo,
 } = require('../validators/authValidator');
 const { protect } = require('../middleware/authMiddleware');
+const { uploadDriverDocs } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -36,7 +37,16 @@ router.post('/register/guide', validateGuideRegister, registerGuide);
 router.post('/register/restaurant', validateRestaurantRegister, registerRestaurant);
 router.post('/register/renter', validateRenterRegister, registerRenter);
 router.post('/register/government', validateGovernmentRegister, registerGovernment);
-router.post('/register/driver', validateDriverRegister, registerDriver);
+router.post(
+  '/register/driver',
+  uploadDriverDocs.fields([
+    { name: 'licenseImages', maxCount: 5 },
+    { name: 'regBookImages', maxCount: 5 },
+    { name: 'vehicleImages', maxCount: 10 }
+  ]),
+  validateDriverRegister,
+  registerDriver
+);
 
 // Unified login route
 router.post('/login', validateLogin, loginUser);

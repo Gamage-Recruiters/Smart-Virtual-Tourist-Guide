@@ -822,6 +822,11 @@ const LoginScreen = () => {
               Government Register
             </Link>
           </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Link to="/driver-signup1" className="flex-1 btn-primary bg-yellow-600 hover:bg-yellow-700 py-3 text-center text-sm">
+              🚗 Driver Register
+            </Link>
+          </div>
         </div>
       </div>
     </AuthLayout>

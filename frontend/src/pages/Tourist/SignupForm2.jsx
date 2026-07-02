@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { userAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom'
 import { IoMdArrowForward, IoMdArrowBack } from 'react-icons/io'
+import { getNames } from 'country-list'
 import { FaShieldAlt, FaHeartbeat, FaPhoneAlt, FaWallet, FaBed, FaUmbrellaBeach } from 'react-icons/fa'
 import Header from '../../components/Tourist/Header'
 import Footer from '../../components/Tourist/Footer'
@@ -33,17 +34,17 @@ const TravelSafetyInfo = () => {
 
   // Load signup data when component mounts
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/tourist')
+    // Check if user has Form 1 data
+    const signupData = localStorage.getItem('signupData')
+    if (!signupData) {
+      navigate('/tourist') // or whichever route handles form 1
     }
   }, [navigate])
 
   const travelStyles = ['Adventure', 'Beach', 'Culture', 'Wildlife']
   const accommodationTypes = ['Hotel', 'Hostel', 'Resort', 'Homestay']
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
-  const countries = ['Sri Lanka', 'India', 'Maldives', 'Thailand', 'Singapore', 'United States', 'United Kingdom', 'Australia']
+  const countries = getNames();
 
   const handleStyleToggle = (style) => {
     setFormData(prev => ({
@@ -88,7 +89,11 @@ const TravelSafetyInfo = () => {
     setLoading(true);
 
     try {
+      const signupDataStr = localStorage.getItem('signupData');
+      const signupData = signupDataStr ? JSON.parse(signupDataStr) : {};
+
       const travelData = {
+        ...signupData,
         travelPreferences: {
           travelStart: formData.travelStart,
           travelEnd: formData.travelEnd,
@@ -111,12 +116,14 @@ const TravelSafetyInfo = () => {
         }
       };
 
-      const response = await userAPI.updateTravelInfo(travelData);
+      const response = await userAPI.register(travelData);
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to save information.');
       }
 
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('userData', JSON.stringify(response.user));
       localStorage.removeItem('signupData');
       navigate('/');
     } catch (error) {

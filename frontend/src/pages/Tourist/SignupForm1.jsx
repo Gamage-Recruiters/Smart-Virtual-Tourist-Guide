@@ -71,19 +71,18 @@ const SignupForm = () => {
 
     try {
       const finalCountry = formData.country === 'Other' ? formData.customCountry : formData.country;
-      const response = await userAPI.register({
+      
+      const signupData = {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         gender: formData.gender,
         country: finalCountry,
         travelType: formData.travelType
-      });
+      };
 
-      // Store token and user data
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
-      localStorage.setItem('signupData', JSON.stringify(formData));
+      // Store form data for the next step
+      localStorage.setItem('signupData', JSON.stringify(signupData));
 
       // Navigate to travel safety page
       navigate('/travel-safety');

@@ -21,7 +21,7 @@ import AdminLogin from './pages/Admin/LoginPage';
 import DriverSignUp1 from './pages/Driver/SignUpForm1';
 import DriverSignUp2 from './pages/Driver/SignUpForm2';
 import DriverSignUp3 from './pages/Driver/SignUpForm3';
-import DriverSignUp4 from './pages/Driver/SignUpForm4';
+import { DriverSignupProvider } from './context/DriverSignupContext';
 
 
 
@@ -60,10 +60,31 @@ function App() {
 
         <Route path="/admin" element={<AdminLogin/>}/>
 
-        <Route path="/driver-signup1" element={<DriverSignUp1/>}/>
-        <Route path="/driver-signup2" element={<DriverSignUp2/>}/>
-        <Route path="/driver-signup3" element={<DriverSignUp3/>}/>
-        <Route path="/driver-signup4" element={<DriverSignUp4/>}/>
+        {/* Driver signup — wrapped in shared context so all 3 steps share form state */}
+        <Route
+          path="/driver-signup1"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp1 />
+            </DriverSignupProvider>
+          }
+        />
+        <Route
+          path="/driver-signup2"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp2 />
+            </DriverSignupProvider>
+          }
+        />
+        <Route
+          path="/driver-signup3"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp3 />
+            </DriverSignupProvider>
+          }
+        />
 
 
 

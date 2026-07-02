@@ -114,7 +114,16 @@ const userSchema = new mongoose.Schema({
   licenseNumber: {
     type: String,
     trim: true
-  }
+  },
+  licenseImages: [{
+    type: String
+  }],
+  regBookImages: [{
+    type: String
+  }],
+  vehicleImages: [{
+    type: String
+  }]
 }, {
   timestamps: true,
   collection: 'users'

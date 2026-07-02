@@ -61,12 +61,19 @@ const apiClient = {
 
   async post(endpoint, data) {
     try {
+      const isFormData = data instanceof FormData;
+      
+      const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
+      
+      // Browser automatically sets correct Content-Type with boundary for FormData
+      if (isFormData) {
+        delete headers['Content-Type'];
+      }
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: isPublicRoute(endpoint)
-          ? publicHeaders
-          : privateHeaders(),
-        body: JSON.stringify(data),
+        headers,
+        body: isFormData ? data : JSON.stringify(data),
       });
 
       const json = await response.json();
@@ -179,6 +186,15 @@ export const renterAPI = {
 export const governmentAPI = {
   register(userData) {
     return apiClient.post('/auth/register/government', userData);
+  },
+};
+
+/**
+ * DRIVER APIs
+ */
+export const driverAPI = {
+  register(userData) {
+    return apiClient.post('/auth/register/driver', userData);
   },
 };
 

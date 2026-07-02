@@ -232,3 +232,4 @@ coverage
 *.tgz
 
 frontend/vite.config copy.js
+

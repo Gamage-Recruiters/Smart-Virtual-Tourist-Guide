@@ -26,7 +26,7 @@ const generateUsername = async (email) => {
 const registerTourist = async (req, res) => {
   try {
     console.log('Registering tourist request body:', req.body);
-    const { fullName, email, password, country, travelType, gender } = req.body;
+    const { fullName, email, password, country, travelType, gender, travelPreferences, healthInfo, emergencyContact } = req.body;
 
     const emailNormalized = email.toLowerCase().trim();
     const userExists = await User.findOne({ email: emailNormalized });
@@ -45,6 +45,9 @@ const registerTourist = async (req, res) => {
       country,
       travelType,
       gender,
+      travelPreferences,
+      healthInfo,
+      emergencyContact,
     });
 
     res.status(201).json({
@@ -59,6 +62,9 @@ const registerTourist = async (req, res) => {
         country: user.country,
         travelType: user.travelType,
         gender: user.gender,
+        travelPreferences: user.travelPreferences,
+        healthInfo: user.healthInfo,
+        emergencyContact: user.emergencyContact,
       },
       token: generateToken(user._id),
     });
@@ -309,6 +315,11 @@ const registerDriver = async (req, res) => {
 
     const username = await generateUsername(emailNormalized);
 
+    // Extract image URLs from Multer (Cloudinary)
+    const licenseImages = req.files?.licenseImages?.map(file => file.path) || [];
+    const regBookImages = req.files?.regBookImages?.map(file => file.path) || [];
+    const vehicleImages = req.files?.vehicleImages?.map(file => file.path) || [];
+
     const user = await User.create({
       fullName,
       username,
@@ -319,6 +330,9 @@ const registerDriver = async (req, res) => {
       vehicleNumber,
       licenseNumber,
       contactNumber,
+      licenseImages,
+      regBookImages,
+      vehicleImages,
     });
 
     res.status(201).json({
@@ -334,6 +348,9 @@ const registerDriver = async (req, res) => {
         vehicleNumber: user.vehicleNumber,
         licenseNumber: user.licenseNumber,
         contactNumber: user.contactNumber,
+        licenseImages: user.licenseImages,
+        regBookImages: user.regBookImages,
+        vehicleImages: user.vehicleImages,
       },
       token: generateToken(user._id),
     });
