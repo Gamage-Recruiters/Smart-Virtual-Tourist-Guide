@@ -235,7 +235,7 @@ export default function WeatherAlertsPage() {
     lat: item.lat,
     lng: item.lng,
     color: item.status === 'Critical' ? 'red' : item.status === 'High' ? 'orange' : item.status === 'Medium' ? 'yellow' : 'green',
-    popup: `<strong>${item.area}</strong><br/>${item.risk}<br/>${item.status}`,
+    popup: `<strong>${item.area}</strong><br/><span style="font-size: 0.85em; color: #666;">Covers: ${item.covers || ''}</span><br/>${item.risk}<br/>Status: <strong>${item.status}</strong>`,
   }))
 
   const selectedRisk = assessWeatherRisk(openWeather)
@@ -345,7 +345,9 @@ export default function WeatherAlertsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
-                    {districtRisk.map((item) => (
+                    {districtRisk
+                      .filter((item) => item.status !== 'Low')
+                      .map((item) => (
                       <tr key={item.area} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 py-3 font-semibold text-slate-900">{item.area}</td>
                         <td className="px-4 py-3 text-slate-600">{item.risk}</td>
