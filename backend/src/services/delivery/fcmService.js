@@ -1,54 +1,43 @@
 const { getMessaging } = require("firebase-admin/messaging");
 const logger = require("../../utils/logger");
 
-/**
- * Helper function to clean up region/district names for Firebase.
- * Firebase Topics do not allow spaces or special characters.
- * E.g., "Galle Four Gravets" becomes "GalleFourGravets".
- */
+// Import the User model to remove invalid tokens from the database
+const User = require("../../models/User"); 
+
+// Helper function to remove spaces and special characters from topic names
 const sanitize = (name) => (name ? name.replace(/[^a-zA-Z0-9-_.~%]/g, "") : "");
 
 /**
  * FCM Topic Management Service
- * 
- * Description:
- * Subscribes or unsubscribes a user's mobile device (FCM Token) to location-based topics.
- * This ensures they receive background push notifications for their specific region and role.
+ * Subscribes or unsubscribes a user's FCM token to regional and role-based topics.
  */
 exports.manageRegionalTopics = async (
   fcmToken,
   regionData,
   role,
-  action = "subscribe", // Default action is to 'subscribe'
+  action = "subscribe",
 ) => {
-  // 1. Safety Check: Stop the process if the token or location data is missing
-  if (
-    !fcmToken ||
-    !regionData ||
-    !regionData.division ||
-    !regionData.district
-  ) {
+  // 1. Stop if the token or location data is missing
+  if (!fcmToken || !regionData || !regionData.division || !regionData.district) {
     logger.warn(`⚠️ FCM ${action} skipped: Missing fcmToken or regionData.`);
     return;
   }
 
-  // Extract and clean the division and district names
+  // 2. Clean the division and district names
   const { division, district } = regionData;
   const divS = sanitize(division);
   const distS = sanitize(district);
 
-  // 2. Build the list of Firebase Topics this user should listen to
-  // They will receive messages sent to any of these 4 channels
+  // 3. Create the list of 4 topics this user should listen to
   const topics = [
-    `topic_div_${divS}`,                     // E.g., Everyone in Balangoda
-    `topic_dist_${distS}`,                   // E.g., Everyone in Ratnapura district
-    `topic_div_${divS}_role_${role}`,        // E.g., Drivers in Balangoda
-    `topic_dist_${distS}_role_${role}`,      // E.g., Drivers in Ratnapura district
+    `topic_div_${divS}`,
+    `topic_dist_${distS}`,
+    `topic_div_${divS}_role_${role}`,
+    `topic_dist_${distS}_role_${role}`,
   ];
 
   try {
-    // 3. Execute all FCM requests at the same time (Parallel processing)
-    // Promise.allSettled ensures that if one topic fails, the others will still continue
+    // 4. Send requests to Firebase for all topics at the same time
     const results = await Promise.allSettled(
       topics.map((topic) =>
         action === "subscribe"
@@ -57,33 +46,54 @@ exports.manageRegionalTopics = async (
       ),
     );
 
-    // 4. Check the results and log them for debugging and monitoring
-    results.forEach((res, index) => {
+    // Flag to check if the FCM token is expired or invalid
+    let isTokenInvalid = false;
+
+    // 5. Loop through the results to check for success or failure
+    for (let index = 0; index < results.length; index++) {
+      const res = results[index];
       const topicName = topics[index];
 
       if (res.status === "fulfilled") {
-        // The API call was successful, now check if Firebase actually added/removed the token
         const successCount = res.value?.successCount || 0;
+        
         if (successCount > 0) {
-          logger.info(` FCM ${action} success: ${topicName}`);
+          logger.info(`FCM ${action} success: ${topicName}`);
         } else {
-          // The API call succeeded, but the token was invalid or rejected by Firebase
-          const errorDetail = res.value?.errors?.[0]?.error || "Unknown error";
-          logger.error(
-            ` FCM ${action} failed for ${topicName}: ${errorDetail}`,
-          );
+          // Firebase processed the request, but returned an error for this token
+          const errorObj = res.value?.errors?.[0]?.error;
+          const errorMessage = errorObj?.message || errorObj?.code || "Unknown error";
+          
+          logger.error(`FCM ${action} failed for ${topicName}: ${errorMessage}`);
+
+          // Check if Firebase says the token is no longer valid
+          if (errorMessage.includes("not registered") || errorMessage.includes("not-registered")) {
+            isTokenInvalid = true;
+          }
         }
       } else {
-        // The API call itself failed (e.g., Network issue or Firebase server down)
-        const errorMessage =
-          res.reason?.message || res.reason || "Unknown failure";
-        logger.error(
-          ` FCM ${action} rejected for ${topicName}: ${errorMessage}`,
-        );
+        // The API request completely failed (e.g., network error)
+        const errorMessage = res.reason?.message || res.reason || "Unknown failure";
+        logger.error(`FCM ${action} rejected for ${topicName}: ${errorMessage}`);
+
+        // Check again if the failure was due to an invalid token
+        if (errorMessage.includes("not registered") || errorMessage.includes("not-registered")) {
+          isTokenInvalid = true;
+        }
       }
-    });
+    }
+
+    // 6. If the token is dead, remove it from the database ONCE to save server resources
+    if (isTokenInvalid) {
+      logger.warn(`Invalid FCM Token detected. Removing from Database...`);
+      await User.updateMany(
+        { fcmToken: fcmToken },
+        { $set: { fcmToken: null } }
+      );
+    }
+
   } catch (err) {
-    // Catch any unexpected fatal errors in the overall process
-    logger.error(` Fatal error in manageRegionalTopics: ${err.message}`);
+    // Catch any unexpected fatal errors
+    logger.error(`Fatal error in manageRegionalTopics: ${err.message}`);
   }
 };

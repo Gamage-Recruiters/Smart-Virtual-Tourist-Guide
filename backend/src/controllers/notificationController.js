@@ -15,62 +15,61 @@ const User = require("../models/User");
  * It loads messages in chunks (pagination) to save data and improve speed.
  */
 const getNotifications = catchAsync(async (req, res, next) => {
-  // Get user ID from headers (Currently used for testing without full auth)
   const userId = req.headers["user-id"];
 
-  if (!userId) {
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     return next(
-      new AppError("Testing Error: Please provide 'user-id' in Headers", 400),
+      new AppError(
+        "Testing Error: Please provide valid 'user-id' in Headers",
+        400,
+      ),
     );
   }
 
-  // Find the user in the database
   const user = await User.findById(userId);
-  if (!user) {
-    return next(new AppError("User not found in Database", 404));
-  }
+  if (!user) return next(new AppError("User not found in Database", 404));
 
   const userRole = user.role;
-  let userDistrict = null;
-  let userDivision = null;
+  let userDistrict = null,
+    userDivision = null;
 
-  // Extract the user's current location to find their division and district
-  if (user.currentLocation && user.currentLocation.coordinates) {
+  if (user.currentLocation?.coordinates) {
     const [lng, lat] = user.currentLocation.coordinates;
     const regionData = await getRegionFromCoords(lat, lng);
-
-    if (regionData && typeof regionData === "object") {
+    if (regionData) {
       userDivision = regionData.division;
       userDistrict = regionData.district;
     }
   }
 
-  // Setup Pagination (e.g., page 1 brings first 20 items, page 2 brings next 20)
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 20;
   const skip = (page - 1) * limit;
 
-  logger.info(
-    `🔍 Fetching notifications for User: ${userId} | Role: ${userRole}`,
-  );
+  const matchCriteria = [
+    { recipientId: new mongoose.Types.ObjectId(userId) },
+    { recipientRole: userRole },
+    { recipientRole: "ALL" },
+    { scope: "BROADCAST" },
+  ];
 
-  // Advanced Database Query (Aggregation) to fetch and filter notifications
+  if (userDivision) matchCriteria.push({ region: userDivision });
+  if (userDistrict) matchCriteria.push({ district: userDistrict });
+
   const notifications = await Notification.aggregate([
+    // 1. Filter Messages
+    { $match: { $or: matchCriteria } },
+
+    // 2. Deduplicate (Remove identical messages)
+    { $group: { _id: "$_id", doc: { $first: "$$ROOT" } } },
+    { $replaceRoot: { newRoot: "$doc" } },
+
+    // 🚀 CRITICAL PERFORMANCE FIX: Sort & Paginate BEFORE $lookup
+    { $sort: { createdAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+
     {
-      // Step A: Filter messages that belong to this user
-      $match: {
-        $or: [
-          { recipientId: new mongoose.Types.ObjectId(userId) }, // Personal messages
-          { recipientRole: userRole }, // Role-based messages
-          { recipientRole: "ALL" }, // Role-based messages
-          { region: userDivision }, // City/Division messages
-          { district: userDistrict }, // District messages
-          { scope: "BROADCAST" }, // Messages for everyone
-        ],
-      },
-    },
-    {
-      // Step B: Check the "NotificationReadStatus" collection to see if the user read this message
       $lookup: {
         from: "notificationreadstatuses",
         let: { notifId: "$_id" },
@@ -89,27 +88,23 @@ const getNotifications = catchAsync(async (req, res, next) => {
         as: "readInfo",
       },
     },
+
+    { $match: { "readInfo.isDeleted": { $ne: true } } },
+
     {
-      // Step C: Create an 'isRead' true/false flag based on the message type
       $addFields: {
         isRead: {
           $cond: {
             if: { $eq: ["$scope", "UNICAST"] },
-            then: "$isRead", // If private, check the 'isRead' field directly
-            else: { $gt: [{ $size: "$readInfo" }, 0] }, // If public, check if a read record exists
+            then: "$isRead",
+            else: { $gt: [{ $size: "$readInfo" }, 0] },
           },
         },
       },
     },
-    // Step D: Clean up the output by removing unnecessary joined data
     { $project: { readInfo: 0 } },
-    // Step E: Sort by newest first, and apply pagination
-    { $sort: { createdAt: -1 } },
-    { $skip: skip },
-    { $limit: limit },
   ]);
 
-  // Send the final result back to the frontend
   res.status(200).json({
     status: "success",
     page,
@@ -145,7 +140,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
   const notification = await Notification.findById(id);
 
   if (!notification) {
-    logger.warn(`⚠️ MarkAsRead Failed: Notification ${id} not found.`);
+    logger.warn(` MarkAsRead Failed: Notification ${id} not found.`);
     return next(new AppError("No notification found with that ID", 404));
   }
 
@@ -154,7 +149,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
     // Security check: ensure the user owns this message
     if (notification.recipientId.toString() !== userId) {
       logger.warn(
-        `🚫 Unauthorized read attempt by User ${userId} on Notif ${id}`,
+        ` Unauthorized read attempt by User ${userId} on Notif ${id}`,
       );
       return next(
         new AppError("Unauthorized access to this notification", 403),
@@ -172,7 +167,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
     );
   }
 
-  logger.info(`✅ Notification ${id} marked as read by User ${userId}`);
+  logger.info(` Notification ${id} marked as read by User ${userId}`);
 
   res.status(200).json({
     status: "success",
@@ -197,45 +192,44 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
   }
 
   const user = await User.findById(userId);
-  if (!user) {
-    return next(new AppError("User not found in Database", 404));
-  }
+  if (!user) return next(new AppError("User not found in Database", 404));
 
   const userRole = user.role;
   let userDistrict = null;
   let userDivision = null;
 
-  // Determine user's region based on their last location
   if (user.currentLocation && user.currentLocation.coordinates) {
     const [lng, lat] = user.currentLocation.coordinates;
     const regionData = await getRegionFromCoords(lat, lng);
-
     if (regionData && typeof regionData === "object") {
       userDivision = regionData.division;
       userDistrict = regionData.district;
     }
   }
 
-  logger.info(
-    `🔍 Fetching unread count for User: ${userId} | Role: ${userRole}`,
-  );
-
   const result = await Notification.aggregate([
     {
-      // Find all messages meant for this user
       $match: {
         $or: [
           { recipientId: new mongoose.Types.ObjectId(userId) },
           { recipientRole: userRole },
-          { recipientRole: "ALL" }, // Messages sent to 'ALL' roles
+          { recipientRole: "ALL" },
           { region: userDivision },
           { district: userDistrict },
           { scope: "BROADCAST" },
         ],
       },
     },
+
     {
-      // Join with read statuses to see if they read them
+      $group: {
+        _id: "$_id",
+        doc: { $first: "$$ROOT" },
+      },
+    },
+    { $replaceRoot: { newRoot: "$doc" } },
+
+    {
       $lookup: {
         from: "notificationreadstatuses",
         let: { notifId: "$_id" },
@@ -254,8 +248,10 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
         as: "readRecord",
       },
     },
+
+    { $match: { "readRecord.isDeleted": { $ne: true } } },
+
     {
-      // Identify which ones are strictly unread
       $addFields: {
         isUnread: {
           $cond: {
@@ -266,12 +262,10 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
         },
       },
     },
-    // Keep only the unread ones and count them
     { $match: { isUnread: true } },
     { $count: "totalUnread" },
   ]);
 
-  // Return the count, or 0 if there are no unread messages
   const count = result.length > 0 ? result[0].totalUnread : 0;
 
   res.status(200).json({
@@ -281,9 +275,184 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
     },
   });
 });
+/**
+ * 4. Mark all notifications as read for a user
+ * PATCH /api/notifications/mark-all-read
+ */
+
+const markAllAsRead = catchAsync(async (req, res, next) => {
+  const userId = req.headers["user-id"];
+
+  if (!userId) return next(new AppError("User ID required", 400));
+
+  const user = await User.findById(userId);
+  if (!user) return next(new AppError("User not found", 404));
+
+  const { role: userRole, currentLocation } = user;
+
+  let userDistrict = null,
+    userDivision = null;
+  if (currentLocation?.coordinates) {
+    const [lng, lat] = currentLocation.coordinates;
+    const regionData = await getRegionFromCoords(lat, lng);
+    userDivision = regionData?.division;
+    userDistrict = regionData?.district;
+  }
+
+  await Notification.updateMany(
+    { recipientId: userId, isRead: false },
+    { $set: { isRead: true } },
+  );
+
+  const orConditions = [
+    { recipientRole: userRole },
+    { recipientRole: "ALL" },
+    { scope: "BROADCAST" },
+  ];
+  if (userDivision) orConditions.push({ region: userDivision });
+  if (userDistrict) orConditions.push({ district: userDistrict });
+
+  const unreadNotifications = await Notification.aggregate([
+    { $match: { scope: { $ne: "UNICAST" }, $or: orConditions } },
+    {
+      $lookup: {
+        from: "notificationreadstatuses",
+        let: { notifId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$notificationId", "$$notifId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "readRecord",
+      },
+    },
+    { $match: { "readRecord.0": { $exists: false } } },
+
+    { $group: { _id: "$_id" } },
+  ]);
+
+  if (unreadNotifications.length > 0) {
+    const bulkOps = unreadNotifications.map((n) => ({
+      updateOne: {
+        filter: {
+          notificationId: n._id,
+          userId: new mongoose.Types.ObjectId(userId),
+        },
+        update: { $setOnInsert: { readAt: new Date() } },
+        upsert: true,
+      },
+    }));
+
+      await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
+        (e) => {
+          console.error("Error in bulkWrite for markAllAsRead:", e.message);
+        },
+      );
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "All notifications safely marked as read",
+  });
+});
+
+/**
+ * 5. Clear all notifications for a user
+ * DELETE /api/notifications/clear-all
+ */
+
+const clearAllNotifications = catchAsync(async (req, res, next) => {
+  const userId = req.headers["user-id"];
+
+  if (!userId) return next(new AppError("User ID required", 400));
+
+  const user = await User.findById(userId);
+  if (!user) return next(new AppError("User not found", 404));
+
+  const { role: userRole, currentLocation } = user;
+
+  let userDistrict = null,
+    userDivision = null;
+  if (currentLocation?.coordinates) {
+    const [lng, lat] = currentLocation.coordinates;
+    const regionData = await getRegionFromCoords(lat, lng);
+    userDivision = regionData?.division;
+    userDistrict = regionData?.district;
+  }
+  await Notification.deleteMany({ recipientId: userId, scope: "UNICAST" });
+
+  const orConditions = [
+    { recipientRole: userRole },
+    { recipientRole: "ALL" },
+    { scope: "BROADCAST" },
+  ];
+  if (userDivision) orConditions.push({ region: userDivision });
+  if (userDistrict) orConditions.push({ district: userDistrict });
+
+  const publicNotifications = await Notification.aggregate([
+    { $match: { scope: { $ne: "UNICAST" }, $or: orConditions } },
+    {
+      $lookup: {
+        from: "notificationreadstatuses",
+        let: { notifId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$notificationId", "$$notifId"] },
+                  { $eq: ["$userId", new mongoose.Types.ObjectId(userId)] },
+                ],
+              },
+            },
+          },
+        ],
+        as: "readRecord",
+      },
+    },
+    { $match: { "readRecord.isDeleted": { $ne: true } } },
+    { $group: { _id: "$_id" } },
+  ]);
+
+  if (publicNotifications.length > 0) {
+    const bulkOps = publicNotifications.map((n) => ({
+      updateOne: {
+        filter: {
+          notificationId: n._id,
+          userId: new mongoose.Types.ObjectId(userId),
+        },
+        update: {
+          $set: { isDeleted: true, deletedAt: new Date() },
+          $setOnInsert: { readAt: new Date() },
+        },
+        upsert: true,
+      },
+    }));
+
+    await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
+      (e) => {
+        console.error("Error in bulkWrite for clearAll:", e.message);
+      },
+    );
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "All notifications cleared successfully",
+  });
+});
 
 module.exports = {
   getNotifications,
   markAsRead,
   getUnreadCount,
+  markAllAsRead,
+  clearAllNotifications,
 };

@@ -114,4 +114,4 @@ const triggerSimulation = catchAsync(async (req, res, next) => {
 
 module.exports = {
   triggerSimulation,
-};
+};  

@@ -1,98 +1,138 @@
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-import { useDispatch } from "react-redux";
-import { addNotification } from "../store/slices/notificationSlice";
-import { toast } from "react-hot-toast"; // පණිවිඩයක් ආ සැණින් පෙන්වීමට
+import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 
-// --- Configuration ---
-const SOCKET_URL = "http://localhost:5000";
-const MOCK_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NjQ2OTZjNmM2MTIwMzEzMjMzMzQzNSIsImlhdCI6MTcxODYxMTIwMH0.cGfvgMW6ey3KO1al2ZlszFN-1vS6tUBN1OZfSJL2etE";
+// Redux Actions & Selectors
+import { addRealtimeNotification, clearNotifications } from "../store/slices/notificationSlice";
+import { selectCurrentUser, selectAuthToken } from "../store/selectors/authSelectors";
 
-const mockUser = {
-  _id: "6664696c6c61203132333435",
-  role: "DRIVER",
-  fullName: "Test Driver",
-};
+// Utils & API
+import calculateDistance from "../utils/geoutils";
+import { triggerSafetyFeedback } from "../utils/feedbackHelper";
+import { requestForToken } from "../utils/firebase";
+import { updateFCMTokenApi } from "../api/userApi";
 
 const SocketContext = createContext();
 
-export const useSocket = () => useContext(SocketContext);
+export const useSocket = () => {
+  const context = useContext(SocketContext);
+  if (!context) throw new Error("useSocket must be used within a SocketProvider");
+  return context;
+};
 
 export const SocketProvider = ({ children }) => {
-  const socket = useRef();
+  const socketRef = useRef(null);
   const dispatch = useDispatch();
-  
-  // සැබෑ App එකේදී මෙය Redux store එකෙන් ගන්න: 
-  // const { user, token } = useSelector((state) => state.auth);
-  const user = mockUser; 
-  const token = MOCK_TOKEN;
+  const queryClient = useQueryClient();
+
+  const user = useSelector(selectCurrentUser);
+  const token = useSelector(selectAuthToken);
+
+  // Connection States
+  const [connectionStatus, setConnectionStatus] = useState("disconnected");
+  const [reconnectAttempt, setReconnectAttempt] = useState(0);
 
   useEffect(() => {
-    if (user && token) {
-      // 1. Initialize Socket Connection with JWT
-      socket.current = io(SOCKET_URL, {
-        auth: { token }, // Backend Middleware එක මෙය පරීක්ෂා කරයි
-        reconnectionAttempts: 5,
-        reconnectionDelay: 5000,
+    let watchId = null;
+
+    if (user?._id && token) {
+      dispatch(clearNotifications());
+
+      requestForToken().then((fcmToken) => {
+        if (fcmToken) {
+          updateFCMTokenApi(user._id, fcmToken)
+            .then(() => console.log("✅ FCM Token saved in DB successfully!"))
+            .catch((err) => console.error("❌ Failed to save FCM Token:", err));
+        }
       });
 
-      // 2. Connection Event Listeners
-      socket.current.on("connect", () => {
-        console.log(`✅ Connected to Notification Engine (ID: ${socket.current.id})`);
+      const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+      
+      socketRef.current = io(SOCKET_URL, {
+        auth: { token },
+        reconnection: true,
+        reconnectionAttempts: Infinity, 
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 5000,
+        transports: ["polling", "websocket"],
       });
 
-      socket.current.on("connect_error", (err) => {
-        console.error("❌ Socket Connection Error:", err.message);
-        // ටෝකන් එකේ අවුලක් නම් ලොග් අවුට් කරවීමට මෙතැන ලොජික් එකක් දැමිය හැක
+      const socket = socketRef.current;
+
+      // --- SOCKET LIFECYCLE HANDLERS ---
+      socket.on("connect", () => {
+        setConnectionStatus("connected");
+        setReconnectAttempt(0);
+        console.log("✅ Socket Connected to Engine");
       });
 
-      // 3. Listen for Real-time Notifications
-      socket.current.on("new_notification", (notification) => {
-        console.log("🔔 New Notification:", notification);
+      socket.on("disconnect", (reason) => {
+        console.log(`❌ Socket Disconnected: ${reason}`);
+        setConnectionStatus("reconnecting");
         
-        // Redux store එක update කිරීම
-        dispatch(addNotification(notification));
-
-        // UI එකේ ලස්සන Toast එකක් පෙන්වීම
-        toast.success(notification.title, {
-          description: notification.message,
-          duration: 4000,
-        });
+        if (reason === "io server disconnect") {
+          socket.connect();
+        }
       });
 
-      // 4. Real-time Location Tracking
-      let watchId;
+      socket.on("connect_error", (error) => {
+        console.error("⚠️ Connection Error:", error.message);
+        setConnectionStatus("reconnecting");
+      });
+
+      socket.on("reconnect_attempt", (attempt) => setReconnectAttempt(attempt));
+
+      // --- NOTIFICATION LISTENER ---
+      socket.on("new_notification", (notification) => {
+        console.log("🔔 Notification Received:", notification);
+
+        if (notification.priority === "critical" || notification.priority === "high") {
+          triggerSafetyFeedback(notification.priority);
+        }
+
+        dispatch(addRealtimeNotification(notification));
+
+        queryClient.invalidateQueries(["notifications", user._id]);
+      });
+
+      // --- LIVE LOCATION TRACKING (GPS) ---
       if ("geolocation" in navigator) {
+        let lastLat = null;
+        let lastLng = null;
+
         watchId = navigator.geolocation.watchPosition(
-          (pos) => {
-            const { latitude, longitude } = pos.coords;
-            
-            // Backend එකේ throttling (100m) ඇති නිසා මෙතැනින් නිතර යැවීම ප්‍රශ්නයක් නැත
-            socket.current.emit("update_location", {
-              lat: latitude,
-              lng: longitude,
-            });
-            
-            console.log("📍 GPS Update Sent:", { lat: latitude, lng: longitude });
+          (position) => {
+            const { latitude, longitude } = position.coords;
+
+            if (lastLat && lastLng) {
+              const dist = calculateDistance(lastLat, lastLng, latitude, longitude);
+              if (dist < 50) return; 
+            }
+
+            lastLat = latitude;
+            lastLng = longitude;
+
+            socket.emit("update_location", { lat: latitude, lng: longitude });
           },
-          (err) => console.error("🛰️ Geolocation Error:", err.message),
-          { enableHighAccuracy: true, maximumAge: 10000 }
+          (err) => console.warn("⚠️ GPS Error:", err.message),
+          { enableHighAccuracy: true, distanceFilter: 50 }
         );
       }
 
-      // 5. Cleanup on Unmount
+      // --- CLEANUP ---
       return () => {
+        console.log("🧹 Cleaning up Socket & GPS...");
         if (watchId) navigator.geolocation.clearWatch(watchId);
-        if (socket.current) {
-          socket.current.disconnect();
-          console.log("👋 Socket Disconnected");
-        }
+        socket.removeAllListeners();
+        socket.disconnect();
       };
     }
-  }, [user, token, dispatch]);
-
+  }, [user?._id, token, dispatch, queryClient]); 
   return (
-    <SocketContext.Provider value={socket.current}>
+    <SocketContext.Provider
+      value={{ socket: socketRef.current, connectionStatus, reconnectAttempt }}
+    >
       {children}
     </SocketContext.Provider>
   );

@@ -1,7 +1,7 @@
 /**
  * Notification Routes
- * 
- * Description: 
+ *
+ * Description:
  * This file defines the API endpoints (URL paths) for the notification system.
  * It acts as a bridge, connecting incoming web requests from the frontend to the logic in the controllers.
  */
@@ -16,6 +16,8 @@ const {
   getNotifications,
   markAsRead,
   getUnreadCount,
+  markAllAsRead,
+  clearAllNotifications,
 } = require("../controllers/notificationController");
 
 // Import the testing/simulation controller
@@ -45,9 +47,13 @@ router.patch("/:id/read", markAsRead);
 /**
  * Route: POST /simulate-system-update
  * Description: A special testing route to manually trigger different notification scenarios via Postman.
- * Note: Keep this route only for development/testing purposes.
+ * Note: Keep this route only for development/testing purposes. 
  */
 router.post("/simulate-system-update", triggerSimulation);
+
+router.patch("/mark-all-read", markAllAsRead);
+
+router.delete("/clear-all-notifications", clearAllNotifications);
 
 // Export the router so it can be registered in the main server.js file
 module.exports = router;

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 /**
  * NotificationReadStatus Model
- * 
- * Description: 
+ *
+ * Description:
  * This model tracks which users have read public messages (MULTICAST or BROADCAST).
  * Instead of saving thousands of user IDs inside a single Notification document,
  * we save individual records here. This keeps the database extremely fast and scalable.
@@ -16,14 +16,17 @@ const readStatusSchema = new mongoose.Schema(
       ref: "Notification",
       required: true,
     },
-    
+
     // The ID of the user who read the notification
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    
+    isDeleted: {
+      type: Boolean,  
+      default: false,
+    },
     // The exact time the user opened/read the message
     readAt: {
       type: Date,
@@ -49,6 +52,6 @@ readStatusSchema.index({ userId: 1, notificationId: 1 }, { unique: true });
  * 2. Notification ID Index
  * Helps to quickly find and delete all read statuses if the main Notification gets deleted.
  */
-readStatusSchema.index({ notificationId: 1 });  
+readStatusSchema.index({ notificationId: 1 });
 
 module.exports = mongoose.model("NotificationReadStatus", readStatusSchema);
