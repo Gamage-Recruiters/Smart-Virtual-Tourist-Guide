@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import {connectDB} from './configs/database.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import cors from 'cors';
+import authRouter from './routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +22,7 @@ connectDB();
 
 // Vehicle routes
 app.use('/api/vehicle', vehicleRouter);
+app.use('/api/auth', authRouter);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
