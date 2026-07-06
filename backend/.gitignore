@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Environment variables
 .env
 
@@ -20,3 +21,27 @@ Thumbs.db
 firebase-service-account.json
 
 logs/
+=======
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build folders
+dist/
+build/
+
+# OS related files
+.DS_Store
+Thumbs.db
+
+firebase-service-account.json
+
+logs/
+>>>>>>> 98fa980d55aa605ed620b716a1165ff2476a4915

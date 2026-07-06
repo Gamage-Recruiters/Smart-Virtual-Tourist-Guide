@@ -55,3 +55,4 @@ readStatusSchema.index({ userId: 1, notificationId: 1 }, { unique: true });
 readStatusSchema.index({ notificationId: 1 });
 
 module.exports = mongoose.model("NotificationReadStatus", readStatusSchema);
+

@@ -41,4 +41,5 @@ exports.manageRegionalRooms = (socket, regionData, role, action = "join") => {
   logger.info(
     `Socket Rooms ${action}ed: Division=${division}, District=${district} for User=${socket.userId}`,
   );
+
 };

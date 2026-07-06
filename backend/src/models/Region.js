@@ -40,4 +40,5 @@ const regionSchema = new mongoose.Schema({
  */
 regionSchema.index({ geometry: "2dsphere" });
 
+
 module.exports = mongoose.model("Region", regionSchema);
