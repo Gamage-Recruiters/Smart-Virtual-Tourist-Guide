@@ -155,7 +155,10 @@ export default function IncidentReportPage() {
       payload.append('location[lng]', formData.location.lng)
       // touristId is now set automatically by the backend from the authenticated user
       // TODO: Remove this temporary hardcoded ID once auth is ready
-      payload.append('touristId', '6a1c174b162545981107bcbe')
+      payload.append('touristId', '6a28dc49a14342989f1e4ee4')
+      
+      // TODO: Replace with dynamic travel ID from context once Trip management is complete
+      payload.append('travelId', 'TRIP-7a8b9c0d1e2f')
 
       formData.images.forEach((file) => {
         payload.append('images', file)

@@ -42,6 +42,7 @@ exports.createIncident = async (req, res, next) => {
       },
       images: imageUrls,
       touristId: req.user?._id || req.body.touristId,
+      tripId: req.body.tripId || req.body.travelId,
       referenceNumber:
         req.body.referenceNumber ||
         `SRL-${new Date().getFullYear()}-${String(sequence).padStart(4, '0')}`,
@@ -70,6 +71,9 @@ exports.getIncidents = async (req, res, next) => {
     if (req.query.status) query.status = req.query.status;
     if (req.query.type) query.type = req.query.type;
     if (req.query.touristId) query.touristId = req.query.touristId;
+    if (req.query.tripId || req.query.travelId || req.query.tripID) {
+      query.tripId = req.query.tripId || req.query.travelId || req.query.tripID;
+    }
 
     let queryBuilder = Incident.find(query).sort({ createdAt: -1 });
     if (mongoose.models.User) {
@@ -120,6 +124,9 @@ exports.getIncidentCount = async (req, res, next) => {
   try {
     const query = {};
     if (req.query.touristId) query.touristId = req.query.touristId;
+    if (req.query.tripId || req.query.travelId || req.query.tripID) {
+      query.tripId = req.query.tripId || req.query.travelId || req.query.tripID;
+    }
     if (req.query.status) query.status = req.query.status;
     if (req.query.incidentCategory) query.incidentCategory = req.query.incidentCategory;
 

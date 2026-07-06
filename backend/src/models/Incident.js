@@ -7,6 +7,13 @@ const incidentSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    tripId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Trip',
+      // Optional for now to not break existing records, 
+      // but essential for Final Trip Report linking.
+      required: false, 
+    },
     referenceNumber: {
       type: String,
       index: true,
