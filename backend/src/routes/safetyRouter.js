@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middleware/uploadMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 
 const weatherController = require('../controllers/weatherController');
 const securityAlertController = require('../controllers/securityAlertController');
@@ -15,12 +16,12 @@ router.get('/weather', weatherController.getWeather);
 // --- Security Alert Routes ---
 router.route('/security-alerts')
   .get(securityAlertController.getAlerts)
-  .post(securityAlertController.createAlert);
+  .post(protect, securityAlertController.createAlert);
 
 router.route('/security-alerts/:id')
   .get(securityAlertController.getAlertById)
-  .put(securityAlertController.updateAlert)
-  .delete(securityAlertController.deleteAlert);
+  .put(protect, securityAlertController.updateAlert)
+  .delete(protect, securityAlertController.deleteAlert);
 
 // --- Incident Routes ---
 // Public incidents route MUST come before /:id to avoid "public" being treated as an id
@@ -28,15 +29,15 @@ router.get('/incidents/public', incidentController.getPublicIncidents);
 router.get('/incidents/count', incidentController.getIncidentCount);
 
 router.get('/incidents', incidentController.getIncidents);
-router.post('/incidents', upload.array('images', 5), incidentController.createIncident);
+router.post('/incidents', protect, upload.array('images', 5), incidentController.createIncident);
 
 router.route('/incidents/:id')
   .get(incidentController.getIncidentById)
-  .put(incidentController.updateIncident)
-  .delete(incidentController.deleteIncident);
+  .put(protect, incidentController.updateIncident)
+  .delete(protect, incidentController.deleteIncident);
 
 // --- Location Sharing Routes ---
-router.post('/location/share', locationController.shareLocation);
+router.post('/location/share', protect, locationController.shareLocation);
 router.route('/location/:shareCode')
   .get(locationController.getSharedLocation)
   .put(locationController.updateSharedLocation)
@@ -71,29 +72,10 @@ router.get('/emergency-contacts', (req, res) => {
 });
 
 // --- Tourist Profile (Integrated with User Model) ---
-// The User model is managed by the registration team member.
-// This gracefully handles the case where models/User.js hasn't been added yet.
-let User;
-try {
-  User = require('../models/User');
-} catch (e) {
-  // User model not yet available — will return a placeholder response
-}
+const User = require('../models/User');
 
 router.get('/tourists/profile/:id', async (req, res, next) => {
   try {
-    if (!User) {
-      return res.status(200).json({
-        success: true,
-        message: 'User model not yet integrated. Waiting for registration module.',
-        data: {
-          touristId: req.params.id,
-          name: 'Tourist',
-          email: '',
-          country: 'Sri Lanka',
-        },
-      });
-    }
 
     const user = await User.findById(req.params.id).select('-password');
 

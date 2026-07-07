@@ -8,13 +8,7 @@ const logger = require("../utils/logger");
  * Gracefully handles the case where the User model is not yet available.
  */
 
-// Graceful User model loading — works with or without User model
-let User;
-try {
-  User = require("../models/User");
-} catch (e) {
-  // User model not yet available — will use JWT-decoded data only
-}
+const User = require("../models/User");
 
 const socketAuth = async (socket, next) => {
   try {

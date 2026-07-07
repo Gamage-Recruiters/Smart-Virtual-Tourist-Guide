@@ -14,6 +14,11 @@ const apiClient = {
     return `${API_BASE_URL}${endpoint}`
   },
 
+  getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  },
+
   async get(endpoint, options = {}) {
     try {
       const params = options.params ? `?${new URLSearchParams(options.params).toString()}` : ''
@@ -21,6 +26,7 @@ const apiClient = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...apiClient.getAuthHeaders(),
         },
       });
       if (!response.ok) {
@@ -38,9 +44,9 @@ const apiClient = {
       const isFormData = data instanceof FormData;
       const response = await fetch(apiClient.buildUrl(endpoint), {
         method: 'POST',
-        headers: isFormData ? {} : {
-          'Content-Type': 'application/json',
-        },
+        headers: isFormData
+          ? { ...apiClient.getAuthHeaders() }
+          : { 'Content-Type': 'application/json', ...apiClient.getAuthHeaders() },
         body: isFormData ? data : JSON.stringify(data),
       });
       if (!response.ok) {
@@ -59,6 +65,7 @@ const apiClient = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...apiClient.getAuthHeaders(),
         },
         body: JSON.stringify(data),
       });
@@ -78,6 +85,7 @@ const apiClient = {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          ...apiClient.getAuthHeaders(),
         },
       });
       if (!response.ok) {
