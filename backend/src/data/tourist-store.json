@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "id": "af97d3d3-29cc-479e-8e1a-def7ff44342b",
+      "fullName": "Sasindu Yomal",
+      "email": "admin@example.com",
+      "password": "1234",
+      "createdAt": "2026-07-07T04:36:21.128Z"
+    }
+  ],
+  "sessions": {
+    "4e1e0adb-8a35-4ad0-9a5b-0b33e6a3bd9b": "af97d3d3-29cc-479e-8e1a-def7ff44342b"
+  },
+  "profiles": [
+    {
+      "id": "b36579f8-03f9-4c89-b980-ed2c6d0e960a",
+      "userId": "af97d3d3-29cc-479e-8e1a-def7ff44342b",
+      "country": "Germany",
+      "passportNumber": "1234",
+      "startDate": "2026-07-09",
+      "endDate": "2026-07-13",
+      "budget": 2200,
+      "preferences": [
+        "Adventure",
+        "Relaxation",
+        "Photography"
+      ],
+      "visaType": "Tourist Visa",
+      "medicalConditions": "",
+      "foodAllergies": "no",
+      "emergencyContactName": "Sasindu Yomal",
+      "emergencyPhone": "0704527923",
+      "relationship": "Spouse",
+      "updatedAt": "2026-07-07T04:36:21.138Z",
+      "createdAt": "2026-07-07T04:36:21.138Z"
+    }
+  ]
+}

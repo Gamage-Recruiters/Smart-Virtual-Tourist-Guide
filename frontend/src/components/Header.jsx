@@ -186,7 +186,7 @@ const Header = () => {
       </nav>
 
       {/* Custom animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideDown {
           from {
             opacity: 0;
@@ -197,7 +197,7 @@ const Header = () => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -208,11 +208,11 @@ const Header = () => {
             transform: translateY(0);
           }
         }
-        
+
         .animate-slideDown {
           animation: slideDown 0.3s ease-out;
         }
-        
+
         .animate-fadeIn {
           animation: fadeIn 0.2s ease-out;
         }

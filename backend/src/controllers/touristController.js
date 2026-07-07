@@ -16,19 +16,27 @@ async function createProfile(req, res) {
       return res.status(401).json({ message: "Unauthorized. Please register again." });
     }
 
+    const allergies = Array.isArray(req.body.allergies)
+      ? req.body.allergies
+      : Array.isArray(req.body.foodAllergies)
+        ? req.body.foodAllergies
+        : typeof req.body.foodAllergies === "string" && req.body.foodAllergies.trim()
+          ? req.body.foodAllergies.split(",").map((item) => item.trim()).filter(Boolean)
+          : [];
+
     const profilePayload = {
       country: req.body.country || "",
-      passportNumber: req.body.passportNumber || "",
+      passportNumber: req.body.passportNumber || req.body.passport || "",
       startDate: req.body.startDate || "",
       endDate: req.body.endDate || "",
       budget: Number(req.body.budget || 0),
       preferences: Array.isArray(req.body.preferences) ? req.body.preferences : [],
-      visaType: req.body.visaType || "",
+      bloodType: req.body.bloodType || "",
       medicalConditions: req.body.medicalConditions || "",
-      foodAllergies: req.body.foodAllergies || "",
-      emergencyContactName: req.body.emergencyContactName || "",
+      allergies,
+      emergencyContactName: req.body.emergencyContactName || req.body.emergencyName || "",
       emergencyPhone: req.body.emergencyPhone || "",
-      relationship: req.body.relationship || "",
+      relationship: req.body.relationship || req.body.emergencyRelation || "",
     };
 
     if (!profilePayload.country) {
