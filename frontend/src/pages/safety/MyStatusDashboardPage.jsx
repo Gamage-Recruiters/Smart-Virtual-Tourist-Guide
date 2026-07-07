@@ -4,8 +4,18 @@ import { FiUser, FiTrash2 } from 'react-icons/fi'
 import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 
-// TODO: Replace with authenticated user ID from auth context once registration module is ready
-const CURRENT_TOURIST_ID = null
+const getCurrentTouristId = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user._id || user.id;
+    }
+  } catch (e) {
+    console.warn('Could not parse user from localStorage', e);
+  }
+  return null;
+}
 
 
 export default function MyStatusDashboardPage() {
@@ -18,7 +28,8 @@ export default function MyStatusDashboardPage() {
 
     async function loadReports() {
       try {
-        const params = CURRENT_TOURIST_ID ? { touristId: CURRENT_TOURIST_ID } : {}
+        const touristId = getCurrentTouristId();
+        const params = touristId ? { touristId } : {}
         const personalData = await safetyService.getIncidents(params)
         if (isMounted) {
           setMyIncidents(personalData)
@@ -75,9 +86,10 @@ export default function MyStatusDashboardPage() {
     let isMounted = true
 
     async function loadTouristProfile() {
-      if (!CURRENT_TOURIST_ID) return // Skip until auth is ready
+      const touristId = getCurrentTouristId();
+      if (!touristId) return // Skip until auth is ready
       try {
-        const profile = await safetyService.getTouristProfile(CURRENT_TOURIST_ID)
+        const profile = await safetyService.getTouristProfile(touristId)
         if (isMounted && profile && profile.name) {
           setTouristProfileName(profile.name)
           localStorage.setItem('touristProfile', JSON.stringify(profile))
