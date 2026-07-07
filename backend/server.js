@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 
 const budgetRoutes = require("./src/routes/budgetRoutes");
+const authRoutes = require("./src/routes/authRoutes");
+const touristRoutes = require("./src/routes/touristRoutes");
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -15,6 +17,8 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/budget", budgetRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/tourist", touristRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: "Route not found" });

@@ -1,12 +1,16 @@
-import { useState } from 'react'
+import React from 'react'
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import TouristProfile from './pages/TouristProfile.jsx'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1 class="text-3xl font-bold underline"> Hello world!</h1>
-    </>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<TouristProfile />} />
+        </Routes>
+      </div>
+    </Router>
   )
 }
 
