@@ -1,12 +1,23 @@
-
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { io } from "socket.io-client";
 import { useDispatch, useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Redux Actions & Selectors
-import { addRealtimeNotification, clearNotifications } from "../store/slices/notificationSlice";
-import { selectCurrentUser, selectAuthToken } from "../store/selectors/authSelectors";
+import {
+  addRealtimeNotification,
+  clearNotifications,
+} from "../store/slices/notificationSlice";
+import {
+  selectCurrentUser,
+  selectAuthToken,
+} from "../store/selectors/authSelectors";
 
 // Utils & API
 import calculateDistance from "../utils/geoutils";
@@ -18,7 +29,8 @@ const SocketContext = createContext();
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (!context) throw new Error("useSocket must be used within a SocketProvider");
+  if (!context)
+    throw new Error("useSocket must be used within a SocketProvider");
   return context;
 };
 
@@ -48,12 +60,13 @@ export const SocketProvider = ({ children }) => {
         }
       });
 
-      const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
-      
+      const SOCKET_URL =
+        import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+
       socketRef.current = io(SOCKET_URL, {
         auth: { token },
         reconnection: true,
-        reconnectionAttempts: Infinity, 
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 2000,
         reconnectionDelayMax: 5000,
         transports: ["polling", "websocket"],
@@ -71,7 +84,7 @@ export const SocketProvider = ({ children }) => {
       socket.on("disconnect", (reason) => {
         console.log(`❌ Socket Disconnected: ${reason}`);
         setConnectionStatus("reconnecting");
-        
+
         if (reason === "io server disconnect") {
           socket.connect();
         }
@@ -88,13 +101,16 @@ export const SocketProvider = ({ children }) => {
       socket.on("new_notification", (notification) => {
         console.log("🔔 Notification Received:", notification);
 
-        if (notification.priority === "critical" || notification.priority === "high") {
+        if (
+          notification.priority === "critical" ||
+          notification.priority === "high"
+        ) {
           triggerSafetyFeedback(notification.priority);
         }
 
         dispatch(addRealtimeNotification(notification));
 
-        queryClient.invalidateQueries(["notifications", user._id]);
+        queryClient.invalidateQueries({ queryKey: ["notifications", user?._id] });
       });
 
       // --- LIVE LOCATION TRACKING (GPS) ---
@@ -107,8 +123,13 @@ export const SocketProvider = ({ children }) => {
             const { latitude, longitude } = position.coords;
 
             if (lastLat && lastLng) {
-              const dist = calculateDistance(lastLat, lastLng, latitude, longitude);
-              if (dist < 50) return; 
+              const dist = calculateDistance(
+                lastLat,
+                lastLng,
+                latitude,
+                longitude,
+              );
+              if (dist < 50) return;
             }
 
             lastLat = latitude;
@@ -117,7 +138,7 @@ export const SocketProvider = ({ children }) => {
             socket.emit("update_location", { lat: latitude, lng: longitude });
           },
           (err) => console.warn("⚠️ GPS Error:", err.message),
-          { enableHighAccuracy: true, distanceFilter: 50 }
+          { enableHighAccuracy: true, distanceFilter: 50 },
         );
       }
 
@@ -129,7 +150,7 @@ export const SocketProvider = ({ children }) => {
         socket.disconnect();
       };
     }
-  }, [user?._id, token, dispatch, queryClient]); 
+  }, [user?._id, token, dispatch, queryClient]);
   return (
     <SocketContext.Provider
       value={{ socket: socketRef.current, connectionStatus, reconnectAttempt }}
@@ -137,4 +158,4 @@ export const SocketProvider = ({ children }) => {
       {children}
     </SocketContext.Provider>
   );
-}
+};

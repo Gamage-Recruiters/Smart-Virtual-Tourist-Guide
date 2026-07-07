@@ -29,45 +29,73 @@ const NotificationModal = () => {
     localStorage.setItem("mute_alerts", newState.toString()); 
   };
 
-  // --- 1. Mark All As Read Mutation ---
+  // --- 1. Mark All As Read Mutation (With Rollback Fix) ---
   const markAllAsReadMutation = useMutation({
     mutationFn: () => markAllAsReadApi(userId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
+      const previousNotifications = queryClient.getQueryData(["notifications", userId]);
+
+      queryClient.setQueryData(["notifications", userId], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            data: page.data.map((notif) => ({ ...notif, isRead: true })),
+          })),
+        };
+      });
+
+      return { previousNotifications };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["notifications", userId], context.previousNotifications);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+          },
   });
 
   const handleMarkAllAsRead = () => {
-    dispatch(markAllAsReadLocal());
-    queryClient.setQueryData(["notifications", userId], (oldData) => {
-      if (!oldData) return oldData;
-      return {
-        ...oldData,
-        pages: oldData.pages.map((page) => ({
-          ...page,
-          data: page.data.map((notif) => ({ ...notif, isRead: true })),
-        })),
-      };
-    });
-    markAllAsReadMutation.mutate();
+    dispatch(markAllAsReadLocal()); // Redux UI badge update
+    markAllAsReadMutation.mutate(); // Trigger the queryClient mutation above
   };
 
-  // --- 2. Clear All Notifications Mutation ---
+  // --- 2. Clear All Notifications Mutation (With Rollback Fix) ---
   const clearAllMutation = useMutation({
     mutationFn: () => clearAllNotifications(userId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
+      const previousNotifications = queryClient.getQueryData(["notifications", userId]);
+
+      queryClient.setQueryData(["notifications", userId], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            data: [], 
+          })),
+        };
+      });
+
+      return { previousNotifications };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["notifications", userId], context.previousNotifications);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+    },
   });
 
   const handleClearAll = () => {
     dispatch(markAllAsReadLocal());
-
-    queryClient.setQueryData(["notifications", userId], (oldData) => {
-      if (!oldData) return oldData;
-      return {
-        ...oldData,
-        pages: oldData.pages.map((page) => ({
-          ...page,
-          data: [], 
-        })),
-      };
-    });
-
     clearAllMutation.mutate();
   };
 

@@ -1,7 +1,14 @@
-const criticalSound = new Audio("/public/assets/sounds/emergency-alert.mp3");
-const highSound = new Audio("/public/assets/sounds/notification-chime.mp3");
+const criticalSound = new Audio("/assets/sounds/emergency-alert.mp3");
+const highSound = new Audio("/assets/sounds/notification-chime.mp3");
 
 let isPlaying = false;
+
+const resetPlayingState = () => {
+  isPlaying = false;
+};
+
+criticalSound.addEventListener("ended", resetPlayingState);
+highSound.addEventListener("ended", resetPlayingState);
 
 export const triggerSafetyFeedback = (priority) => {
   const isMuted = localStorage.getItem("mute_alerts") === "true";
@@ -29,12 +36,9 @@ export const triggerSafetyFeedback = (priority) => {
   alertSound
     .play()
     .then(() => {
-      setTimeout(() => {
-        isPlaying = false;
-      }, 2000);
     })
     .catch((err) => {
       console.warn("Audio play blocked by browser (Autoplay Policy). User interaction needed.");
       isPlaying = false; 
     });
-};  
+};

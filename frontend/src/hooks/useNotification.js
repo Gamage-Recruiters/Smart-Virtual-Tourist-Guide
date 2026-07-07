@@ -5,8 +5,7 @@ export const useNotifications = (userId) => {
   return useInfiniteQuery({
     queryKey: ["notifications", userId],
 
-    queryFn: ({ pageParam = 1 }) =>
-      fetchNotificationsApi(pageParam, 10, userId),
+    queryFn: ({ pageParam }) => fetchNotificationsApi(pageParam, 10, userId),
 
     getNextPageParam: (lastPage) => {
       if (lastPage.results === 10) {
