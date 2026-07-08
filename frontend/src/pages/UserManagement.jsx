@@ -7,8 +7,9 @@ const UserManagement = () => {
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [searchTerm, setSearchTerm] = useState('');
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; 
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -123,6 +124,8 @@ const UserManagement = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+
 
   return (
     <div className="w-full pb-12 font-inter">
