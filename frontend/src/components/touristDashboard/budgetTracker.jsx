@@ -1,10 +1,22 @@
+import React, { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
 
 const BudgetTracker = () => {
-  const budget = 5000;
-  const spent = 1800;
+  const [budget, setBudget] = useState(5000);
+  const [spent, setSpent] = useState(0);
+
+  useEffect(() => {
+    const tripData = localStorage.getItem("tripInfo");
+    if (tripData) {
+      const parsed = JSON.parse(tripData);
+      const userBudget = Number(parsed.budgetUSD) || 5000;
+      setBudget(userBudget);
+      setSpent(0); 
+    }
+  }, []);
+
   const remaining = budget - spent;
-  const percentage = (spent / budget) * 100;
+  const percentage = Math.round((spent / budget) * 100) || 0;
 
   return (
     <div className="bg-white p-8 rounded-4xl shadow-sm border border-slate-100 flex-1">

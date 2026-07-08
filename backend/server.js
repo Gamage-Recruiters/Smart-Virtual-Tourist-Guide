@@ -9,6 +9,10 @@ dotenv.config();
 const authRoutes = require("./src/routes/authRoutes");
 const budgetRoutes = require("./src/routes/budgetRoutes");
 const touristRoutes = require("./src/routes/touristRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const bookingRoutes = require("./src/routes/bookingRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
+const itineraryRoutes = require("./src/routes/itineraryRoutes");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -24,6 +28,10 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/budget", budgetRoutes);
 app.use("/api/tourist", touristRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/itinerary", itineraryRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: "Route not found" });

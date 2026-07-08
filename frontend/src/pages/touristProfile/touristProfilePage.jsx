@@ -6,8 +6,10 @@ import HealthProfile from "../../components/touristProfile/healthProfile";
 import EmergencyContact from "../../components/touristProfile/emergencyContact";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import { useNavigate } from "react-router-dom";
 
 export const TouristProfilePage = () => {
+  const navigate = useNavigate();
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
   // 1. Unified Form State Object
@@ -146,6 +148,17 @@ export const TouristProfilePage = () => {
         emergencyRelation: "",
       });
       setAllergyInput("");
+      
+      // Save trip info to localStorage for dashboard use
+      localStorage.setItem("tripInfo", JSON.stringify({
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        budgetUSD: formData.budget,
+        preferences: formData.preferences
+      }));
+      
+      // Navigate to the dashboard main page
+      navigate("/main");
     } catch (error) {
       console.error("Profile submission failed:", error);
       alert(error.message || "Failed to submit profile.");

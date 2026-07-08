@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Globe,
@@ -8,6 +9,18 @@ import textImage from "../../assets/touristDashboard/main_text.png";
 import { Link } from "react-router-dom";
 
 function Header() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const displayName = user?.fullName || "Tourist";
+  const initial = displayName.charAt(0).toUpperCase();
+
   return (
     <header className="w-full h-20 bg-white flex items-center justify-between z-1 px-8 fixed top-0 left-0">
         <div className="flex items-start justify-center pl-10">
@@ -38,9 +51,9 @@ function Header() {
             </div>
             <div className="flex items-center gap-3 pl-6">
               <Link to="/touristProfile" className="w-10 h-10 bg-blue-900 text-white rounded-full flex items-center justify-center font-bold">
-                D
+                {initial}
               </Link>
-              <span className="font-semibold text-sm">Dasuni</span>
+              <span className="font-semibold text-sm">{displayName}</span>
             </div>
           </div>
         </div>
