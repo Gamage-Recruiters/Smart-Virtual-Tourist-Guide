@@ -154,7 +154,12 @@ export default function IncidentReportPage() {
       payload.append('location[lat]', formData.location.lat)
       payload.append('location[lng]', formData.location.lng)
       // touristId is now set automatically by the backend from the authenticated user via the protect middleware.
-      // travelId will be added dynamically when the AI Itinerary Engine integration is complete.
+      
+      // Attempt to retrieve active trip from AI Itinerary Engine
+      const activeTripId = localStorage.getItem('activeTripId');
+      if (activeTripId) {
+        payload.append('tripId', activeTripId);
+      }
 
       formData.images.forEach((file) => {
         payload.append('images', file)

@@ -9,7 +9,7 @@ const incidentSchema = new mongoose.Schema(
     },
     tripId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Trip',
+      ref: 'Itinerary',
       // Optional for now to not break existing records, 
       // but essential for Final Trip Report linking.
       required: false, 
