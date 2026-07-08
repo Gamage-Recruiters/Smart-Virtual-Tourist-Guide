@@ -1,15 +1,17 @@
 import express from 'express';
-import { addVehicle, deleteVehicle, getAllVehicles, getRecentVehicles, getVehicleById, searchVehicles, updateVehicle } from '../../controllers/vehicleRentAdmin/vehicleController.js';
+import { addVehicle, deleteVehicle, getAllVehicles, getRecentVehicles, getVehicleById, getVehiclesByVendor, searchVehicles, updateVehicle } from '../../controllers/vehicleRentAdmin/vehicleController.js';
+import { protect } from '../../middleware/authMiddleware.js';
 
 
 const vehicleRouter = express.Router();
 
-vehicleRouter.post("/", addVehicle);
+vehicleRouter.get("/renter",protect, getVehiclesByVendor);
+vehicleRouter.get("/recent",protect, getRecentVehicles)
+vehicleRouter.get("/search",protect, searchVehicles);
 vehicleRouter.get("/", getAllVehicles);
-vehicleRouter.get("/recent",getRecentVehicles)
-vehicleRouter.get("/search", searchVehicles);
+vehicleRouter.post("/", protect, addVehicle);
+vehicleRouter.put("/:id", protect, updateVehicle);
+vehicleRouter.delete("/:id", protect, deleteVehicle);
 vehicleRouter.get("/:id", getVehicleById);
-vehicleRouter.put("/:id", updateVehicle);
-vehicleRouter.delete("/:id", deleteVehicle);
 
 export default vehicleRouter;

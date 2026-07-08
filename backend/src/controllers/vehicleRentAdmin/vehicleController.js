@@ -28,7 +28,7 @@ export const addVehicle = async (req, res) => {
     }
 
     const newVehicle = new Vehicle({
-      ownerId: req.body.ownerId,
+      ownerId: req.user._id,
       brand,
       model,
       year,
@@ -112,13 +112,10 @@ export const deleteVehicle = async (req, res) => {
   }
 };
 
-// 4. GET ALL VEHICLES FOR A SPECIFIC VENDOR (Read All)
+// 4. GET ALL VEHICLES (Read All-global)
 export const getAllVehicles = async (req, res) => {
   try {
-    const { ownerId } = req.query;
-    const filter = ownerId ? { ownerId } : {};
-
-    const vehicles = await Vehicle.find(filter).sort({ createdAt: -1 }); // Newest first
+    const vehicles = await Vehicle.find({}).sort({ createdAt: -1 }); // Newest first
     res.status(200).json(vehicles);
   } catch (error) {
     res
@@ -130,7 +127,22 @@ export const getAllVehicles = async (req, res) => {
   }
 };
 
-// 5. GET SINGLE VEHICLE DETAILS (Read One)
+// 5. GET ALL VEHICLES FOR A SPECIFIC VENDOR (Read All)
+export const getVehiclesByVendor = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ ownerId: req.user._id });
+    res.status(200).json(vehicles);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Server error while fetching fleet",
+        error: error.message,
+      });
+  }
+};
+
+// 6. GET SINGLE VEHICLE DETAILS (Read One)
 export const getVehicleById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -152,10 +164,10 @@ export const getVehicleById = async (req, res) => {
   }
 };
 
-//6. get five recent vehicles
+//7. get three recent vehicles for a specific vendor
 export const getRecentVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find().sort({ createdAt: -1 }).limit(3);
+    const vehicles = await Vehicle.find({ownerId: req.user._id}).sort({ createdAt: -1 }).limit(3);
     res.status(200).json(vehicles);
   } catch (error) {
     res
@@ -167,7 +179,7 @@ export const getRecentVehicles = async (req, res) => {
   }
 }
 
-// 7. search vehicles by licensePlate, model, brand
+// 8. search vehicles by licensePlate, model, brand for a specific vendor
 export const searchVehicles = async (req, res) => {
   try {
     const { query } = req.query;
@@ -175,6 +187,7 @@ export const searchVehicles = async (req, res) => {
       return res.status(400).json({ message: "Please provide a search query" });
     }
     const vehicles = await Vehicle.find({
+      ownerId: req.user._id,
       $or: [
         { licensePlate: { $regex: query, $options: "i" } },
         { model: { $regex: query, $options: "i" } },
