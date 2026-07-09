@@ -20,22 +20,42 @@ export default function TouristRestaurantsPage() {
   const [search, setSearch] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [onlyWithOffers, setOnlyWithOffers] = useState(false);
+  const [restaurantOffersMap, setRestaurantOffersMap] = useState({});
 
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchRestaurantsAndOffers = async () => {
       try {
-        const res = await fetch(`${API_BASE}/restaurants`);
-        if (res.ok) {
-          const data = await res.json();
+        const [restRes, offersRes] = await Promise.all([
+          fetch(`${API_BASE}/restaurants`),
+          fetch(`${API_BASE}/offers/active`)
+        ]);
+
+        if (restRes.ok) {
+          const data = await restRes.json();
           setRestaurants(Array.isArray(data) ? data : []);
         }
+
+        if (offersRes.ok) {
+          const offersData = await offersRes.json();
+          if (Array.isArray(offersData)) {
+            const mapping = {};
+            offersData.forEach(o => {
+              if (o.restaurantId) {
+                const currentMax = mapping[o.restaurantId] || 0;
+                mapping[o.restaurantId] = Math.max(currentMax, o.discountPercentage || 0);
+              }
+            });
+            setRestaurantOffersMap(mapping);
+          }
+        }
       } catch (err) {
-        console.error("Error fetching restaurants:", err);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchRestaurants();
+    fetchRestaurantsAndOffers();
   }, []);
 
   const handleAmenityChange = (amenity) => {
@@ -56,8 +76,11 @@ export default function TouristRestaurantsPage() {
       ? selectedAmenities.every(a => r.amenities?.includes(a))
       : true;
 
-    return matchesSearch && matchesDistrict && matchesAmenities;
+    const matchesOffers = onlyWithOffers ? !!restaurantOffersMap[r._id] : true;
+
+    return matchesSearch && matchesDistrict && matchesAmenities && matchesOffers;
   });
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
@@ -98,7 +121,7 @@ export default function TouristRestaurantsPage() {
               </select>
             </div>
 
-            {/* Amenities Checkboxes */}
+             {/* Amenities Checkboxes */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Amenities</label>
               <div className="space-y-2.5">
@@ -115,13 +138,29 @@ export default function TouristRestaurantsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Special Deals Checkbox */}
+            <div className="pt-2 border-t border-slate-100">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyWithOffers}
+                  onChange={e => setOnlyWithOffers(e.target.checked)}
+                  className="h-4 w-4 rounded border-amber-400 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="flex items-center gap-1.5 text-amber-700">
+                  🔥 Active Offers Only
+                </span>
+              </label>
+            </div>
             
-            {(selectedDistrict || selectedAmenities.length > 0 || search) && (
+            {(selectedDistrict || selectedAmenities.length > 0 || search || onlyWithOffers) && (
               <button 
                 onClick={() => {
                   setSelectedDistrict('');
                   setSelectedAmenities([]);
                   setSearch('');
+                  setOnlyWithOffers(false);
                 }}
                 className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition-colors"
               >
@@ -129,6 +168,7 @@ export default function TouristRestaurantsPage() {
               </button>
             )}
           </aside>
+
 
           {/* Main Grid Content */}
           <main className="space-y-6">
@@ -165,7 +205,13 @@ export default function TouristRestaurantsPage() {
                       <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm">
                         {restaurant.district}
                       </span>
+                      {restaurantOffersMap[restaurant._id] !== undefined && (
+                        <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm animate-pulse">
+                          🔥 {restaurantOffersMap[restaurant._id]}% OFF
+                        </span>
+                      )}
                     </div>
+
                     <div className="p-5 space-y-4">
                       <div>
                         <h3 className="text-lg font-bold text-slate-900">{restaurant.restaurantName}</h3>
