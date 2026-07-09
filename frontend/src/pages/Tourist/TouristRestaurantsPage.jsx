@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Tourist/Header';
 import Footer from '../../components/Tourist/Footer';
 
@@ -15,6 +16,7 @@ const DISTRICTS = [
 const AMENITY_OPTIONS = ["Free WiFi", "Parking", "Outdoor Seating", "Live Music"];
 
 export default function TouristRestaurantsPage() {
+  const navigate = useNavigate();
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -22,6 +24,7 @@ export default function TouristRestaurantsPage() {
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [onlyWithOffers, setOnlyWithOffers] = useState(false);
   const [restaurantOffersMap, setRestaurantOffersMap] = useState({});
+
 
   useEffect(() => {
     const fetchRestaurantsAndOffers = async () => {
@@ -193,12 +196,16 @@ export default function TouristRestaurantsPage() {
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredRestaurants.map(restaurant => (
-                  <article key={restaurant._id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="h-44 bg-slate-200 relative">
+                  <article 
+                    key={restaurant._id} 
+                    onClick={() => navigate(`/restaurants/${restaurant._id}`)}
+                    className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                  >
+                    <div className="h-44 bg-slate-200 relative overflow-hidden">
                       {restaurant.bannerImage ? (
-                        <img src={restaurant.bannerImage} alt={restaurant.restaurantName} className="h-full w-full object-cover" />
+                        <img src={restaurant.bannerImage} alt={restaurant.restaurantName} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-50 text-blue-400 text-2xl font-bold uppercase">
+                        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-50 text-blue-400 text-2xl font-bold uppercase transition-transform duration-300 group-hover:scale-105">
                           {restaurant.restaurantName?.slice(0, 2)}
                         </div>
                       )}
@@ -214,7 +221,7 @@ export default function TouristRestaurantsPage() {
 
                     <div className="p-5 space-y-4">
                       <div>
-                        <h3 className="text-lg font-bold text-slate-900">{restaurant.restaurantName}</h3>
+                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{restaurant.restaurantName}</h3>
                         <p className="text-xs text-slate-500 mt-1">{restaurant.address}</p>
                       </div>
 
@@ -235,6 +242,7 @@ export default function TouristRestaurantsPage() {
                       </div>
                     </div>
                   </article>
+
                 ))}
               </div>
             )}

@@ -10,6 +10,8 @@ import SignupForm from './pages/Tourist/SignupForm1';
 import TravelSafetyInfo from './pages/Tourist/SignupForm2';
 import DummyPageTourist from './pages/Tourist/dummyPage';
 import TouristRestaurantsPage from './pages/Tourist/TouristRestaurantsPage';
+import TouristRestaurantDetailsPage from './pages/Tourist/TouristRestaurantDetailsPage';
+
 
 
 // Hotel Owner routes
@@ -67,6 +69,8 @@ function App() {
         <Route path="/travel-safety" element={<TravelSafetyInfo />} />
         <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
         <Route path="/restaurants" element={<TouristRestaurantsPage />} />
+        <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
+
 
 
         {/* Restaurant Management */}
