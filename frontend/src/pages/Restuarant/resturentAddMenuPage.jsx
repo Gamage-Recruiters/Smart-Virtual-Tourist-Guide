@@ -15,7 +15,6 @@ function ResturentAddMenuPage() {
   const [selectedCategory, setSelectedCategory] = useState('Authentic Sri Lanka')
   const [foodType, setFoodType] = useState('Non-Vegetarian')
   const [isAvailableToday, setIsAvailableToday] = useState(true)
-  const [isVegan, setIsVegan] = useState(false)
   const [formData, setFormData] = useState({ name: '', description: '', price: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -45,7 +44,6 @@ function ResturentAddMenuPage() {
             setSelectedCategory(data.category || 'Authentic Sri Lanka')
             setFoodType(data.foodType || 'Non-Vegetarian')
             setIsAvailableToday(data.isAvailable !== false)
-            setIsVegan(!!data.isVegan)
             if (data.imageUrl) {
               setImagePreview(data.imageUrl)
             }
@@ -141,7 +139,6 @@ function ResturentAddMenuPage() {
           category: selectedCategory,
           foodType,
           isAvailable: isAvailableToday,
-          isVegan,
           imageUrl: uploadedImageUrl
         }),
       })
@@ -181,8 +178,8 @@ function ResturentAddMenuPage() {
               {isEditMode ? 'Edit Menu Item' : 'Upload New Menu Item'}
             </h2>
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85 md:text-base">
-              {isEditMode 
-                ? 'Modify your dish details, pricing, availability status, or update photography.' 
+              {isEditMode
+                ? 'Modify your dish details, pricing, availability status, or update photography.'
                 : 'Add a new dish to your digital showcase for international travelers and locals.'
               }
             </p>
@@ -200,7 +197,7 @@ function ResturentAddMenuPage() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-           {/* Photo Upload Placeholder */}
+          {/* Photo Upload Placeholder */}
           <aside className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h3 className="text-lg font-semibold text-slate-900">Dish Photography</h3>
             <div className="mt-4 rounded-2xl bg-blue-50 p-5 text-center ring-1 ring-blue-100">
@@ -332,7 +329,7 @@ function ResturentAddMenuPage() {
               </div>
 
               {/* Toggles */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4">
                 <label className="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200 cursor-pointer">
                   <span>
                     <span className="block text-sm font-semibold text-slate-900">Available Today?</span>
@@ -342,19 +339,6 @@ function ResturentAddMenuPage() {
                     type="checkbox"
                     checked={isAvailableToday}
                     onChange={(e) => setIsAvailableToday(e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </label>
-
-                <label className="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200 cursor-pointer">
-                  <span>
-                    <span className="block text-sm font-semibold text-slate-900">Is it Vegan?</span>
-                    <span className="mt-1 block text-xs text-slate-500">Mark this if the dish uses no animal products</span>
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={isVegan}
-                    onChange={(e) => setIsVegan(e.target.checked)}
                     className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                 </label>

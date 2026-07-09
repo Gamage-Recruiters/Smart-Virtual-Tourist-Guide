@@ -12,6 +12,7 @@ const FOOD_TYPE_COLORS = {
 
 const ALL_FILTERS = [
   'All Items',
+  'Authentic Sri Lankan',
   'Vegetarian',
   'Non-Vegetarian',
   'Vegan',

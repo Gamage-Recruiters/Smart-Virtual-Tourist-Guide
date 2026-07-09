@@ -5,7 +5,7 @@ import Footer from '../../components/Tourist/Footer';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-const CATEGORIES = ["All", "Appetizer", "Main Course", "Dessert", "Beverage"];
+const CATEGORIES = ["All", "Authentic Sri Lankan", "Appetizer", "Main Course", "Dessert", "Beverage"];
 
 export default function TouristRestaurantDetailsPage() {
   const { id } = useParams();
@@ -295,6 +295,34 @@ export default function TouristRestaurantDetailsPage() {
               </div>
             </div>
 
+            {/* Operating Hours Card */}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Opening Hours</h3>
+              <div className="space-y-2 text-xs">
+                {restaurant.operatingHours && restaurant.operatingHours.length > 0 ? (
+                  restaurant.operatingHours.map(hours => (
+                    <div key={hours.day} className="flex justify-between items-center text-slate-700">
+                      <span className="font-medium">{hours.day}</span>
+                      <span className="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded">
+                        {hours.open} - {hours.close}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                    <div key={day} className="flex justify-between items-center text-slate-700">
+                      <span className="font-medium">{day}</span>
+                      <span className="bg-blue-50 text-blue-700 font-semibold px-2 py-0.5 rounded">
+                        09:00 - 22:00
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+
+
             {/* Amenities Card */}
             {restaurant.amenities?.length > 0 && (
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -309,13 +337,22 @@ export default function TouristRestaurantDetailsPage() {
               </div>
             )}
 
-            {/* Back button */}
-            <button
-              onClick={() => navigate('/restaurants')}
-              className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm"
-            >
-              ← All Restaurants
-            </button>
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                className="w-full py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-bold rounded-xl text-sm transition-colors shadow-md hover:shadow-lg cursor-pointer"
+              >
+                Reserve a Table
+              </button>
+              
+              <button
+                onClick={() => navigate('/restaurants')}
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
+              >
+                ← All Restaurants
+              </button>
+            </div>
           </aside>
 
         </div>
