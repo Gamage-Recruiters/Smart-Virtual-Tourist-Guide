@@ -4,7 +4,6 @@ import { SEVERITY_CARD_STYLES } from '../../constants/severityConfig';
 
 const severityStyles = SEVERITY_CARD_STYLES;
 
-// Legacy alias kept for readability in JSX below
 const AlertCard = ({ alert, onSelect, isSelected }) => {
   const cardRef = React.useRef(null);
   const style = severityStyles[alert.severity] || severityStyles.low;

@@ -79,8 +79,6 @@ export default function EmergencyCallPage() {
     navigate(`/safety/navigate?destLat=${lat}&destLng=${lng}&name=${encodeURIComponent(name)}&type=${type}`);
   };
 
-  // ── REQUIRE REAL GPS LOCATION ONLY ───────────────────────────────────────────
-
   const { location, isLoading: isLocationLoading, error: locationError } = useGeolocation()
 
   // Only fetch emergency locations when real GPS location is available
@@ -131,7 +129,6 @@ export default function EmergencyCallPage() {
 
 
 
-  //your current myLocationMarker useMemo
   const myLocationMarker = useMemo(() => {
     if (!location.latitude || !location.longitude) return null
 
@@ -245,9 +242,6 @@ export default function EmergencyCallPage() {
   const callNumber = (number) => {
     window.location.href = `tel:${number}`;
   }
-
-  console.log('Local Police Data:', localPoliceLocations.length, localPoliceLocations);
-  console.log('Local Police Markers:', touristPoliceMarkers.filter(m => m.popup.includes('local_police')));
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] pb-12 font-sans">

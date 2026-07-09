@@ -170,8 +170,6 @@ export default function NavigationDirectionsPage() {
     navigate(-1);
   }, [navigate]);
 
-  // Destination type label
-
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] pb-12 font-sans relative">
