@@ -17,11 +17,7 @@ function ResturentDashboardPage() {
         const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
         // Fetch all restaurants to find this owner's restaurant
-        const [restRes, offersRes] = await Promise.all([
-          fetch(`${API_BASE}/restaurants`, { headers }),
-          fetch(`${API_BASE}/offers/active`, { headers }),
-        ])
-
+        const restRes = await fetch(`${API_BASE}/restaurants`, { headers })
         const allRestaurants = await restRes.json()
         const matchedRestaurant = Array.isArray(allRestaurants)
           ? allRestaurants.find(r => r.email === user.email)
@@ -29,14 +25,22 @@ function ResturentDashboardPage() {
 
         if (matchedRestaurant) {
           setRestaurantData(matchedRestaurant)
-          // Fetch menu items for this restaurant
-          const menuRes = await fetch(`${API_BASE}/menu/restaurant/${matchedRestaurant._id}`, { headers })
+
+          // Fetch menu items for this restaurant and offers for this restaurant
+          const [menuRes, offersRes] = await Promise.all([
+            fetch(`${API_BASE}/menu/restaurant/${matchedRestaurant._id}`, { headers }),
+            fetch(`${API_BASE}/offers/restaurant/${matchedRestaurant._id}`, { headers }),
+          ])
+
           const menuItems = await menuRes.json()
           setMenuCount(Array.isArray(menuItems) ? menuItems.length : 0)
-        }
 
-        const offersData = await offersRes.json()
-        setActiveOffers(Array.isArray(offersData) ? offersData.length : 0)
+          const offersData = await offersRes.json()
+          const activeCount = Array.isArray(offersData)
+            ? offersData.filter(o => o.isActive).length
+            : 0
+          setActiveOffers(activeCount)
+        }
       } catch (err) {
         console.error('Dashboard fetch error:', err)
       } finally {
