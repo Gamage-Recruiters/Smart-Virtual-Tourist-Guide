@@ -14,7 +14,8 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  const navItems = ['Home', 'Features', 'Destinations', 'How it Works', 'Contact'];
+  const navItems = ['Home', 'Features', 'Destinations', 'Restaurants', 'How it Works', 'Contact'];
+
   
   const languages = [
     { code: 'EN', name: 'English', flag: '🇬🇧' },
@@ -71,6 +72,13 @@ const Header = () => {
               {navItems.map((item) => (
                 <button
                   key={item}
+                  onClick={() => {
+                    if (item === 'Restaurant') {
+                      navigate('/resturent/login');
+                    } else if (item === 'Home') {
+                      navigate('/');
+                    }
+                  }}
                   className="px-4 py-2 text-gray-600 hover:text-[#0075FF] font-medium rounded-lg transition-all duration-200 hover:bg-white/50 hover:scale-105"
                 >
                   {item}
@@ -118,6 +126,7 @@ const Header = () => {
 
               {/* Sign In Button */}
               <button 
+                onClick={() => navigate('/resturent/login')}
                 className="ml-2 px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
               >
                 Sign in
@@ -143,11 +152,19 @@ const Header = () => {
                   <button
                     key={item}
                     className="px-4 py-3 text-gray-600 hover:text-[#0075FF] font-medium rounded-lg hover:bg-white/50 transition-colors text-left"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      if (item === 'Restaurant') {
+                        navigate('/resturent/login');
+                      } else if (item === 'Home') {
+                        navigate('/');
+                      }
+                    }}
                   >
                     {item}
                   </button>
                 ))}
+
                 
                 {/* Mobile Language Selector */}
                 <div className="px-4 py-2">
