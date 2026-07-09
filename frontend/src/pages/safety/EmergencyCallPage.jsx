@@ -142,7 +142,7 @@ export default function EmergencyCallPage() {
       icon: myLocationIcon,
       popup: '<strong>📍 Your Current Location</strong>',
     }
-  }, [location.latitude, location.longitude, myLocationIcon])
+  }, [location.latitude, location.longitude])
 
   const createMarkers = (locs, customIcon, defaultType) => locs
     .filter((item) => item.location?.lat && item.location?.lng)

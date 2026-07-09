@@ -1,21 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiSend, FiTrash2 } from 'react-icons/fi';
 import { FaRobot } from 'react-icons/fa';
 import { useChatbot } from '../../hooks/useChatbot';
 import { QUICK_SUGGESTIONS } from '../../constants/chatbotRules';
 
-/**
- * ChatbotPanel — Rule-based tourist safety chatbot UI.
- *
- * Features:
- * - Bot/User message bubbles with distinct styling
- * - Typing indicator (animated dots while "thinking")
- * - Quick suggestion chips for common queries
- * - Auto-scroll to newest message
- * - Clear chat button
- * - Enter key and button to send
- * - Newline rendering in bot responses
- */
 export default function ChatbotPanel() {
   const { messages, isProcessing, sendMessage, clearChat } = useChatbot();
   const [input, setInput] = useState('');
@@ -89,11 +77,10 @@ export default function ChatbotPanel() {
 
             {/* Message bubble */}
             <div
-              className={`max-w-[85%] px-3.5 py-2.5 text-[13px] leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-2xl rounded-br-md'
-                  : 'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-200 shadow-sm'
-              }`}
+              className={`max-w-[85%] px-3.5 py-2.5 text-[13px] leading-relaxed ${msg.role === 'user'
+                ? 'bg-blue-600 text-white rounded-2xl rounded-br-md'
+                : 'bg-white text-slate-700 rounded-2xl rounded-bl-md border border-slate-200 shadow-sm'
+                }`}
             >
               {msg.role === 'bot' ? (
                 /* Render newlines and basic formatting */
