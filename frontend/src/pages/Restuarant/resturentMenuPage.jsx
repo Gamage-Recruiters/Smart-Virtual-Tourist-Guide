@@ -151,8 +151,9 @@ function ResturentMenuPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/50 bg-sky-100/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.12)] backdrop-blur-sm md:p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="rounded-2xl border border-white/50 bg-sky-100/90 p-4 shadow-[0_12px_30px_rgba(15,23,42,0.12)] backdrop-blur-sm space-y-4">
+            {/* Search Input Row */}
+            <div className="flex gap-3">
               <div className="flex-1">
                 <label htmlFor="menu-search" className="sr-only">Search menu items</label>
                 <input
@@ -160,38 +161,38 @@ function ResturentMenuPage() {
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Search menu items (e.g. Rice & curry)"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400"
+                  placeholder="Search menu items by name, category, or details..."
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 />
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {ALL_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setActiveFilter(filter)}
-                    className={[
-                      'rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition-colors',
-                      activeFilter === filter
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-white text-slate-700 hover:bg-slate-100'
-                    ].join(' ')}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-
-              <div className="lg:pl-3 lg:border-l lg:border-slate-200">
+              <div className="shrink-0">
                 <button
                   type="button"
                   onClick={() => navigate('/resturent/dashboard/menu/add')}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                  className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 cursor-pointer"
                 >
                   + Add Item
                 </button>
               </div>
+            </div>
+
+            {/* Filters Row */}
+            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-200/50">
+              {ALL_FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setActiveFilter(filter)}
+                  className={[
+                    'rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm transition-all cursor-pointer',
+                    activeFilter === filter
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  ].join(' ')}
+                >
+                  {filter}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -250,7 +251,7 @@ function ResturentMenuPage() {
                       (prev.discountPercentage > current.discountPercentage) ? prev : current
                     );
                     return (
-                      <span className="absolute top-3 left-3 rounded-full bg-emerald-100 px-2..5 py-1 text-[10px] font-bold text-emerald-800 border border-emerald-200">
+                      <span className="absolute top-3 left-3 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-800 border border-emerald-200">
                         {bestOffer.discountPercentage}% OFF
                       </span>
                     );

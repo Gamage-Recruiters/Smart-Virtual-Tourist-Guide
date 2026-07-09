@@ -180,197 +180,250 @@ function ResturentRegistrationPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50">
-      {/* Hero Section */}
-      <header className="relative w-full min-h-[370px] overflow-hidden">
-        <img
-          className="absolute inset-0 w-full h-full object-cover"
-          src={bgImage}
-          alt="Restaurant dining area"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/[0.02] to-slate-900/[0.08]" />
+    <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 py-12">
+      {/* Background Image with blur & dark overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]" />
 
-        {/* Hero Content */}
-        <div className="absolute left-6 bottom-6 md:left-16 max-w-[520px] p-6 rounded-2xl bg-white/45">
-          <h1 className="m-0 text-2xl md:text-4xl font-bold leading-tight">
-            Welcome Smart Virtual Tourist Guide...
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-black/70">
-            The definitive editorial concierge for high-end restaurant
-            management. Curate your dining experience with professional mastery.
-          </p>
+      {/* Main Premium Card Container */}
+      <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-[1fr_1.5fr] rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-slate-950/40 backdrop-blur-md">
+        
+        {/* Left Side: Branding / Hero info text */}
+        <div className="p-8 md:p-12 flex flex-col justify-between text-white bg-gradient-to-br from-blue-600/20 via-sky-500/10 to-transparent border-r border-white/5">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400">Smart Virtual Tourist Guide</span>
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-tight">
+              Join Our <br />
+              Dine Network
+            </h1>
+            <p className="mt-6 text-sm text-slate-300 leading-relaxed max-w-sm">
+              Publish your menu cards, showcase traditional Sri Lankan cuisine, and run active promo campaigns targeted at global tourists.
+            </p>
+          </div>
+          
+          <div className="mt-8 pt-8 border-t border-white/10 text-[10px] text-slate-400">
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+          </div>
         </div>
-      </header>
 
-      {/* Registration Section */}
-      <main className="relative mt-[-2.2rem] px-4 py-12 md:py-0">
-        <section className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-12" aria-label="Restaurant registration form">
-          <h2 className="m-0 text-3xl md:text-4xl font-bold text-center">
-            Create your account
-          </h2>
-          <p className="mt-1 mb-6 text-center text-gray-600 text-sm">
-            Start managing your restaurant with professional precision.
-          </p>
+        {/* Right Side: Registration Form */}
+        <div className="bg-white p-8 md:p-12 lg:px-16 flex flex-col justify-center">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-900">Create Partner Account</h2>
+            <p className="mt-1.5 text-xs text-slate-500">Provide details to list your restaurant on the tourist guide.</p>
+          </div>
 
           {/* API Error Alert */}
           {apiError && (
-            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+            <div className="mb-5 rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs text-red-600 font-medium animate-shake">
               {apiError}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
-            {/* Restaurant Name */}
-            <label htmlFor="restaurantName" className="block mb-1 text-xs text-slate-700 font-medium">
-              Restaurant Name
-            </label>
-            <input
-              id="restaurantName"
-              name="restaurantName"
-              type="text"
-              placeholder="Your Restaurant Name"
-              value={formData.restaurantName}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.restaurantName ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.restaurantName && <p className="text-xs text-red-500 mb-4">{errors.restaurantName}</p>}
-
-            {/* Owner Name */}
-            <label htmlFor="ownerName" className="block mb-1 text-xs text-slate-700 font-medium">
-              Owner Full Name
-            </label>
-            <input
-              id="ownerName"
-              name="ownerName"
-              type="text"
-              placeholder="John Doe"
-              value={formData.ownerName}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.ownerName ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.ownerName && <p className="text-xs text-red-500 mb-4">{errors.ownerName}</p>}
-
-            {/* Registration Number */}
-            <label htmlFor="registrationNo" className="block mb-1 text-xs text-slate-700 font-medium">
-              Registration Number
-            </label>
-            <input
-              id="registrationNo"
-              name="registrationNo"
-              type="text"
-              placeholder="REG-XXXX-XXXX"
-              value={formData.registrationNo}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.registrationNo ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.registrationNo && <p className="text-xs text-red-500 mb-4">{errors.registrationNo}</p>}
-
-            {/* Email */}
-            <label htmlFor="email" className="block mb-1 text-xs text-slate-700 font-medium">
-              Official Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="name@restaurant.com"
-              value={formData.email}
-              onChange={handleChange}
-              autoComplete="email"
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.email ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.email && <p className="text-xs text-red-500 mb-4">{errors.email}</p>}
-
-            {/* Phone */}
-            <label htmlFor="phone" className="block mb-1 text-xs text-slate-700 font-medium">
-              Contact Number
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="+94-XX-XXX-XXXX"
-              value={formData.phone}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.phone ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.phone && <p className="text-xs text-red-500 mb-4">{errors.phone}</p>}
-
-             {/* Address */}
-            <label htmlFor="address" className="block mb-1 text-xs text-slate-700 font-medium">
-              Address
-            </label>
-            <input
-              id="address"
-              name="address"
-              type="text"
-              placeholder="123 Restaurant Street, Colombo"
-              value={formData.address}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.address ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.address && <p className="text-xs text-red-500 mb-4">{errors.address}</p>}
-
-            {/* District Dropdown */}
-            <label htmlFor="district" className="block mb-1 text-xs text-slate-700 font-medium">
-              Select your District *
-            </label>
-            <select
-              id="district"
-              name="district"
-              value={formData.district}
-              onChange={handleChange}
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.district ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            >
-              <option value="">-- Choose District --</option>
-              {[
-                "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", 
-                "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar", 
-                "Mullaitivu", "Vavuniya", "Trincomalee", "Batticaloa", "Ampara", 
-                "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", 
-                "Monaragala", "Ratnapura", "Kegalle"
-              ].map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            {errors.district && <p className="text-xs text-red-500 mb-4">{errors.district}</p>}
-
-
-            {/* Profile Picture Upload */}
-            <label className="block mb-1 text-xs text-slate-700 font-medium">
-              Restaurant Profile Picture / Banner
-            </label>
-            <div className="mb-4 flex items-center gap-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelected}
-                className="hidden"
-                id="profile-pic-upload"
-              />
-              <label
-                htmlFor="profile-pic-upload"
-                className="cursor-pointer rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
-              >
-                Choose Photo
-              </label>
-              {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-12 w-12 object-cover rounded-lg border border-slate-200"
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="restaurantName" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Restaurant Name
+                </label>
+                <input
+                  id="restaurantName"
+                  name="restaurantName"
+                  type="text"
+                  placeholder="e.g. Royal Taste"
+                  value={formData.restaurantName}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.restaurantName ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
                 />
-              )}
+                {errors.restaurantName && <p className="text-[10px] text-red-500 mt-1">{errors.restaurantName}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="ownerName" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Owner Full Name
+                </label>
+                <input
+                  id="ownerName"
+                  name="ownerName"
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={formData.ownerName}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.ownerName ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.ownerName && <p className="text-[10px] text-red-500 mt-1">{errors.ownerName}</p>}
+              </div>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="registrationNo" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Registration No
+                </label>
+                <input
+                  id="registrationNo"
+                  name="registrationNo"
+                  type="text"
+                  placeholder="e.g. Reg-77382"
+                  value={formData.registrationNo}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.registrationNo ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.registrationNo && <p className="text-[10px] text-red-500 mt-1">{errors.registrationNo}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Official Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@restaurant.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.email ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.email && <p className="text-[10px] text-red-500 mt-1">{errors.email}</p>}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="phone" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Contact Phone
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="e.g. 0774659824"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.phone ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.phone && <p className="text-[10px] text-red-500 mt-1">{errors.phone}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="district" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  District
+                </label>
+                <select
+                  id="district"
+                  name="district"
+                  value={formData.district}
+                  onChange={handleChange}
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.district ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                >
+                  <option value="">-- Choose District --</option>
+                  {[
+                    "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", 
+                    "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar", 
+                    "Mullaitivu", "Vavuniya", "Trincomalee", "Batticaloa", "Ampara", 
+                    "Kurunegegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", 
+                    "Monaragala", "Ratnapura", "Kegalle"
+                  ].map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                {errors.district && <p className="text-[10px] text-red-500 mt-1">{errors.district}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                Full Address
+              </label>
+              <input
+                id="address"
+                name="address"
+                type="text"
+                placeholder="123 Restaurant Street, Colombo"
+                value={formData.address}
+                onChange={handleChange}
+                className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.address ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
+              />
+              {errors.address && <p className="text-[10px] text-red-500 mt-1">{errors.address}</p>}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="password" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  value={formData.password}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.password ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.password && <p className="text-[10px] text-red-500 mt-1">{errors.password}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Repeat password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  className={`w-full h-9 px-3 text-sm bg-slate-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.confirmPassword ? 'border-red-400' : 'border-slate-200 focus:border-blue-400'}`}
+                />
+                {errors.confirmPassword && <p className="text-[10px] text-red-500 mt-1">{errors.confirmPassword}</p>}
+              </div>
+            </div>
+
+            {/* Profile Picture Upload */}
+            <div>
+              <label className="block mb-1 text-[10px] font-bold uppercase text-slate-700 tracking-wider">
+                Banner Photo / Profile picture
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelected}
+                  className="hidden"
+                  id="profile-pic-upload"
+                />
+                <label
+                  htmlFor="profile-pic-upload"
+                  className="cursor-pointer rounded-lg bg-blue-50 border border-blue-200 px-4 py-2 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  Choose Photo
+                </label>
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="h-10 w-16 object-cover rounded-lg border border-slate-200"
+                  />
+                )}
+              </div>
+            </div>
 
             {/* Amenities */}
-            <fieldset className="mb-4">
-              <legend className="mb-2 block text-xs font-medium text-slate-700">Amenities</legend>
-              <div className="grid gap-3 rounded-xl bg-sky-50 p-4 ring-1 ring-blue-100 sm:grid-cols-2">
+            <fieldset>
+              <legend className="mb-2 block text-[10px] font-bold uppercase text-slate-700 tracking-wider">Amenities Provided</legend>
+              <div className="grid gap-3 rounded-xl bg-slate-50 p-4 border border-slate-200 sm:grid-cols-2">
                 {AMENITY_OPTIONS.map((amenity) => (
-                  <label key={amenity} className="flex items-center gap-3 text-sm text-slate-700">
+                  <label key={amenity} className="flex items-center gap-3 text-xs text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.amenities.includes(amenity)}
@@ -383,82 +436,30 @@ function ResturentRegistrationPage() {
               </div>
             </fieldset>
 
-            {/* Password */}
-            <label htmlFor="password" className="block mb-1 text-xs text-slate-700 font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Min. 8 characters"
-              value={formData.password}
-              onChange={handleChange}
-              autoComplete="new-password"
-              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.password ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.password && <p className="text-xs text-red-500 mb-4">{errors.password}</p>}
-
-            {/* Confirm Password */}
-            <label htmlFor="confirmPassword" className="block mb-1 text-xs text-slate-700 font-medium">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Repeat your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              autoComplete="new-password"
-              className={`w-full h-9 px-3 mb-6 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.confirmPassword ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
-            />
-            {errors.confirmPassword && <p className="text-xs text-red-500 mb-4">{errors.confirmPassword}</p>}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-9 mt-2 text-white text-sm font-semibold rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-10 mt-3 text-white text-xs font-bold uppercase tracking-wider rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Creating Partner Account...' : 'Create Account'}
             </button>
           </form>
 
-          {/* OR CONTINUE WITH */}
-          <div className="my-4 text-center text-xs text-gray-400 tracking-widest">
-            OR CONTINUE WITH
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <p className="text-xs text-slate-500">
+              Already have an account?{' '}
+              <button
+                onClick={() => navigate('/resturent/login')}
+                type="button"
+                className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer"
+              >
+                Sign in
+              </button>
+            </p>
           </div>
+        </div>
 
-          {/* Social Buttons */}
-          <div className="w-full max-w-md mx-auto grid grid-cols-2 gap-2">
-            <button type="button" className="h-8 rounded-lg border border-gray-300 bg-blue-100 text-gray-700 text-xs font-semibold cursor-pointer hover:bg-blue-200 transition-colors">
-              <span className="inline-flex items-center gap-2">
-                <FcGoogle className="text-lg" />
-                Google
-              </span>
-            </button>
-            <button type="button" className="h-8 rounded-lg border border-gray-300 bg-blue-100 text-gray-700 text-xs font-semibold cursor-pointer hover:bg-blue-200 transition-colors">
-              <span className="inline-flex items-center gap-2">
-                <FaApple className="text-base text-black" />
-                Apple
-              </span>
-            </button>
-          </div>
-
-          <p className="mt-7 mb-2 text-center text-xs text-gray-600">
-            Already have an account?{' '}
-            <button onClick={() => navigate('/resturent/login')} className="text-blue-700 font-semibold hover:underline cursor-pointer bg-transparent border-none p-0">
-              Sign in
-            </button>
-          </p>
-
-          <p className="m-0 text-center text-xs text-gray-500">
-            By creating an account, you agree to our{' '}
-            <a href="#" className="text-blue-700 no-underline hover:underline">Terms of Service</a>{' '}and{' '}
-            <a href="#" className="text-blue-700 no-underline hover:underline">Privacy Policy</a>.
-          </p>
-        </section>
-      </main>
+      </div>
     </div>
   )
 }
