@@ -73,8 +73,8 @@ const Header = () => {
                 <button
                   key={item}
                   onClick={() => {
-                    if (item === 'Restaurant') {
-                      navigate('/resturent/login');
+                    if (item === 'Restaurants') {
+                      navigate('/restaurants');
                     } else if (item === 'Home') {
                       navigate('/');
                     }
@@ -154,8 +154,8 @@ const Header = () => {
                     className="px-4 py-3 text-gray-600 hover:text-[#0075FF] font-medium rounded-lg hover:bg-white/50 transition-colors text-left"
                     onClick={() => {
                       setIsMenuOpen(false);
-                      if (item === 'Restaurant') {
-                        navigate('/resturent/login');
+                      if (item === 'Restaurants') {
+                        navigate('/restaurants');
                       } else if (item === 'Home') {
                         navigate('/');
                       }
@@ -164,6 +164,7 @@ const Header = () => {
                     {item}
                   </button>
                 ))}
+
 
                 
                 {/* Mobile Language Selector */}
