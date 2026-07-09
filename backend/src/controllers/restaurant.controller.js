@@ -6,6 +6,7 @@ const REQUIRED_FIELDS = [
   "ownerName",
   "email",
   "phone",
+  "district",
 ];
 
 const isMissingRequired = (body) => {

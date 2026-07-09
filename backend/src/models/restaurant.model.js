@@ -34,6 +34,18 @@ const restaurantSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, required: true, trim: true },
     address: { type: String, required: true, trim: true },
+    district: { 
+      type: String, 
+      required: true, 
+      trim: true,
+      enum: [
+        "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", 
+        "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar", 
+        "Mullaitivu", "Vavuniya", "Trincomalee", "Batticaloa", "Ampara", 
+        "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", 
+        "Monaragala", "Ratnapura", "Kegalle"
+      ]
+    },
     amenities: {
       type: [String],
       enum: AMENITY_OPTIONS,

@@ -35,6 +35,7 @@ function ResturentProfilePage() {
             email: matched.email || '',
             phone: matched.phone || '',
             address: matched.address || '',
+            district: matched.district || '',
             description: matched.description || '',
             amenities: matched.amenities || [],
             bannerImage: matched.bannerImage || '',
@@ -131,6 +132,7 @@ function ResturentProfilePage() {
           ownerName: form.ownerName,
           phone: form.phone,
           address: form.address,
+          district: form.district,
           amenities: form.amenities,
           socialLinks: form.socialLinks,
           operatingHours: activeHours,
@@ -198,6 +200,26 @@ function ResturentProfilePage() {
             <div className="sm:col-span-2">
               <label className="block mb-1 text-xs font-medium text-slate-700">Address</label>
               <input name="address" value={form.address} onChange={handleChange} type="text" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block mb-1 text-xs font-medium text-slate-700">District *</label>
+              <select
+                name="district"
+                value={form.district}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white"
+              >
+                <option value="">-- Choose District --</option>
+                {[
+                  "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", 
+                  "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar", 
+                  "Mullaitivu", "Vavuniya", "Trincomalee", "Batticaloa", "Ampara", 
+                  "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", 
+                  "Monaragala", "Ratnapura", "Kegalle"
+                ].map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
             </div>
             <div className="sm:col-span-2">
               <label className="block mb-1 text-xs font-medium text-slate-700">Restaurant Banner Image / Profile Pic</label>

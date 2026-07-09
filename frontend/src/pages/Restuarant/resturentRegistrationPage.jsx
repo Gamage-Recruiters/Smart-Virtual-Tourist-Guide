@@ -17,6 +17,7 @@ function ResturentRegistrationPage() {
     email: '',
     phone: '',
     address: '',
+    district: '',
     amenities: [],
     bannerImage: '',
     password: '',
@@ -46,12 +47,6 @@ function ResturentRegistrationPage() {
     uploadData.append('image', file)
 
     try {
-      // Temporarily use registration password/email context if registering, but since we are not authenticated yet we don't have token.
-      // Wait, the `/api/upload` endpoint was protected by `protect`. Let's allow unauthenticated uploads for signup or modify the /api/upload route to allow unauthenticated upload?
-      // Since it's safer to have open upload or token-based upload. Wait, during sign up, the user first calls `/auth/register/restaurant` which returns a token, and then calls `/restaurants` profile post.
-      // So we can upload the file AFTER the first register step or make uploading open, or wait until register creates the token, then upload, then create profile.
-      // Even simpler: we can do the file upload right during the handleSubmit once the token is obtained! Let's do that to keep it secure.
-      // We will store the selected file in state first.
     } catch (err) {
       setApiError('Image upload failed.')
     } finally {
@@ -89,6 +84,7 @@ function ResturentRegistrationPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format'
     if (!formData.phone.trim()) newErrors.phone = 'Contact number is required'
     if (!formData.address.trim()) newErrors.address = 'Address is required'
+    if (!formData.district) newErrors.district = 'District is required'
     if (!formData.password) newErrors.password = 'Password is required'
     else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters'
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match'
@@ -162,10 +158,12 @@ function ResturentRegistrationPage() {
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone,
           address: formData.address,
+          district: formData.district,
           amenities: formData.amenities,
           bannerImage: bannerImageUrl
         }),
       })
+
 
       if (!profileRes.ok) {
         console.warn('Restaurant profile creation issue:', await profileRes.json())
@@ -313,6 +311,31 @@ function ResturentRegistrationPage() {
               className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.address ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
             />
             {errors.address && <p className="text-xs text-red-500 mb-4">{errors.address}</p>}
+
+            {/* District Dropdown */}
+            <label htmlFor="district" className="block mb-1 text-xs text-slate-700 font-medium">
+              Select your District *
+            </label>
+            <select
+              id="district"
+              name="district"
+              value={formData.district}
+              onChange={handleChange}
+              className={`w-full h-9 px-3 mb-1 text-sm bg-blue-50 border rounded-lg focus:bg-white focus:outline-none transition-colors ${errors.district ? 'border-red-400' : 'border-transparent focus:border-blue-400'}`}
+            >
+              <option value="">-- Choose District --</option>
+              {[
+                "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya", 
+                "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar", 
+                "Mullaitivu", "Vavuniya", "Trincomalee", "Batticaloa", "Ampara", 
+                "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla", 
+                "Monaragala", "Ratnapura", "Kegalle"
+              ].map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+            {errors.district && <p className="text-xs text-red-500 mb-4">{errors.district}</p>}
+
 
             {/* Profile Picture Upload */}
             <label className="block mb-1 text-xs text-slate-700 font-medium">
