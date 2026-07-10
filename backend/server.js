@@ -1,8 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-dotenv.config(); //use to access the values in .env file
-
+dotenv.config();
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -11,30 +10,33 @@ const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const safetyRouter = require('./src/routes/safetyRouter');
 const { syncWeatherAlerts } = require('./src/utils/alertSyncService');
-const notificationHandler = require('./socket/notificationHandler');
-const socketAuth = require('./src/middleware/socketAuthMiddleware');
 
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // --- NOTIFICATION ENGINE: Socket.io Setup ---
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
+// Wrapped in try/catch so the server starts even if notification module isn't merged yet
+let io = null;
+try {
+  const notificationHandler = require('./socket/notificationHandler');
+  const socketAuth = require('./src/middleware/socketAuthMiddleware');
 
-// Make io accessible in controllers via req.app.get('io')
-app.set('io', io);
+  io = new Server(server, {
+    cors: {
+      origin: process.env.CORS_ORIGIN || '*',
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
+  });
 
-// Secure socket connections with JWT auth
-io.use(socketAuth);
-
-// Initialize notification socket handler (manages user rooms)
-notificationHandler(io);
+  app.set('io', io);
+  io.use(socketAuth);
+  notificationHandler(io);
+  console.log('[STARTUP] Notification engine initialized successfully');
+} catch (err) {
+  console.warn('[STARTUP] Notification engine not available — skipping Socket.io setup:', err.message);
+}
 
 
 
@@ -65,7 +67,7 @@ app.use(errorHandler);
 connectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`Socket.io notification engine is active`);
+    if (io) console.log('Socket.io notification engine is active');
 
     // Run weather alert sync every 15 minutes
     cron.schedule('*/15 * * * *', () => {
