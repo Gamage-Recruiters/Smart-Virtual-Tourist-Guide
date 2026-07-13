@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { SafetyProvider } from './contexts/SafetyContext'
-import SafetyDashboard from './pages/safety/SafetyDashboard'
-import DashboardHome from './pages/safety/DashboardHome'
+import SafetyLayout from './pages/safety/SafetyLayout'
+import PublicIncidentsPage from './pages/safety/PublicIncidentsPage'
 import EmergencyCallPage from './pages/safety/EmergencyCallPage'
 import SecurityAlertsPage from './pages/safety/SecurityAlertsPage'
 import IncidentReportPage from './pages/safety/IncidentReportPage'
@@ -18,15 +18,15 @@ function App() {
       <Router>
         <Routes>
           {/* Routes with the sidebar layout */}
-          <Route path="/safety" element={<SafetyDashboard />}>
-            <Route index element={<DashboardHome />} />
+          <Route path="/safety" element={<SafetyLayout />}>
+            <Route index element={<PublicIncidentsPage />} />
             <Route path="alerts" element={<SecurityAlertsPage />} />
             <Route path="security-alerts" element={<Navigate to="/safety/alerts" replace />} />
             <Route path="my-incidents" element={<IncidentTrackingPage />} />
             <Route path="my-reports" element={<Navigate to="/safety/my-incidents" replace />} />
             <Route path="status-dashboard" element={<MyStatusDashboardPage />} />
             <Route path="analytics" element={<IncidentTrackingPage />} />
-            <Route path="public-incidents" element={<DashboardHome />} />
+            <Route path="public-incidents" element={<PublicIncidentsPage />} />
             <Route path="weather" element={<WeatherAlertsPage />} />
           </Route>
 

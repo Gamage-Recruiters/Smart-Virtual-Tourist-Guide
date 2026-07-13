@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom'
 import SafetySidebar from '../../components/safety/SafetySidebar'
 import { FiMenu } from 'react-icons/fi'
 
-export default function SafetyDashboard() {
+export default function SafetyLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (

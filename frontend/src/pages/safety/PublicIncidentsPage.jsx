@@ -3,7 +3,7 @@ import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 import IncidentCard from '../../components/safety/IncidentCard'
 
-export default function DashboardHome() {
+export default function PublicIncidentsPage() {
   const [incidents, setIncidents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
