@@ -55,27 +55,89 @@ const districts = [
   { district: 'Kegalle', lat: 7.2513, lng: 80.3464 },
 ];
 
-const fallbackHospitals = districts.map(d => ({
-  name: `${d.district} General Hospital`,
-  type: 'hospital',
-  address: `${d.district} City`,
-  district: d.district,
-  phone: '',
-  location: { lat: d.lat + 0.001, lng: d.lng + 0.001 },
-  operatingHours: '24/7',
-  isActive: true,
-}));
+const realHospitalsData = {
+  'Colombo': { name: 'National Hospital of Sri Lanka', phone: '+94 11 269 1111' },
+  'Gampaha': { name: 'District General Hospital Gampaha', phone: '+94 33 222 2261' },
+  'Kalutara': { name: 'District General Hospital Kalutara', phone: '+94 34 222 2261' },
+  'Kandy': { name: 'National Hospital Kandy', phone: '+94 81 223 3337' },
+  'Matale': { name: 'District General Hospital Matale', phone: '+94 66 222 2261' },
+  'Nuwara Eliya': { name: 'District General Hospital Nuwara Eliya', phone: '+94 52 222 2261' },
+  'Galle': { name: 'Teaching Hospital Karapitiya', phone: '+94 91 223 2250' },
+  'Matara': { name: 'District General Hospital Matara', phone: '+94 41 222 2261' },
+  'Hambantota': { name: 'District General Hospital Hambantota', phone: '+94 47 222 2261' },
+  'Jaffna': { name: 'Teaching Hospital Jaffna', phone: '+94 21 222 2261' },
+  'Kilinochchi': { name: 'District General Hospital Kilinochchi', phone: '+94 21 228 5327' },
+  'Mannar': { name: 'District General Hospital Mannar', phone: '+94 23 222 2261' },
+  'Vavuniya': { name: 'District General Hospital Vavuniya', phone: '+94 24 222 2261' },
+  'Mullaitivu': { name: 'District General Hospital Mullaitivu', phone: '+94 21 229 0261' },
+  'Batticaloa': { name: 'Teaching Hospital Batticaloa', phone: '+94 65 222 2261' },
+  'Ampara': { name: 'District General Hospital Ampara', phone: '+94 63 222 2261' },
+  'Trincomalee': { name: 'District General Hospital Trincomalee', phone: '+94 26 222 2261' },
+  'Kurunegala': { name: 'Teaching Hospital Kurunegala', phone: '+94 37 222 2261' },
+  'Puttalam': { name: 'Base Hospital Puttalam', phone: '+94 32 226 5261' },
+  'Anuradhapura': { name: 'Teaching Hospital Anuradhapura', phone: '+94 25 222 2261' },
+  'Polonnaruwa': { name: 'District General Hospital Polonnaruwa', phone: '+94 27 222 2261' },
+  'Badulla': { name: 'Provincial General Hospital Badulla', phone: '+94 55 222 2261' },
+  'Monaragala': { name: 'District General Hospital Monaragala', phone: '+94 55 227 6261' },
+  'Ratnapura': { name: 'Teaching Hospital Ratnapura', phone: '+94 45 222 2261' },
+  'Kegalle': { name: 'District General Hospital Kegalle', phone: '+94 35 222 2261' }
+};
 
-const fallbackPolice = districts.map(d => ({
-  name: `${d.district} Headquarters Police Station`,
-  type: 'local_police',
-  address: `${d.district} City`,
-  district: d.district,
-  phone: '',
-  location: { lat: d.lat - 0.001, lng: d.lng - 0.001 },
-  operatingHours: '24/7',
-  isActive: true,
-}));
+const fallbackHospitals = districts.map(d => {
+  const data = realHospitalsData[d.district] || { name: `${d.district} General Hospital`, phone: '' };
+  return {
+    name: data.name,
+    type: 'hospital',
+    address: `${d.district} City`,
+    district: d.district,
+    phone: data.phone,
+    location: { lat: d.lat + 0.001, lng: d.lng + 0.001 },
+    operatingHours: '24/7',
+    isActive: true,
+  };
+});
+
+const realPoliceData = {
+  'Colombo': { phone: '+94 11 243 3342' },
+  'Gampaha': { phone: '+94 33 222 2228' },
+  'Kalutara': { phone: '+94 34 222 2228' },
+  'Kandy': { phone: '+94 81 222 2228' },
+  'Matale': { phone: '+94 66 222 2227' },
+  'Nuwara Eliya': { phone: '+94 52 222 2222' },
+  'Galle': { phone: '+94 91 223 2061' },
+  'Matara': { phone: '+94 41 222 2228' },
+  'Hambantota': { phone: '+94 47 222 2228' },
+  'Jaffna': { phone: '+94 21 321 7444' },
+  'Kilinochchi': { phone: '+94 21 228 5503' },
+  'Mannar': { phone: '+94 23 222 2227' },
+  'Vavuniya': { phone: '+94 24 222 2228' },
+  'Mullaitivu': { phone: '+94 21 222 2228' },
+  'Batticaloa': { phone: '+94 65 222 4412' },
+  'Ampara': { phone: '+94 63 222 2227' },
+  'Trincomalee': { phone: '+94 26 222 2228' },
+  'Kurunegala': { phone: '+94 37 222 2228' },
+  'Puttalam': { phone: '+94 32 222 2228' },
+  'Anuradhapura': { phone: '+94 25 222 2228' },
+  'Polonnaruwa': { phone: '+94 27 222 2228' },
+  'Badulla': { phone: '+94 55 222 2228' },
+  'Monaragala': { phone: '+94 55 222 2228' },
+  'Ratnapura': { phone: '+94 45 222 2228' },
+  'Kegalle': { phone: '+94 35 222 2228' }
+};
+
+const fallbackPolice = districts.map(d => {
+  const data = realPoliceData[d.district] || { phone: '' };
+  return {
+    name: `${d.district} Headquarters Police Station`,
+    type: 'local_police',
+    address: `${d.district} City`,
+    district: d.district,
+    phone: data.phone,
+    location: { lat: d.lat - 0.001, lng: d.lng - 0.001 },
+    operatingHours: '24/7',
+    isActive: true,
+  };
+});
 
 const allLocationsToSeed = [...touristPoliceStations, ...fallbackHospitals, ...fallbackPolice];
 
