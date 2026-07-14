@@ -11,7 +11,7 @@ const handleError = (res, error) => {
     if (error?.name === 'ValidationError') {
         return res.status(400).json({
             message: 'Validation failed',
-            details: Object.values(error.errors).map((item) => item.message),
+            details: Object.values(error.errors).map((item) => `${item.path}: ${item.message}`),
         });
     }
 
@@ -21,7 +21,20 @@ const handleError = (res, error) => {
 //create a new room
 export const createRoom = async (req, res) => {
     try {
-        const room = await Room.create(req.body);
+        const count = await Room.countDocuments();
+        const roomNumber = `R${count + 1}`;
+
+        // Parse JSON-stringified nested fields sent via FormData
+        const body = { ...req.body };
+        if (typeof body.capacity === 'string')         body.capacity = JSON.parse(body.capacity);
+        if (typeof body.amenities === 'string')        body.amenities = JSON.parse(body.amenities);
+        if (typeof body.contactInfo === 'string')      body.contactInfo = JSON.parse(body.contactInfo);
+        if (typeof body.locationAndPricing === 'string') body.locationAndPricing = JSON.parse(body.locationAndPricing);
+
+        // Attach uploaded image paths
+        const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
+
+        const room = await Room.create({ ...body, roomNumber, images });
         return res.status(201).json({
             message: 'Room created successfully',
             room,
@@ -97,7 +110,20 @@ export const updateRoom = async (req, res) => {
             return res.status(400).json({ message: 'Invalid room id' });
         }
 
-        const room = await Room.findByIdAndUpdate(id, req.body, {
+        // Parse JSON-stringified nested fields sent via FormData
+        const body = { ...req.body };
+        if (typeof body.capacity === 'string')           body.capacity = JSON.parse(body.capacity);
+        if (typeof body.amenities === 'string')          body.amenities = JSON.parse(body.amenities);
+        if (typeof body.contactInfo === 'string')        body.contactInfo = JSON.parse(body.contactInfo);
+        if (typeof body.locationAndPricing === 'string') body.locationAndPricing = JSON.parse(body.locationAndPricing);
+
+        // Merge kept existing images with any newly uploaded ones
+        const keptImages = body.keptImages ? JSON.parse(body.keptImages) : [];
+        delete body.keptImages;
+        const newImages = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
+        body.images = [...keptImages.map(url => url.replace('http://localhost:5000', '')), ...newImages];
+
+        const room = await Room.findByIdAndUpdate(id, body, {
             new: true,
             runValidators: true,
         });

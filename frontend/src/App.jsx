@@ -1,5 +1,5 @@
 import React from 'react'
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom'
 import HotelOwnerDashboard from './pages/HotelOwnerDashboard.jsx'
 import ViewCurrentRoomsPackages from './pages/ViewCurrentRoomsPackages.jsx'
 import AddRoomPage from './pages/AddRoomPage.jsx'
@@ -14,14 +14,22 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<HotelOwnerDashboard />} />
+          {/* ✅ Default route (change target manually for testing) */}
+          <Route path="/" element={<ViewCurrentRoomsPackages />} />
+
+          {/* Your existing routes */}
           <Route path="/view-rooms-packages" element={<ViewCurrentRoomsPackages />} />
           <Route path="/add-room-package" element={<AddRoomPage />} />
+          <Route path="/edit-room/:id" element={<AddRoomPage />} />
           <Route path="/add-special-package" element={<AddSpecialPackages />} />
+          <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
           <Route path="/manage-availability" element={<ManageRoomAvailability />} />
           <Route path="/view-availability-calendar" element={<ViewRoomAvailabilityCalenderPage />} />
           <Route path="/view-reservations" element={<ViewRoomReservation />} />
           <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
+          <Route path="/dashboard" element={<HotelOwnerDashboard />} />
+
+          {/* 404 fallback */}
           <Route path="*" element={<h1 className="text-center mt-20 text-3xl font-bold">404 - Page Not Found</h1>} />
         </Routes>
       </div>

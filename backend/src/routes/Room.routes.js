@@ -1,4 +1,5 @@
 import express from 'express';
+import upload from '../middleware/upload.middleware.js';
 import {
     createRoom,
     getAllRooms,
@@ -11,21 +12,17 @@ import {
 
 const router = express.Router();
 
-// Base /api/rooms endpoints
 router.route('/')
-    .post(createRoom)     // POST: Create a room
-    .get(getAllRooms);    // GET: Fetch rooms (supports query params: ?status=Available&roomType=Standard Room)
+    .post(upload.array('images', 4), createRoom)
+    .get(getAllRooms);
 
-// Bulk operation endpoint
-router.patch('/bulk-status', bulkUpdateRoomStatuses); // PATCH: Update multiple room statuses simultaneously
+router.patch('/bulk-status', bulkUpdateRoomStatuses);
 
-// Document ID-specific endpoints
 router.route('/:id')
-    .get(getRoomById)     // GET: Retrieve a single room
-    .put(updateRoom)      // PUT: Structurally update full room properties
-    .delete(deleteRoom);  // DELETE: Remove room from inventory
+    .get(getRoomById)
+    .put(upload.array('images', 4), updateRoom)
+    .delete(deleteRoom);
 
-// Single status quick-update toggle 
-router.patch('/:id/status', updateRoomStatus); // PATCH: Quick updates for single room status changes
+router.patch('/:id/status', updateRoomStatus);
 
 export default router;

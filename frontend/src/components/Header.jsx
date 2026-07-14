@@ -1,51 +1,92 @@
-import { FaLanguage, FaUserLarge } from 'react-icons/fa6'
-import siteLogo from '../assets/Sri Lanka Tourist Site.png'
+import React from 'react'
+import Logo from '../assets/Logo.png'
+import sriflag from '../assets/sriflag.jpg'
 
-function Header() {
-    return (
-        <header className="relative grid w-full items-center gap-5 border border-slate-200/80 bg-white/70 py-4 shadow-[0_28px_60px_rgba(20,40,60,0.12)] backdrop-blur md:grid-cols-[auto_1fr_auto] md:px-5">
-            <div className="flex items-center gap-3">
-                <div className="grid h-30 w-30 place-items-center rounded-[22px]">
-                    <img src={siteLogo} alt="logo" className="h-30 w-30 object-contain" />
-                </div>
-                <div>
-                    <p className="text-[0.78rem] font-extrabold sentence-case tracking-[0.14em] text-sky-700">Smart Virtual Tourism Guide</p>
-                    <h1 className="mt-1 text-3xl font-extrabold sm:text-4xl flex items-center gap-1">
-                        <span className="sr-only">Sri Lanka</span>
-                        <span className="text-[1.6rem] leading-none" aria-hidden>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#0b6b3a,#2fa84f)'}}>S</span>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#2fa84f,#f7981d)'}}>r</span>
-                            <span className="inline-block text-transparent bg-clip-text mr-3" style={{backgroundImage: 'linear-gradient(90deg,#f7981d,#e94e1b)'}}>i</span>
-
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#e94e1b,#ff7a18)'}}>L</span>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#ff7a18,#d93a6c)'}}>a</span>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#d93a6c,#8b1f6b)'}}>n</span>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#8b1f6b,#6b1b5d)'}}>k</span>
-                            <span className="inline-block text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg,#6b1b5d,#d93a6c)'}}>a</span>
-                        </span>
-                    </h1>
-                </div>
-            </div>
-
-            <nav className="flex flex-wrap items-center justify-start gap-4 text-sm font-bold text-slate-500 md:justify-center">
-                <a className="transition hover:text-sky-800" href="/">Overview</a>
-                <a className="transition hover:text-sky-800" href="view-rooms-packages">Rooms</a>
-                <a className="transition hover:text-sky-800" href="manage-availability">Availability</a>
-                <a className="transition hover:text-sky-800" href="view-reservations">Bookings</a>
-                <a className="transition hover:text-sky-800" href="financial-analysis">Revenue</a>
-            </nav>
-
-            <div className="flex flex-wrap items-center gap-3 md:justify-end">
-                <button
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition hover:border-sky-200 hover:text-sky-900"
-                    type="button"
+export default function Header() {
+  return (
+    <header
+      className="relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible"
+      style={{ borderBottom: '1px solid #F5F7FA', position: 'fixed', top: 0, width: '100%' }}
+    >
+      <div className="max-w-11xl mx-auto flex items-center justify-between h-full gap-6 px-2">
+        {/* Left side: Logo + Title */}
+        <div className="flex items-center gap-1 h-full relative flex-1 min-w-0">
+          <img
+            src={Logo}
+            alt="Sri Lanka Tourism Logo"
+            className="h-44 w-auto drop-shadow-md absolute -top-4 left-0"
+            style={{ zIndex: 2, transform: 'translateZ(0)' }}
+          />
+          <div className="flex flex-col items-start ml-24">
+            <span
+              className="font-bold leading-tight"
+              style={{
+                fontSize: 17,
+                color: '#122E63',
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 700,
+                letterSpacing: '1px',
+                paddingLeft: '8px',
+              }}
+            >
+              Smart Virtual Tourist Guide
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: 5 }}>
+              <div style={{ background: '#fff', display: 'inline-block', padding: '0 8px', borderRadius: '6px' }}>
+                <span
+                  className="font-bold leading-tight whitespace-nowrap"
+                  style={{
+                    fontSize: 'clamp(2rem, 2.6rem, 3rem)',
+                    letterSpacing: '8px',
+                    fontFamily: "'Inter', sans-serif",
+                    display: 'inline-block',
+                    fontWeight: 700,
+                    backgroundImage: `url(${sriflag})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent',
+                  }}
                 >
-                    <FaLanguage className="text-sky-700" /> EN
-                </button>
+                  Sri Lanka
+                </span>
+              </div>
             </div>
+          </div>
+        </div>
 
-        </header>
-    )
+        {/* Right side: Language + Navigation */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '16px',
+          }}
+        >
+          {/* Language icon */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#122E63', fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#111827" strokeWidth="1.6" />
+              <path d="M3 12H21" stroke="#111827" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M12 3C14.75 6 16.25 8.8 16.25 12C16.25 15.2 14.75 18 12 21C9.25 18 7.75 15.2 7.75 12C7.75 8.8 9.25 6 12 3Z" stroke="#111827" strokeWidth="1.6" />
+            </svg>
+            <span>EN</span>
+          </div>
+          {/* Navigation bar */}
+            <nav className="flex items-center gap-20 font-bold text-black" style={{ fontSize: '18px' }}>
+            <a className="transition hover:text-sky-800 whitespace-nowrap" href="/view-rooms-packages">Add Rooms & Packages</a>
+            <a className="transition hover:text-sky-800 whitespace-nowrap" href="/view-availability-calendar">Calendar</a>
+            <a className="transition hover:text-sky-800 whitespace-nowrap" href="/manage-availability">Manage Availability</a>
+            <a className="transition hover:text-sky-800 whitespace-nowrap" href="/view-reservations">View Booking</a>
+            <a className="transition hover:text-sky-800 whitespace-nowrap" href="/financial-analysis">Revenue Analyze</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+  )
 }
-
-export default Header
