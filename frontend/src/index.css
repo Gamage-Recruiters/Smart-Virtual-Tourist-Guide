@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+@media print {
+  /* 1. Remove Browser Headers & Footers */
+  @page { 
+    size: A4;
+    margin: 0; 
+  }
+
+  /* 2. Set margins for the content and allow backgrounds/colors */
+  body {
+    margin: 15mm;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 3. Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 4. Show only our print container */
+  .print-container, .print-container * {
+    visibility: visible;
+  }
+
+  /* 5. Positioning the report correctly */
+  .print-container {
+    position: static;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}

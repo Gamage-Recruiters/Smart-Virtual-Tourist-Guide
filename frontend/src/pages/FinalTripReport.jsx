@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 // import { useParams } from 'react-router-dom';
 import { fetchItinerary } from '../services/itineraryService';
-
 import { downloadReportPDF } from '../services/pdfService';
-
 import FinalTripReportPDF from "./FinalTripReportPDF";
+import { sendEmailReport } from '../services/emailService';
 
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
@@ -33,6 +32,8 @@ const FinalTripReport = () => {
   const [downloadedBlob, setDownloadedBlob] = useState(null);
   const [fileSize, setFileSize] = useState("0 MB");
 
+  const [isSending, setIsSending] = useState(false);
+
   const queryParams = new URLSearchParams(window.location.search);
   const exportMode = queryParams.get('export') === 'true';
 
@@ -47,7 +48,7 @@ const FinalTripReport = () => {
       try {
         const result = await fetchItinerary(touristId, tripId);
         if (result.success) {
-          setItinerary(result.data);
+          setItinerary(result.data.itinerary);
         } else {
           setError(result.message);
         }
@@ -106,6 +107,66 @@ const FinalTripReport = () => {
 
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 3500);
+  };
+
+  const handleEmailReport = async () => {
+
+    try {
+      setIsSending(true);
+
+      const currentUrl = `${window.location.origin}/trip/${touristId}/${tripId}?export=true`;
+      const userEmail = "lakshansanjeewa2003@gmail.com";
+
+      const result = await sendEmailReport(userEmail, currentUrl);
+
+      if (result.success) {
+        alert("Report successfully sent to your email! If you don't see it in your inbox, please check your spam or promotions folder.");
+      } else {
+        alert("Failed to send email: " + result.message);
+      }
+    } catch (error) {
+      console.error("Email error:", error);
+      alert("Error occurred while sending email.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handlePrint = () => {
+    const printUrl = `${window.location.origin}${window.location.pathname}?export=true&touristId=${touristId}&tripId=${tripId}`;
+    
+    const printWindow = window.open(printUrl, '_blank');
+
+    printWindow.onload = () => {
+        setTimeout(() => {
+            printWindow.print();
+
+            printWindow.close(); 
+        }, 500); 
+    };
+  };
+
+
+  const handleShareTrip = async () => {
+
+    const tripUrl = `${window.location.origin}/trip/${touristId}/${tripId}`;
+
+    const shareData = {
+      title: 'SVTG - My Trip Report',
+      text: 'Check out my Sri Lanka Trip Report!',
+      url: tripUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(tripUrl);
+        alert("Link copied!");
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
   };
 
   const formatDateRange = (start, end) => {
@@ -178,11 +239,11 @@ const FinalTripReport = () => {
 
         {/* Main Section */}
         <main className="w-full min-h-screen bg-gradient-to-b from-[#D3EEFD] to-[#F4F9FF] px-4 sm:px-6 md:px-10 lg:px-16 py-7 space-y-7 flex flex-col items-center">
-          <TripItinerary touristId={touristId} tripId={tripId}/>
+          <TripItinerary touristId={touristId} tripId={tripId} />
           <FinancialSummary />
           <ServiceProviders />
           <HealthSafetyLog touristId={touristId} />
-          <TripHighlights />
+          <TripHighlights touristId={touristId} tripId={tripId} />
           <RateExperience touristId={touristId} tripId={tripId} />
         </main>
 
@@ -209,22 +270,30 @@ const FinalTripReport = () => {
             </button>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-              <button className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5 text-[#1C2C3F]">
-                  <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.47 5.35a3 3 0 0 1-3.06 0L1.5 8.67Z" />
-                  <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 6.137a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
-                </svg>
-                <span>Email Report</span>
+              <button
+                onClick={handleEmailReport}
+                disabled={isSending}
+                className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300 disabled:opacity-50"
+              >
+                {isSending ? "Sending..." : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5 text-[#1C2C3F]">
+                      <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.47 5.35a3 3 0 0 1-3.06 0L1.5 8.67Z" />
+                      <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 6.137a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
+                    </svg>
+                    <span>Email Report</span>
+                  </>
+                )}
               </button>
 
-              <button className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300">
+              <button onClick={handleShareTrip} className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-4.5 h-4.5 text-[#1C2C3F]">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
                 </svg>
                 <span>Share Trip</span>
               </button>
 
-              <button className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300">
+              <button onClick={handlePrint} className="flex items-center justify-center gap-2 bg-gradient-to-b from-white to-[#BCE2FF] text-[#1C2C3F] font-bold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-sm border border-[#A2D5FF]/30 hover:brightness-95 transition-all duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-4.5 h-4.5 text-[#1C2C3F]">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-14.326 0C3.768 7.44 3 8.375 3 9.456V15.75a2.25 2.25 0 0 0 2.25 2.25h1.091M9 9h6M9 12h6" />
                 </svg>

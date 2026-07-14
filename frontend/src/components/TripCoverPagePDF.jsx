@@ -11,8 +11,9 @@ const TripCoverPagePDF = ({ touristId, tripId }) => {
     const loadItinerary = async () => {
       try {
         const result = await fetchItinerary(touristId, tripId);
+
         if (result.success) {
-          setItinerary(result.data);
+          setItinerary(result.data.itinerary);
         } else {
           setError(result.message);
         }

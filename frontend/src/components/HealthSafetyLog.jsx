@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchIncidentCount } from '../services/incidentService';
+import { fetchIncidentCount } from '../services/healthService';
 
 const HealthSafetyLog = ({ touristId }) => {
 

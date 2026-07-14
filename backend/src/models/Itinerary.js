@@ -1,3 +1,10 @@
+// ══════════════════════════════════════════════════════════════════════════════
+// Itinerary Model
+// Smart Virtual Tourist Guide — Sri Lanka
+// Location: backend/models/Itinerary.js
+// Used for: AI Generated Trip Plans — Final Trip Report
+// ══════════════════════════════════════════════════════════════════════════════
+
 const mongoose = require('mongoose');
 
 // Activity Schema — each activity in a day
@@ -26,6 +33,11 @@ const DailyPlanSchema = new mongoose.Schema({
     emergency_lkr:   { type: Number, default: 0 },       // Emergency fund
     actual_spent:    { type: Number, default: 0 },       // Actual amount spent
     activities:      [ActivitySchema],                   // List of activities
+
+    // ── Images for this day's location (added for TripItinerary UI) ────────
+    // Store 4 image URLs per day based on location (e.g. Colombo, Kandy, Sigiriya)
+    // These are fetched directly from DB instead of using an external API
+    images: [{ type: String }],                          // Array of image URLs
 });
 
 // Main Itinerary Schema
@@ -97,5 +109,9 @@ const ItinerarySchema = new mongoose.Schema({
     },
 
 }, { timestamps: true });
+
+// ── API to get itinerary for Final Trip Report ─────────────────────────────
+// GET /api/itinerary/:id
+// Returns full itinerary with daily_plan, allocations, recommendations
 
 module.exports = mongoose.model('Itinerary', ItinerarySchema);

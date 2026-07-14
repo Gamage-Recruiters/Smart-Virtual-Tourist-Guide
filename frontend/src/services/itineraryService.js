@@ -12,3 +12,14 @@ export const fetchItinerary = async (touristId, tripId) => {
         return { success: false, message: "Server connection failed." };
     }
 };
+
+export const fetchPlacesVisitedCount = async (touristId, tripId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/visited-count/${touristId}/${tripId}`);
+        const result = await response.json();
+        return result; 
+    } catch (error) {
+        console.error("itineraryService Error:", error);
+        return { success: false, message: "Server connection failed." };
+    }
+};

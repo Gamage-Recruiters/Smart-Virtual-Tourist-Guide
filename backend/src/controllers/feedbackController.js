@@ -24,13 +24,45 @@ const createFeedback = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({ 
+        res.status(500).json({
             message: "Server error occurred while submitting feedback",
             error: error.message
         });
     }
 };
 
+const getFeedbackById = async (req, res) => {
+    try {
+        const { touristId, tripId } = req.params;
+
+        if (!touristId || !tripId) {
+            return res.status(400).json({ error: "Tourist ID and Trip ID are required" });
+        }
+
+        const feedback = await TripFeedback.findOne({
+            touristId: touristId,
+            tripId: tripId
+        });
+
+        if (!feedback) {
+            return res.status(404).json({ error: "Feedback not found" });
+        }
+
+        res.status(200).json({
+            success: true, 
+            message: "Feedback fetched successfully!",
+            data: feedback
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Server error occurred while fetching feedback",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
-    createFeedback
+    createFeedback,
+    getFeedbackById
 };

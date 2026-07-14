@@ -1,6 +1,11 @@
-require('dotenv').config(); 
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
 const connectDB = require('./src/configs/database');
 
@@ -8,7 +13,8 @@ const feedbackRoutes = require('./src/routes/feedbackRoutes');
 const itineraryRoutes = require('./src/routes/itineraryRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
 const pdfRoutes = require('./src/routes/pdfRoutes');
-const incidentRoutes = require('./src/routes/incidentRoutes');
+const healthRoutes = require('./src/routes/healthRoutes');
+const emailRoutes = require('./src/routes/emailRoutes');
 
 connectDB();
 
@@ -25,8 +31,8 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/export', pdfRoutes);
-app.use('/api/safety/incidents', incidentRoutes);
-
+app.use('/api/health', healthRoutes);
+app.use('/api/email', emailRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

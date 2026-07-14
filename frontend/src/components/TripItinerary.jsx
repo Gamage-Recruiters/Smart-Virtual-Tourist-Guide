@@ -11,9 +11,8 @@ const TripItinerary = ({ touristId, tripId }) => {
         const loadItinerary  = async () => {
             try {
                 const result = await fetchItinerary(touristId, tripId);
-
                 if (result.success) {
-                    setItinerary(result.data);
+                    setItinerary(result.data.itinerary);
                 } else {
                     setError(result.message);
                 }
@@ -39,27 +38,6 @@ const TripItinerary = ({ touristId, tripId }) => {
         const datePart = d.toLocaleDateString('en-US', optionsDate);
         const dayPart = d.toLocaleDateString('en-US', optionsDay);
         return `${datePart} - ${dayPart}`;
-    };
-
-    const getImagesForDay = (dayNum) => {
-        const images = {
-            1: [
-                "https://images.unsplash.com/photo-1448375240586-882707db888b?w=200",
-                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200",
-                "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=200",
-            ],
-            2: [
-                "https://images.unsplash.com/photo-1546708973-b339540b5162?w=200",
-                "https://images.unsplash.com/photo-1448375240586-882707db888b?w=200",
-                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
-            ]
-        };
-   
-        return images[dayNum] || [
-            "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=200", 
-            "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=200", 
-            "https://images.unsplash.com/photo-1588598126711-4770ca986e66?w=200"  
-        ];
     };
 
     if (loading) return <div className="text-center py-10 font-bold">Loading...</div>;
@@ -118,7 +96,7 @@ const TripItinerary = ({ touristId, tripId }) => {
                             </ul>
 
                             <div className="flex gap-3 mt-6 flex-wrap">
-                                {getImagesForDay(dayData.day).map((imgSrc, imgIndex) => (
+                                {dayData.images.map((imgSrc, imgIndex) => (
                                     <img
                                         key={imgIndex}
                                         src={imgSrc}

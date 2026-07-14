@@ -12,7 +12,7 @@ const TripItineraryPDF = ({ touristId, tripId }) => {
       try {
         const result = await fetchItinerary(touristId, tripId);
         if (result.success) {
-          setItinerary(result.data);
+          setItinerary(result.data.itinerary);
         } else {
           setError(result.message);
         }
