@@ -62,6 +62,7 @@ export default function ViewCurrentRoomsPackages() {
             ? item.images.filter(Boolean).map((img) => img.startsWith('http') ? img : `${BASE_URL}${img}`)
             : [];
         const displayImage = images[0] || ViewCurrentRoomImg;
+        const hasMultiple = images.length > 1;
         const pricing = Array.isArray(item.locationAndPricing) && item.locationAndPricing[0];
         const price = pricing ? `${pricing.basePrice} $` : '—';
         const capacityStr = item.capacity
@@ -72,8 +73,16 @@ export default function ViewCurrentRoomsPackages() {
         return (
             <div className="flex flex-col rounded-2xl bg-white p-5 shadow-[0_18px_40px_rgba(31,41,55,0.12)] w-full">
                 <div className="flex flex-row gap-8">
-                    <div className="shrink-0 overflow-hidden rounded-xl w-[150px] h-[150px]">
+                    <div className="relative shrink-0 overflow-hidden rounded-xl w-[150px] h-[150px] cursor-pointer group"
+                        onClick={() => hasMultiple && setImagePopup({ images, index: 0 })}>
                         <img src={displayImage} alt={item.packageName} className="h-full w-full object-cover" />
+                        {hasMultiple && (
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="flex items-center gap-1 text-white text-xs font-bold">
+                                    <FaImages /> {images.length} photos
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <div className="flex flex-col justify-between flex-1 min-w-0">
                         <div>
