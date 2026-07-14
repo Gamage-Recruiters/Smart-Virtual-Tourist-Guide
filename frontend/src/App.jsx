@@ -13,17 +13,8 @@ function App() {
 
   return (
     <>
-<<<<<<< HEAD
       <Router>
         <Routes>
-=======
-      {/* <FinalTripReport /> */}
-      {/* <FinalTripReportPDF /> */}
-      <TouristArrivalReport />
-      {/* <RevenueReport /> */}
-      {/* <BehaviorStatReport /> */}
-      {/* <ComplaintReport /> */}
->>>>>>> c6638ca808fe36df462b2fca057b749c13216e48
 
           <Route path="/" element={<FinalTripReport />} />
           {/* <Route path="/" element={<TouristArrivalReport />} /> */}
