@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+const datePeriodSchema = new mongoose.Schema(
+    {
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+    },
+    { _id: true }
+);
+
 const roomSchema = new mongoose.Schema({
     roomNumber: {
         type: String,
@@ -76,6 +84,14 @@ const roomSchema = new mongoose.Schema({
         type: String,
         enum: ['Available', 'Blocked', 'Maintenance'],
         default: 'Available',
+    },
+    blockedDates: {
+        type: [datePeriodSchema],
+        default: [],
+    },
+    maintenanceDates: {
+        type: [datePeriodSchema],
+        default: [],
     },
     createdAt: {
         type: Date,

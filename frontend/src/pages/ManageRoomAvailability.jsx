@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FaSearch, FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown, FaCalendarAlt, FaBed
 } from 'react-icons/fa';
@@ -6,29 +6,7 @@ import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import manageavailability from '../assets/room-Availability-page-image.png';
 
-// ---- Static demo data -------------------------------------------------
-
-const ROOM_TYPES = [
-  'Single Room',
-  'Double Room',
-  'Twin Room',
-  'Queen Room',
-  'King Room',
-  'Deluxe Double Room',
-  'Family Room / Quad Room',
-];
-
-const MONTHS = ['March 2026', 'April 2026', 'May 2026'];
-
-// a = Available, b = Blocked / Non Available, m = Maintenance
-// 14 Available / 6 Blocked / 5 Maintenance = 25 rooms total
-const ROOM_STATUS_PATTERN = [
-  'a', 'a', 'a', 'm', 'm',
-  'a', 'a', 'a', 'm', 'm',
-  'a', 'a', 'a', 'a', 'a',
-  'b', 'b', 'b', 'b', 'b',
-  'b', 'a', 'a', 'a', 'm',
-];
+const BASE_URL = 'http://localhost:5000';
 
 const STATUS_STYLES = {
   a: 'bg-[#BFEBCB] text-emerald-800',
@@ -36,10 +14,16 @@ const STATUS_STYLES = {
   m: 'bg-[#BFDDF7] text-blue-800',
 };
 
-const STATUS_COUNTS = ROOM_STATUS_PATTERN.reduce(
-  (acc, s) => ({ ...acc, [s]: acc[s] + 1 }),
-  { a: 0, b: 0, m: 0 }
-);
+const toShortStatus = (s) => {
+  if (s === 'Non Available') return 'b';
+  if (s === 'Maintenance') return 'm';
+  return 'a';
+};
+
+const ROOM_TYPES_STATIC = [
+  'Single Room', 'Double Room', 'Twin Room', 'Queen Room',
+  'King Room', 'Deluxe Double Room', 'Family Room / Quad Room',
+];
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -81,7 +65,7 @@ function ToggleRow({ label, dotClass, checked, onChange }) {
   );
 }
 
-function MiniCalendar({ title, accent, selectedRoomType }) {
+function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRoomNumber, onRoomSelect, statusType, selectedRoomId, onSaveSuccess }) {
   const [monthIdx, setMonthIdx] = useState(2);
   const { label, days, startDay } = CALENDAR_MONTHS[monthIdx];
 
@@ -91,22 +75,76 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
   const [toInput, setToInput] = useState('');
   const [roomSearch, setRoomSearch] = useState('');
   const [roomSuggestions, setRoomSuggestions] = useState([]);
-  const [selectedRoom, setSelectedRoom] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [selectedBlock, setSelectedBlock] = useState(null); // index into blocks
   const [savedBlocks, setSavedBlocks] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+
+  const mapPeriodsToBlocks = (periods) => (
+    (periods || []).map((period) => {
+      const startDate = new Date(period.startDate);
+      const endDate = new Date(period.endDate);
+      return {
+        _id: String(period._id),
+        from: { day: startDate.getUTCDate(), monthIdx: startDate.getUTCMonth() },
+        to: { day: endDate.getUTCDate(), monthIdx: endDate.getUTCMonth() },
+      };
+    })
+  );
+
+  // Sync search box when parent changes selectedRoomNumber (grid click)
+  useEffect(() => {
+    setRoomSearch(selectedRoomNumber || '');
+  }, [selectedRoomNumber]);
+
+  useEffect(() => {
+    setBlocks(mapPeriodsToBlocks(
+      statusType === 'Non Available'
+        ? selectedRoomId?.blockedDates
+        : selectedRoomId?.maintenanceDates
+    ));
+    setSavedBlocks(mapPeriodsToBlocks(
+      statusType === 'Non Available'
+        ? selectedRoomId?.blockedDates
+        : selectedRoomId?.maintenanceDates
+    ));
+    setPendingFrom(null);
+    setSelectedBlock(null);
+    setFromInput('');
+    setToInput('');
+    setSaveMsg('');
+  }, [selectedRoomId, statusType]);
 
   const handleRoomSearch = (val) => {
     setRoomSearch(val);
     setRoomSuggestions(
       val.trim() === ''
         ? []
-        : ROOM_NUMBERS.filter((r) => r.toLowerCase().startsWith(val.toLowerCase()))
+        : roomNumbers.filter((r) => r.toLowerCase().startsWith(val.toLowerCase()))
     );
   };
 
   const absDay = (d) => d.monthIdx * 31 + d.day;
   const formatDate = (d) => d ? `${d.day} ${CALENDAR_MONTHS[d.monthIdx].label}` : '—';
+
+  // Parse typed date into { day, monthIdx }
+  // Accepts: "2"  →  day 2 of current month
+  //          "2 March"  or  "2 March 2026"  →  day 2 of March
+  const parseInput = (str) => {
+    const parts = str.trim().split(/\s+/);
+    const day = parseInt(parts[0], 10);
+    if (isNaN(day) || day < 1) return null;
+    if (parts.length === 1) {
+      if (day > CALENDAR_MONTHS[monthIdx].days) return null;
+      return { day, monthIdx };
+    }
+    const mIdx = CALENDAR_MONTHS.findIndex((m) => m.label.toLowerCase().startsWith(parts[1].toLowerCase()));
+    if (mIdx === -1 || day > CALENDAR_MONTHS[mIdx].days) return null;
+    return { day, monthIdx: mIdx };
+  };
+
+  const getYear = (mIdx) => parseInt(CALENDAR_MONTHS[mIdx].label.split(' ')[1], 10);
 
   const blockIndexForDay = (day) => {
     const abs = monthIdx * 31 + day;
@@ -130,24 +168,6 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
     }
   };
 
-  const MONTH_NAMES = CALENDAR_MONTHS.map((m) => m.label.split(' ')[0].toLowerCase());
-
-  const parseEditInput = (str) => {
-    const parts = str.trim().split(/\s+/);
-    const day = parseInt(parts[0], 10);
-    if (!day || day < 1) return null;
-    let mIdx = monthIdx;
-    if (parts[1]) {
-      const typed = parts[1].toLowerCase();
-      const found = MONTH_NAMES.findIndex((m) => m.startsWith(typed));
-      if (found !== -1) mIdx = found;
-    }
-    if (day > CALENDAR_MONTHS[mIdx].days) return null;
-    return { day, monthIdx: mIdx };
-  };
-
-  const activeBlock = selectedBlock !== null ? blocks[selectedBlock] : null;
-
   return (
     <div className="border-1 border-black rounded p-5 bg-white">
       <div className="relative w-full mb-6">
@@ -169,8 +189,8 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
                 key={r}
                 onMouseDown={() => {
                   setRoomSearch(r);
-                  setSelectedRoom(r);
                   setRoomSuggestions([]);
+                  onRoomSelect(r);
                 }}
                 className="px-4 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
@@ -188,64 +208,48 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-slate-500">From</span>
           <div className="relative">
-            {isEditing && selectedBlock !== null ? (
-              <input
-                type="text"
-                value={fromInput}
-                onChange={(e) => setFromInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const parsed = parseEditInput(fromInput);
-                    if (parsed) {
-                      setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, from: parsed } : b));
-                      setFromInput(formatDate(parsed));
-                    }
-                  }
-                }}
-                placeholder="e.g. 23 March"
-                className="text-xs border border-yellow-400 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-yellow-50 focus:outline-none"
-              />
-            ) : (
-              <input
-                type="text"
-                readOnly
-                value={isEditing ? (selectedBlock !== null ? formatDate(activeBlock.from) : 'Select a block') : fromInput}
-                placeholder="Select date"
-                className="text-xs border border-slate-300 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-white cursor-default"
-              />
-            )}
+            <input
+              type="text"
+              readOnly={!(isEditing && selectedBlock !== null)}
+              value={fromInput}
+              onChange={(e) => setFromInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                const parsed = parseInput(fromInput);
+                if (!parsed) return;
+                setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, from: parsed } : b));
+              }}
+              placeholder="Select date"
+              className={`text-xs border rounded px-3 py-1.5 pr-7 w-44 text-slate-700 ${
+                isEditing && selectedBlock !== null
+                  ? 'bg-[#fdfd96] border-slate-400 cursor-text'
+                  : 'bg-white border-slate-300 cursor-default'
+              }`}
+            />
             <FaCalendarAlt className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none" />
           </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-slate-500">To</span>
           <div className="relative">
-            {isEditing && selectedBlock !== null ? (
-              <input
-                type="text"
-                value={toInput}
-                onChange={(e) => setToInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const parsed = parseEditInput(toInput);
-                    if (parsed) {
-                      setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, to: parsed } : b));
-                      setToInput(formatDate(parsed));
-                    }
-                  }
-                }}
-                placeholder="e.g. 28 March"
-                className="text-xs border border-yellow-400 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-yellow-50 focus:outline-none"
-              />
-            ) : (
-              <input
-                type="text"
-                readOnly
-                value={isEditing ? (selectedBlock !== null ? formatDate(activeBlock.to) : 'Select a block') : toInput}
-                placeholder="Select date"
-                className="text-xs border border-slate-300 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-white cursor-default"
-              />
-            )}
+            <input
+              type="text"
+              readOnly={!(isEditing && selectedBlock !== null)}
+              value={toInput}
+              onChange={(e) => setToInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                const parsed = parseInput(toInput);
+                if (!parsed) return;
+                setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, to: parsed } : b));
+              }}
+              placeholder="Select date"
+              className={`text-xs border rounded px-3 py-1.5 pr-7 w-44 text-slate-700 ${
+                isEditing && selectedBlock !== null
+                  ? 'bg-[#fdfd96] border-slate-400 cursor-text'
+                  : 'bg-white border-slate-300 cursor-default'
+              }`}
+            />
             <FaCalendarAlt className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none" />
           </div>
         </div>
@@ -316,18 +320,18 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
           let cls;
           let style = {};
           if (isEditing) {
-            if (highlighted) {
+            if (highlighted && bIdx === selectedBlock) {
               cls = isSingleDay
                 ? `${accent.strong} text-slate-800 font-bold cursor-pointer rounded`
-                : 'bg-[#fdfd96] text-slate-800 cursor-pointer';
-              if (isSelected) {
-                style = {
-                  borderTop: '2px solid #334155',
-                  borderBottom: '2px solid #334155',
-                  borderLeft: (isFirst || isSingleDay) ? '2px solid #334155' : 'none',
-                  borderRight: (isLast  || isSingleDay) ? '2px solid #334155' : 'none',
-                };
-              }
+                : `${accent.light} text-slate-800 cursor-pointer`;
+              style = {
+                borderTop: '2px solid #334155',
+                borderBottom: '2px solid #334155',
+                borderLeft: (isFirst || isSingleDay) ? '2px solid #334155' : 'none',
+                borderRight: (isLast  || isSingleDay) ? '2px solid #334155' : 'none',
+              };
+            } else if (highlighted) {
+              cls = `${accent.light} text-slate-700 cursor-pointer rounded`;
             } else {
               cls = 'text-slate-300 cursor-not-allowed rounded';
             }
@@ -344,10 +348,13 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
 
           const handleClick = () => {
             if (isEditing) {
-              if (!highlighted) return;
-              if (selectedBlock === bIdx) {
-                setSelectedBlock(null);
-              } else {
+              // only allow selecting a block; no date changes via calendar
+              if (selectedBlock === null && highlighted) {
+                setSelectedBlock(bIdx);
+                setFromInput(formatDate(blocks[bIdx].from));
+                setToInput(formatDate(blocks[bIdx].to));
+              } else if (selectedBlock !== null && highlighted && bIdx !== selectedBlock) {
+                // switch selection to a different block
                 setSelectedBlock(bIdx);
                 setFromInput(formatDate(blocks[bIdx].from));
                 setToInput(formatDate(blocks[bIdx].to));
@@ -368,15 +375,68 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
       {/* Hint text */}
       <p className="text-[10px] text-slate-400 mb-5">
         {isEditing
-          ? selectedBlock !== null ? 'Block selected — edit From/To above then press Enter' : 'Click a highlighted block to select it'
+          ? selectedBlock === null
+            ? 'Click a highlighted period to select it, then type new dates in the From / To boxes'
+            : 'Type new From / To dates above (e.g. 8  or  8 March  or  8 March 2026), then click Save'
           : pendingFrom ? 'Click a day to set To date' : blocks.length === 0 ? 'Click a day to set From date' : 'Click a day to add another block'}
       </p>
 
       {/* Action buttons */}
-      <div className="flex gap-3">
-        <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded transition-colors">
-          Save
+      <div className="flex gap-3 items-center">
+        <button
+          disabled={saving || !selectedRoomId}
+          onClick={async () => {
+            if (!selectedRoomId?.roomId) return;
+            const endpoint = statusType === 'Non Available' ? 'blocked' : 'maintenance';
+            setSaving(true);
+            setSaveMsg('');
+            try {
+              if (isEditing && selectedBlock !== null) {
+                // PATCH: update the selected period by _id using both typed inputs
+                const f = parseInput(fromInput);
+                const t = parseInput(toInput);
+                if (!f || !t) { setSaveMsg('Invalid date'); return; }
+                const block = blocks[selectedBlock];
+                if (!block?._id || block._id === 'undefined') { setSaveMsg('No period ID'); return; }
+                const res = await fetch(`${BASE_URL}/api/room-availability/${selectedRoomId.roomId}/${endpoint}/${block._id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    startDate: new Date(Date.UTC(getYear(f.monthIdx), f.monthIdx, f.day)).toISOString(),
+                    endDate:   new Date(Date.UTC(getYear(t.monthIdx), t.monthIdx, t.day)).toISOString(),
+                  }),
+                });
+                if (res.ok) {
+                  setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, from: f, to: t } : b));
+                  setSaveMsg('✓ Saved');
+                  setTimeout(() => setSaveMsg(''), 2500);
+                  onSaveSuccess();
+                } else {
+                  setSaveMsg('Save failed');
+                }
+              } else {
+                // POST: replace all periods
+                if (blocks.length === 0) { setSaveMsg('No periods to save'); return; }
+                const periods = blocks.map((b) => ({
+                  startDate: new Date(Date.UTC(getYear(b.from.monthIdx), b.from.monthIdx, b.from.day)).toISOString(),
+                  endDate:   new Date(Date.UTC(getYear(b.to.monthIdx),   b.to.monthIdx,   b.to.day  )).toISOString(),
+                }));
+                const res = await fetch(`${BASE_URL}/api/room-availability/${endpoint}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ roomId: selectedRoomId.roomId, periods }),
+                });
+                if (res.ok) { setSaveMsg('✓ Saved'); setTimeout(() => setSaveMsg(''), 2500); onSaveSuccess(); }
+                else setSaveMsg('Save failed');
+              }
+            } catch { setSaveMsg('Save failed'); }
+            finally { setSaving(false); }
+          }}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saving ? 'Saving...' : 'Save'}
         </button>
+        {saveMsg && <span className={`text-xs font-semibold ${saveMsg.startsWith('✓') ? 'text-emerald-600' : 'text-rose-500'}`}>{saveMsg}</span>}
         <button
           onClick={() => {
             if (!isEditing) {
@@ -385,6 +445,8 @@ function MiniCalendar({ title, accent, selectedRoomType }) {
             } else {
               setBlocks(savedBlocks);
               setSelectedBlock(null);
+              setFromInput('');
+              setToInput('');
             }
             setIsEditing((v) => !v);
           }}
@@ -405,13 +467,127 @@ export default function ManageRoomAvailability() {
   const [selectedRoomType, setSelectedRoomType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState('March 2026');
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(1);
-
   const [showAvailable, setShowAvailable] = useState(true);
   const [showNonAvailable, setShowNonAvailable] = useState(true);
   const [showMaintenance, setShowMaintenance] = useState(true);
+
+  // Live data from backend
+  const [roomTypesList, setRoomTypesList] = useState(ROOM_TYPES_STATIC);
+  const [roomsData, setRoomsData] = useState([]);   // array of { roomNumber, currentStatus, roomId }
+  const [calLoading, setCalLoading] = useState(false);
+
+  // Selected room (clicked from visual grid or calendar search)
+  const [selectedRoom, setSelectedRoom] = useState(null); // { roomId, roomNumber, adults, children }
+  const [editAdults, setEditAdults] = useState(0);
+  const [editChildren, setEditChildren] = useState(0);
+  const [capacitySaving, setCapacitySaving] = useState(false);
+  const [capacitySaved, setCapacitySaved] = useState(false);
+
+  // Shared selected room number for both MiniCalendars (drives search box + title)
+  const [calendarRoomNumber, setCalendarRoomNumber] = useState('');
+
+  // Fetch distinct room types for search suggestions
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/rooms`)
+      .then((r) => r.json())
+      .then((data) => {
+        const types = [...new Set((data.rooms || []).map((r) => r.roomType))];
+        if (types.length > 0) setRoomTypesList(types);
+      })
+      .catch(() => {});
+  }, []);
+
+  const now = new Date();
+  const calMonth = now.getMonth() + 1;
+  const calYear  = now.getFullYear();
+
+  const refreshCalendar = () => {
+    if (!selectedRoomType) return;
+    fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+      .then((r) => r.json())
+      .then((data) => setRoomsData(data.rooms || []))
+      .catch(() => {});
+  };
+
+  // Fetch calendar data when room type is selected
+  useEffect(() => {
+    if (!selectedRoomType) return;
+    setCalLoading(true);
+    fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setRoomsData(data.rooms || []);
+        setSelectedRoom(null);
+        setCalendarRoomNumber('');
+      })
+      .catch(() => {})
+      .finally(() => setCalLoading(false));
+  }, [selectedRoomType]);
+
+  const roomStatusPattern = roomsData.map((r) => toShortStatus(r.currentStatus));
+  const roomNumbers = roomsData.map((r) => r.roomNumber);
+
+  const handleRoomClick = (roomData) => {
+    fetch(`${BASE_URL}/api/rooms/${roomData.roomId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const cap = data.room?.capacity || { adults: 0, children: 0 };
+        // Always fetch fresh availability so dates are never stale
+        fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+          .then((r) => r.json())
+          .then((calData) => {
+            const freshRooms = calData.rooms || [];
+            setRoomsData(freshRooms);
+            const fresh = freshRooms.find((r) => String(r.roomId) === String(roomData.roomId));
+            setSelectedRoom({
+              roomId: roomData.roomId,
+              roomNumber: roomData.roomNumber,
+              adults: cap.adults,
+              children: cap.children,
+              blockedDates:     fresh?.blockedDates     || [],
+              maintenanceDates: fresh?.maintenanceDates || [],
+            });
+          })
+          .catch(() => {});
+        setEditAdults(cap.adults);
+        setEditChildren(cap.children);
+        setCapacitySaved(false);
+        setCalendarRoomNumber(roomData.roomNumber);
+      })
+      .catch(() => {});
+  };
+
+  // Called when a room is picked from either MiniCalendar's search box
+  const handleCalendarRoomSelect = (roomNumber) => {
+    setCalendarRoomNumber(roomNumber);
+    const found = roomsData.find((r) => r.roomNumber === roomNumber);
+    if (found) handleRoomClick({ roomId: found.roomId, roomNumber });
+  };
+
+  const handleSaveSuccess = () => refreshCalendar();
+
+  const handleCapacitySave = () => {
+    if (!selectedRoom) return;
+    setCapacitySaving(true);
+    fetch(`${BASE_URL}/api/rooms/${selectedRoom.roomId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ capacity: { adults: editAdults, children: editChildren } }),
+    })
+      .then((r) => r.json())
+      .then(() => {
+        setSelectedRoom((prev) => ({ ...prev, adults: editAdults, children: editChildren }));
+        setCapacitySaved(true);
+        setTimeout(() => setCapacitySaved(false), 2000);
+      })
+      .catch(() => {})
+      .finally(() => setCapacitySaving(false));
+  };
+
+  const statusCounts = roomStatusPattern.reduce(
+    (acc, s) => ({ ...acc, [s]: acc[s] + 1 }),
+    { a: 0, b: 0, m: 0 }
+  );
 
   const isVisible = (status) => {
     if (status === 'a') return showAvailable;
@@ -476,7 +652,7 @@ export default function ManageRoomAvailability() {
                 setSuggestions(
                   val.trim() === ''
                     ? []
-                    : ROOM_TYPES.filter((r) =>
+                    : roomTypesList.filter((r) =>
                         r.toLowerCase().startsWith(val.toLowerCase())
                       )
                 );
@@ -521,52 +697,62 @@ export default function ManageRoomAvailability() {
                     <span className="flex items-center gap-2 text-slate-600 font-medium">
                       <span className="w-2 h-2 rounded-full bg-slate-400" /> Total Rooms
                     </span>
-                    <span className="font-bold text-slate-900">{ROOM_STATUS_PATTERN.length}</span>
+                    <span className="font-bold text-slate-900">{roomStatusPattern.length}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-[#DFF6E4] border border-emerald-200 rounded px-3 py-2 w-56 justify-between">
                     <span className="flex items-center gap-2 text-emerald-800 font-medium">
                       <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available Rooms
                     </span>
-                    <span className="font-bold text-emerald-900">{STATUS_COUNTS.a}</span>
+                    <span className="font-bold text-emerald-900">{statusCounts.a}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-[#FBE0E0] border border-rose-200 rounded px-3 py-2 w-56 justify-between">
                     <span className="flex items-center gap-2 text-rose-800 font-medium">
                       <span className="w-2 h-2 rounded-full bg-rose-500" /> Blocked Rooms
                     </span>
-                    <span className="font-bold text-rose-900">{STATUS_COUNTS.b}</span>
+                    <span className="font-bold text-rose-900">{statusCounts.b}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-[#DDEBFB] border border-blue-200 rounded px-3 py-2 w-56 justify-between">
                     <span className="flex items-center gap-2 text-blue-800 font-medium">
                       <span className="w-2 h-2 rounded-full bg-blue-500" /> Maintenance Rooms
                     </span>
-                    <span className="font-bold text-blue-900">{STATUS_COUNTS.m}</span>
+                    <span className="font-bold text-blue-900">{statusCounts.m}</span>
                   </div>
                 </div>
               </div>
 
              <div className="bg-gray-200 p-3 rounded min-h-[120px]">
               <h2 className="text-[16px] font-extrabold text-slate-800 mb-3">
-                Room Capacity
+                {selectedRoom ? `${selectedRoom.roomNumber} Capacity` : 'Room Capacity'}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Adults */}
-                <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
-                  <span className="text-xs text-slate-700">{adults} {adults === 1 ? 'Adult' : 'Adults'}</span>
-                  <div className="flex flex-col">
-                    <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setAdults((v) => v + 1)} />
-                    <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setAdults((v) => Math.max(0, v - 1))} />
+              {!selectedRoom ? (
+                <p className="text-xs text-slate-400">Click a room in the grid to view and edit its capacity.</p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
+                      <span className="text-xs text-slate-700">{editAdults} {editAdults === 1 ? 'Adult' : 'Adults'}</span>
+                      <div className="flex flex-col">
+                        <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setEditAdults((v) => v + 1)} />
+                        <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setEditAdults((v) => Math.max(0, v - 1))} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
+                      <span className="text-xs text-slate-700">{editChildren} {editChildren === 1 ? 'Child' : 'Children'}</span>
+                      <div className="flex flex-col">
+                        <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setEditChildren((v) => v + 1)} />
+                        <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setEditChildren((v) => Math.max(0, v - 1))} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                {/* Children */}
-                <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
-                  <span className="text-xs text-slate-700">{children} {children === 1 ? 'Child' : 'Children'}</span>
-                  <div className="flex flex-col">
-                    <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setChildren((v) => v + 1)} />
-                    <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setChildren((v) => Math.max(0, v - 1))} />
-                  </div>
-                </div>
-              </div>
+                  <button
+                    onClick={handleCapacitySave}
+                    disabled={capacitySaving}
+                    className="mt-3 w-full py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors disabled:opacity-50"
+                  >
+                    {capacitySaving ? 'Saving...' : capacitySaved ? '✓ Saved' : 'Save Capacity'}
+                  </button>
+                </>
+              )}
             </div>
 
               <div>
@@ -598,18 +784,31 @@ export default function ManageRoomAvailability() {
           <div className="justify-self-center lg:justify-self-end w-full max-w-md pr-16 mr-32">
             <h4 className="text-xl font-semibold text-slate-600 text-center mb-6">{selectedRoomType} Visual Availibility</h4>
               <div className="border-2 border-slate-500 p-4 md:p-5 bg-gray-100">
-                <div className="grid grid-cols-5 gap-4">
-                  {ROOM_STATUS_PATTERN.map((status, i) => (
-                    <div
-                      key={i}
-                      className={`aspect-square flex items-center justify-center text-lg font-medium transition-opacity ${STATUS_STYLES[status]} ${
-                        isVisible(status) ? 'opacity-100' : 'opacity-25'
-                      }`}
-                    >
-                      R{i + 1}
-                    </div>
-                  ))}
-                </div>
+                {calLoading ? (
+                  <p className="text-center text-sm text-slate-400 py-4">Loading...</p>
+                ) : roomStatusPattern.length === 0 ? (
+                  <p className="text-center text-sm text-slate-400 py-4">
+                    {selectedRoomType ? 'No rooms found for this type.' : 'Select a room type to view.'}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-5 gap-4">
+                    {roomStatusPattern.map((status, i) => {
+                      const rNum = roomNumbers[i] || `R${i + 1}`;
+                      const isActive = selectedRoom?.roomNumber === rNum;
+                      return (
+                        <div
+                          key={i}
+                          onClick={() => handleRoomClick({ roomId: roomsData[i].roomId, roomNumber: rNum })}
+                          className={`aspect-square flex items-center justify-center text-lg font-medium cursor-pointer transition-all ${STATUS_STYLES[status]} ${
+                            isVisible(status) ? 'opacity-100' : 'opacity-25'
+                          } ${isActive ? 'ring-2 ring-offset-1 ring-slate-700 scale-105' : 'hover:scale-105'}`}
+                        >
+                          {rNum}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -620,14 +819,26 @@ export default function ManageRoomAvailability() {
           <div className="mt-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl">
             <MiniCalendar
-              title="R16 Room's Block Dates Marking"
+              title={calendarRoomNumber ? `${calendarRoomNumber} Block Dates Marking` : 'Block Dates Marking'}
               accent={{ light: 'bg-rose-100', strong: 'bg-rose-300' }}
               selectedRoomType={selectedRoomType}
+              roomNumbers={roomNumbers}
+              selectedRoomNumber={calendarRoomNumber}
+              onRoomSelect={handleCalendarRoomSelect}
+              statusType="Non Available"
+              selectedRoomId={selectedRoom}
+              onSaveSuccess={handleSaveSuccess}
             />
             <MiniCalendar
-              title="R25 Room's Maintainance Dates Marking"
+              title={calendarRoomNumber ? `${calendarRoomNumber} Maintenance Dates Marking` : 'Maintenance Dates Marking'}
               accent={{ light: 'bg-blue-100', strong: 'bg-blue-300' }}
               selectedRoomType={selectedRoomType}
+              roomNumbers={roomNumbers}
+              selectedRoomNumber={calendarRoomNumber}
+              onRoomSelect={handleCalendarRoomSelect}
+              statusType="Maintenance"
+                selectedRoomId={selectedRoom}
+              onSaveSuccess={handleSaveSuccess}
             />
           </div>
           </div>

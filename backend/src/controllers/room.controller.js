@@ -34,7 +34,7 @@ export const createRoom = async (req, res) => {
         // Attach uploaded image paths
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
 
-        const room = await Room.create({ ...body, roomNumber, images });
+        const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [] });
         return res.status(201).json({
             message: 'Room created successfully',
             room,

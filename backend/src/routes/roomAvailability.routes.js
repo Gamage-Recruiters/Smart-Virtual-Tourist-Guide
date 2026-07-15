@@ -2,26 +2,30 @@ import express from 'express';
 import {
     getMonthlyCalendar,
     getRoomCalendar,
-    setDayStatus,
-    bulkSetStatus,
-    resetDayStatus,
+    saveBlockedDates,
+    saveMaintenanceDates,
+    updateBlockedPeriod,
+    updateMaintenancePeriod,
 } from '../controllers/roomAvailability.controller.js';
 
 const router = express.Router();
 
-// GET  /api/room-availability/calendar?roomType=Deluxe Double Room&month=7&year=2026
+// GET  /api/room-availability/calendar?roomType=...&month=...&year=...
 router.get('/calendar', getMonthlyCalendar);
 
-// GET  /api/room-availability/room/:roomId?month=7&year=2026
+// GET  /api/room-availability/room/:roomId?month=...&year=...
 router.get('/room/:roomId', getRoomCalendar);
 
-// PUT  /api/room-availability   { roomId, date, status, note }
-router.put('/', setDayStatus);
+// POST /api/room-availability/blocked      { roomId, periods: [{startDate, endDate}] }
+router.post('/blocked', saveBlockedDates);
 
-// POST /api/room-availability/bulk   { roomId, startDate, endDate, status, note }
-router.post('/bulk', bulkSetStatus);
+// POST /api/room-availability/maintenance  { roomId, periods: [{startDate, endDate}] }
+router.post('/maintenance', saveMaintenanceDates);
 
-// DELETE /api/room-availability   { roomId, date }
-router.delete('/', resetDayStatus);
+// PATCH /api/room-availability/:roomId/blocked/:periodId
+router.patch('/:roomId/blocked/:periodId', updateBlockedPeriod);
+
+// PATCH /api/room-availability/:roomId/maintenance/:periodId
+router.patch('/:roomId/maintenance/:periodId', updateMaintenancePeriod);
 
 export default router;

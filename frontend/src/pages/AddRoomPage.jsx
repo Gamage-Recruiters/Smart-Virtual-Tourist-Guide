@@ -252,7 +252,6 @@ export default function AddRoomPage() {
       fd.append('roomSize', Number(formData.roomSize));
       fd.append('measureType', formData.measureType);
       fd.append('description', formData.description);
-      fd.append('roomStatus', 'Available');
       fd.append('capacity', JSON.stringify({
         adults: Number(formData.capacityAdults),
         children: Number(formData.capacityChildren),
