@@ -44,13 +44,15 @@ export const getIconColor = (priority) => {
 
   switch (p) {
     case "critical":
-      return "bg-red-100 text-red-600 border-red-200";
+      return "bg-[#E53935]/10 text-[#E53935] border border-[#E53935]/20";
     case "high":
-      return "bg-orange-100 text-orange-600 border-orange-200";
+      return "bg-[#F4F9FF] text-[#111111] border border-[#F4F9FF]";
     case "medium":
-      return "bg-blue-100 text-blue-600 border-blue-200";
+      return "bg-[#F4F9FF] text-[#111111] border border-[#F4F9FF]";
+    case "low":
+      return "bg-[#4CAF50]/10 text-[#4CAF50] border border-[#4CAF50]/20";
     default:
-      return "bg-gray-100 text-gray-600 border-gray-200";
+      return "bg-[#F4F9FF] text-[#111111] border border-[#F4F9FF]";
   }
 };
 
@@ -59,14 +61,14 @@ export const getLeftBorderColor = (priority) => {
 
   switch (p) {
     case "critical":
-      return "border-l-[#E53935]"; // Custom Red
+      return "border-l-[#E53935]";
     case "high":
-      return "border-l-[#FF6D00]"; // Custom Orange
+      return "border-l-[#111111]";
     case "medium":
-      return "border-l-[#1A73E8]"; // Custom Blue
+      return "border-l-[#F4F9FF]";
     case "low":
-      return "border-l-[#43A047]"; // Custom Green
+      return "border-l-[#4CAF50]";
     default:
-      return "border-l-gray-300"; // Default / Read messages
+      return "border-l-[#F4F9FF]";
   }
 };

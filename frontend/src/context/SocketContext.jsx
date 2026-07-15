@@ -74,31 +74,29 @@ export const SocketProvider = ({ children }) => {
 
       const socket = socketRef.current;
 
-      // --- SOCKET LIFECYCLE HANDLERS ---
-      socket.on("connect", () => {
+      const handleConnect = () => {
         setConnectionStatus("connected");
         setReconnectAttempt(0);
         console.log("✅ Socket Connected to Engine");
-      });
+      };
 
-      socket.on("disconnect", (reason) => {
+      const handleDisconnect = (reason) => {
         console.log(`❌ Socket Disconnected: ${reason}`);
         setConnectionStatus("reconnecting");
 
         if (reason === "io server disconnect") {
           socket.connect();
         }
-      });
+      };
 
-      socket.on("connect_error", (error) => {
+      const handleConnectError = (error) => {
         console.error("⚠️ Connection Error:", error.message);
         setConnectionStatus("reconnecting");
-      });
+      };
 
-      socket.on("reconnect_attempt", (attempt) => setReconnectAttempt(attempt));
+      const handleReconnectAttempt = (attempt) => setReconnectAttempt(attempt);
 
-      // --- NOTIFICATION LISTENER ---
-      socket.on("new_notification", (notification) => {
+      const handleNewNotification = (notification) => {
         console.log("🔔 Notification Received:", notification);
 
         if (
@@ -109,11 +107,15 @@ export const SocketProvider = ({ children }) => {
         }
 
         dispatch(addRealtimeNotification(notification));
-
         queryClient.invalidateQueries({ queryKey: ["notifications", user?._id] });
-      });
+      };
 
-      // --- LIVE LOCATION TRACKING (GPS) ---
+      socket.on("connect", handleConnect);
+      socket.on("disconnect", handleDisconnect);
+      socket.on("connect_error", handleConnectError);
+      socket.on("reconnect_attempt", handleReconnectAttempt);
+      socket.on("new_notification", handleNewNotification);
+
       if ("geolocation" in navigator) {
         let lastLat = null;
         let lastLng = null;
@@ -123,12 +125,7 @@ export const SocketProvider = ({ children }) => {
             const { latitude, longitude } = position.coords;
 
             if (lastLat && lastLng) {
-              const dist = calculateDistance(
-                lastLat,
-                lastLng,
-                latitude,
-                longitude,
-              );
+              const dist = calculateDistance(lastLat, lastLng, latitude, longitude);
               if (dist < 50) return;
             }
 
@@ -142,14 +139,20 @@ export const SocketProvider = ({ children }) => {
         );
       }
 
-      // --- CLEANUP ---
       return () => {
         console.log("🧹 Cleaning up Socket & GPS...");
         if (watchId) navigator.geolocation.clearWatch(watchId);
-        socket.removeAllListeners();
+        socket.off("connect", handleConnect);
+        socket.off("disconnect", handleDisconnect);
+        socket.off("connect_error", handleConnectError);
+        socket.off("reconnect_attempt", handleReconnectAttempt);
+        socket.off("new_notification", handleNewNotification);
         socket.disconnect();
+        socketRef.current = null;
       };
     }
+
+    return undefined;
   }, [user?._id, token, dispatch, queryClient]);
   return (
     <SocketContext.Provider

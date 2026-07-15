@@ -35,10 +35,10 @@ const NotificationBell = () => {
   useEffect(() => {
     if (unreadCount > prevCountRef.current) {
       setIsBouncing(true);
-
-      const timer = setTimeout(() => setIsBouncing(false), 300);
-      return () => clearTimeout(timer);
+      const timer = window.setTimeout(() => setIsBouncing(false), 300);
+      return () => window.clearTimeout(timer);
     }
+
     prevCountRef.current = unreadCount;
   }, [unreadCount]);
 
@@ -46,7 +46,7 @@ const NotificationBell = () => {
     <button
       onClick={() => dispatch(toggleNotificationModal(true))}
       aria-label={`Notifications, ${unreadCount} unread`}
-      className="relative p-2 text-gray-500 hover:bg-[#F4F9FF] hover:text-[#1A73E8] rounded-full transition-colors duration-200 focus:outline-none"
+      className="relative p-2 text-[#111111] hover:bg-[#F4F9FF] hover:text-[#111111] rounded-[12px] transition-colors duration-200 focus:outline-none"
     >
       <div
         className={`transition-transform duration-300 origin-top ${
@@ -59,7 +59,7 @@ const NotificationBell = () => {
       </div>
 
       {unreadCount > 0 && (
-        <span className="absolute top-0 right-0 flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold text-white bg-[#E53935] border-2 border-white rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm">
+        <span className="absolute top-0 right-0 flex items-center justify-center min-w-5 h-5 px-1 text-[10px] font-bold text-[#FFFFFF] bg-[#E53935] border-2 border-[#FFFFFF] rounded-full transform translate-x-1/4 -translate-y-1/4 shadow-sm">
           {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}
