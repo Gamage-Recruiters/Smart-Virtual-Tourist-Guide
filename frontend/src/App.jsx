@@ -7,9 +7,12 @@ import RentalRequestsPage from "./pages/vehicleAdminDashboard/rentalRequestsPage
 import MyFleetPage from "./pages/vehicleAdminDashboard/myFleetPage";
 import SettingsPage from "./pages/vehicleAdminDashboard/settingsPage";
 import EarningsPage from "./pages/vehicleAdminDashboard/earningsPage";
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
+    <>
+    <Toaster position='top-right'/>
     <Router>
       <Routes>
         <Route path="/login" element={<RenterLoginPage />} />
@@ -23,6 +26,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+    </>
   );
 }
 

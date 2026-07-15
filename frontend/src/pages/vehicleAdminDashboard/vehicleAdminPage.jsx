@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../../components/vehicleAdminDashboard/sideBar';
-import { Toaster } from 'react-hot-toast';
 
 function VehicleAdmin() {
   return (
@@ -12,7 +11,6 @@ function VehicleAdmin() {
       {/*The Dynamic Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8">
         <Outlet />
-        <Toaster position='top-right'/>
       </main>
       
     </div>

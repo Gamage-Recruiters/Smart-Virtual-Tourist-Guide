@@ -2,9 +2,33 @@ import { FaFacebookF } from "react-icons/fa";
 import carImage from "../assets/registerVehicle/main_car_image.png";
 import Header from "../components/header";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export const RenterLoginPage = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    axios
+      .post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
+        identifier: email,
+        password,
+      })
+      .then((res) => {
+        localStorage.setItem("renterToken", res.data.token);
+        localStorage.setItem("renter", JSON.stringify(res.data.user));
+        toast.success("Login Success")
+        navigate("/vehicle-admin");
+      })
+      .catch((e) => {
+        console.error(e.message);
+        toast.error("Error. Try Again!")
+      });
+  }
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800">
       <Header />
@@ -54,6 +78,7 @@ export const RenterLoginPage = () => {
                     <input
                       type="email"
                       placeholder="name@rent.lk"
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3.5 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-400 transition-all"
                     />
                   </div>
@@ -66,6 +91,7 @@ export const RenterLoginPage = () => {
                     <input
                       type="password"
                       placeholder="Min. 8 characters"
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3.5 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-400 transition-all"
                     />
                   </div>
@@ -75,6 +101,7 @@ export const RenterLoginPage = () => {
                     <button
                       type="submit"
                       className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-full hover:bg-blue-700 transition-all active:scale-[0.98] shadow-md shadow-blue-200 cursor-pointer"
+                      onClick={handleSubmit}
                     >
                       Sign In
                     </button>
@@ -132,7 +159,8 @@ export const RenterLoginPage = () => {
                   <div className="pt-6 space-y-4 text-center">
                     <p className="text-sm text-slate-500 font-medium">
                       You don't have an account?{" "}
-                      <button onClick={()=>navigate("/register")}
+                      <button
+                        onClick={() => navigate("/register")}
                         className="text-blue-600 font-bold hover:underline cursor-pointer"
                       >
                         Sign up
