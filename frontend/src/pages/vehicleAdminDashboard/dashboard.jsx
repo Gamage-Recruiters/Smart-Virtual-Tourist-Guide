@@ -88,9 +88,13 @@ function Dashboard() {
   const [isFleetLoading, setIsFleetLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const token = localStorage.getItem("renterToken");
+
   useEffect(() => {
     axios
-      .get(import.meta.env.VITE_BACKEND_URL + "/api/vehicle/recent")
+      .get(import.meta.env.VITE_BACKEND_URL + "/api/vehicle/recent", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         setFleetData(res.data);
         setIsFleetLoading(false);
@@ -99,7 +103,7 @@ function Dashboard() {
         console.error(e.message);
         setIsFleetLoading(false);
       });
-  }, [refreshTrigger]);
+  }, [refreshTrigger, token]);
 
   return (
     <div className="flex flex-col gap-8">

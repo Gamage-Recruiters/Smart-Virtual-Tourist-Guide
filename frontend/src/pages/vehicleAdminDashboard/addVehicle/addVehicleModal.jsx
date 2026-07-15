@@ -10,9 +10,10 @@ import uploadFileToSupabase from "../../../utils/fileUpload.js";
 import toast from "react-hot-toast";
 
 function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }) {
-  // ✅ Added editData prop default fallback
+  // Added editData prop default fallback
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const token = localStorage.getItem("renterToken");
 
   const [formData, setFormData] = useState({
     brand: editData?.brand || "",
@@ -23,7 +24,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
     fuelType: editData?.fuelType || "Hybrid",
     passengers: editData?.passengers || 1,
     luggage: editData?.luggage || 1,
-    location: editData?.currentLocation || "",
+    location: editData?.currentLocation || editData?.location || "",
     rentalPrice: editData?.dailyRentalPrice || "",
     vehicleInsurance: editData?.documents?.vehicleInsurance || null,
     revenueLicense: editData?.documents?.revenueLicense || null,
@@ -40,7 +41,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
     setIsSubmitting(true);
 
     try {
-      // 🔄 Helper logic: Only upload to Supabase if the file field value is an actual File object type instance (not a string URL)
+      // Helper logic: Only upload to Supabase if the file field value is an actual File object type instance (not a string URL)
       const uploadOrKeepUrl = async (fileOrUrl, folder) => {
         if (!fileOrUrl) return "";
         if (typeof fileOrUrl === "string") return fileOrUrl; // Already uploaded URL string asset
@@ -74,7 +75,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         passengers: Number(formData.passengers),
         luggage: Number(formData.luggage),
         dailyRentalPrice: Number(formData.rentalPrice),
-        location: formData.location,
+        currentLocation: formData.location,
         photos: {
           exterior: exteriorUrl,
           interior: interiorUrl,
@@ -87,19 +88,30 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         },
       };
 
-      // ✅ Dynamic Routing: Use PUT if editData exists, otherwise use POST
+      // Dynamic Routing: Use PUT if editData exists, otherwise use POST
       if (editData) {
         await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/api/vehicle/${editData._id}`,
           finalPayload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         toast.success("Vehicle updated successfully!");
       } else {
         await axios.post(
           import.meta.env.VITE_BACKEND_URL + "/api/vehicle",
           finalPayload,
-        );
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
         toast.success("Vehicle saved successfully!");
+        console.log(finalPayload)
       }
 
       if(onMutationSuccess){
@@ -127,7 +139,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         <div className="px-8 pt-8 pb-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900">
-              {/* ✅ Dynamic Title Label Text */}
+              {/* Dynamic Title Label Text */}
               {editData ? "Edit Vehicle Details" : "Add New Vehicle"}
             </h2>
             <button

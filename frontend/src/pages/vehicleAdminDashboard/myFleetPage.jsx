@@ -25,17 +25,25 @@ function MyFleetPage() {
   const [sortBy, setSortBy] = useState("none");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const token = localStorage.getItem("renterToken");
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       try {
         if (searchTerm.trim() === "") {
           const res = await axios.get(
-            import.meta.env.VITE_BACKEND_URL + "/api/vehicle/",
+            import.meta.env.VITE_BACKEND_URL + "/api/vehicle/renter",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
           );
           setFleetData(res.data);
         } else {
           const res = await axios.get(
             `${import.meta.env.VITE_BACKEND_URL}/api/vehicle/search?query=${searchTerm}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
           );
           setFleetData(res.data);
         }
@@ -50,7 +58,7 @@ function MyFleetPage() {
       setIsFleetLoading(true);
       clearTimeout(delayDebounceFn);
     };
-  }, [searchTerm, refreshTrigger]);
+  }, [searchTerm, refreshTrigger, token]);
 
   // Helper to style the status badges dynamically
   const getStatusBadge = (status) => {
