@@ -96,6 +96,15 @@ module.exports = (io) => {
     // Listens to live GPS updates from the client app
     socket.on("update_location", async (data) => {
       try {
+        // This lock keeps two location updates from running at the same time.
+        if (socket.isUpdatingLocation) {
+          logger.debug(`Location update already running for user ${userId}`);
+          return;
+        }
+
+        // This lock stops overlapping room changes and duplicate joins.
+        socket.isUpdatingLocation = true;
+
         const { lat, lng } = data;
 
         if (lat === undefined || lng === undefined) {
@@ -128,7 +137,6 @@ module.exports = (io) => {
           typeof regionData === "object" &&
           regionData.division !== socket.currentDivision
         ) {
-          
           // 1. Leave the old socket rooms and unsubscribe from old FCM topics
           socketService.manageRegionalRooms(
             socket,
@@ -154,7 +162,7 @@ module.exports = (io) => {
 
           // 2. Join the new socket rooms and subscribe to new FCM topics
           socketService.manageRegionalRooms(socket, regionData, role, "join");
-          
+
           if (socket.fcmToken) {
             await fcmService.manageRegionalTopics(
               socket.fcmToken,
@@ -177,6 +185,9 @@ module.exports = (io) => {
         await updateDBLocation(userId, lat, lng, role);
       } catch (error) {
         handleSocketError(error, "update_location");
+      } finally {
+        // This releases the lock when the update is done.
+        socket.isUpdatingLocation = false;
       }
     });
 

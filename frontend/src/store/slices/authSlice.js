@@ -4,12 +4,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: {
-      _id: "6a32887c9a73a4c14616ecff",
-      role: "TOURIST",
-      fullName: "Test Tourist",
+      _id: "6a3288a29a73a4c14616ed00",
+      role: "DRIVER",
+      fullName: "Test Driver",
     },
     token:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzI4ODdjOWE3M2E0YzE0NjE2ZWNmZiIsImlhdCI6MTUxNjIzOTAyMn0.IwLeZfPb7A13DEavgiyMRFb8tcM2MOwIcmCWcZkYE48",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzI4OGEyOWE3M2E0YzE0NjE2ZWQwMCIsImlhdCI6MTUxNjIzOTAyMn0.HrtB8Fte0OVtkGovF0K7Xs3Yu--PGSSj35Bhe9iEyFU",
     isAuthenticated: true,
   },
   reducers: {
