@@ -8,10 +8,10 @@ function RoomCard({ room }) {
   const amenities = room.amenities || {};
 
   return (
-    <div className="flex flex-col sm:flex-row border border-gray-100 rounded-2xl p-4 shadow-md bg-white hover:shadow-lg transition-shadow duration-200">
+    <div className="flex flex-col sm:flex-row border border-gray-100 rounded-xl p-2.5 shadow-md bg-white hover:shadow-lg transition-shadow duration-200 max-w-sm">
       
       {/* Left Side: Room Image */}
-      <div className="w-full sm:w-44 h-40 sm:h-auto shrink-0 mb-4 sm:mb-0">
+      <div className="w-full sm:w-20 h-16 sm:h-auto shrink-0 mb-2 sm:mb-0">
         <img
           src={room.image}
           alt={room.name}
@@ -20,15 +20,15 @@ function RoomCard({ room }) {
       </div>
 
       {/* Right Side: Information Content */}
-      <div className="grow flex flex-col justify-between pl-0 sm:pl-5">
+      <div className="grow flex flex-col justify-between pl-0 sm:pl-3">
         <div>
           {/* Room Name */}
-          <p className="text-slate-900 font-bold text-base mb-3 leading-tight">
+          <p className="text-slate-900 font-bold text-sm mb-2 leading-tight">
             {room.name}
           </p>
 
           {/* Metadata Specs */}
-          <div className="space-y-2 text-xs font-semibold text-gray-700 mb-4">
+          <div className="space-y-1 text-xs font-semibold text-gray-700 mb-3">
             <div className="flex items-center gap-2">
               <FaUsers className="text-gray-800 text-sm w-4" />
               <span>Capacity:</span>
@@ -51,7 +51,7 @@ function RoomCard({ room }) {
           </div>
 
           {/* Amenities Row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-medium text-gray-600 border-t border-gray-100 pt-3 mb-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-medium text-gray-600 border-t border-gray-100 pt-2 mb-3">
             {amenities.terrace && (
               <span className="flex items-center gap-1">
                 <MdBalcony className="text-xs text-gray-700" /> Terrace
@@ -77,10 +77,10 @@ function RoomCard({ room }) {
 
         {/* Edit / Delete Buttons */}
         <div className="flex items-center gap-3 mt-auto">
-          <button className="flex-1 bg-[#28a745] hover:bg-green-600 text-white font-bold text-xs py-1.5 rounded-md transition-colors text-center">
+          <button className="flex-1 bg-[#28a745] hover:bg-green-600 text-white font-bold text-xs py-1 rounded-md transition-colors text-center">
             Edit
           </button>
-          <button className="flex-1 bg-[#dc3545] hover:bg-red-600 text-white font-bold text-xs py-1.5 rounded-md transition-colors text-center">
+          <button className="flex-1 bg-[#dc3545] hover:bg-red-600 text-white font-bold text-xs py-1 rounded-md transition-colors text-center">
             Delete
           </button>
         </div>

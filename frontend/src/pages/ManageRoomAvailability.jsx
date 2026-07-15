@@ -1,257 +1,641 @@
-import React from 'react';
-import { 
-  FaSearch, FaEye, FaBan, FaTools, FaCheckCircle, 
-  FaChevronLeft, FaChevronRight, FaCalendarAlt 
+import React, { useState } from 'react';
+import {
+  FaSearch, FaChevronLeft, FaChevronRight, FaChevronUp, FaChevronDown, FaCalendarAlt, FaBed
 } from 'react-icons/fa';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../components/Header.jsx';
+import Footer from '../components/Footer.jsx';
+import manageavailability from '../assets/room-Availability-page-image.png';
 
-export default function ManageRoomAvailability() {
-  const roomStatusMap = [
-    1, 1, 1, 3, 3,
-    1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1,
-    2, 3, 1, 3, 2,
-    2, 2, 2, 2, 3
-  ];
+// ---- Static demo data -------------------------------------------------
+
+const ROOM_TYPES = [
+  'Single Room',
+  'Double Room',
+  'Twin Room',
+  'Queen Room',
+  'King Room',
+  'Deluxe Double Room',
+  'Family Room / Quad Room',
+];
+
+const MONTHS = ['March 2026', 'April 2026', 'May 2026'];
+
+// a = Available, b = Blocked / Non Available, m = Maintenance
+// 14 Available / 6 Blocked / 5 Maintenance = 25 rooms total
+const ROOM_STATUS_PATTERN = [
+  'a', 'a', 'a', 'm', 'm',
+  'a', 'a', 'a', 'm', 'm',
+  'a', 'a', 'a', 'a', 'a',
+  'b', 'b', 'b', 'b', 'b',
+  'b', 'a', 'a', 'a', 'm',
+];
+
+const STATUS_STYLES = {
+  a: 'bg-[#BFEBCB] text-emerald-800',
+  b: 'bg-[#F4B6B6] text-rose-800',
+  m: 'bg-[#BFDDF7] text-blue-800',
+};
+
+const STATUS_COUNTS = ROOM_STATUS_PATTERN.reduce(
+  (acc, s) => ({ ...acc, [s]: acc[s] + 1 }),
+  { a: 0, b: 0, m: 0 }
+);
+
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+const CALENDAR_MONTHS = [
+  { label: 'January 2026',  days: 31, startDay: 4 },
+  { label: 'February 2026', days: 28, startDay: 0 },
+  { label: 'March 2026',    days: 31, startDay: 0 },
+  { label: 'April 2026',    days: 30, startDay: 3 },
+  { label: 'May 2026',      days: 31, startDay: 5 },
+  { label: 'June 2026',     days: 30, startDay: 1 },
+  { label: 'July 2026',     days: 31, startDay: 3 },
+  { label: 'August 2026',   days: 31, startDay: 6 },
+  { label: 'September 2026',days: 30, startDay: 2 },
+  { label: 'October 2026',  days: 31, startDay: 4 },
+  { label: 'November 2026', days: 30, startDay: 0 },
+  { label: 'December 2026', days: 31, startDay: 2 },
+];
+
+// ---- Small reusable pieces ---------------------------------------------
+
+function ToggleRow({ label, dotClass, checked, onChange }) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onChange}
+        className={`w-8 h-4 border-2 rounded-full relative inline-block transition-colors ${
+          checked ? 'border-slate-900' : 'border-slate-300'
+        }`}
+      >
+        <span
+          className={`w-2.5 h-2.5 rounded-full absolute top-1/2 -translate-y-1/2 transition-all ${dotClass} ${
+            checked ? 'left-4' : 'left-1'
+          }`}
+        />
+      </button>
+      <span className="text-sm text-slate-800">{label}</span>
+    </div>
+  );
+}
+
+function MiniCalendar({ title, accent, selectedRoomType }) {
+  const [monthIdx, setMonthIdx] = useState(2);
+  const { label, days, startDay } = CALENDAR_MONTHS[monthIdx];
+
+  const [blocks, setBlocks] = useState([]);
+  const [pendingFrom, setPendingFrom] = useState(null);
+  const [fromInput, setFromInput] = useState('');
+  const [toInput, setToInput] = useState('');
+  const [roomSearch, setRoomSearch] = useState('');
+  const [roomSuggestions, setRoomSuggestions] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedBlock, setSelectedBlock] = useState(null);
+  const [savedBlocks, setSavedBlocks] = useState([]);
+
+  const handleRoomSearch = (val) => {
+    setRoomSearch(val);
+    setRoomSuggestions(
+      val.trim() === ''
+        ? []
+        : ROOM_NUMBERS.filter((r) => r.toLowerCase().startsWith(val.toLowerCase()))
+    );
+  };
+
+  const absDay = (d) => d.monthIdx * 31 + d.day;
+  const formatDate = (d) => d ? `${d.day} ${CALENDAR_MONTHS[d.monthIdx].label}` : '—';
+
+  const blockIndexForDay = (day) => {
+    const abs = monthIdx * 31 + day;
+    return blocks.findIndex((b) => b.from && b.to && abs >= absDay(b.from) && abs <= absDay(b.to));
+  };
+
+  const handleDayClick = (day) => {
+    const d = { day, monthIdx };
+    if (!pendingFrom) {
+      setPendingFrom(d);
+      setFromInput(formatDate(d));
+      setToInput('');
+    } else {
+      const from = pendingFrom;
+      const to = d;
+      const [f, t] = absDay(from) <= absDay(to) ? [from, to] : [to, from];
+      setFromInput(formatDate(f));
+      setToInput(formatDate(t));
+      setBlocks((prev) => [...prev, { from: f, to: t }]);
+      setPendingFrom(null);
+    }
+  };
+
+  const MONTH_NAMES = CALENDAR_MONTHS.map((m) => m.label.split(' ')[0].toLowerCase());
+
+  const parseEditInput = (str) => {
+    const parts = str.trim().split(/\s+/);
+    const day = parseInt(parts[0], 10);
+    if (!day || day < 1) return null;
+    let mIdx = monthIdx;
+    if (parts[1]) {
+      const typed = parts[1].toLowerCase();
+      const found = MONTH_NAMES.findIndex((m) => m.startsWith(typed));
+      if (found !== -1) mIdx = found;
+    }
+    if (day > CALENDAR_MONTHS[mIdx].days) return null;
+    return { day, monthIdx: mIdx };
+  };
+
+  const activeBlock = selectedBlock !== null ? blocks[selectedBlock] : null;
 
   return (
-    <div className="w-full bg-white min-h-screen">
+    <div className="border-1 border-black rounded p-5 bg-white">
+      <div className="relative w-full mb-6">
+        <div className="relative shadow-sm rounded-full">
+          <input
+            type="text"
+            value={roomSearch}
+            onChange={(e) => handleRoomSearch(e.target.value)}
+            onBlur={() => setTimeout(() => setRoomSuggestions([]), 150)}
+            placeholder={`Search Number of ${selectedRoomType || '...'} Room for Block (EX: R1)`}
+            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-full text-xs text-slate-700 placeholder-slate-400 focus:outline-none pr-10"
+          />
+          <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none" />
+        </div>
+        {roomSuggestions.length > 0 && (
+          <ul className="absolute z-10 w-full bg-white border border-slate-200 rounded shadow-md mt-1">
+            {roomSuggestions.map((r) => (
+              <li
+                key={r}
+                onMouseDown={() => {
+                  setRoomSearch(r);
+                  setSelectedRoom(r);
+                  setRoomSuggestions([]);
+                }}
+                className="px-4 py-1.5 text-xs text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                {r}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <p className="text-sm font-bold text-slate-900 mb-4">{title}</p>
+
+      {/* From / To display */}
+      <div className="flex flex-wrap gap-4 items-center mb-7">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-500">From</span>
+          <div className="relative">
+            {isEditing && selectedBlock !== null ? (
+              <input
+                type="text"
+                value={fromInput}
+                onChange={(e) => setFromInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const parsed = parseEditInput(fromInput);
+                    if (parsed) {
+                      setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, from: parsed } : b));
+                      setFromInput(formatDate(parsed));
+                    }
+                  }
+                }}
+                placeholder="e.g. 23 March"
+                className="text-xs border border-yellow-400 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-yellow-50 focus:outline-none"
+              />
+            ) : (
+              <input
+                type="text"
+                readOnly
+                value={isEditing ? (selectedBlock !== null ? formatDate(activeBlock.from) : 'Select a block') : fromInput}
+                placeholder="Select date"
+                className="text-xs border border-slate-300 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-white cursor-default"
+              />
+            )}
+            <FaCalendarAlt className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-500">To</span>
+          <div className="relative">
+            {isEditing && selectedBlock !== null ? (
+              <input
+                type="text"
+                value={toInput}
+                onChange={(e) => setToInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const parsed = parseEditInput(toInput);
+                    if (parsed) {
+                      setBlocks((prev) => prev.map((b, i) => i === selectedBlock ? { ...b, to: parsed } : b));
+                      setToInput(formatDate(parsed));
+                    }
+                  }
+                }}
+                placeholder="e.g. 28 March"
+                className="text-xs border border-yellow-400 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-yellow-50 focus:outline-none"
+              />
+            ) : (
+              <input
+                type="text"
+                readOnly
+                value={isEditing ? (selectedBlock !== null ? formatDate(activeBlock.to) : 'Select a block') : toInput}
+                placeholder="Select date"
+                className="text-xs border border-slate-300 rounded px-3 py-1.5 pr-7 w-36 text-slate-700 bg-white cursor-default"
+              />
+            )}
+            <FaCalendarAlt className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none" />
+          </div>
+        </div>
+        {isEditing ? (
+          <button
+            onClick={() => {
+              if (selectedBlock === null) return;
+              setBlocks((prev) => prev.filter((_, i) => i !== selectedBlock));
+              setSelectedBlock(null);
+              setFromInput('');
+              setToInput('');
+            }}
+            disabled={selectedBlock === null}
+            className="px-3 py-1.5 text-xs font-semibold text-white bg-rose-500 border border-rose-500 rounded hover:bg-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Permanent Clear
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setPendingFrom(null);
+              setFromInput('');
+              setToInput('');
+              setBlocks((prev) => prev.slice(0, -1));
+            }}
+            className="px-3 py-1.5 text-xs font-semibold text-slate-500 border border-slate-300 rounded hover:bg-slate-100 transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Month header */}
+      <div className="flex justify-between items-center text-sm font-bold text-slate-800 mt-2 mb-3">
+        <span>{label}</span>
+        <div className="flex gap-2 text-slate-400">
+          <FaChevronLeft
+            className="cursor-pointer hover:text-slate-600"
+            onClick={() => setMonthIdx((i) => Math.max(0, i - 1))}
+          />
+          <FaChevronRight
+            className="cursor-pointer hover:text-slate-600"
+            onClick={() => setMonthIdx((i) => Math.min(CALENDAR_MONTHS.length - 1, i + 1))}
+          />
+        </div>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 text-center text-xs font-bold text-slate-400 mb-1">
+        {WEEKDAYS.map((d) => <span key={d}>{d}</span>)}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 text-center text-sm gap-1 mt-1 mb-4">
+        {[...Array(startDay)].map((_, i) => <div key={`blank-${i}`} />)}
+        {[...Array(days)].map((_, i) => {
+          const day = i + 1;
+          const bIdx = blockIndexForDay(day);
+          const highlighted = bIdx !== -1;
+          const isSelected = highlighted && bIdx === selectedBlock;
+          const isFirst = highlighted && absDay(blocks[bIdx].from) === monthIdx * 31 + day;
+          const isLast  = highlighted && absDay(blocks[bIdx].to)   === monthIdx * 31 + day;
+
+          const isPending = !isEditing && pendingFrom && pendingFrom.day === day && pendingFrom.monthIdx === monthIdx;
+
+          const isSingleDay = highlighted && absDay(blocks[bIdx].from) === absDay(blocks[bIdx].to);
+
+          let cls;
+          let style = {};
+          if (isEditing) {
+            if (highlighted) {
+              cls = isSingleDay
+                ? `${accent.strong} text-slate-800 font-bold cursor-pointer rounded`
+                : 'bg-[#fdfd96] text-slate-800 cursor-pointer';
+              if (isSelected) {
+                style = {
+                  borderTop: '2px solid #334155',
+                  borderBottom: '2px solid #334155',
+                  borderLeft: (isFirst || isSingleDay) ? '2px solid #334155' : 'none',
+                  borderRight: (isLast  || isSingleDay) ? '2px solid #334155' : 'none',
+                };
+              }
+            } else {
+              cls = 'text-slate-300 cursor-not-allowed rounded';
+            }
+          } else {
+            if (isFirst || isLast)
+              cls = `${accent.strong} font-bold rounded cursor-pointer`;
+            else if (highlighted)
+              cls = `${accent.light} text-slate-700 rounded cursor-pointer`;
+            else if (isPending)
+              cls = `${accent.strong} font-bold rounded cursor-pointer`;
+            else
+              cls = 'text-slate-700 hover:bg-slate-100 cursor-pointer rounded';
+          }
+
+          const handleClick = () => {
+            if (isEditing) {
+              if (!highlighted) return;
+              if (selectedBlock === bIdx) {
+                setSelectedBlock(null);
+              } else {
+                setSelectedBlock(bIdx);
+                setFromInput(formatDate(blocks[bIdx].from));
+                setToInput(formatDate(blocks[bIdx].to));
+              }
+            } else {
+              handleDayClick(day);
+            }
+          };
+
+          return (
+            <div key={day} className={`py-1.5 ${cls}`} style={style} onClick={handleClick}>
+              {day}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Hint text */}
+      <p className="text-[10px] text-slate-400 mb-5">
+        {isEditing
+          ? selectedBlock !== null ? 'Block selected — edit From/To above then press Enter' : 'Click a highlighted block to select it'
+          : pendingFrom ? 'Click a day to set To date' : blocks.length === 0 ? 'Click a day to set From date' : 'Click a day to add another block'}
+      </p>
+
+      {/* Action buttons */}
+      <div className="flex gap-3">
+        <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded transition-colors">
+          Save
+        </button>
+        <button
+          onClick={() => {
+            if (!isEditing) {
+              setSavedBlocks(blocks);
+              setSelectedBlock(null);
+            } else {
+              setBlocks(savedBlocks);
+              setSelectedBlock(null);
+            }
+            setIsEditing((v) => !v);
+          }}
+          className={`px-6 py-2 text-white text-xs font-bold rounded transition-colors ${
+            isEditing ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-emerald-500 hover:bg-emerald-600'
+          }`}
+        >
+          {isEditing ? 'Editing...' : 'Edit'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---- Main page -----------------------------------------------------------
+
+export default function ManageRoomAvailability() {
+  const [selectedRoomType, setSelectedRoomType] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState('March 2026');
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(1);
+
+  const [showAvailable, setShowAvailable] = useState(true);
+  const [showNonAvailable, setShowNonAvailable] = useState(true);
+  const [showMaintenance, setShowMaintenance] = useState(true);
+
+  const isVisible = (status) => {
+    if (status === 'a') return showAvailable;
+    if (status === 'b') return showNonAvailable;
+    return showMaintenance;
+  };
+
+  return (
+    <div className="w-full bg-[#EBF7FF] min-h-screen text-slate-800">
       <Header />
+
       {/* 1. HERO BANNER SECTION */}
-      <section 
-        className="relative h-120 w-full flex flex-col items-center justify-center text-center px-4 bg-cover bg-center"
-        style={{ 
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05)), url('https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1600')` 
+      <section
+        className="relative h-screen w-full flex flex-col items-center justify-center px-4 bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1)), url(${manageavailability})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 90%',
         }}
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-          Manage Room Availability
-        </h1>
-        <p className="text-base md:text-lg text-slate-800 font-medium mb-8">
-          Update Room Availability and Manage Booking Dates Easily.
-        </p>
-        
-        <div className="relative w-full max-w-md shadow-lg rounded-full">
-          <input 
-            type="text" 
-            placeholder="Explore Availability" 
-            className="w-full px-6 py-3.5 bg-white rounded-full text-sm text-slate-700 placeholder-slate-400 focus:outline-none pr-12"
-          />
-          <FaSearch className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
+        <div className="flex max-w-3xl flex-col items-start gap-9 w-full -ml-[200px] mb-[150px]">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
+            Manage Room Availability
+          </h1>
+
+          <p className="text-base md:text-2xl text-slate-800 font-medium">
+            Update Room Availability and Manage Booking Dates Easily.
+          </p>
+
+          <div className="relative w-full max-w-md shadow-md rounded-full">
+            <input
+              type="text"
+              placeholder="Explore Availability"
+              className="w-full px-6 py-3.5 bg-white rounded-full text-sm text-slate-700 placeholder-slate-400 focus:outline-none pr-12"
+            />
+            <FaSearch className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none" />
+          </div>
         </div>
       </section>
 
-      {/* Title Subheader */}
-      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-12">
-        <h2 className="text-2xl font-bold text-slate-900">Manage Room Availability</h2>
+      {/* Section Identifier label */}
+      <div className="max-w-8xl mx-auto px-4 md:px-8 mt-12">
+        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          Manage Room Availability
+        </h2>
       </div>
 
-      {/* 2. MAIN CONTEXT GRID BOARD */}
-      <main className="max-w-6xl mx-auto px-4 md:px-8 mt-6 space-y-12">
+      <main className="max-w-8xl mx-auto px-4 md:px-8 mt-6 space-y-10">
         
-        {/* UPPER PANEL: ROOM VISUALIZER */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 md:p-8 shadow-sm">
-          {/* Inner Search Box */}
-          <div className="relative w-full max-w-xs mb-8">
-            <input 
-              type="text" 
-              placeholder="Search Room Type" 
-              className="w-full px-4 py-2 border border-slate-300 rounded-md text-xs text-slate-700 focus:outline-none pr-10"
+
+        {/* Unified white box */}
+        <div className="bg-white rounded-3xl shadow-md p-6 md:p-8 border border-slate-100 space-y-10">
+        {/* Search Room Type */}
+        <div className="relative w-full max-w-sm">
+          <div className="relative border border-black rounded">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                setSuggestions(
+                  val.trim() === ''
+                    ? []
+                    : ROOM_TYPES.filter((r) =>
+                        r.toLowerCase().startsWith(val.toLowerCase())
+                      )
+                );
+              }}
+              onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+              placeholder="Search Room Type"
+              className="w-full px-5 py-2.5 bg-white rounded-md text-sm text-slate-700 focus:outline-none pr-10"
             />
-            <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+            <FaSearch className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm pointer-events-none" />
           </div>
+          {suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border border-slate-200 rounded shadow-md mt-1">
+              {suggestions.map((r) => (
+                <li
+                  key={r}
+                  onMouseDown={() => {
+                    setSelectedRoomType(r);
+                    setSearchQuery(r);
+                    setSuggestions([]);
+                  }}
+                  className="px-5 py-2 text-sm text-slate-700 hover:bg-slate-100 cursor-pointer"
+                >
+                  {r}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-          <h3 className="text-sm font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">Room Section</h3>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Hand Indicator Tools (4 Columns) */}
-            <div className="lg:col-span-4 space-y-6">
+          {/* Room Section */}
+          <div>
+       
+          <div className="border border-black px-4 md:px-5 py-6">
+               <h3 className="text-2xl font-extrabold text-slate-900 mb-8">Room Section</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+            {/* Left Column */}
+            <div className="space-y-8 max-w-sm">
               <div>
-                <h4 className="text-xs font-bold text-slate-700 mb-3">Deluxe Double Room</h4>
-                
-                {/* Status Badges List */}
-                <div className="space-y-1.5 text-[10px] font-semibold">
-                  <div className="flex justify-between items-center bg-emerald-50 text-emerald-800 px-3 py-1 rounded">
-                    <span className="flex items-center gap-1.5"><FaCheckCircle /> Total Rooms</span>
-                    <span>25</span>
+                <h4 className="text-xl font-semibold text-slate-600 mb-4">{selectedRoomType}</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded px-3 py-2 w-56 justify-between">
+                    <span className="flex items-center gap-2 text-slate-600 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-slate-400" /> Total Rooms
+                    </span>
+                    <span className="font-bold text-slate-900">{ROOM_STATUS_PATTERN.length}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-green-50 text-green-700 px-3 py-1 rounded">
-                    <span className="flex items-center gap-1.5"><FaEye /> Available Rooms</span>
-                    <span>14</span>
+                  <div className="flex items-center gap-2 bg-[#DFF6E4] border border-emerald-200 rounded px-3 py-2 w-56 justify-between">
+                    <span className="flex items-center gap-2 text-emerald-800 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" /> Available Rooms
+                    </span>
+                    <span className="font-bold text-emerald-900">{STATUS_COUNTS.a}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-rose-50 text-rose-700 px-3 py-1 rounded">
-                    <span className="flex items-center gap-1.5"><FaBan /> Blocked Rooms</span>
-                    <span>6</span>
+                  <div className="flex items-center gap-2 bg-[#FBE0E0] border border-rose-200 rounded px-3 py-2 w-56 justify-between">
+                    <span className="flex items-center gap-2 text-rose-800 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" /> Blocked Rooms
+                    </span>
+                    <span className="font-bold text-rose-900">{STATUS_COUNTS.b}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-blue-50 text-blue-700 px-3 py-1 rounded">
-                    <span className="flex items-center gap-1.5"><FaTools /> Maintenance Rooms</span>
-                    <span>5</span>
+                  <div className="flex items-center gap-2 bg-[#DDEBFB] border border-blue-200 rounded px-3 py-2 w-56 justify-between">
+                    <span className="flex items-center gap-2 text-blue-800 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" /> Maintenance Rooms
+                    </span>
+                    <span className="font-bold text-blue-900">{STATUS_COUNTS.m}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Room Capacity Drops */}
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-lg">
-                <p className="text-[11px] font-bold text-slate-700 mb-2.5">Room Capacity</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <select className="bg-white border border-slate-200 p-1.5 rounded text-xs text-slate-700 focus:outline-none">
-                    <option>2 Adults</option>
-                  </select>
-                  <select className="bg-white border border-slate-200 p-1.5 rounded text-xs text-slate-700 focus:outline-none">
-                    <option>1 Child</option>
-                  </select>
+             <div className="bg-gray-200 p-3 rounded min-h-[120px]">
+              <h2 className="text-[16px] font-extrabold text-slate-800 mb-3">
+                Room Capacity
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Adults */}
+                <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
+                  <span className="text-xs text-slate-700">{adults} {adults === 1 ? 'Adult' : 'Adults'}</span>
+                  <div className="flex flex-col">
+                    <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setAdults((v) => v + 1)} />
+                    <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setAdults((v) => Math.max(0, v - 1))} />
+                  </div>
+                </div>
+
+                {/* Children */}
+                <div className="flex items-center justify-between border border-slate-300 bg-white px-2 py-1.5">
+                  <span className="text-xs text-slate-700">{children} {children === 1 ? 'Child' : 'Children'}</span>
+                  <div className="flex flex-col">
+                    <FaChevronUp className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setChildren((v) => v + 1)} />
+                    <FaChevronDown className="text-[9px] text-slate-500 cursor-pointer hover:text-slate-800" onClick={() => setChildren((v) => Math.max(0, v - 1))} />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Status Toggles Simulation */}
-              <div className="space-y-2">
-                <p className="text-[11px] font-bold text-slate-700">Room Availability Statuses</p>
-                <div className="space-y-1.5 pl-0.5">
-                  {[
-                    { label: 'Available', state: true },
-                    { label: 'Non Available', state: false },
-                    { label: 'Maintenance', state: false }
-                  ].map((toggle, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs font-medium text-slate-600">
-                      <div className={`w-8 h-4 rounded-full p-0.5 cursor-pointer transition-colors ${toggle.state ? 'bg-slate-800' : 'bg-slate-300'}`}>
-                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${toggle.state ? 'translate-x-4' : 'translate-x-0'}`} />
-                      </div>
-                      <span>{toggle.label}</span>
+              <div>
+                <p className="text-lg font-bold text-slate-900 mb-3">Room Availability Statuses</p>
+                <div className="space-y-2.5">
+                  <ToggleRow
+                    label="Available"
+                    dotClass="bg-[#BFEBCB]"
+                    checked={showAvailable}
+                    onChange={() => setShowAvailable((v) => !v)}
+                  />
+                  <ToggleRow
+                    label="Non Available"
+                    dotClass="bg-[#F4B6B6]"
+                    checked={showNonAvailable}
+                    onChange={() => setShowNonAvailable((v) => !v)}
+                  />
+                  <ToggleRow
+                    label="Maintenance"
+                    dotClass="bg-[#BFDDF7]"
+                    checked={showMaintenance}
+                    onChange={() => setShowMaintenance((v) => !v)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+          <div className="justify-self-center lg:justify-self-end w-full max-w-md pr-16 mr-32">
+            <h4 className="text-xl font-semibold text-slate-600 text-center mb-6">{selectedRoomType} Visual Availibility</h4>
+              <div className="border-2 border-slate-500 p-4 md:p-5 bg-gray-100">
+                <div className="grid grid-cols-5 gap-4">
+                  {ROOM_STATUS_PATTERN.map((status, i) => (
+                    <div
+                      key={i}
+                      className={`aspect-square flex items-center justify-center text-lg font-medium transition-opacity ${STATUS_STYLES[status]} ${
+                        isVisible(status) ? 'opacity-100' : 'opacity-25'
+                      }`}
+                    >
+                      R{i + 1}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* Right Hand Visual Grid Layout (8 Columns) */}
-            <div className="lg:col-span-8 bg-slate-50 rounded-xl p-6 border border-slate-100">
-              <h4 className="text-xs font-bold text-slate-700 mb-4">Deluxe Double Room Visual Availability</h4>
-              
-              <div className="grid grid-cols-5 gap-3 max-w-md">
-                {roomStatusMap.map((status, index) => {
-                  const roomNum = index + 1;
-                  let bgClasses = "bg-green-100 text-green-700 border border-green-200"; // Available
-                  if (status === 2) bgClasses = "bg-rose-100 text-rose-700 border border-rose-200"; // Blocked
-                  if (status === 3) bgClasses = "bg-blue-100 text-blue-700 border border-blue-200"; // Maintenance
-
-                  return (
-                    <div 
-                      key={index} 
-                      className={`aspect-square flex items-center justify-center rounded-lg text-xs font-bold shadow-sm cursor-pointer hover:opacity-80 transition-opacity ${bgClasses}`}
-                    >
-                      R{roomNum}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
           </div>
-        </div>
-
-        {/* LOWER PANEL: DATES SCHEDULER BLOCKING (Split Side-by-Side Windows) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* WINDOW 1: BLOCK DATES */}
-          <div className="bg-white border-2 border-blue-400 rounded-xl p-6 shadow-sm space-y-6">
-            <div className="relative w-full">
-              <input type="text" placeholder="Search Number of Deluxe Room for Block(Ex: R1)" className="w-full px-4 py-2 border border-slate-300 rounded-md text-xs text-slate-700 focus:outline-none" />
-              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 mb-4">R10 Room's Block Dates Marking</h4>
-              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
-                <div className="flex items-center justify-between border border-slate-200 p-2 rounded bg-slate-50">
-                  <span>From: <span className="text-slate-500 font-medium ml-1">14 March 2026</span></span>
-                  <FaCalendarAlt className="text-slate-400" />
-                </div>
-                <div className="flex items-center justify-between border border-slate-200 p-2 rounded bg-slate-50">
-                  <span>To: <span className="text-slate-500 font-medium ml-1">21 March 2026</span></span>
-                  <FaCalendarAlt className="text-slate-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Render Calendar Block 1 */}
-            <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-4">
-              <div className="flex justify-between items-center mb-4 text-xs font-bold text-slate-800">
-                <span>March 2026</span>
-                <div className="flex gap-3 text-slate-400"><FaChevronLeft /><FaChevronRight /></div>
-              </div>
-              <div className="grid grid-cols-7 text-center text-[10px] gap-y-2">
-                {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <span key={d} className="font-bold text-slate-400">{d}</span>)}
-                {[...Array(31)].map((_, i) => {
-                  const day = i + 1;
-                  const isBlockedRange = day >= 14 && day <= 20;
-                  return (
-                    <div key={i} className={`py-1.5 rounded ${isBlockedRange ? 'bg-rose-200 text-rose-800 font-bold' : 'text-slate-600'}`}>
-                      {day}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-4 pt-2">
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs transition-colors shadow">Save</button>
-              <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded text-xs transition-colors shadow">Edit</button>
-            </div>
+          </div>
           </div>
 
-          {/* WINDOW 2: MAINTENANCE DATES */}
-          <div className="bg-white border-2 border-blue-400 rounded-xl p-6 shadow-sm space-y-6">
-            <div className="relative w-full">
-              <input type="text" placeholder="Search Number of Deluxe Room for Block(Ex: R1)" className="w-full px-4 py-2 border border-slate-300 rounded-md text-xs text-slate-700 focus:outline-none" />
-              <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-            </div>
-
-            <div>
-              <h4 className="text-xs font-bold text-slate-800 mb-4">R25 Room's Maintainance Dates Marking</h4>
-              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
-                <div className="flex items-center justify-between border border-slate-200 p-2 rounded bg-slate-50">
-                  <span>From: <span className="text-slate-500 font-medium ml-1">14 March 2026</span></span>
-                  <FaCalendarAlt className="text-slate-400" />
-                </div>
-                <div className="flex items-center justify-between border border-slate-200 p-2 rounded bg-slate-50">
-                  <span>To: <span className="text-slate-500 font-medium ml-1">21 March 2026</span></span>
-                  <FaCalendarAlt className="text-slate-400" />
-                </div>
-              </div>
-            </div>
-
-            {/* Render Calendar Block 2 */}
-            <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-4">
-              <div className="flex justify-between items-center mb-4 text-xs font-bold text-slate-800">
-                <span>March 2026</span>
-                <div className="flex gap-3 text-slate-400"><FaChevronLeft /><FaChevronRight /></div>
-              </div>
-              <div className="grid grid-cols-7 text-center text-[10px] gap-y-2">
-                {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <span key={d} className="font-bold text-slate-400">{d}</span>)}
-                {[...Array(31)].map((_, i) => {
-                  const day = i + 1;
-                  const isMaintenanceRange = day >= 12 && day <= 19;
-                  return (
-                    <div key={i} className={`py-1.5 rounded ${isMaintenanceRange ? 'bg-blue-200 text-blue-800 font-bold' : 'text-slate-600'}`}>
-                      {day}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-4 pt-2">
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded text-xs transition-colors shadow">Save</button>
-              <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded text-xs transition-colors shadow">Edit</button>
-            </div>
+          {/* Block / Maintenance date marking calendars */}
+          <div className="mt-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl">
+            <MiniCalendar
+              title="R16 Room's Block Dates Marking"
+              accent={{ light: 'bg-rose-100', strong: 'bg-rose-300' }}
+              selectedRoomType={selectedRoomType}
+            />
+            <MiniCalendar
+              title="R25 Room's Maintainance Dates Marking"
+              accent={{ light: 'bg-blue-100', strong: 'bg-blue-300' }}
+              selectedRoomType={selectedRoomType}
+            />
+          </div>
+          </div>
           </div>
 
-        </div>
       </main>
+
+      <div className="mb-16" />
       <Footer />
     </div>
   );

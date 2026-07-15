@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const roomSchema = new mongoose.Schema({
+    roomNumber: {
+        type: String,
+        unique: true,
+    },
     roomName: {
         type: String,
         required: true,
@@ -8,21 +12,36 @@ const roomSchema = new mongoose.Schema({
     },
     roomType: {
         type: String,
-        enum: ['Standard Room', 'Deluxe Room', 'Family Suite', 'Conference Room', 'Event Space'],
-        default: 'Standard Room',
+        enum: [
+            'Single Room',
+            'Double Room',
+            'Twin Room',
+            'Queen Room',
+            'King Room',
+            'Deluxe Double Room',
+            'Family Room / Quad Room',
+        ],
+        required: true,
     },
     roomSize: {
         type: Number,
         required: true,
     },
-    roomCapacity: {
+    measureType: {
+        type: String,
+        enum: ['sqm', 'sqft'],
+        required: true,
+    },
+    capacity: {
         adults: {
             type: Number,
             required: true,
+            min: 0,
         },
         children: {
             type: Number,
             required: true,
+            min: 0,
         },
     },
     amenities: {
@@ -33,59 +52,29 @@ const roomSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    images: {
+        type: [String],
+        default: [],
+    },
     contactInfo: {
-        contactName: {
-            type: String,
-            required: true,
-        },
-        contactNumber: {
-            type: String,
-            required: true,
-        },
-        email: {
-            type: String,
-            required: true,
-        }
+        contactName: { type: String, required: true },
+        contactNumber: { type: String, required: true },
+        email: { type: String, required: true },
     },
-    aboutLocation: {
+    locationAndPricing: [
+        {
+            aboutLocation: { type: String, default: '' },
+            basePrice: { type: Number, required: true },
+            paymentMethods: {
+                type: [String],
+                enum: ['Card Payment', 'Online Payment', 'Cash Payment(Pay at Hotel)'],
+                required: true,
+            },
+        },
+    ],
+    roomStatus: {
         type: String,
-        required: true,
-    },
-    pricingInfo: {
-        basePrice: {
-            type: Number,
-            required: true,
-        },
-        paymentMethods: {
-            type: String,
-            enum: ["Cash", "Card", "Online"],
-            default: "Online",
-        },
-    },
-    specialPackagesInfo: {
-        packageName: {
-            type: String,
-        },
-        specialDiscounts: {
-            promotionCode: {
-                type: String,
-            },
-            discountPercentage: {
-                type: Number,
-            },
-        },
-        validityPeriod: {
-            startDate: {
-                type: Date,
-            },
-            endDate: {
-                type: Date,
-            },
-        },
-    },
-    availabilityStatus: {
-        type: String,
-        enum: ['Available', 'Booked', 'Under Maintenance'],
+        enum: ['Available', 'Blocked', 'Maintenance'],
         default: 'Available',
     },
     createdAt: {
