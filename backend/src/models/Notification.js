@@ -76,10 +76,14 @@ const notificationSchema = new Schema(
     // 5. Action & Status
     // The URL the user will be redirected to when they click the notification
     actionUrl: { type: String, required: true },
-    
-    // Tracks if a private message is read. 
+
+    actionData: {
+      type: Schema.Types.Mixed,
+    },
+
+    // Tracks if a private message is read.
     // Note: Group message read statuses are handled in the 'NotificationReadStatus' collection.
-    isRead: { type: Boolean, default: false }, 
+    isRead: { type: Boolean, default: false },
 
     // 6. Maintenance & Push
     fcmToken: { type: String, default: null }, // Tracks which Firebase token was used
@@ -134,7 +138,6 @@ notificationSchema.pre("save", async function () {
         this.location = undefined;
       }
     }
-
   } catch (error) {
     // Throw the error to be handled by the calling service
     throw error;
