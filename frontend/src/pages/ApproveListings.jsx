@@ -4,6 +4,7 @@ import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiChevronLeft, F
 import apiClient from '../services/api';
 import ListingCard from '../components/admin/ListingCard';
 import RejectModal from '../components/admin/RejectModal';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ApproveListings = () => {
   const [listingsData, setListingsData] = useState([]);
@@ -39,15 +40,19 @@ const ApproveListings = () => {
     fetchListings();
   }, []);
 
-  const handleApprove = async (listingId, providerName) => {
+ const handleApprove = async (listingId, providerName) => {
     if (!window.confirm(`Are you sure you want to approve the listing from ${providerName}?`)) return;
+    const toastId = toast.loading('Approving listing...');
     try {
       const response = await apiClient.patch(`/admin/listings/${listingId}/approve`, {});
       if (response.success) {
         fetchListings(); 
+        toast.success('Listing approved successfully!', { id: toastId });
+      } else {
+        toast.error(response.message || 'Failed to approve listing.', { id: toastId });
       }
     } catch (err) {
-      alert('Error approving listing.');
+      toast.error('Error connecting to the server.', { id: toastId });
     }
   };
 
@@ -56,15 +61,23 @@ const ApproveListings = () => {
     setIsRejectModalOpen(true);
   };
 
-  const handleRejectSubmit = async (reason) => {
+const handleRejectSubmit = async (reason) => {
+    if (!reason || reason.trim() === '') {
+      toast.error('Rejection reason is required!');
+      return;
+    }
+    const toastId = toast.loading('Rejecting listing...');
     try {
       const response = await apiClient.patch(`/admin/listings/${selectedListing.id}/reject`, { reason });
       if (response.success) {
         setIsRejectModalOpen(false); 
         fetchListings(); 
+        toast.success('Listing rejected successfully!', { id: toastId });
+      } else {
+        toast.error(response.message || 'Failed to reject listing.', { id: toastId });
       }
     } catch (err) {
-      alert('Error rejecting listing.');
+      toast.error('Error connecting to the server.', { id: toastId });
     }
   };
 
@@ -94,6 +107,7 @@ const ApproveListings = () => {
 
   return (
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
+    <Toaster position="top-right" reverseOrder={false} />
       
       {/* 100% FIXED HERO SECTION - Matches UserManagement */}
       <div 
