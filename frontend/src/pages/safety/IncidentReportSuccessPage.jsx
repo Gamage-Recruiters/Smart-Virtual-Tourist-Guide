@@ -18,7 +18,7 @@ export default function IncidentReportSuccessPage() {
 
   const handleViewDashboard = () => {
     // Navigate to the incident tracking page
-    navigate('/safety/status-dashboard', {
+    navigate('/safety/my-incidents', {
       replace: true,
       state: { submittedReferenceNumber: state.referenceNumber },
     })

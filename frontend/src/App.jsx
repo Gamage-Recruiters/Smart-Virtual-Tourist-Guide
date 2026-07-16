@@ -22,10 +22,11 @@ function App() {
             <Route index element={<PublicIncidentsPage />} />
             <Route path="alerts" element={<SecurityAlertsPage />} />
             <Route path="security-alerts" element={<Navigate to="/safety/alerts" replace />} />
-            <Route path="my-incidents" element={<IncidentTrackingPage />} />
+            <Route path="my-incidents" element={<MyStatusDashboardPage />} />
             <Route path="my-reports" element={<Navigate to="/safety/my-incidents" replace />} />
-            <Route path="status-dashboard" element={<MyStatusDashboardPage />} />
-            <Route path="analytics" element={<IncidentTrackingPage />} />
+            <Route path="status-dashboard" element={<Navigate to="/safety/my-incidents" replace />} />
+            <Route path="public-analytics" element={<IncidentTrackingPage />} />
+            <Route path="analytics" element={<Navigate to="/safety/public-analytics" replace />} />
             <Route path="public-incidents" element={<PublicIncidentsPage />} />
             <Route path="weather" element={<WeatherAlertsPage />} />
           </Route>

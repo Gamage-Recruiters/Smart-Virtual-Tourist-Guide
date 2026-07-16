@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
-import { FiClipboard, FiAlertTriangle, FiFileText, FiActivity, FiCloud, FiX } from 'react-icons/fi'
+import { FiClipboard, FiAlertTriangle, FiFileText, FiBarChart2, FiCloud, FiX } from 'react-icons/fi'
 
 const navLinks = [
   { to: '/safety', text: 'Public Incident List', icon: <FiClipboard className="text-amber-700" /> },
   { to: '/safety/alerts', text: 'API Security Alerts', icon: <FiAlertTriangle className="text-rose-500" /> },
-  { to: '/safety/my-incidents', text: 'Reports', icon: <FiFileText className="text-slate-700" /> },
-  { to: '/safety/status-dashboard', text: 'My Status Dashboard', icon: <FiActivity className="text-emerald-600" /> },
+  { to: '/safety/my-incidents', text: 'My Incidents', icon: <FiFileText className="text-slate-700" /> },
+  { to: '/safety/public-analytics', text: 'Reports', icon: <FiBarChart2 className="text-emerald-600" /> },
   { to: '/safety/weather', text: 'Live Weather', icon: <FiCloud className="text-blue-500" /> },
 ]
 
