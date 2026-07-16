@@ -20,6 +20,10 @@ const protectAdmin = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
+      if (req.admin.status === 'Suspended' || req.admin.isActive === false) {
+        return res.status(403).json({ message: 'Your account is currently suspended. Access denied.' });
+      }
+
       next(); // Move to the next middleware or controller
     } catch (error) {
       console.error('Token verification failed:', error);
@@ -31,7 +35,7 @@ const protectAdmin = async (req, res, next) => {
   }
 };
 
-// --- අලුතින් එකතු කළ Role-based Authorization කොටස ---
+
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     // Check if the current admin's role is in the allowed roles array

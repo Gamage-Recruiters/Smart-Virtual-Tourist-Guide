@@ -23,7 +23,7 @@ const listingSchema = new mongoose.Schema({
     },
     imageUrl: { type: String },
     
-    // --- අලුතින් එකතු කළ Tracking Fields ---
+    
     approvedBy: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Admin' 

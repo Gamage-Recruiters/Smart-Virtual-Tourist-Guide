@@ -2,6 +2,7 @@ import apiClient from '../services/api';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiUsers, FiCheckCircle, FiClock, FiUserX, FiSearch, FiShield, FiMoreVertical, FiMail, FiPhone, FiMapPin, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import toast, { Toaster } from 'react-hot-toast';
 
 const UserManagement = () => {
   const [usersList, setUsersList] = useState([]);
@@ -74,31 +75,35 @@ const UserManagement = () => {
     const actionWord = newStatus === 'Suspended' ? 'suspend' : 'activate';
     
     if (window.confirm(`Are you sure you want to ${actionWord} ${userName}'s account?`)) {
+      const toastId = toast.loading('Updating status...'); 
       try {
         const result = await apiClient.put(`/admin/users/${userId}/status`, { status: newStatus });
         if (result && result.success) {
           setUsersList(prev => prev.map(user => user._id === userId ? { ...user, status: newStatus } : user));
+          toast.success(`${userName}'s account has been ${newStatus.toLowerCase()}.`, { id: toastId }); 
         } else {
-          alert(result.message || 'Failed to update status.');
+          toast.error(result.message || 'Failed to update status.', { id: toastId }); 
         }
       } catch (error) {
-        alert('Cannot connect to the server.');
+        toast.error('Cannot connect to the server.', { id: toastId });
       }
     }
   };
 
-  // Delete User Handler
+ // Delete User Handler
   const handleDeleteUser = async (userId, userName) => {
     if (window.confirm(`Are you sure you want to permanently delete the account for ${userName}? This action cannot be undone.`)) {
+      const toastId = toast.loading('Deleting user...');
       try {
         const result = await apiClient.delete(`/admin/users/${userId}`);
         if (result && result.success) {
           setUsersList(prev => prev.filter(user => user._id !== userId));
+          toast.success(`${userName} has been permanently deleted.`, { id: toastId });
         } else {
-          alert(result.message || 'Failed to delete user.');
+          toast.error(result.message || 'Failed to delete user.', { id: toastId });
         }
       } catch (error) {
-        alert('Failed to connect to the server. Please ensure the DELETE route is implemented in your backend.');
+        toast.error('Failed to connect to the server.', { id: toastId });
       }
     }
   };
@@ -129,6 +134,7 @@ const UserManagement = () => {
 
   return (
     <div className="w-full pb-12 font-inter">
+    <Toaster position="top-right" reverseOrder={false} />
       
       <div 
         className="relative w-full h-[350px] bg-cover bg-center flex items-center mb-8"

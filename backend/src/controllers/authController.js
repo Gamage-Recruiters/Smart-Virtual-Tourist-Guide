@@ -65,6 +65,12 @@ const loginAdmin = async (req, res) => {
 
     // Check if admin exists and password matches
     if (admin && (await admin.matchPassword(password))) {
+      //  Security Check  (Login Block)
+      if (admin.status === 'Suspended' || admin.isActive === false) {
+        logger.warn(`Suspended account attempted login: ${admin.username}`);
+        return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact the administrator.' });
+      }
+
       logger.info(`Admin logged in: ${admin.username}`);
       res.json({
         _id: admin.id,
