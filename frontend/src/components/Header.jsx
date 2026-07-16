@@ -116,8 +116,8 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Sign In Button */}
               <button 
+                onClick={() => navigate('/sign-in')}
                 className="ml-2 px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
               >
                 Sign in
@@ -175,7 +175,7 @@ const Header = () => {
                 
                 <button 
                   className="px-4 py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-colors mt-2 text-center"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => { setIsMenuOpen(false); navigate('/sign-in'); }}
                 >
                   Sign in
                 </button>

@@ -78,8 +78,35 @@ async function saveTouristProfile({ userId, profile }) {
   return savedProfile;
 }
 
+async function loginUser({ email, password }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail || !password) {
+    const error = new Error("email and password are required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user || user.password !== password) {
+    const error = new Error("Invalid email or password.");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // Rotate session token on each login
+  user.sessionToken = crypto.randomUUID();
+  await user.save();
+
+  return {
+    token: user.sessionToken,
+    user: publicUser(user),
+  };
+}
+
 module.exports = {
   createUser,
+  loginUser,
   getUserFromToken,
   saveTouristProfile,
 };

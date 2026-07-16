@@ -1,7 +1,8 @@
 const express = require("express");
-const router  = express.Router();
+const router = express.Router();
 const {
   optimizeBudget,
+  getBudgetAllocation,
   checkGuardian,
   recalculateBudget,
   checkAnomaly,
@@ -52,6 +53,12 @@ router.post("/optimize", optimizeBudget);
  * Body: { touristId, startDate, endDate, budgetUSD, preferences[] }
  */
 router.post("/recalculate", recalculateBudget);
+
+/**
+ * GET /api/budget/allocation/:touristId
+ * Get the saved budget allocation plan for a tourist.
+ */
+router.get("/allocation/:touristId", getBudgetAllocation);
 
 // ─────────────────────────────────────────────────────────────
 // BUDGET GUARDIAN

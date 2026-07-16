@@ -1,20 +1,21 @@
 const mlClient = require("./mlServices");
+const BudgetAllocation = require("../models/BudgetAllocation");
 
 // ─────────────────────────────────────────────────────────────
 // Preference chip → trip_style mapping
 // Matches the chips shown on the registration form (Step 02)
 // ─────────────────────────────────────────────────────────────
 const PREFERENCE_TO_STYLE = {
-  Adventure:     "budget",
-  Nature:        "budget",
-  Cultural:      "comfort",
-  Historical:    "comfort",
+  Adventure: "budget",
+  Nature: "budget",
+  Cultural: "comfort",
+  Historical: "comfort",
   "Food & Dining": "comfort",
-  Relaxation:    "luxury",
-  Beach:         "luxury",
-  Shopping:      "balanced",
-  Photography:   "balanced",
-  Nightlife:     "balanced",
+  Relaxation: "luxury",
+  Beach: "luxury",
+  Shopping: "balanced",
+  Photography: "balanced",
+  Nightlife: "balanced",
 };
 
 const USD_TO_LKR = parseFloat(process.env.USD_TO_LKR_RATE) || 320;
@@ -44,8 +45,8 @@ function mapPreferencesToStyle(preferences = []) {
  */
 function calculateNumDays(startDate, endDate) {
   const start = new Date(startDate);
-  const end   = new Date(endDate);
-  const diff  = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  const end = new Date(endDate);
+  const diff = Math.round((end - start) / (1000 * 60 * 60 * 24));
   if (diff <= 0) throw new Error("End date must be after start date.");
   return diff;
 }
@@ -69,6 +70,7 @@ function calculateNumDays(startDate, endDate) {
  * @returns {Promise<Object>} allocation plan from ML model
  */
 async function optimizeBudget({
+  userId,
   startDate,
   endDate,
   budgetUSD,
@@ -76,28 +78,64 @@ async function optimizeBudget({
   tripStyle = null,
   customWeights = null,
 }) {
-  const numDays      = calculateNumDays(startDate, endDate);
-  const budgetLKR    = Math.round(budgetUSD * USD_TO_LKR);
+  const numDays = calculateNumDays(startDate, endDate);
+  const budgetLKR = Math.round(budgetUSD * USD_TO_LKR);
   const resolvedStyle = tripStyle || mapPreferencesToStyle(preferences);
 
   const payload = {
     total_budget_lkr: budgetLKR,
-    num_days:         numDays,
-    trip_style:       resolvedStyle,
+    num_days: numDays,
+    trip_style: resolvedStyle,
     ...(customWeights && { preferences: customWeights }),
   };
 
   const { data } = await mlClient.post("/api/budget/optimize", payload);
+  const result = data.data;
 
-  return {
-    ...data.data,
+  const allocation = {
+    tripStyle: result.trip_style,
+    totalBudgetLKR: result.total_budget_lkr,
+    numDays: result.num_days,
+    dailyBudgetLKR: result.daily_budget_lkr,
+    tripTotalLKR: result.trip_total_lkr,
+    remainingLKR: result.remaining_lkr,
+    dailyAllocation: result.daily_allocation || {},
+    totalAllocation: result.total_allocation || {},
+    weightsUsed: result.weights_used || {},
+    warnings: result.warnings || [],
     meta: {
-      budget_usd:   budgetUSD,
-      start_date:   startDate,
-      end_date:     endDate,
+      budget_usd: budgetUSD,
+      start_date: startDate,
+      end_date: endDate,
       preferences,
-      usd_to_lkr:   USD_TO_LKR,
+      usd_to_lkr: USD_TO_LKR,
     },
+  };
+
+  // Save to MongoDB if userId is provided
+  if (userId) {
+    await BudgetAllocation.findOneAndUpdate(
+      { touristId: userId },
+      { touristId: userId, ...allocation },
+      { upsert: true, new: true }
+    );
+  }
+
+  return allocation;
+}
+
+/**
+ * Retrieve a saved budget allocation for a tourist.
+ */
+async function getBudgetAllocation(touristId) {
+  const alloc = await BudgetAllocation.findOne({ touristId }).lean();
+  if (!alloc) return null;
+  
+  return {
+    ...alloc,
+    dailyAllocation: alloc.dailyAllocation || {},
+    totalAllocation: alloc.totalAllocation || {},
+    weightsUsed: alloc.weightsUsed || {},
   };
 }
 
@@ -116,8 +154,8 @@ async function optimizeBudget({
  */
 async function checkBudgetGuardian(totalBudgetLKR, spentSoFarLKR) {
   const { data } = await mlClient.post("/api/budget/check-guardian", {
-    total_budget_lkr:   totalBudgetLKR,
-    spent_so_far_lkr:   spentSoFarLKR,
+    total_budget_lkr: totalBudgetLKR,
+    spent_so_far_lkr: spentSoFarLKR,
   });
   return data.data;
 }
@@ -132,7 +170,7 @@ async function checkBudgetGuardian(totalBudgetLKR, spentSoFarLKR) {
  * Convenience wrapper around optimizeBudget.
  */
 async function recalculateBudget(touristId, updatedParams) {
-  const result = await optimizeBudget(updatedParams);
+  const result = await optimizeBudget({ userId: touristId, ...updatedParams });
   return { tourist_id: touristId, recalculated: true, ...result };
 }
 
@@ -148,17 +186,17 @@ async function recalculateBudget(touristId, updatedParams) {
  * @returns {Object}
  */
 function buildDailySummary(allocationPlan) {
-  const { daily_allocation, num_days, daily_budget_lkr, trip_style } = allocationPlan;
+  const { dailyAllocation, numDays, dailyBudgetLKR, tripStyle } = allocationPlan;
 
   return {
-    trip_style,
-    num_days,
-    daily_budget_lkr,
-    daily_breakdown: Object.entries(daily_allocation).map(([category, amount]) => ({
+    trip_style: tripStyle,
+    num_days: numDays,
+    daily_budget_lkr: dailyBudgetLKR,
+    daily_breakdown: Object.entries(dailyAllocation).map(([category, amount]) => ({
       category,
-      daily_lkr:  amount,
-      daily_usd:  +(amount / USD_TO_LKR).toFixed(2),
-      percentage: +((amount / daily_budget_lkr) * 100).toFixed(1),
+      daily_lkr: amount,
+      daily_usd: +(amount / USD_TO_LKR).toFixed(2),
+      percentage: +((amount / dailyBudgetLKR) * 100).toFixed(1),
     })),
   };
 }
@@ -166,6 +204,7 @@ function buildDailySummary(allocationPlan) {
 module.exports = {
   optimizeBudget,
   checkBudgetGuardian,
+  getBudgetAllocation,
   recalculateBudget,
   buildDailySummary,
   mapPreferencesToStyle,

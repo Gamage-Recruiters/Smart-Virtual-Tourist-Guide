@@ -18,20 +18,21 @@ const sendError = (res, message, statusCode = 400) =>
 // ─────────────────────────────────────────────────────────────
 const optimizeBudget = async (req, res) => {
   try {
-    const { startDate, endDate, budgetUSD, preferences, tripStyle, customWeights } = req.body;
+    const { userId, startDate, endDate, budgetUSD, preferences, tripStyle, customWeights } = req.body;
 
-    if (!startDate)          return sendError(res, "startDate is required.");
-    if (!endDate)            return sendError(res, "endDate is required.");
-    if (!budgetUSD)          return sendError(res, "budgetUSD is required.");
+    if (!startDate) return sendError(res, "startDate is required.");
+    if (!endDate) return sendError(res, "endDate is required.");
+    if (!budgetUSD) return sendError(res, "budgetUSD is required.");
     if (isNaN(Number(budgetUSD))) return sendError(res, "budgetUSD must be a number.");
-    if (Number(budgetUSD) <= 0)   return sendError(res, "budgetUSD must be greater than 0.");
+    if (Number(budgetUSD) <= 0) return sendError(res, "budgetUSD must be greater than 0.");
 
     const result = await budgetService.optimizeBudget({
+      userId,
       startDate,
       endDate,
-      budgetUSD:    Number(budgetUSD),
-      preferences:  Array.isArray(preferences) ? preferences : [],
-      tripStyle:    tripStyle || null,
+      budgetUSD: Number(budgetUSD),
+      preferences: Array.isArray(preferences) ? preferences : [],
+      tripStyle: tripStyle || null,
       customWeights: customWeights || null,
     });
 
@@ -40,6 +41,24 @@ const optimizeBudget = async (req, res) => {
     return sendSuccess(res, { allocation: result, daily_summary: dailySummary });
   } catch (err) {
     console.error("[budgetController.optimizeBudget]", err.message);
+    return sendError(res, err.message, err.statusCode || 500);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/budget/allocation/:touristId
+// ─────────────────────────────────────────────────────────────
+const getBudgetAllocation = async (req, res) => {
+  try {
+    const { touristId } = req.params;
+    if (!touristId) return sendError(res, "touristId param is required.");
+
+    const result = await budgetService.getBudgetAllocation(touristId);
+    if (!result) return sendError(res, "No budget allocation found.", 404);
+
+    return sendSuccess(res, result);
+  } catch (err) {
+    console.error("[budgetController.getBudgetAllocation]", err.message);
     return sendError(res, err.message, err.statusCode || 500);
   }
 };
@@ -55,14 +74,14 @@ const checkGuardian = async (req, res) => {
     const { totalBudgetLKR, spentSoFarLKR } = req.body;
 
     if (totalBudgetLKR === undefined) return sendError(res, "totalBudgetLKR is required.");
-    if (spentSoFarLKR  === undefined) return sendError(res, "spentSoFarLKR is required.");
+    if (spentSoFarLKR === undefined) return sendError(res, "spentSoFarLKR is required.");
 
     const total = Number(totalBudgetLKR);
     const spent = Number(spentSoFarLKR);
 
-    if (isNaN(total) || total <= 0)      return sendError(res, "totalBudgetLKR must be a positive number.");
-    if (isNaN(spent) || spent < 0)       return sendError(res, "spentSoFarLKR cannot be negative.");
-    if (spent > total)                   return sendError(res, "spentSoFarLKR cannot exceed totalBudgetLKR.");
+    if (isNaN(total) || total <= 0) return sendError(res, "totalBudgetLKR must be a positive number.");
+    if (isNaN(spent) || spent < 0) return sendError(res, "spentSoFarLKR cannot be negative.");
+    if (spent > total) return sendError(res, "spentSoFarLKR cannot exceed totalBudgetLKR.");
 
     const result = await budgetService.checkBudgetGuardian(total, spent);
     return sendSuccess(res, result);
@@ -82,10 +101,10 @@ const recalculateBudget = async (req, res) => {
   try {
     const { touristId, startDate, endDate, budgetUSD, preferences } = req.body;
 
-    if (!touristId)  return sendError(res, "touristId is required.");
-    if (!startDate)  return sendError(res, "startDate is required.");
-    if (!endDate)    return sendError(res, "endDate is required.");
-    if (!budgetUSD)  return sendError(res, "budgetUSD is required.");
+    if (!touristId) return sendError(res, "touristId is required.");
+    if (!startDate) return sendError(res, "startDate is required.");
+    if (!endDate) return sendError(res, "endDate is required.");
+    if (!budgetUSD) return sendError(res, "budgetUSD is required.");
 
     const result = await budgetService.recalculateBudget(touristId, {
       startDate,
@@ -112,7 +131,7 @@ const checkAnomaly = async (req, res) => {
   try {
     const { serviceType, priceLKR } = req.body;
 
-    if (!serviceType)           return sendError(res, "serviceType is required.");
+    if (!serviceType) return sendError(res, "serviceType is required.");
     if (priceLKR === undefined) return sendError(res, "priceLKR is required.");
 
     const price = Number(priceLKR);
@@ -159,8 +178,8 @@ const validateBid = async (req, res) => {
   try {
     const { bidId, serviceType, priceLKR } = req.body;
 
-    if (!bidId)                 return sendError(res, "bidId is required.");
-    if (!serviceType)           return sendError(res, "serviceType is required.");
+    if (!bidId) return sendError(res, "bidId is required.");
+    if (!serviceType) return sendError(res, "serviceType is required.");
     if (priceLKR === undefined) return sendError(res, "priceLKR is required.");
 
     const result = await anomalyService.validateBidPrice(bidId, serviceType, Number(priceLKR));
@@ -194,6 +213,7 @@ const getFairPrice = async (req, res) => {
 
 module.exports = {
   optimizeBudget,
+  getBudgetAllocation,
   checkGuardian,
   recalculateBudget,
   checkAnomaly,

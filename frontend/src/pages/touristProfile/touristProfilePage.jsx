@@ -130,6 +130,23 @@ export const TouristProfilePage = () => {
 
       console.log("Saved tourist profile:", profileData);
 
+      // ── IMPORTANT: save to localStorage BEFORE resetting formData ──
+      // (formData is still populated here with the real submitted values)
+      localStorage.setItem("tripInfo", JSON.stringify({
+        startDate:   formData.startDate,
+        endDate:     formData.endDate,
+        budgetUSD:   Number(formData.budget),  // real amount e.g. 4600
+        preferences: formData.preferences,
+      }));
+
+      // Also store userName so dashboard greeting shows the real name
+      const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+      if (storedUser && formData.fullName) {
+        storedUser.fullName = formData.fullName;
+        localStorage.setItem("user", JSON.stringify(storedUser));
+      }
+
+      // NOW reset the form (after localStorage is already saved)
       setFormData({
         fullName: "",
         email: "",
@@ -148,14 +165,6 @@ export const TouristProfilePage = () => {
         emergencyRelation: "",
       });
       setAllergyInput("");
-      
-      // Save trip info to localStorage for dashboard use
-      localStorage.setItem("tripInfo", JSON.stringify({
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        budgetUSD: formData.budget,
-        preferences: formData.preferences
-      }));
       
       // Navigate to the dashboard main page
       navigate("/main");

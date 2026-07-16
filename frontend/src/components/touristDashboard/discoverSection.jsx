@@ -3,172 +3,142 @@ import DestinationCard from "../../components/touristDashboard/destinationCard";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // DiscoverSection.jsx — Updated by AI Itinerary Engine
-// Replaced hardcoded data with POST /api/itinerary/recommendations API call
-// UI structure kept exactly as original
+// Uses hardcoded data for correct images/destinations per tab
+// Uses POST /api/itinerary/recommendations to get real ML ratings
 // ══════════════════════════════════════════════════════════════════════════════
 
 const API_BASE = 'http://localhost:5000';
 
-// Category to interest mapping for the API
+// ── Hardcoded destination data per category (correct Sri Lanka images) ────
+const destinationsByCategory = {
+  Beach: [
+    { title: "Mirissa", rating: "4.8", description: "Stunning crescent beach with whale watching", image: "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=400&h=250&fit=crop" },
+    { title: "Unawatuna", rating: "4.7", description: "Golden sands with coral reef snorkeling", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=250&fit=crop" },
+    { title: "Trincomalee", rating: "4.6", description: "Pristine beaches and historic forts on the east coast", image: "https://plus.unsplash.com/premium_photo-1730035378497-6f182674961c?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+  ],
+  Culture: [
+    { title: "Sigiriya", rating: "4.8", description: "Ancient rock fortress with stunning views", image: "https://images.unsplash.com/photo-1588416936097-41850ab3d86d?w=400&h=250&fit=crop" },
+    { title: "Galle Fort", rating: "4.7", description: "Historic colonial fortification by the sea", image: "https://images.unsplash.com/photo-1566299597203-225f611b865f?q=80&w=1855&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+    { title: "Kandy", rating: "4.9", description: "Cultural capital with the Temple of the Tooth", image: "https://images.unsplash.com/photo-1571770095004-6b61b1cf308a?w=400&h=250&fit=crop" },
+  ],
+  Wildlife: [
+    { title: "Yala National Park", rating: "4.9", description: "Leopards and elephants in the wild", image: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&h=250&fit=crop" },
+    { title: "Udawalawe", rating: "4.7", description: "Best place to see wild elephants up close", image: "https://images.unsplash.com/photo-1674556275189-e78fd6223e6d?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+    { title: "Sinharaja Forest", rating: "4.8", description: "UNESCO rainforest with rare endemic birds", image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=250&fit=crop" },
+  ],
+  Hiking: [
+    { title: "Ella", rating: "4.9", description: "Scenic hill country with tea plantations", image: "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=400&h=250&fit=crop" },
+    { title: "Adam's Peak", rating: "4.8", description: "Sacred mountain with breathtaking sunrise", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=250&fit=crop" },
+    { title: "Knuckles Range", rating: "4.7", description: "Mist-covered peaks and hidden waterfalls", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop" },
+  ],
+  Food: [
+    { title: "Colombo Food Tour", rating: "4.8", description: "Street food and spicy Sri Lankan curries", image: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&h=250&fit=crop" },
+    { title: "Jaffna Cuisine", rating: "4.9", description: "Unique northern flavors and seafood delights", image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400&h=250&fit=crop" },
+    { title: "Tea Country", rating: "4.7", description: "Ceylon tea estates with plantation lunches", image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=400&h=250&fit=crop" },
+  ],
+};
+
+// Category to interest mapping for API
 const categoryInterestMap = {
-    'Beach':    'beach',
-    'Culture':  'culture',
-    'Wildlife': 'wildlife',
-    'Hiking':   'nature',
-    'Food':     'food',
-};
-
-// Fallback images per destination (in case API doesn't return images)
-const locationImages = {
-    'Colombo':      'https://images.unsplash.com/photo-1660557989695-14fac79c086d?w=400&h=250&fit=crop',
-    'Kandy':        'https://images.unsplash.com/photo-1665849050332-8d5d7e59afb6?w=400&h=250&fit=crop',
-    'Sigiriya':     'https://images.unsplash.com/photo-1612862862126-865765df2ded?w=400&h=250&fit=crop',
-    'Galle':        'https://images.unsplash.com/photo-1579989197111-928f586796a3?w=400&h=250&fit=crop',
-    'Ella':         'https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?w=400&h=250&fit=crop',
-    'Mirissa':      'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=400&h=250&fit=crop',
-    'Trincomalee':  'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=400&h=250&fit=crop',
-    'Nuwara Eliya': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=250&fit=crop',
-    'Anuradhapura': 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&h=250&fit=crop',
-    'default':      'https://images.unsplash.com/photo-1612862862126-865765df2ded?w=400&h=250&fit=crop',
-};
-
-const getImage = (destination) => {
-    if (!destination) return locationImages['default'];
-    const key = Object.keys(locationImages).find(k =>
-        destination.toLowerCase().includes(k.toLowerCase()) ||
-        k.toLowerCase().includes(destination.toLowerCase())
-    );
-    return key ? locationImages[key] : locationImages['default'];
-};
-
-const categoryDescriptions = {
-    'Heritage':  'Ancient ruins and historic sites',
-    'Nature':    'Scenic hill country and nature trails',
-    'Beach':     'Beautiful coastline and beaches',
-    'Cultural':  'Rich cultural heritage and temples',
-    'Wildlife':  'National parks and wildlife sanctuaries',
-    'Adventure': 'Thrilling outdoor activities',
-    'default':   'Explore this amazing destination',
+  Beach:    'beach',
+  Culture:  'culture',
+  Wildlife: 'wildlife',
+  Hiking:   'nature',
+  Food:     'food',
 };
 
 function DiscoverSection({ touristProfile }) {
-    const [activeTab, setActiveTab]         = useState("Beach");
-    const [destinations, setDestinations]   = useState([]);
-    const [loading, setLoading]             = useState(false);
-    const [error, setError]                 = useState(null);
+  const [activeTab, setActiveTab]   = useState("Beach");
+  const [mlRatings, setMlRatings]   = useState({});  // ML ratings from API
 
-    // Fetch recommendations when tab changes
-    useEffect(() => {
-        const fetchRecommendations = async () => {
-            setLoading(true);
-            setError(null);
+  // ── Fetch ML ratings from API in background ───────────────────────────────
+  useEffect(() => {
+    const fetchMLRatings = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/itinerary/recommendations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            age:           touristProfile?.age          || 25,
+            nationality:   touristProfile?.nationality  || 'local',
+            interest:      categoryInterestMap[activeTab] || 'nature',
+            budget_level:  touristProfile?.budget_level || 'medium',
+            trip_duration: touristProfile?.num_days     || 5,
+          }),
+        });
 
-            try {
-                const response = await fetch(`${API_BASE}/api/itinerary/recommendations`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        age:           touristProfile?.age          || 25,
-                        nationality:   touristProfile?.nationality  || 'local',
-                        interest:      categoryInterestMap[activeTab] || 'nature',
-                        budget_level:  touristProfile?.budget_level || 'medium',
-                        trip_duration: touristProfile?.num_days     || 5,
-                    }),
-                });
+        if (!response.ok) return;
 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
+        const data = await response.json();
+        if (data.status === 'error') return;
 
-                const data = await response.json();
+        const recs = data.result?.recommendations || data.recommendations || [];
 
-                if (data.status === 'error') {
-                    throw new Error(data.message || 'Failed to load recommendations.');
-                }
+        // Build a map of destination → ML rating
+        const ratingsMap = {};
+        recs.forEach(rec => {
+          if (rec.destination && rec.avg_rating) {
+            ratingsMap[rec.destination] = parseFloat(rec.avg_rating.toFixed(1));
+          }
+        });
 
-                const recs = data.result?.recommendations || data.recommendations || [];
+        setMlRatings(prev => ({ ...prev, ...ratingsMap }));
 
-                // Map API response to match DestinationCard props
-                const mapped = recs.slice(0, 4).map((rec) => ({
-                    title:       rec.destination,
-                    rating:      parseFloat((rec.avg_rating || 4.5).toFixed(1)).toString(),
-                    description: categoryDescriptions[rec.category] || categoryDescriptions['default'],
-                    image:       getImage(rec.destination),
-                }));
+      } catch (err) {
+        // Silently fail — hardcoded ratings will be used
+        console.warn('ML ratings fetch failed, using default ratings:', err.message);
+      }
+    };
 
-                setDestinations(mapped);
+    fetchMLRatings();
+  }, [activeTab, touristProfile]);
 
-            } catch (err) {
-                setError(err.message || 'Failed to load destinations.');
-                console.error('DiscoverSection error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+  // ── Merge hardcoded data with ML ratings ──────────────────────────────────
+  const destinations = destinationsByCategory[activeTab].map(dest => ({
+    ...dest,
+    // Use ML rating if available, otherwise keep hardcoded rating
+    rating: mlRatings[dest.title]
+      ? mlRatings[dest.title].toString()
+      : dest.rating,
+  }));
 
-        fetchRecommendations();
-    }, [activeTab, touristProfile]);
+  return (
+    <section className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100">
+      <h3 className="text-3xl font-bold mb-8 text-slate-900">
+        Discover Sri Lanka
+      </h3>
 
-    return (
-        <section className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 w-full overflow-hidden">
-            <h3 className="text-3xl font-bold mb-8 text-slate-900">
-                Discover Sri Lanka
-            </h3>
+      {/* Category Tabs */}
+      <div className="flex gap-10 border-b border-slate-100 pb-1 mb-8">
+        {["Beach", "Culture", "Wildlife", "Hiking", "Food"].map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveTab(cat)}
+            className={`text-base font-semibold transition-colors relative pb-1 cursor-pointer ${
+              activeTab === cat
+                ? "text-blue-600 after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-full after:h-1 after:bg-blue-600 after:rounded-full"
+                : "text-slate-400 hover:text-slate-600"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-            {/* Category Tabs */}
-            <div className="flex gap-10 border-b border-slate-100 pb-1 mb-8">
-                {["Beach", "Culture", "Wildlife", "Hiking", "Food"].map((cat) => (
-                    <button
-                        key={cat}
-                        onClick={() => setActiveTab(cat)}
-                        className={`relative pb-2 text-base font-semibold transition-colors cursor-pointer ${
-                            activeTab === cat
-                                ? "text-blue-600"
-                                : "text-slate-400 hover:text-slate-600"
-                        }`}
-                    >
-                        {cat}
-                        {activeTab === cat && (
-                            <span className="absolute -bottom-1.5 left-0 w-full h-[3px] bg-blue-600 rounded-full" />
-                        )}
-                    </button>
-                ))}
-            </div>
+      <h4 className="font-bold text-slate-800 text-lg mb-6">
+        Featured Destinations
+      </h4>
 
-            <h4 className="font-bold text-slate-800 text-lg mb-6">
-                Featured Destinations
-            </h4>
-
-            {/* Loading state */}
-            {loading && (
-                <div className="flex gap-6 overflow-x-auto pb-4">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="min-w-[200px] shrink-0 animate-pulse">
-                            <div className="w-full h-40 bg-gray-200 rounded-xl mb-3" />
-                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                            <div className="h-3 bg-gray-100 rounded w-full" />
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Error state */}
-            {error && !loading && (
-                <p className="text-sm text-red-500">{error}</p>
-            )}
-
-            {/* Destinations Grid */}
-            {!loading && !error && (
-                <div className="flex gap-6 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-                    {destinations.map((dest, i) => (
-                        <div key={i} className="min-w-[280px] w-[280px] shrink-0 snap-start">
-                            <DestinationCard {...dest} />
-                        </div>
-                    ))}
-                </div>
-            )}
-        </section>
-    );
+      {/* Destinations Grid */}
+      <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x">
+        {destinations.map((dest, i) => (
+          <div key={i} className="min-w-25 shrink-0 snap-start">
+            <DestinationCard {...dest} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default DiscoverSection;

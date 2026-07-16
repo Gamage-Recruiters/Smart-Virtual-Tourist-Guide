@@ -11,7 +11,7 @@ const BudgetTracker = () => {
       const parsed = JSON.parse(tripData);
       const userBudget = Number(parsed.budgetUSD) || 5000;
       setBudget(userBudget);
-      setSpent(0); 
+      setSpent(0);
     }
   }, []);
 
@@ -33,7 +33,7 @@ const BudgetTracker = () => {
             <span className="text-slate-800">{percentage}% Used</span>
           </div>
           <div className="relative w-full bg-slate-100 h-10 rounded-full flex items-center overflow-hidden">
-            <div 
+            <div
               className="bg-blue-600 h-full rounded-full transition-all duration-700"
               style={{ width: `${percentage}%` }}
             ></div>

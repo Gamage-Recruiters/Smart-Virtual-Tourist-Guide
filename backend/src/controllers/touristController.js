@@ -66,9 +66,10 @@ async function createProfile(req, res) {
     let budgetPlan = null;
     try {
       budgetPlan = await budgetService.optimizeBudget({
+        userId: user.id,                        // ← saves plan to MongoDB under this tourist
         startDate: profilePayload.startDate,
         endDate: profilePayload.endDate,
-        budgetUSD: profilePayload.budget,
+        budgetUSD: profilePayload.budget,       // the actual amount paid ($4600 etc.)
         preferences: profilePayload.preferences,
       });
     } catch (budgetErr) {
