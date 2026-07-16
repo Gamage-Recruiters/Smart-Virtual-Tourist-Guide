@@ -134,15 +134,15 @@ const FinalTripReport = () => {
 
   const handlePrint = () => {
     const printUrl = `${window.location.origin}${window.location.pathname}?export=true&touristId=${touristId}&tripId=${tripId}`;
-    
+
     const printWindow = window.open(printUrl, '_blank');
 
     printWindow.onload = () => {
-        setTimeout(() => {
-            printWindow.print();
+      setTimeout(() => {
+        printWindow.print();
 
-            printWindow.close(); 
-        }, 500); 
+        printWindow.close();
+      }, 500);
     };
   };
 
@@ -354,20 +354,28 @@ const FinalTripReport = () => {
 
               {/* Circular Action Icons Row */}
               <div className="flex gap-4 mb-8">
-                <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-[#1C2C3F]">
-                    <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.47 5.35a3 3 0 0 1-3.06 0L1.5 8.67Z" />
-                    <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 6.137a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
-                  </svg>
+                <button
+                  onClick={handleEmailReport}
+                  disabled={isSending}
+                  className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200 disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {isSending ? (
+                    <div className="w-5 h-5 border-2 border-[#1C2C3F] border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-[#1C2C3F]">
+                      <path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.47 5.35a3 3 0 0 1-3.06 0L1.5 8.67Z" />
+                      <path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 6.137a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z" />
+                    </svg>
+                  )}
                 </button>
 
-                <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200">
+                <button onClick={handleShareTrip} className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5 text-[#1C2C3F]">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
                   </svg>
                 </button>
 
-                <button className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200">
+                <button onClick={handlePrint} className="w-12 h-12 sm:w-14 sm:h-14 bg-white text-[#1C2C3F] rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors duration-200">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-5 h-5 text-[#1C2C3F]">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-14.326 0C3.768 7.44 3 8.375 3 9.456V15.75a2.25 2.25 0 0 0 2.25 2.25h1.091M9 9h6M9 12h6" />
                   </svg>

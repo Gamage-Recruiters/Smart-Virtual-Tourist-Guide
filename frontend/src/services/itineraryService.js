@@ -13,13 +13,13 @@ export const fetchItinerary = async (touristId, tripId) => {
     }
 };
 
-export const fetchPlacesVisitedCount = async (touristId, tripId) => {
+export const fetchTripStats = async (touristId, tripId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/visited-count/${touristId}/${tripId}`);
+        const response = await fetch(`${API_BASE_URL}/trip-stats/${touristId}/${tripId}`);
         const result = await response.json();
         return result; 
     } catch (error) {
-        console.error("itineraryService Error:", error);
+        console.error("fetchTripStats Error:", error);
         return { success: false, message: "Server connection failed." };
     }
 };

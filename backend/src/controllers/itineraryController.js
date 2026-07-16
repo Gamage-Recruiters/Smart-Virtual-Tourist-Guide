@@ -34,56 +34,34 @@ const getItineraryById = async (req, res) => {
     }
 };
 
-const getPlacesVisitedCount = async (req, res, next) => {
+const getTripStats = async (req, res) => {
     try {
-
         const { touristId, tripId } = req.params;
+        const itinerary = await Itinerary.findOne({ _id: tripId, tourist_id: touristId });
 
-        if (!tripId) {
-            return res.status(400).json({
-                success: false,
-                message: "tripId is required in route parameters"
-            });
-        }
+        if (!itinerary) return res.status(404).json({ success: false, message: "Itinerary not found" });
 
-        if (!touristId) {
-            return res.status(400).json({
-                success: false,
-                message: "touristId is required in route parameters"
-            });
-        }
+        const totalDistance = itinerary.final_report.distance_km || 0;
 
-        const itinerary = await Itinerary.findOne({
-            _id: tripId,
-            tourist_id: touristId
+        const totalFood = itinerary.daily_plan.reduce((acc, day) =>
+            acc + day.activities.filter(a => a.type === 'food' && a.completed).length, 0);
+
+        const totalPlaces = itinerary.daily_plan.reduce((acc, day) =>
+            acc + day.activities.filter(a => a.type === 'sightseeing' && a.completed).length, 0);
+
+        const totalPhotos = itinerary.daily_plan.reduce((acc, day) => acc + (day.images ? day.images.length : 0), 0);
+
+        res.status(200).json({
+            success: true,
+            data: { totalDistance, totalFood, totalPlaces, totalPhotos }
         });
-
-        if (!itinerary) {
-            return res.status(404).json({ success: false, message: "Itinerary not found" });
-        }
-
-        let visitedCount = 0;
-
-        if (itinerary.daily_plan && Array.isArray(itinerary.daily_plan)) {
-            itinerary.daily_plan.forEach(day => {
-                if (day.activities && Array.isArray(day.activities)) {
-                    day.activities.forEach(activity => {
-                        if (
-                            activity.completed === true
-                        ) {
-                            visitedCount += 1;
-                        }
-                    });
-                }
-            });
-        }
-
-        res.status(200).json({ success: true, count: visitedCount });
-
     } catch (error) {
-        next(error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };
+
+
+
 
 const generateTripSummary = (itinerary) => {
     const locations = [...new Set(itinerary.daily_plan.map(d => d.location).filter(Boolean))];
@@ -111,5 +89,5 @@ const generateTripSummary = (itinerary) => {
 
 module.exports = {
     getItineraryById,
-    getPlacesVisitedCount
+    getTripStats
 };
