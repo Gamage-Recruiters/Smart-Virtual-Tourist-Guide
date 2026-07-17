@@ -167,14 +167,25 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
                 <StatusBadge status={incident.status} />
               </div>
               <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
-                <button
-                  onClick={() => onDelete(incident._id || incident.id)}
-                  className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
-                  title="Delete Report"
-                >
-                  <FiTrash2 size={14} />
-                  Delete
-                </button>
+                {incident.status === 'reported' || !incident.status ? (
+                  <button
+                    onClick={() => onDelete(incident._id || incident.id)}
+                    className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
+                    title="Delete Report"
+                  >
+                    <FiTrash2 size={14} />
+                    Delete
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="inline-flex items-center justify-center gap-1.5 rounded bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400 cursor-not-allowed"
+                    title="Cannot delete once processing has started"
+                  >
+                    <FiTrash2 size={14} />
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           )
@@ -217,14 +228,25 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
                     <StatusBadge status={incident.status} />
                   </td>
                   <td className="border border-black px-3 py-2 text-center">
-                    <button
-                      onClick={() => onDelete(incident._id || incident.id)}
-                      className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
-                      title="Delete Report"
-                    >
-                      <FiTrash2 size={14} />
-                      Delete
-                    </button>
+                    {incident.status === 'reported' || !incident.status ? (
+                      <button
+                        onClick={() => onDelete(incident._id || incident.id)}
+                        className="inline-flex items-center justify-center gap-1.5 rounded bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-200 transition-colors"
+                        title="Delete Report"
+                      >
+                        <FiTrash2 size={14} />
+                        Delete
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="inline-flex items-center justify-center gap-1.5 rounded bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400 cursor-not-allowed"
+                        title="Cannot delete once processing has started"
+                      >
+                        <FiTrash2 size={14} />
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
@@ -252,12 +274,29 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
 }
 
 function StatusBadge({ status }) {
-  const normalized = normalizeStatus(status)
-  const isResolved = normalized === 'resolved'
+  const normalized = normalizeStatus(status);
+  
+  let bgColor = 'bg-gray-200';
+  let textColor = 'text-black';
+  let label = 'Unknown';
+
+  if (normalized === 'reported') {
+    bgColor = 'bg-yellow-400';
+    textColor = 'text-black';
+    label = 'Reported';
+  } else if (normalized === 'investigating') {
+    bgColor = 'bg-blue-500';
+    textColor = 'text-white';
+    label = 'Investigating';
+  } else if (normalized === 'resolved') {
+    bgColor = 'bg-[#079427]';
+    textColor = 'text-white';
+    label = 'Resolved';
+  }
 
   return (
-    <span className={`inline-flex min-w-28 justify-center rounded-lg px-4 py-1.5 text-xs font-medium text-black ${isResolved ? 'bg-[#079427]' : 'bg-[#ff9a35]'}`}>
-      {isResolved ? 'Resolved' : 'Processing'}
+    <span className={`inline-flex min-w-28 justify-center rounded-lg px-4 py-1.5 text-xs font-bold ${bgColor} ${textColor}`}>
+      {label}
     </span>
   )
 }

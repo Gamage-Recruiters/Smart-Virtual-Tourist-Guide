@@ -188,10 +188,23 @@ exports.updateIncident = async (req, res, next) => {
 // @access  Private (Admin/Safety Manager/Tourist)
 exports.deleteIncident = async (req, res, next) => {
   try {
-    const incident = await Incident.findByIdAndDelete(req.params.id);
+    const incident = await Incident.findById(req.params.id);
+    
     if (!incident) {
       return res.status(404).json({ success: false, message: 'Incident not found' });
     }
+
+    // Prevent deletion if the incident is already being processed (not in 'reported' status)
+    // Note: Once auth is fully integrated, you may want to bypass this check for Admin users
+    if (incident.status !== 'reported') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Cannot delete this incident as it is already being processed or resolved.' 
+      });
+    }
+
+    await incident.deleteOne();
+    
     res.status(200).json({ success: true, data: {} });
   } catch (error) {
     logger.error('Error deleting incident:', error);
