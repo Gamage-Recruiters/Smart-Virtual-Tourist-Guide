@@ -78,6 +78,13 @@ const validateRegistration = (req, res, next, role) => {
     }
   }
 
+  if (role === 'activityprovider_user') {
+    const { contactNumber } = req.body;
+    if (!contactNumber || contactNumber.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Contact number is required' });
+    }
+  }
+
   if (role === 'driver_user') {
     const { vehicleType, vehicleNumber, licenseNumber, contactNumber } = req.body;
     if (!vehicleType || vehicleType.trim() === '') {
@@ -115,6 +122,10 @@ const validateRestaurantRegister = (req, res, next) => {
 
 const validateRenterRegister = (req, res, next) => {
   validateRegistration(req, res, next, 'renter_user');
+};
+
+const validateActivityProviderRegister = (req, res, next) => {
+  validateRegistration(req, res, next, 'activityprovider_user');
 };
 
 const validateGovernmentRegister = (req, res, next) => {
@@ -162,6 +173,7 @@ module.exports = {
   validateGuideRegister,
   validateRestaurantRegister,
   validateRenterRegister,
+  validateActivityProviderRegister,
   validateGovernmentRegister,
   validateDriverRegister,
   validateLogin,

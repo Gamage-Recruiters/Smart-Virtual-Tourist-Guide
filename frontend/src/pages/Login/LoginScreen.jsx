@@ -630,6 +630,7 @@ const LoginScreen = () => {
       case 'government_user': return '/dashboard-Government';
       case 'renter_user': return '/dashboard-Renter';
       case 'driver_user': return '/dashboard-Driver';
+      case 'activityprovider_user': return '/dashboard-ActivityProvider';
       case 'admin': return '/dashboard-Admin';
 
 
@@ -824,7 +825,10 @@ const LoginScreen = () => {
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             <Link to="/driver-signup1" className="flex-1 btn-primary bg-yellow-600 hover:bg-yellow-700 py-3 text-center text-sm">
-              🚗 Driver Register
+              Driver Register
+            </Link>
+            <Link to="/activity-provider" className="flex-1 btn-primary bg-rose-600 hover:bg-rose-700 py-3 text-center text-sm">
+              Activity Provider Register
             </Link>
           </div>
         </div>

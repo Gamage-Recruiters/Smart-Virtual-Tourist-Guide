@@ -181,6 +181,15 @@ export const renterAPI = {
 };
 
 /**
+ * ACTIVITY PROVIDER APIs
+ */
+export const activityProviderAPI = {
+  register(userData) {
+    return apiClient.post('/auth/register/activity-provider', userData);
+  },
+};
+
+/**
  * GOVERNMENT APIs
  */
 export const governmentAPI = {

@@ -261,6 +261,45 @@ const registerRenter = async (req, res) => {
   }
 };
 
+const registerActivityProvider = async (req, res) => {
+  try {
+    const { fullName, email, password, contactNumber } = req.body;
+
+    const emailNormalized = email.toLowerCase().trim();
+    const userExists = await User.findOne({ email: emailNormalized });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User with this email already exists' });
+    }
+
+    const username = await generateUsername(emailNormalized);
+
+    const user = await User.create({
+      fullName,
+      username,
+      email: emailNormalized,
+      password,
+      role: 'activityprovider_user',
+      contactNumber
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Activity Provider registered successfully',
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        contactNumber: user.contactNumber
+      },
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 const registerGovernment = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -598,6 +637,30 @@ const googleAuth = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   loginUser,
   registerTourist,
@@ -605,6 +668,7 @@ module.exports = {
   registerGuide,
   registerRestaurant,
   registerRenter,
+  registerActivityProvider,
   registerGovernment,
   registerDriver,
   forgotPassword,
@@ -612,4 +676,5 @@ module.exports = {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
+  getMe,
 };

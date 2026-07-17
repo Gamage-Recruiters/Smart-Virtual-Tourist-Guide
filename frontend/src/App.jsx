@@ -16,6 +16,8 @@ import RenterSignup from './pages/Renter/SignupPage';
 
 import GovernmentSignup from './pages/Government/SignupPage';
 
+import ActivityProviderSignup from './pages/ActivityProvider/SignupPage';
+
 import AdminLogin from './pages/Admin/LoginPage';
 
 import DriverSignUp1 from './pages/Driver/SignUpForm1';
@@ -33,6 +35,7 @@ import DummyPageRenter from './pages/Renter/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
+import DummyPageActivityProvider from './pages/ActivityProvider/dummyPage';
 
 
 
@@ -57,6 +60,7 @@ function App() {
         <Route path="/renter" element={<RenterSignup/>}/>
 
         <Route path="/government" element={<GovernmentSignup/>}/>
+        <Route path="/activity-provider" element={<ActivityProviderSignup/>}/>
 
         <Route path="/admin" element={<AdminLogin/>}/>
 
@@ -96,6 +100,7 @@ function App() {
         <Route path="/dashboard-Government" element={<DummyPageGovernment/>}/>
         <Route path="/dashboard-Driver" element={<DummyPageDriver/>}/>
         <Route path="/dashboard-Admin" element={<DummyPageAdmin/>}/>
+        <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider/>}/>
 
 
 

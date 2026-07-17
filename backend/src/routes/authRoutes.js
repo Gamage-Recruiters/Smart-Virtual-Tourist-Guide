@@ -6,6 +6,7 @@ const {
   registerGuide,
   registerRestaurant,
   registerRenter,
+  registerActivityProvider,
   registerGovernment,
   registerDriver,
   forgotPassword,
@@ -13,6 +14,7 @@ const {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
+  getMe
 } = require('../controllers/authController');
 const {
   validateTouristRegister,
@@ -20,6 +22,7 @@ const {
   validateGuideRegister,
   validateRestaurantRegister,
   validateRenterRegister,
+  validateActivityProviderRegister,
   validateGovernmentRegister,
   validateDriverRegister,
   validateLogin,
@@ -36,6 +39,7 @@ router.post('/register/hotel-owner', validateHotelOwnerRegister, registerHotelOw
 router.post('/register/guide', validateGuideRegister, registerGuide);
 router.post('/register/restaurant', validateRestaurantRegister, registerRestaurant);
 router.post('/register/renter', validateRenterRegister, registerRenter);
+router.post('/register/activity-provider', validateActivityProviderRegister, registerActivityProvider);
 router.post('/register/government', validateGovernmentRegister, registerGovernment);
 router.post(
   '/register/driver',
@@ -63,5 +67,9 @@ router.post('/add-hotel-info', protect, validateHotelInfo, addHotelInfo);
 // Password recovery routes
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+
+// Protected route: returns the authenticated user's profile based on JWT token
+// Used for session handling and fetching current user data after login
+router.get('/me', protect, getMe);
 
 module.exports = router;
