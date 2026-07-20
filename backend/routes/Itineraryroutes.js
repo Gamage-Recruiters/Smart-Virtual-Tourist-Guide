@@ -1,23 +1,31 @@
-const express    = require('express');
-const router     = express.Router();
-const controller = require('../controllers/itineraryController');
+import express from 'express';
+import {
+    generateItinerary,
+    detectAnomaly,
+    getRecommendations,
+    checkHealth,
+    getItinerary,
+    getItineraryByTouristAndTrip,
+} from '../controllers/itineraryController.js';
+
+const router = express.Router();
 
 // Generate full itinerary (Budget Optimizer + Recommendation System)
-router.post('/generate',          controller.generateItinerary);
+router.post('/generate',          generateItinerary);
 
 // Detect overspending anomaly (Behaviour Tracking)
-router.post('/detect-anomaly',    controller.detectAnomaly);
+router.post('/detect-anomaly',    detectAnomaly);
 
 // Get place recommendations only
-router.post('/recommendations',   controller.getRecommendations);
+router.post('/recommendations',   getRecommendations);
 
 // Health check — Flask server status
-router.get('/health',             controller.checkHealth);
+router.get('/health',             checkHealth);
 
-// ── ADD THIS LINE ──────────────────────────────────────────────────────────
-router.get('/:id',                controller.getItinerary);
+// Get itinerary by MongoDB _id
+router.get('/:id',                getItinerary);
 
 // Get itinerary by tourist_id + trip_id
-router.get('/tourist/:tourist_id/:trip_id', controller.getItineraryByTouristAndTrip);
+router.get('/tourist/:tourist_id/:trip_id', getItineraryByTouristAndTrip);
 
-module.exports = router;
+export default router;

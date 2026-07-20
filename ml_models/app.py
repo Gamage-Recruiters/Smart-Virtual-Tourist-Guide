@@ -28,6 +28,18 @@ rp_model           = None
 rp_scaler          = None
 behaviour_encoders = None
 
+# ── Interest to Category/Tags mapping ─────────────────────────────────────────
+INTEREST_CATEGORY_MAP = {
+    'beach':    ['Beach', 'beach'],
+    'culture':  ['Cultural', 'Heritage', 'culture', 'history', 'heritage'],
+    'wildlife': ['Wildlife', 'wildlife'],
+    'nature':   ['Nature', 'nature', 'Wildlife', 'wildlife'],
+    'food':     ['Food', 'food', 'cuisine'],
+    'history':  ['Heritage', 'Cultural', 'history', 'culture'],
+    'hiking':   ['Nature', 'nature', 'adventure'],
+    'adventure':['Adventure', 'adventure', 'nature'],
+}
+
 # ══════════════════════════════════════════════════════════════════════════════
 # STARTUP — Load & Train all models
 # ══════════════════════════════════════════════════════════════════════════════
@@ -162,58 +174,93 @@ def generate_itinerary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# API ENDPOINT 2 — Recommendation System
+# API ENDPOINT 2 — Recommendation System (with interest filtering)
 # POST /api/ml/recommend
+# POST /api/itinerary/recommendations (alias — both work)
 # ══════════════════════════════════════════════════════════════════════════════
+def get_recommendations_logic(data):
+    """Shared logic for both recommendation endpoints"""
+    age           = data.get('age', 30)
+    nationality   = data.get('nationality', 'US')
+    interest      = data.get('interest', 'history')
+    budget_level  = data.get('budget_level', 'medium')
+    trip_duration = data.get('trip_duration', 7)
+    top_n         = data.get('top_n', 5)
+
+    try:
+        nat_enc = rec_encoders['nationality'].transform([nationality])[0]
+    except:
+        nat_enc = 0
+    try:
+        int_enc = rec_encoders['interest'].transform([interest])[0]
+    except:
+        int_enc = 0
+    try:
+        bud_enc = rec_encoders['budget_level'].transform([budget_level])[0]
+    except:
+        bud_enc = 1
+
+    scaled = rec_scaler.transform(pd.DataFrame([{'age': age, 'trip_duration': trip_duration}]))[0]
+    profile_vector = np.array([nat_enc, int_enc, bud_enc, scaled[0], scaled[1]]).reshape(1, -1)
+
+    feature_cols = ['nationality_enc','interest_enc','budget_level_enc','age_scaled','duration_scaled']
+
+    # ── Filter by interest/category ───────────────────────────────────────────
+    df_filtered = recommendation_df.copy()
+    interest_lower = interest.lower()
+    matching = INTEREST_CATEGORY_MAP.get(interest_lower, [])
+
+    if matching:
+        mask = (
+            df_filtered['category'].str.lower().isin([m.lower() for m in matching]) |
+            df_filtered['tags'].str.lower().str.contains(
+                '|'.join([m.lower() for m in matching]), na=False
+            ) |
+            (df_filtered['interest'].str.lower() == interest_lower)
+        )
+        filtered = df_filtered[mask]
+        if len(filtered) >= 3:
+            df_filtered = filtered
+
+    similarities = cosine_similarity(profile_vector, df_filtered[feature_cols].values)[0]
+    df_filtered = df_filtered.copy()
+    df_filtered['similarity_score'] = similarities
+    df_filtered['weighted_score']   = df_filtered['similarity_score'] * df_filtered['rating']
+
+    recs = (df_filtered.groupby('destination')
+            .agg(avg_score=('weighted_score','mean'), avg_rating=('rating','mean'),
+                 category=('category','first'), tags=('tags','first'),
+                 entry_fee_lkr=('entry_fee_lkr','first'))
+            .reset_index()
+            .sort_values('avg_score', ascending=False)
+            .head(top_n))
+
+    return recs.to_dict(orient='records')
+
 @app.route('/api/ml/recommend', methods=['POST'])
 def recommend():
     try:
-        data          = request.get_json()
-        age           = data.get('age', 30)
-        nationality   = data.get('nationality', 'US')
-        interest      = data.get('interest', 'history')
-        budget_level  = data.get('budget_level', 'medium')
-        trip_duration = data.get('trip_duration', 7)
-        top_n         = data.get('top_n', 5)
-
-        try:
-            nat_enc = rec_encoders['nationality'].transform([nationality])[0]
-        except:
-            nat_enc = 0
-        try:
-            int_enc = rec_encoders['interest'].transform([interest])[0]
-        except:
-            int_enc = 0
-        try:
-            bud_enc = rec_encoders['budget_level'].transform([budget_level])[0]
-        except:
-            bud_enc = 1
-
-        scaled = rec_scaler.transform(pd.DataFrame([{'age': age, 'trip_duration': trip_duration}]))[0]
-
-        profile_vector = np.array([nat_enc, int_enc, bud_enc, scaled[0], scaled[1]]).reshape(1, -1)
-
-        feature_cols = ['nationality_enc','interest_enc','budget_level_enc','age_scaled','duration_scaled']
-        similarities = cosine_similarity(profile_vector, recommendation_df[feature_cols].values)[0]
-
-        df_copy = recommendation_df.copy()
-        df_copy['similarity_score'] = similarities
-        df_copy['weighted_score']   = df_copy['similarity_score'] * df_copy['rating']
-
-        recs = (df_copy.groupby('destination')
-                .agg(avg_score=('weighted_score','mean'), avg_rating=('rating','mean'),
-                     category=('category','first'), tags=('tags','first'),
-                     entry_fee_lkr=('entry_fee_lkr','first'))
-                .reset_index()
-                .sort_values('avg_score', ascending=False)
-                .head(top_n))
-
+        data = request.get_json()
+        recommendations = get_recommendations_logic(data)
         return jsonify({
             'status':          'success',
             'tourist_profile': data,
-            'recommendations': recs.to_dict(orient='records'),
+            'recommendations': recommendations,
         }), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
+# ── Alias endpoint (used by Node.js backend) ──────────────────────────────────
+@app.route('/api/itinerary/recommendations', methods=['POST'])
+def recommendations_alias():
+    try:
+        data = request.get_json()
+        recommendations = get_recommendations_logic(data)
+        return jsonify({
+            'status':          'success',
+            'tourist_profile': data,
+            'recommendations': recommendations,
+        }), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -293,6 +340,7 @@ def health():
         'endpoints': [
             'POST /api/itinerary/generate',
             'POST /api/ml/recommend',
+            'POST /api/itinerary/recommendations',
             'POST /api/ml/detect-anomaly',
             'GET  /api/health',
         ]
