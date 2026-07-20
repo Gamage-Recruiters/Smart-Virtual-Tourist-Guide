@@ -8,6 +8,7 @@ exports.getAlerts = async (req, res, next) => {
   try {
     const { lat, lng, radius } = req.query;
     let query = { isActive: true };
+    if (req.query.category) query.category = req.query.category;
 
     // If location params provided, use geospatial $nearSphere query
     if (lat && lng) {

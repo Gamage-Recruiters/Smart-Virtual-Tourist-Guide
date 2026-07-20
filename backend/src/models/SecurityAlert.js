@@ -44,6 +44,11 @@ const securityAlertSchema = new mongoose.Schema(
       enum: ['manual', 'openweather'],
       default: 'manual',
     },
+    category: {
+      type: String,
+      enum: ['weather', 'crime', 'natural_disaster', 'general'],
+      default: 'general',
+    },
     externalId: {
       type: String,
       unique: true,
