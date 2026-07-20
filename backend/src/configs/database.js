@@ -14,6 +14,19 @@ const connectDB = async () => {
     return mongoose.connection;
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
+const logger = require('../utils/logger');
+
+const connectDB = async () => {
+  try {
+    const connection = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-virtual-tourist', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    logger.info('MongoDB connected successfully');
+    return connection;
+  } catch (error) {
+    logger.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };
