@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaStar, FaMapMarkerAlt, FaClock, FaRunning, 
   FaCalendarAlt, FaCheckCircle, FaUserFriends 
@@ -88,6 +88,42 @@ const defaultActivitiesData = [
 
 const Activities_Card = () => {
   const [activitiesData, setActivitiesData] = useState(defaultActivitiesData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/activities');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.length > 0) {
+          // Map backend data to frontend structure
+          const formattedData = result.data.map((act) => ({
+            title: act.title,
+            location: act.location,
+            category: act.category,
+            duration: act.duration,
+            groupSize: `Max ${act.maxParticipants} People`,
+            rating: act.averageRating || 0,
+            reviews: act.totalReviews || 0,
+            price: act.pricePerPerson,
+            hasFreeCancellation: true, // Mock value
+            isInstantBooking: true, // Mock value
+            image: (act.images && act.images.length > 0) 
+              ? act.images[0] 
+              : 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600'
+          }));
+          setActivitiesData(formattedData);
+        }
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -187,9 +223,14 @@ const Activities_Card = () => {
           </div>
 
           {/* Activities Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {activitiesData.map((act, index) => (
-              <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all">
+          {loading ? (
+            <div className="flex justify-center items-center h-48">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {activitiesData.map((act, index) => (
+                <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all">
                 
                 {/* Image & Badges */}
                 <div className="relative h-48 bg-gray-100">
@@ -270,6 +311,7 @@ const Activities_Card = () => {
               </div>
             ))}
           </div>
+          )}
 
           {/* Load More Section */}
           <div className="flex justify-center pt-4">

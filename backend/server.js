@@ -24,9 +24,11 @@ app.get("/api/health", (req, res) => {
 // Feature Routes
 const bidRouter = require("./src/routes/bidRouter");
 const driverRouter = require("./src/routes/driverRouter");
+const activityRouter = require("./src/routes/activityRouter");
 
 app.use("/api/bids", bidRouter);
 app.use("/api/drivers", driverRouter);
+app.use("/api/activities", activityRouter);
 
 // Error Handler (must be after routes)
 const errorHandler = require("./src/middleware/errorHandler");
