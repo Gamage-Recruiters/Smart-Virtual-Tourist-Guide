@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     role: { 
         type: String, 
         // Removed 'Admin' to prevent conflicts with the Admin collection
-        enum: ['Tourist', 'Driver', 'Hotel Owner', 'Travel Agency'], 
+        enum: ['Tourist', 'Driver', 'Hotel Owner', 'Travel Agency','Safety_Manager'], 
         default: 'Tourist' 
     },
     status: { 

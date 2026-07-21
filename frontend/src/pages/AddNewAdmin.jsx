@@ -139,6 +139,7 @@ const AddNewAdmin = () => {
                   <option value="Administrator">Administrator (Full System Access)</option>
                   <option value="Moderator">Moderator (Limited Access)</option>
                   <option value="Editor">Editor (Content Only)</option>
+                  <option value="Safety_Manager">Safety Manager (Emergency & Compliance)</option>
                 </select>
               </div>
               <p className="text-[13px] text-blue-600 bg-blue-50 p-3 rounded-[8px] font-medium text-center">
