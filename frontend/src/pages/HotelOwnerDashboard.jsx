@@ -30,7 +30,7 @@ function HotelOwnerDashboard() {
 									Manage Your Hotel and Boost <span className="font-bold">Your</span> Booking
 								</p>
 								<button
-									onClick={() => (location.href = 'add-room-package')}
+									onClick={() => (location.href = 'view-rooms-packages')}
 									className="inline-flex h-12 items-center justify-center rounded-sm border border-slate-500 bg-white/70 px-10 text-lg font-medium text-slate-700 shadow-sm transition hover:bg-white"
 									type="button"
 								>
