@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { createFeedback, getFeedbackById } from '../controllers/feedbackController.js';
+
 const feedbackRoutes = express.Router();
-const { createFeedback , getFeedbackById } = require('../controllers/feedbackController');
 
 feedbackRoutes.post('/save', createFeedback);
 feedbackRoutes.get('/:touristId/:tripId', getFeedbackById);
 
-module.exports = feedbackRoutes;
+export default feedbackRoutes;

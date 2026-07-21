@@ -1,20 +1,23 @@
-const dns = require('dns');
+import dns from 'dns';
+import dotenv from 'dotenv';
+
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
-require('dotenv').config();
+dotenv.config();
 
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+
+import connectDB from './src/configs/database.js';
+
+import feedbackRoutes from './src/routes/feedbackRoutes.js';
+import itineraryRoutes from './src/routes/itineraryRoutes.js';
+import reportRoutes from './src/routes/reportRoutes.js';
+import pdfRoutes from './src/routes/pdfRoutes.js';
+import healthRoutes from './src/routes/healthRoutes.js';
+import emailRoutes from './src/routes/emailRoutes.js';
 
 const app = express();
-const connectDB = require('./src/configs/database');
-
-const feedbackRoutes = require('./src/routes/feedbackRoutes');
-const itineraryRoutes = require('./src/routes/itineraryRoutes');
-const reportRoutes = require('./src/routes/reportRoutes');
-const pdfRoutes = require('./src/routes/pdfRoutes');
-const healthRoutes = require('./src/routes/healthRoutes');
-const emailRoutes = require('./src/routes/emailRoutes');
 
 connectDB();
 

@@ -5,7 +5,7 @@
 // Used for: AI Generated Trip Plans — Final Trip Report
 // ══════════════════════════════════════════════════════════════════════════════
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Activity Schema — each activity in a day
 const ActivitySchema = new mongoose.Schema({
@@ -114,4 +114,4 @@ const ItinerarySchema = new mongoose.Schema({
 // GET /api/itinerary/:id
 // Returns full itinerary with daily_plan, allocations, recommendations
 
-module.exports = mongoose.model('Itinerary', ItinerarySchema);
+export default mongoose.model('Itinerary', ItinerarySchema);

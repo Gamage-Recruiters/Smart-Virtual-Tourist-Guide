@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const TripFeedbackSchema = new mongoose.Schema({
     
@@ -35,4 +35,4 @@ const TripFeedbackSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('TripFeedback', TripFeedbackSchema);
+export default mongoose.model('TripFeedback', TripFeedbackSchema);

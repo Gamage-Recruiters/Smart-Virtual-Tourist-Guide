@@ -1,8 +1,10 @@
-require('dotenv').config();
-const nodemailer = require('nodemailer');
-const { generatePDFBuffer } = require('./pdfController');
+import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
+import { generatePDFBuffer } from './pdfController.js';
 
-const sendEmail = async (req, res) => {
+dotenv.config();
+
+export const sendEmail = async (req, res) => {
     try {
         const { email, targetUrl } = req.body;
 
@@ -29,5 +31,3 @@ const sendEmail = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-
-module.exports = { sendEmail };

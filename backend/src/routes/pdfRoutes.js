@@ -1,9 +1,10 @@
 // routes/pdfRoutes.js
-const express = require('express');
+import express from 'express';
+import { downloadPDF } from '../controllers/pdfController.js';
+
 const router = express.Router();
-const { downloadPDF } = require('../controllers/pdfController');
 
 // GET /api/export/download
 router.get('/download', downloadPDF);
 
-module.exports = router;
+export default router;

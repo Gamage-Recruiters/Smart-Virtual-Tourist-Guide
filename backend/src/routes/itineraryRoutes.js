@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { getItineraryById, getTripStats } from '../controllers/itineraryController.js';
+
 const router = express.Router();
-const { getItineraryById } = require('../controllers/itineraryController');
-const { getTripStats } = require('../controllers/itineraryController');
 
 
 router.get('/:touristId/:tripId', getItineraryById);
 router.get('/trip-stats/:touristId/:tripId', getTripStats);
 
-module.exports = router;
+export default router;

@@ -1,6 +1,6 @@
-const Itinerary = require('../models/Itinerary');
+import Itinerary from '../models/Itinerary.js';
 
-const getItineraryById = async (req, res) => {
+export const getItineraryById = async (req, res) => {
     try {
 
         const { touristId, tripId } = req.params;
@@ -34,7 +34,7 @@ const getItineraryById = async (req, res) => {
     }
 };
 
-const getTripStats = async (req, res) => {
+export const getTripStats = async (req, res) => {
     try {
         const { touristId, tripId } = req.params;
         const itinerary = await Itinerary.findOne({ _id: tripId, tourist_id: touristId });
@@ -84,10 +84,4 @@ const generateTripSummary = (itinerary) => {
     const summary = `Your journey through Sri Lanka was an incredible experience filled with cultural discoveries and natural wonders. From ${locationStr}, every destination offered unique insights into the rich heritage of this beautiful island nation. During your ${itinerary.num_days}-day adventure, you visited ${placesVisited} amazing places including highlights such as ${highlightStr}. The combination of historical sites, natural beauty, and warm hospitality created an unforgettable travel experience.${savedUSD > 0 ? ` You also managed to save $${savedUSD} under your planned budget — a great achievement!` : ''}`;
 
     return summary;
-};
-
-
-module.exports = {
-    getItineraryById,
-    getTripStats
 };

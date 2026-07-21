@@ -1,6 +1,6 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./configs/database');
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './configs/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -25,4 +25,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-module.exports = app;
+export default app;

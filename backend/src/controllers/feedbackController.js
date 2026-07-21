@@ -1,6 +1,6 @@
-const TripFeedback = require("../models/TripFeedback");
+import TripFeedback from "../models/TripFeedback.js";
 
-const createFeedback = async (req, res) => {
+export const createFeedback = async (req, res) => {
     try {
         const { touristId, tripId, overallRating, feedbackText } = req.body;
 
@@ -31,7 +31,7 @@ const createFeedback = async (req, res) => {
     }
 };
 
-const getFeedbackById = async (req, res) => {
+export const getFeedbackById = async (req, res) => {
     try {
         const { touristId, tripId } = req.params;
 
@@ -60,9 +60,4 @@ const getFeedbackById = async (req, res) => {
             error: error.message
         });
     }
-};
-
-module.exports = {
-    createFeedback,
-    getFeedbackById
 };

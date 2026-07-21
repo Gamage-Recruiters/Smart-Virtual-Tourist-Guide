@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const { countries } = require('countries-list');
+import User from '../models/User.js';
+import { countries } from 'countries-list';
 
 const getRegion = (countryName) => {
     if (!countryName) return 'Asia';
@@ -38,8 +38,8 @@ const getRegion = (countryName) => {
 
     return 'Asia'; // Default fallback
 };
-
-const getTouristArrivalStats = async (req, res) => {
+ 
+export const getTouristArrivalStats = async (req, res) => {
     try {
 
         const tourists = await User.find({ role: 'tourist_user' });
@@ -141,7 +141,3 @@ const getTouristArrivalStats = async (req, res) => {
         });
     }
 };
-
-module.exports = {
-    getTouristArrivalStats
-};  

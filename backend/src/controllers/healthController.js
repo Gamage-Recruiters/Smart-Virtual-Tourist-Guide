@@ -1,9 +1,9 @@
 // controllers/healthController.js
-const User = require('../models/User');
-const Incident = require('../models/incident');
+import User from '../models/User.js';
+import Incident from '../models/incident.js';
 
 // Get verified vaccinations for a tourist
-const getVaccinations = async (req, res, next) => {
+export const getVaccinations = async (req, res, next) => {
   try {
     const { touristId } = req.params;
 
@@ -62,7 +62,7 @@ const getVaccinations = async (req, res, next) => {
 };
 
 // get Incident count for a tourist
-const getIncidentCount = async (req, res, next) => {
+export const getIncidentCount = async (req, res, next) => {
   try {
     const { touristId } = req.params;
 
@@ -81,6 +81,3 @@ const getIncidentCount = async (req, res, next) => {
     next(error);
   }
 };
-
-
-module.exports = { getVaccinations , getIncidentCount };
