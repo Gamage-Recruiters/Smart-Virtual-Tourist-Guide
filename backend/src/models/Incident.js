@@ -10,9 +10,7 @@ const incidentSchema = new mongoose.Schema(
     tripId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Itinerary',
-      // Optional for now to not break existing records, 
-      // but essential for Final Trip Report linking.
-      required: false, 
+      required: false,
     },
     referenceNumber: {
       type: String,
@@ -33,11 +31,11 @@ const incidentSchema = new mongoose.Schema(
       required: true,
     },
     incidentDate: {
-      type: String, // MM/DD/YYYY from the design
+      type: String,
       required: true,
     },
     incidentTime: {
-      type: String, // HH:MM AM/PM from the design
+      type: String,
       required: true,
     },
     district: {
@@ -83,7 +81,7 @@ const incidentSchema = new mongoose.Schema(
     },
     images: [
       {
-        type: String, // URLs for uploaded/captured photos
+        type: String,
       },
     ],
     status: {
