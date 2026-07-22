@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const securityAlertSchema = new mongoose.Schema(
   {
@@ -78,4 +78,4 @@ securityAlertSchema.set('toObject', { virtuals: true });
 // 2dsphere index for geospatial "nearby" queries
 securityAlertSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model('SecurityAlert', securityAlertSchema);
+export default mongoose.model('SecurityAlert', securityAlertSchema);

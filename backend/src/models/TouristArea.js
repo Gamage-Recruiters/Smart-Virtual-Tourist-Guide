@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const touristAreaSchema = new mongoose.Schema({
   area: { type: String, required: true },
@@ -8,4 +8,4 @@ const touristAreaSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('TouristArea', touristAreaSchema);
+export default mongoose.model('TouristArea', touristAreaSchema);

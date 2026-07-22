@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const emergencyContactSchema = new mongoose.Schema({
   service: { type: String, required: true },
@@ -10,4 +10,4 @@ const emergencyContactSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model('EmergencyContact', emergencyContactSchema);
+export default mongoose.model('EmergencyContact', emergencyContactSchema);

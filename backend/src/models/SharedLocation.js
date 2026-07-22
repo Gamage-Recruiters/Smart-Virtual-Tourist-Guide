@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const sharedLocationSchema = new mongoose.Schema(
   {
@@ -39,4 +39,4 @@ const sharedLocationSchema = new mongoose.Schema(
 // Optional: Automatically remove expired documents (TTL index)
 sharedLocationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model('SharedLocation', sharedLocationSchema);
+export default mongoose.model('SharedLocation', sharedLocationSchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const emergencyLocationSchema = new mongoose.Schema(
   {
@@ -53,4 +53,4 @@ const emergencyLocationSchema = new mongoose.Schema(
 // Index for geolocation-based queries
 emergencyLocationSchema.index({ type: 1, isActive: 1 });
 
-module.exports = mongoose.model('EmergencyLocation', emergencyLocationSchema);
+export default mongoose.model('EmergencyLocation', emergencyLocationSchema);
