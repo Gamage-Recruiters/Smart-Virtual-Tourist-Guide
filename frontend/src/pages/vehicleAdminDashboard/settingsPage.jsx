@@ -132,7 +132,7 @@ function SettingsPage() {
       {/* 3. Profile Details Section */}
       <section
         ref={profileRef}
-        className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm  ${activeTab === "Profile Information" ? "shadow-xl" : "border border-slate-100/50"} relative scroll-mt-20`}
+        className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm  ${(activeTab === "Profile Information"|| activeTab === "Documents & Compliance") ? "shadow-xl" : "border border-slate-100/50"} relative scroll-mt-20`}
         onClick={() => handleTabClick("Profile Information")}
       >
         <div className="flex justify-between items-center mb-6">
@@ -169,17 +169,18 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
-                defaultValue="Ishan Lankathilaka"
+               
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700 ml-1">
-                Business Name
+                User Name
               </label>
+              {/* user cannot change username */}
               <input
                 type="text"
-                defaultValue="Lanka Rentals"
+                readOnly
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -189,7 +190,7 @@ function SettingsPage() {
               </label>
               <input
                 type="email"
-                defaultValue="Lankarentals@gmail.com"
+                
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -199,19 +200,18 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
-                defaultValue="+947 000-1234"
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
           </div>
         </div>
-      </section>
+      
 
       {/* 4. Verification Documents Section */}
-      <section
+      <div
         ref={documentsRef}
-        className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-20 ${activeTab === "Documents & Compliance" ? "shadow-xl" : "border border-slate-100/50"}`}
         onClick={() => handleTabClick("Documents & Compliance")}
+        className="mt-20"
       >
         <h2 className="text-lg font-extrabold text-slate-900 mb-6">
           Verification Documents
@@ -246,6 +246,7 @@ function SettingsPage() {
             </span>
           </div>
         </div>
+      </div>
       </section>
 
       {/* 5. Security & Password Section */}
