@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -63,7 +63,15 @@ function Sidebar() {
 
       {/* Bottom Profile Section */}
       <div className="border-t border-blue-200 pt-4 px-2 flex items-center gap-3 mt-4">
-        <div className="w-10 h-10 rounded-full bg-red-300"></div>
+        <div className="w-10 h-10 rounded-full bg-slate-300 cursor-pointer">
+            <Link to="/login">
+            <img
+              src="#"
+              alt="Profile"
+              className="w-full h-full object-cover rounded-full"
+            />
+            </Link>
+        </div>
         <div>
           <p className="text-sm font-bold text-slate-800">
             {user?.fullName || "Guest"}
