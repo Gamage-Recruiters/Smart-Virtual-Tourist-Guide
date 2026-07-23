@@ -1,10 +1,10 @@
-const SecurityAlert = require('../models/SecurityAlert');
-const logger = require('../utils/logger');
+import SecurityAlert from '../models/SecurityAlert.js';
+import logger from '../utils/logger.js';
 
 // @desc    Get all active security alerts
 // @route   GET /api/safety/security-alerts
 // @access  Public
-exports.getAlerts = async (req, res, next) => {
+export const getAlerts = async (req, res, next) => {
   try {
     const { lat, lng, radius } = req.query;
     let query = { isActive: true };
@@ -32,7 +32,7 @@ exports.getAlerts = async (req, res, next) => {
 // @desc    Get single security alert
 // @route   GET /api/safety/security-alerts/:id
 // @access  Public
-exports.getAlertById = async (req, res, next) => {
+export const getAlertById = async (req, res, next) => {
   try {
     const alert = await SecurityAlert.findById(req.params.id);
     if (!alert) {
@@ -48,7 +48,7 @@ exports.getAlertById = async (req, res, next) => {
 // @desc    Create new security alert
 // @route   POST /api/safety/security-alerts
 // @access  Private (Admin/Safety Manager)
-exports.createAlert = async (req, res, next) => {
+export const createAlert = async (req, res, next) => {
   try {
     // Convert old { lat, lng } format to GeoJSON if needed
     if (req.body.location && req.body.location.lat && !req.body.location.coordinates) {
@@ -70,7 +70,7 @@ exports.createAlert = async (req, res, next) => {
     // --- Trigger Notification Engine ---
     // Push this security alert to all connected users via Socket.io
     try {
-      const { sendNotification } = require('../services/NotificationService');
+      const { sendNotification } = await import('../services/NotificationService.js');
       const io = req.app.get('io');
       if (io) {
         await sendNotification(io, {
@@ -105,7 +105,7 @@ exports.createAlert = async (req, res, next) => {
 // @desc    Update security alert
 // @route   PUT /api/safety/security-alerts/:id
 // @access  Private (Admin/Safety Manager)
-exports.updateAlert = async (req, res, next) => {
+export const updateAlert = async (req, res, next) => {
   try {
     const alert = await SecurityAlert.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -126,7 +126,7 @@ exports.updateAlert = async (req, res, next) => {
 // @desc    Delete security alert
 // @route   DELETE /api/safety/security-alerts/:id
 // @access  Private (Admin/Safety Manager)
-exports.deleteAlert = async (req, res, next) => {
+export const deleteAlert = async (req, res, next) => {
   try {
     const alert = await SecurityAlert.findByIdAndDelete(req.params.id);
 

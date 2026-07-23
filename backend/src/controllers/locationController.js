@@ -1,5 +1,5 @@
-const SharedLocation = require('../models/SharedLocation');
-const logger = require('../utils/logger');
+import SharedLocation from '../models/SharedLocation.js';
+import logger from '../utils/logger.js';
 
 // Helper to generate random 6-char share code
 const generateShareCode = () => {
@@ -9,7 +9,7 @@ const generateShareCode = () => {
 // @desc    Generate a share link / start sharing location
 // @route   POST /api/safety/location/share
 // @access  Public (or Private for logged in Tourist)
-exports.shareLocation = async (req, res, next) => {
+export const shareLocation = async (req, res, next) => {
   try {
     const { lat, lng, durationHours = 1 } = req.body;
     
@@ -38,7 +38,7 @@ exports.shareLocation = async (req, res, next) => {
 // @desc    Get shared location by code
 // @route   GET /api/safety/location/:shareCode
 // @access  Public (with link)
-exports.getSharedLocation = async (req, res, next) => {
+export const getSharedLocation = async (req, res, next) => {
   try {
     const { shareCode } = req.params;
     
@@ -58,7 +58,7 @@ exports.getSharedLocation = async (req, res, next) => {
 // @desc    Update shared location
 // @route   PUT /api/safety/location/:shareCode
 // @access  Private (Owner only - placeholder auth)
-exports.updateSharedLocation = async (req, res, next) => {
+export const updateSharedLocation = async (req, res, next) => {
   try {
     const { shareCode } = req.params;
     const { lat, lng } = req.body;
@@ -87,7 +87,7 @@ exports.updateSharedLocation = async (req, res, next) => {
 // @desc    Stop sharing location
 // @route   DELETE /api/safety/location/:shareCode
 // @access  Private (Owner only - placeholder auth)
-exports.stopSharingLocation = async (req, res, next) => {
+export const stopSharingLocation = async (req, res, next) => {
   try {
     const { shareCode } = req.params;
 

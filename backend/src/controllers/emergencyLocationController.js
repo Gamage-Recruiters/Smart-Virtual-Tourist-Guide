@@ -1,5 +1,5 @@
-const EmergencyLocation = require('../models/EmergencyLocation');
-const logger = require('../utils/logger');
+import EmergencyLocation from '../models/EmergencyLocation.js';
+import logger from '../utils/logger.js';
 
 // --- In-Memory Cache for Overpass API ---
 const apiCache = new Map();
@@ -16,7 +16,7 @@ const getCacheKey = (type, lat, lng, radius) => {
 // @desc    Get all Tourist Police stations from the database
 // @route   GET /api/safety/emergency-locations/police
 // @access  Public
-exports.getPoliceStations = async (req, res, next) => {
+export const getPoliceStations = async (req, res, next) => {
   try {
     const stations = await EmergencyLocation.find({
       type: 'tourist_police',
@@ -37,7 +37,7 @@ exports.getPoliceStations = async (req, res, next) => {
 // @desc    Get nearby hospitals using Overpass API (OpenStreetMap) — free, no API key
 // @route   GET /api/safety/emergency-locations/hospitals?lat=X&lng=Y&radius=5000
 // @access  Public
-exports.getNearbyHospitals = async (req, res, next) => {
+export const getNearbyHospitals = async (req, res, next) => {
   try {
     const { lat, lng, radius = 15000 } = req.query;
 
@@ -161,7 +161,7 @@ exports.getNearbyHospitals = async (req, res, next) => {
 // @desc    Get nearby local police stations using Overpass API (OpenStreetMap) — free, no API key
 // @route   GET /api/safety/emergency-locations/local-police?lat=X&lng=Y&radius=15000
 // @access  Public
-exports.getNearbyPoliceStations = async (req, res, next) => {
+export const getNearbyPoliceStations = async (req, res, next) => {
   try {
     const { lat, lng, radius = 15000 } = req.query;
 
@@ -275,7 +275,7 @@ exports.getNearbyPoliceStations = async (req, res, next) => {
 // @desc    Get all emergency locations (with optional type filter)
 // @route   GET /api/safety/emergency-locations?type=tourist_police
 // @access  Public
-exports.getAllLocations = async (req, res, next) => {
+export const getAllLocations = async (req, res, next) => {
   try {
     const query = { isActive: true };
     if (req.query.type) {
@@ -298,7 +298,7 @@ exports.getAllLocations = async (req, res, next) => {
 // @desc    Create a new emergency location (admin/seed)
 // @route   POST /api/safety/emergency-locations
 // @access  Private (Admin)
-exports.createLocation = async (req, res, next) => {
+export const createLocation = async (req, res, next) => {
   try {
     const location = await EmergencyLocation.create(req.body);
     res.status(201).json({ success: true, data: location });
@@ -311,7 +311,7 @@ exports.createLocation = async (req, res, next) => {
 // @desc    Update an emergency location
 // @route   PUT /api/safety/emergency-locations/:id
 // @access  Private (Admin)
-exports.updateLocation = async (req, res, next) => {
+export const updateLocation = async (req, res, next) => {
   try {
     const location = await EmergencyLocation.findByIdAndUpdate(
       req.params.id,
@@ -336,7 +336,7 @@ exports.updateLocation = async (req, res, next) => {
 // @desc    Delete an emergency location
 // @route   DELETE /api/safety/emergency-locations/:id
 // @access  Private (Admin)
-exports.deleteLocation = async (req, res, next) => {
+export const deleteLocation = async (req, res, next) => {
   try {
     const location = await EmergencyLocation.findByIdAndDelete(req.params.id);
 

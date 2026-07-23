@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
-const Incident = require('../models/Incident');
-const logger = require('../utils/logger');
+import mongoose from 'mongoose';
+import Incident from '../models/Incident.js';
+import logger from '../utils/logger.js';
 
 // @desc    Report a new incident
 // @route   POST /api/safety/incidents
 // @access  Public (or semi-private for Tourists)
-exports.createIncident = async (req, res, next) => {
+export const createIncident = async (req, res, next) => {
   try {
     logger.info('Creating incident with body:', req.body);
     logger.info('Files received:', req.files?.length || 0);
@@ -65,7 +65,7 @@ exports.createIncident = async (req, res, next) => {
 // @desc    Get all incidents (with optional filters)
 // @route   GET /api/safety/incidents
 // @access  Private (Admin/Safety Manager)
-exports.getIncidents = async (req, res, next) => {
+export const getIncidents = async (req, res, next) => {
   try {
     const query = {};
     if (req.query.status) query.status = req.query.status;
@@ -90,7 +90,7 @@ exports.getIncidents = async (req, res, next) => {
 // @desc    Get all incidents for public display (limited fields, no contact info)
 // @route   GET /api/safety/incidents/public
 // @access  Public
-exports.getPublicIncidents = async (req, res, next) => {
+export const getPublicIncidents = async (req, res, next) => {
   try {
     const query = {};
     if (req.query.status) query.status = req.query.status;
@@ -120,7 +120,7 @@ exports.getPublicIncidents = async (req, res, next) => {
 // @desc    Get count of incidents (optionally filtered by touristId)
 // @route   GET /api/safety/incidents/count
 // @access  Private (Report Generator/Tourist)
-exports.getIncidentCount = async (req, res, next) => {
+export const getIncidentCount = async (req, res, next) => {
   try {
     const query = {};
     if (req.query.touristId) query.touristId = req.query.touristId;
@@ -149,7 +149,7 @@ exports.getIncidentCount = async (req, res, next) => {
 // @desc    Get single incident
 // @route   GET /api/safety/incidents/:id
 // @access  Private
-exports.getIncidentById = async (req, res, next) => {
+export const getIncidentById = async (req, res, next) => {
   try {
     const incident = await Incident.findById(req.params.id);
     if (!incident) {
@@ -165,7 +165,7 @@ exports.getIncidentById = async (req, res, next) => {
 // @desc    Update incident status
 // @route   PUT /api/safety/incidents/:id
 // @access  Private (Admin/Safety Manager)
-exports.updateIncident = async (req, res, next) => {
+export const updateIncident = async (req, res, next) => {
   try {
     const incident = await Incident.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -186,7 +186,7 @@ exports.updateIncident = async (req, res, next) => {
 // @desc    Delete incident
 // @route   DELETE /api/safety/incidents/:id
 // @access  Private (Admin/Safety Manager/Tourist)
-exports.deleteIncident = async (req, res, next) => {
+export const deleteIncident = async (req, res, next) => {
   try {
     const incident = await Incident.findById(req.params.id);
     

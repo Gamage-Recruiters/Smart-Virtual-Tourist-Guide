@@ -1,6 +1,6 @@
-const logger = require('../utils/logger');
+import logger from '../utils/logger.js';
 
-const TouristArea = require('../models/TouristArea');
+import TouristArea from '../models/TouristArea.js';
 
 /**
  * Analyze weather data and return a risk assessment for a tourist area.
@@ -85,7 +85,7 @@ function assessRisk(weatherData) {
 }
 
 // Proxy to OpenWeather API
-exports.getWeather = async (req, res, next) => {
+export const getWeather = async (req, res, next) => {
   try {
     const { lat, lng } = req.query;
 
@@ -132,7 +132,7 @@ exports.getWeather = async (req, res, next) => {
  * Fetches live weather for all predefined tourist areas in parallel,
  * analyzes conditions, and returns dynamic risk assessments.
  */
-exports.getWeatherAlerts = async (req, res, next) => {
+export const getWeatherAlerts = async (req, res, next) => {
   try {
     const apiKey = process.env.OPENWEATHER_API_KEY;
     if (!apiKey || apiKey === 'your_openweather_api_key_here') {
