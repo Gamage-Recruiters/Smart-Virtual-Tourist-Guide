@@ -1,19 +1,20 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const upload = require('../middleware/uploadMiddleware');
+import upload from '../middleware/uploadMiddleware.js';
 // Auth middleware
 let protect;
 try {
-  ({ protect } = require('../middleware/authMiddleware'));
+  const authModule = await import('../middleware/authMiddleware.js');
+  protect = authModule.protect;
 } catch {
   protect = (req, res, next) => next();
 }
 
-const weatherController = require('../controllers/weatherController');
-const securityAlertController = require('../controllers/securityAlertController');
-const incidentController = require('../controllers/incidentController');
-const locationController = require('../controllers/locationController');
-const emergencyLocationController = require('../controllers/emergencyLocationController');
+import * as weatherController from '../controllers/weatherController.js';
+import * as securityAlertController from '../controllers/securityAlertController.js';
+import * as incidentController from '../controllers/incidentController.js';
+import * as locationController from '../controllers/locationController.js';
+import * as emergencyLocationController from '../controllers/emergencyLocationController.js';
 
 // --- Weather Routes ---
 router.get('/weather/alerts', weatherController.getWeatherAlerts);
@@ -63,7 +64,7 @@ router.route('/emergency-locations/:id')
   .delete(emergencyLocationController.deleteLocation);
 
 // --- Emergency Contacts (Dynamic) ---
-const EmergencyContact = require('../models/EmergencyContact');
+import EmergencyContact from '../models/EmergencyContact.js';
 router.get('/emergency-contacts', async (req, res, next) => {
   try {
     const contacts = await EmergencyContact.find({ isActive: true }).sort({ priority: 1 });
@@ -77,7 +78,8 @@ router.get('/emergency-contacts', async (req, res, next) => {
 // User model 
 let User;
 try {
-  User = require('../models/User');
+  const userModule = await import('../models/User.js');
+  User = userModule.default || userModule.User;
 } catch {
   User = null;
 }
@@ -112,4 +114,4 @@ router.get('/tourists/profile/:id', async (req, res, next) => {
   }
 });
 
-module.exports = router;
+export default router;

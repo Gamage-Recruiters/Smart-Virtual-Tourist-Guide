@@ -1,5 +1,5 @@
-const SecurityAlert = require('../models/SecurityAlert');
-const logger = require('./logger');
+import SecurityAlert from '../models/SecurityAlert.js';
+import logger from './logger.js';
 
 // All 25 administrative districts of Sri Lanka with capital coordinates
 const SRI_LANKA_DISTRICTS = [
@@ -212,7 +212,7 @@ async function syncWeatherAlerts(io) {
       // Push weather alerts to all connected users via Socket.io
       if (io) {
         try {
-          const { sendNotification } = require('../services/NotificationService');
+          const { sendNotification } = await import('../services/NotificationService.js');
           await sendNotification(io, {
             scope: 'BROADCAST',
             title: `${data.weather?.[0]?.main || 'Weather'} Alert — ${place.district}`,
@@ -237,4 +237,4 @@ async function syncWeatherAlerts(io) {
   logger.info(`[AlertSync] Sync complete — ${synced} upserted, ${deactivated} deactivated, ${errors} errors`);
 }
 
-module.exports = { syncWeatherAlerts };
+export { syncWeatherAlerts };

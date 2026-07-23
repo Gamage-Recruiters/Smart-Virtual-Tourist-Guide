@@ -1,15 +1,15 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 dotenv.config();
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const cron = require('node-cron');
-const connectDB = require('./src/config/database');
-const errorHandler = require('./src/middleware/errorHandler');
-const safetyRouter = require('./src/routes/safetyRouter');
-const { syncWeatherAlerts } = require('./src/utils/alertSyncService');
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import cron from 'node-cron';
+import connectDB from './src/config/database.js';
+import errorHandler from './src/middleware/errorHandler.js';
+import safetyRouter from './src/routes/safetyRouter.js';
+import { syncWeatherAlerts } from './src/utils/alertSyncService.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -19,8 +19,8 @@ const PORT = process.env.PORT || 5000;
 // Wrapped in try/catch so the server starts even if notification module isn't merged yet
 let io = null;
 try {
-  const notificationHandler = require('./socket/notificationHandler');
-  const socketAuth = require('./src/middleware/socketAuthMiddleware');
+  const { default: notificationHandler } = await import('./socket/notificationHandler.js');
+  const { default: socketAuth } = await import('./src/middleware/socketAuthMiddleware.js');
 
   io = new Server(server, {
     cors: {

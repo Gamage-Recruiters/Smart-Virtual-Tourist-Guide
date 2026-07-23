@@ -4,10 +4,10 @@
  *
  * Run with: node src/seeds/migrateAlerts.js
  */
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 dotenv.config();
-const connectDB = require('../config/database');
+import connectDB from '../config/database.js';
 
 async function migrate() {
   await connectDB();

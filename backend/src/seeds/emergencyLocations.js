@@ -5,14 +5,19 @@
  * It will connect to the DB and insert all locations.
  */
 
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const path = require('path');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ESM __dirname replacement
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load env from backend root
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const EmergencyLocation = require('../models/EmergencyLocation');
+import EmergencyLocation from '../models/EmergencyLocation.js';
 
 // Original Tourist Police Stations
 const touristPoliceStations = [
