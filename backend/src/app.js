@@ -1,9 +1,9 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
 
-const authRoutes = require('./routes/authRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const errorHandler = require('./middleware/errorHandler');
+import authRoutes from './routes/authRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -27,4 +27,4 @@ app.get('/api/health', (req, res) => {
 // error handler middleware
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

@@ -1,5 +1,5 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   loginUser,
   registerTourist,
   registerHotelOwner,
@@ -15,8 +15,8 @@ const {
   addHotelInfo,
   googleAuth,
   getMe
-} = require('../controllers/authController');
-const {
+} from '../controllers/authController.js';
+import {
   validateTouristRegister,
   validateHotelOwnerRegister,
   validateGuideRegister,
@@ -27,9 +27,9 @@ const {
   validateDriverRegister,
   validateLogin,
   validateHotelInfo,
-} = require('../validators/authValidator');
-const { protect } = require('../middleware/authMiddleware');
-const { uploadDriverDocs } = require('../config/cloudinary');
+} from '../validators/authValidator.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { uploadDriverDocs } from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -72,4 +72,4 @@ router.post('/reset-password', resetPassword);
 // Used for session handling and fetching current user data after login
 router.get('/me', protect, getMe);
 
-module.exports = router;
+export default router;

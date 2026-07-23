@@ -1,6 +1,6 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer from 'multer';
 
 // Configure Cloudinary with user-provided credentials
 cloudinary.config({
@@ -21,7 +21,7 @@ const storage = new CloudinaryStorage({
 // Create upload middleware configured for driver documents
 const uploadDriverDocs = multer({ storage: storage });
 
-module.exports = {
+export {
   cloudinary,
   uploadDriverDocs,
 };

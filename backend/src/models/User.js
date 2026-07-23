@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   fullName: {
@@ -65,6 +65,7 @@ const userSchema = new mongoose.Schema({
   emergencyContact: {
     name: { type: String },
     relationship: { type: String },
+    contactNumber: { type: String },
     country: { type: String }
   },
   // Hotel Owner specific fields — array to support multiple hotels per owner
@@ -150,4 +151,4 @@ userSchema.pre('save', async function () {
 });
 
 const User = mongoose.model('User', userSchema);
-module.exports = User;
+export default User;
