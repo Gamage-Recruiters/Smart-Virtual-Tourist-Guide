@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Bell,
   Plus,
@@ -17,12 +17,32 @@ function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [renter, setRenter] = useState("");
   const token = localStorage.getItem("renterToken");
 
   // 1. Create refs for each section
   const profileRef = useRef(null);
   const documentsRef = useRef(null);
   const securityRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      axios
+        .get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => {
+          setRenter(res.data.user);
+        })
+        .catch((e) => {
+          console.log(e.message);
+        });
+    } catch (e) {
+      console.log(e);
+    }
+  });
 
   const tabs = [
     "Profile Information",
@@ -132,14 +152,14 @@ function SettingsPage() {
       {/* 3. Profile Details Section */}
       <section
         ref={profileRef}
-        className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm  ${(activeTab === "Profile Information"|| activeTab === "Documents & Compliance") ? "shadow-xl" : "border border-slate-100/50"} relative scroll-mt-20`}
+        className={`bg-white rounded-3xl p-6 md:p-8 shadow-sm  ${activeTab === "Profile Information" || activeTab === "Documents & Compliance" ? "shadow-xl" : "border border-slate-100/50"} relative scroll-mt-20`}
         onClick={() => handleTabClick("Profile Information")}
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-extrabold text-slate-900">
             Profile Details
           </h2>
-          <button className="text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors absolute top-6 right-8">
+          <button className="text-sm font-bold bg-slate-50/80 text-orange-500 hover:text-orange-600 transition-colors cursor-pointer px-3 py-2 rounded-xl shadow-sm hover:shadow-md">
             Save Changes
           </button>
         </div>
@@ -169,7 +189,7 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
-               
+                value={renter.fullName}
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -180,6 +200,7 @@ function SettingsPage() {
               {/* user cannot change username */}
               <input
                 type="text"
+                value={renter.username}
                 readOnly
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
@@ -190,7 +211,7 @@ function SettingsPage() {
               </label>
               <input
                 type="email"
-                
+                value={renter.email}
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -200,53 +221,55 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
+                value={renter.contactNumber}
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
           </div>
         </div>
-      
 
-      {/* 4. Verification Documents Section */}
-      <div
-        ref={documentsRef}
-        onClick={() => handleTabClick("Documents & Compliance")}
-        className="mt-20"
-      >
-        <h2 className="text-lg font-extrabold text-slate-900 mb-6">
-          Verification Documents
-        </h2>
+        {/* 4. Verification Documents Section */}
+        <div
+          ref={documentsRef}
+          onClick={() => handleTabClick("Documents & Compliance")}
+          className="mt-20"
+        >
+          <h2 className="text-lg font-extrabold text-slate-900 mb-6">
+            Verification Documents
+          </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-10">
-          {/* Card 1: ID */}
-          <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
-            <ShieldCheck size={24} className="text-slate-400 mb-3" />
-            <h3 className="text-sm font-extrabold text-slate-900 mb-1">
-              Owner ID / Passport
-            </h3>
-            <p className="text-[11px] font-medium text-slate-400 mb-4">
-              Front & Back scan
-            </p>
-            <span className="bg-green-50 text-green-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck size={12} /> Verified
-            </span>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-10">
+            {/* Card 1: ID */}
+            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
+              <ShieldCheck size={28} className="text-slate-400 mb-3" />
+              <h3 className="text-lg font-extrabold text-slate-900 mb-1">
+                Owner ID / Passport
+              </h3>
+              <p className="text-sm font-medium text-slate-400 mb-4">
+                Front & Back scan
+                <span className="text-[11px] block">{`JPG, PNG (max 5MB)`}</span>
+              </p>
+              <span className="bg-green-50 text-green-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                <ShieldCheck size={12} /> Uploaded
+              </span>
+            </div>
 
-          {/* Card 2: Business License */}
-          <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
-            <Building2 size={24} className="text-slate-400 mb-3" />
-            <h3 className="text-sm font-extrabold text-slate-900 mb-1">
-              Business License
-            </h3>
-            <p className="text-[11px] font-medium text-slate-400 mb-4">
-              Valid trade license
-            </p>
-            <span className="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
-              Under Review
-            </span>
+            {/* Card 2: Business License */}
+            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
+              <Building2 size={28} className="text-slate-400 mb-3" />
+              <h3 className="text-lg font-extrabold text-slate-900 mb-1">
+                Business License
+              </h3>
+              <p className="text-sm font-medium text-slate-400 mb-4">
+                Valid trade license
+                <span className="text-[11px] block">{`JPG, PNG (max 5MB)`}</span>
+              </p>
+              <span className="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                Upload Pending
+              </span>
+            </div>
           </div>
         </div>
-      </div>
       </section>
 
       {/* 5. Security & Password Section */}

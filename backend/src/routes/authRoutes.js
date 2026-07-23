@@ -14,6 +14,7 @@ import {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
+  getMe,
 } from '../controllers/authController.js';
 
 import {
@@ -55,5 +56,10 @@ authRouter.post('/add-hotel-info', protect, validateHotelInfo, addHotelInfo);
 // Password recovery routes
 authRouter.post('/forgot-password', forgotPassword);
 authRouter.post('/reset-password', resetPassword);
+
+
+// Protected route: returns the authenticated user's profile based on JWT token
+// Used for session handling and fetching current user data after login
+authRouter.get('/me', protect, getMe);
 
 export default authRouter; 
