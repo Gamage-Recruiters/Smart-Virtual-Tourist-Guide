@@ -10,6 +10,7 @@ import {
 import AddVehicleModal from "./addVehicle/addVehicleModal";
 import toast from "react-hot-toast";
 import axios from "axios";
+import uploadFileToSupabase from "../../utils/fileUpload";
 
 function SettingsPage() {
   const [activeTab, setActiveTab] = useState("Profile Information");
@@ -23,6 +24,7 @@ function SettingsPage() {
   const [nicError, setNicError] = useState("");
   const [businessLicense, setBusinessLicense] = useState(null);
   const [businessLicenseError, setBusinessLicenseError] = useState("");
+  const [profileInforLoading, setProfileInforLoading] = useState(false);
 
   const nicInputRef = useRef(null);
   const businessLicenseInputRef = useRef(null);
@@ -103,9 +105,9 @@ function SettingsPage() {
     }
   }
 
-  function handleProfileInfoUpdate() {
+  async function handleProfileInfoUpdate() {
     try {
-      // setIsLoading(true);
+      setProfileInforLoading(true);
       // axios
       //   .post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile`, {
       //     token,
@@ -124,19 +126,25 @@ function SettingsPage() {
       //     // console.error(e.message);
       //     toast.error(e.response?.data?.message || "Error. Try Again!");
       //   });
+
+      const nicOrPassportUrl = nicOrPassport
+        ? await uploadFileToSupabase(nicOrPassport, "renter-verification-documents")
+        : null;
+      const businessLicenseUrl = businessLicense
+        ? await uploadFileToSupabase(businessLicense, "renter-verification-documents")
+        : null;
       console.log({
         token,
         fullName: renter.fullName,
         email: renter.email,
         contactNumber: renter.contactNumber,
-        veificationDocuments: [nicOrPassport, businessLicense],
+        veificationDocuments: [nicOrPassportUrl, businessLicenseUrl],
       });
     } catch (err) {
       console.log(err);
+    } finally {
+      setProfileInforLoading(false);
     }
-    // finally {
-    //   setIsLoading(false);
-    // }
   }
 
   const processFile = (file, setError, fieldName) => {
@@ -144,7 +152,7 @@ function SettingsPage() {
 
     if (!file) return;
 
-    const validTypes = ["application/pdf", "image/png", "image/jpeg"];
+    const validTypes = ["image/png", "image/jpeg"];
     if (!validTypes.includes(file.type)) {
       setError("Invalid format. Please use PDF, PNG, or JPG.");
       return;
@@ -222,10 +230,11 @@ function SettingsPage() {
             Profile Details
           </h2>
           <button
-            className="text-sm font-bold bg-[#2563EB] text-white transition-colors cursor-pointer px-3 py-2 rounded-lg shadow-sm hover:shadow-md hover:bg-[#1d4ed8]"
+            className={`text-sm font-bold bg-[#2563EB] text-white transition-colors px-3 py-2 rounded-lg shadow-sm hover:shadow-md hover:bg-[#1d4ed8] ${profileInforLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             onClick={handleProfileInfoUpdate}
+            disabled={profileInforLoading}
           >
-            Save Changes
+            {profileInforLoading ? "Saving..." : "save changes"}
           </button>
         </div>
 
