@@ -5,22 +5,23 @@ import RestaurantAvailabilityCard from "../../components/booking&reservation/ser
 const RestaurantBooking = () => {
 
     return (
-        <div className="bg-gray-100 min-h-screen p-6">
+        <div className="bg-gray-100 min-h-screen p-6 flex justify-center items-start pt-10">
+            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ServiceDetailsCard //hard coded------------------
+                    service={{
+                        image:
+                            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
+                        name: "Ministry of Crab",
+                        location: "Dutch Hospital, Colombo",
+                        rating: 4.9,
+                        reviews: 1250,
+                        description:
+                            "Award-winning seafood restaurant famous for Sri Lankan crab dishes."
+                    }} 
+                />
 
-            <ServiceDetailsCard //hard coded------------------
-                service={{
-                    image:
-                        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
-                    name: "Ministry of Crab",
-                    location: "Dutch Hospital, Colombo",
-                    rating: 4.9,
-                    reviews: 1250,
-                    description:
-                        "Award-winning seafood restaurant famous for Sri Lankan crab dishes."
-                }} />
-
-            <RestaurantAvailabilityCard />
-
+                <RestaurantAvailabilityCard />
+            </div>
         </div>
     )
 

@@ -5,25 +5,25 @@ import ActivityAvailabilityCard from "../../components/booking&reservation/servi
 
 const ActivityBooking = () => {
     return (
-        <div className="bg-gray-100 min-h-screen p-6">
-            <ServiceDetailsCard //hard coded------------------
-                service={{
-                    image:
-                        "https://images.unsplash.com/photo-1549366021-9f761d040a94",
-                    name: "Yala Safari Adventure",
-                    location: "Yala National Park",
-                    rating: 4.9,
-                    reviews: 315,
-                    description:
-                        "Full-day safari experience with experienced guides and luxury jeep transport."
-                
-                }} />
+        <div className="bg-gray-100 min-h-screen p-6 flex justify-center items-start pt-10">
+            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ServiceDetailsCard //hard coded------------------
+                    service={{
+                        image:
+                            "https://images.unsplash.com/photo-1549366021-9f761d040a94",
+                        name: "Yala Safari Adventure",
+                        location: "Yala National Park",
+                        rating: 4.9,
+                        reviews: 315,
+                        description:
+                            "Full-day safari experience with experienced guides and luxury jeep transport."
+                    }} 
+                />
 
-            <ActivityAvailabilityCard />
-
+                <ActivityAvailabilityCard />
+            </div>
         </div>
     )
-
 };
 export default ActivityBooking;
 
