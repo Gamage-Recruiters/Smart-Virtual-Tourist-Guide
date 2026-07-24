@@ -82,6 +82,7 @@ const defaultHotelsData = [
 ];
 
 const Hotels_Card = () => {
+  const navigate = useNavigate();
   const [hotelsData, setHotelsData] = useState(defaultHotelsData);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -228,7 +229,10 @@ const Hotels_Card = () => {
                       </div>
                       <p className="text-[10px] text-gray-400 font-medium">{hotel.reviews} reviews</p>
                     </div>
-                    <button className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all">
+                    <button 
+                      onClick={() => navigate('/hotel-booking', { state: { hotel } })}
+                      className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all"
+                    >
                       View Rooms
                     </button>
                   </div>
