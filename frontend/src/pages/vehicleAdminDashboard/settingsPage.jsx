@@ -18,6 +18,14 @@ function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [renter, setRenter] = useState("");
+
+  const [nicOrPassport, setNicOrPassport] = useState(null);
+  const [nicError, setNicError] = useState("");
+  const [businessLicense, setBusinessLicense] = useState(null);
+  const [businessLicenseError, setBusinessLicenseError] = useState("");
+
+  const nicInputRef = useRef(null);
+  const businessLicenseInputRef = useRef(null);
   const token = localStorage.getItem("renterToken");
 
   // 1. Create refs for each section
@@ -26,23 +34,19 @@ function SettingsPage() {
   const securityRef = useRef(null);
 
   useEffect(() => {
-    try {
-      axios
-        .get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          setRenter(res.data.user);
-        })
-        .catch((e) => {
-          console.log(e.message);
-        });
-    } catch (e) {
-      console.log(e);
-    }
-  });
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setRenter(res.data.user);
+      })
+      .catch((e) => {
+        console.log(e.message);
+      });
+  }, [token]);
 
   const tabs = [
     "Profile Information",
@@ -96,9 +100,67 @@ function SettingsPage() {
       console.log(err);
     } finally {
       setIsLoading(false);
-      console.log(newPassword, confirmPassword);
     }
   }
+
+  function handleProfileInfoUpdate() {
+    try {
+      // setIsLoading(true);
+      // axios
+      //   .post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/update-profile`, {
+      //     token,
+      //     fullName: renter.fullName,
+      //     email: renter.email,
+      //     contactNumber: renter.contactNumber,
+      //     veificationDocuments:[
+      //       nicOrPassport,
+      //       businessLicense
+      //     ]
+      //   })
+      //   .then(() => {
+      //     toast.success("Profile Updated Successfully");
+      //   })
+      //   .catch((e) => {
+      //     // console.error(e.message);
+      //     toast.error(e.response?.data?.message || "Error. Try Again!");
+      //   });
+      console.log({
+        token,
+        fullName: renter.fullName,
+        email: renter.email,
+        contactNumber: renter.contactNumber,
+        veificationDocuments: [nicOrPassport, businessLicense],
+      });
+    } catch (err) {
+      console.log(err);
+    }
+    // finally {
+    //   setIsLoading(false);
+    // }
+  }
+
+  const processFile = (file, setError, fieldName) => {
+    setError("");
+
+    if (!file) return;
+
+    const validTypes = ["application/pdf", "image/png", "image/jpeg"];
+    if (!validTypes.includes(file.type)) {
+      setError("Invalid format. Please use PDF, PNG, or JPG.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.");
+      return;
+    }
+
+    if (fieldName === "nicOrPassport") {
+      setNicOrPassport(file);
+    } else if (fieldName === "businessLicense") {
+      setBusinessLicense(file);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -159,7 +221,10 @@ function SettingsPage() {
           <h2 className="text-lg font-extrabold text-slate-900">
             Profile Details
           </h2>
-          <button className="text-sm font-bold bg-slate-50/80 text-orange-500 hover:text-orange-600 transition-colors cursor-pointer px-3 py-2 rounded-xl shadow-sm hover:shadow-md">
+          <button
+            className="text-sm font-bold bg-[#2563EB] text-white transition-colors cursor-pointer px-3 py-2 rounded-lg shadow-sm hover:shadow-md hover:bg-[#1d4ed8]"
+            onClick={handleProfileInfoUpdate}
+          >
             Save Changes
           </button>
         </div>
@@ -189,7 +254,10 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
-                value={renter.fullName}
+                value={renter?.fullName || ""}
+                onChange={(e) =>
+                  setRenter({ ...renter, fullName: e.target.value })
+                }
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -200,7 +268,7 @@ function SettingsPage() {
               {/* user cannot change username */}
               <input
                 type="text"
-                value={renter.username}
+                value={renter?.username || ""}
                 readOnly
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
@@ -211,7 +279,10 @@ function SettingsPage() {
               </label>
               <input
                 type="email"
-                value={renter.email}
+                value={renter?.email || ""}
+                onChange={(e) =>
+                  setRenter({ ...renter, email: e.target.value })
+                }
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -221,7 +292,10 @@ function SettingsPage() {
               </label>
               <input
                 type="text"
-                value={renter.contactNumber}
+                value={renter?.contactNumber || ""}
+                onChange={(e) =>
+                  setRenter({ ...renter, contactNumber: e.target.value })
+                }
                 className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
               />
             </div>
@@ -232,41 +306,161 @@ function SettingsPage() {
         <div
           ref={documentsRef}
           onClick={() => handleTabClick("Documents & Compliance")}
-          className="mt-20"
+          className="mt-12 border-t border-slate-100 pt-8"
         >
-          <h2 className="text-lg font-extrabold text-slate-900 mb-6">
-            Verification Documents
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900">
+                Verification Documents
+              </h2>
+              <p className="text-xs text-slate-400 font-medium">
+                Upload clear scans of your legal documents for account
+                verification.
+              </p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-10">
-            {/* Card 1: ID */}
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
-              <ShieldCheck size={28} className="text-slate-400 mb-3" />
-              <h3 className="text-lg font-extrabold text-slate-900 mb-1">
-                Owner ID / Passport
-              </h3>
-              <p className="text-sm font-medium text-slate-400 mb-4">
-                Front & Back scan
-                <span className="text-[11px] block">{`JPG, PNG (max 5MB)`}</span>
-              </p>
-              <span className="bg-green-50 text-green-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck size={12} /> Uploaded
-              </span>
+            {/* Card 1: Owner NIC / Passport */}
+            <div
+              onClick={() => nicInputRef.current.click()}
+              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer tracking-wider ${
+                nicError
+                  ? "border-red-500 bg-red-50/20"
+                  : nicOrPassport
+                    ? "border-green-500 bg-green-50/10"
+                    : "border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                ref={nicInputRef}
+                onChange={(e) =>
+                  processFile(e.target.files[0], setNicError, "nicOrPassport")
+                }
+              />
+              <div className="p-6 flex flex-col items-center text-center relative">
+                <ShieldCheck
+                  size={32}
+                  className={
+                    nicOrPassport
+                      ? "text-green-600 mb-2"
+                      : "text-slate-400 mb-2"
+                  }
+                />
+                <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                  Owner NIC / Passport
+                </h3>
+
+                {nicError ? (
+                  <span className="text-xs font-bold text-red-500 my-2">
+                    {nicError}
+                  </span>
+                ) : (
+                  <p className="text-xs text-slate-400 mb-4">
+                    {typeof nicOrPassport === "string" && nicOrPassport
+                      ? "File saved on record"
+                      : nicOrPassport?.name
+                        ? `Selected: ${nicOrPassport.name}`
+                        : "JPG, PNG (max 5MB)"}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <div className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                    {nicOrPassport ? "Replace File" : "Choose File"}
+                  </div>
+
+                  {nicOrPassport && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNicOrPassport(null);
+                      }}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove document"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Card 2: Business License */}
-            <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center text-center hover:bg-slate-50 transition-colors">
-              <Building2 size={28} className="text-slate-400 mb-3" />
-              <h3 className="text-lg font-extrabold text-slate-900 mb-1">
-                Business License
-              </h3>
-              <p className="text-sm font-medium text-slate-400 mb-4">
-                Valid trade license
-                <span className="text-[11px] block">{`JPG, PNG (max 5MB)`}</span>
-              </p>
-              <span className="bg-amber-50 text-amber-600 text-[10px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
-                Upload Pending
-              </span>
+            <div
+              onClick={() => businessLicenseInputRef.current.click()}
+              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer tracking-wider ${
+                businessLicenseError
+                  ? "border-red-500 bg-red-50/20"
+                  : businessLicense
+                    ? "border-green-500 bg-green-50/10"
+                    : "border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                ref={businessLicenseInputRef}
+                onChange={(e) =>
+                  processFile(
+                    e.target.files[0],
+                    setBusinessLicenseError,
+                    "businessLicense",
+                  )
+                }
+              />
+              <div className="p-6 flex flex-col items-center text-center relative">
+                <Building2
+                  size={32}
+                  className={
+                    businessLicense
+                      ? "text-green-600 mb-2"
+                      : "text-slate-400 mb-2"
+                  }
+                />
+                <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                  Business License
+                </h3>
+
+                {businessLicenseError ? (
+                  <span className="text-xs font-bold text-red-500 my-2">
+                    {businessLicenseError}
+                  </span>
+                ) : (
+                  <p className="text-xs text-slate-400 mb-4">
+                    {typeof businessLicense === "string" && businessLicense
+                      ? "File saved on record"
+                      : businessLicense?.name
+                        ? `Selected: ${businessLicense.name}`
+                        : "JPG, PNG (max 5MB)"}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <div className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                    {businessLicense ? "Replace File" : "Choose File"}
+                  </div>
+
+                  {businessLicense && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBusinessLicense(null);
+                      }}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove document"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -293,7 +487,7 @@ function SettingsPage() {
                 name="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
+                className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all mt-2"
               />
             </div>
             <div className="space-y-1.5">
@@ -305,7 +499,7 @@ function SettingsPage() {
                 name="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all"
+                className="w-full bg-slate-50/80 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 transition-all mt-2"
               />
             </div>
           </div>
@@ -315,7 +509,7 @@ function SettingsPage() {
               Password must be at least 12 characters long with symbols.
             </p>
             <button
-              className={`bg-[#EA580C] text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md shadow-orange-200 hover:bg-orange-700 transition-colors w-full md:w-auto cursor-pointer ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`bg-[#2563EB] text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md shadow-orange-200 hover:bg-[#1d4ed8] transition-colors w-full md:w-auto cursor-pointer ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={handlePasswordUpdate}
               disabled={isLoading}
             >
