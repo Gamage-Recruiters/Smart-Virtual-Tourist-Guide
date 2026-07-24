@@ -1,28 +1,30 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./configs/database');
+import express from 'express';
+import cors from 'cors';
 
-// Load environment variables
-dotenv.config();
+import authRoutes from './routes/authRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
 
-// Middleware
+// middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-connectDB();
+// routes
+app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-// Basic health check route
+// basic routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({ message: 'Server is running' });
+  res.json({ status: 'Server is running' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message });
-});
+// error handler middleware
+app.use(errorHandler);
 
-module.exports = app;
+export default app;
