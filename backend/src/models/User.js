@@ -124,6 +124,10 @@ const userSchema = new mongoose.Schema({
   }],
   vehicleImages: [{
     type: String
+  }],
+  // Renter specific fields
+  renterVerificationDocument: [{
+    type: String
   }]
 }, {
   timestamps: true,
