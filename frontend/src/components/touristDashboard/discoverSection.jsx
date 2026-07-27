@@ -14,16 +14,16 @@ const destinationsByCategory = {
   Beach: [
     { title: "Mirissa", rating: "4.8", description: "Stunning crescent beach with whale watching", image: "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=400&h=250&fit=crop" },
     { title: "Unawatuna", rating: "4.7", description: "Golden sands with coral reef snorkeling", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=250&fit=crop" },
-    { title: "Trincomalee", rating: "4.6", description: "Pristine beaches and historic forts on the east coast", image: "https://plus.unsplash.com/premium_photo-1730035378497-6f182674961c?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+    { title: "Trincomalee", rating: "4.6", description: "Pristine beaches and historic forts on the east coast", image: "https://plus.unsplash.com/premium_photo-1730035378497-6f182674961c?w=400&h=250&fit=crop" },
   ],
   Culture: [
-    { title: "Sigiriya", rating: "4.8", description: "Ancient rock fortress with stunning views", image: "https://images.unsplash.com/photo-1588416936097-41850ab3d86d?w=400&h=250&fit=crop" },
-    { title: "Galle Fort", rating: "4.7", description: "Historic colonial fortification by the sea", image: "https://images.unsplash.com/photo-1566299597203-225f611b865f?q=80&w=1855&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-    { title: "Kandy", rating: "4.9", description: "Cultural capital with the Temple of the Tooth", image: "https://images.unsplash.com/photo-1571770095004-6b61b1cf308a?w=400&h=250&fit=crop" },
+    { title: "Sigiriya", rating: "4.8", description: "Ancient rock fortress with stunning views", image: "https://images.unsplash.com/photo-1612862862126-865765df2ded?w=400&h=250&fit=crop" },
+    { title: "Galle Fort", rating: "4.7", description: "Historic colonial fortification by the sea", image: "https://images.unsplash.com/photo-1566299597203-225f611b865f?w=400&h=250&fit=crop" },
+    { title: "Kandy", rating: "4.9", description: "Cultural capital with the Temple of the Tooth", image: "https://images.unsplash.com/photo-1665849050332-8d5d7e59afb6?w=400&h=250&fit=crop" },
   ],
   Wildlife: [
     { title: "Yala National Park", rating: "4.9", description: "Leopards and elephants in the wild", image: "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&h=250&fit=crop" },
-    { title: "Udawalawe", rating: "4.7", description: "Best place to see wild elephants up close", image: "https://images.unsplash.com/photo-1674556275189-e78fd6223e6d?q=80&w=736&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
+    { title: "Udawalawe", rating: "4.7", description: "Best place to see wild elephants up close", image: "https://images.unsplash.com/photo-1674556275189-e78fd6223e6d?w=400&h=250&fit=crop" },
     { title: "Sinharaja Forest", rating: "4.8", description: "UNESCO rainforest with rare endemic birds", image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=400&h=250&fit=crop" },
   ],
   Hiking: [
