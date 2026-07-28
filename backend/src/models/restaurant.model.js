@@ -54,8 +54,21 @@ const restaurantSchema = new mongoose.Schema(
     bannerImage: { type: String, trim: true },
     socialLinks: socialLinksSchema,
     operatingHours: [operatingHourSchema],
+    tables: {
+      ethereal: {
+        name: { type: String, default: "The ethereal (full luxury experience)" },
+        pricePerPerson: { type: Number, default: 285 },
+        limit: { type: Number, default: 500 }
+      },
+      obsidian: {
+        name: { type: String, default: "Obsidian terrace (open air sunset dinning)" },
+        pricePerPerson: { type: Number, default: 195 },
+        limit: { type: Number, default: 500 }
+      }
+    }
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Restaurant", restaurantSchema);
+

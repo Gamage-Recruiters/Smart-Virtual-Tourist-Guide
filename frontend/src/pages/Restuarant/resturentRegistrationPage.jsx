@@ -160,7 +160,19 @@ function ResturentRegistrationPage() {
           address: formData.address,
           district: formData.district,
           amenities: formData.amenities,
-          bannerImage: bannerImageUrl
+          bannerImage: bannerImageUrl,
+          tables: {
+            ethereal: {
+              name: "The ethereal (full luxury experience)",
+              pricePerPerson: 285,
+              limit: 500
+            },
+            obsidian: {
+              name: "Obsidian terrace (open air sunset dinning)",
+              pricePerPerson: 195,
+              limit: 500
+            }
+          }
         }),
       })
 

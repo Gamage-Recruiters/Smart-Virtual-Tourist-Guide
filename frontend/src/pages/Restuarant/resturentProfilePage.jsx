@@ -49,6 +49,18 @@ function ResturentProfilePage() {
               const existing = matched.operatingHours?.find(h => h.day === day)
               return { day, open: existing?.open || '09:00', close: existing?.close || '22:00', enabled: !!existing }
             }),
+            tables: {
+              ethereal: {
+                name: matched.tables?.ethereal?.name || "The ethereal (full luxury experience)",
+                pricePerPerson: matched.tables?.ethereal?.pricePerPerson || 285,
+                limit: matched.tables?.ethereal?.limit || 500
+              },
+              obsidian: {
+                name: matched.tables?.obsidian?.name || "Obsidian terrace (open air sunset dinning)",
+                pricePerPerson: matched.tables?.obsidian?.pricePerPerson || 195,
+                limit: matched.tables?.obsidian?.limit || 500
+              }
+            }
           })
         }
       } catch (err) {
@@ -63,6 +75,19 @@ function ResturentProfilePage() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleTableChange = (tableKey, field, value) => {
+    setForm(prev => ({
+      ...prev,
+      tables: {
+        ...prev.tables,
+        [tableKey]: {
+          ...prev.tables[tableKey],
+          [field]: value
+        }
+      }
+    }))
   }
 
   const handleSocialChange = (e) => {
@@ -136,7 +161,19 @@ function ResturentProfilePage() {
           amenities: form.amenities,
           socialLinks: form.socialLinks,
           operatingHours: activeHours,
-          bannerImage: bannerImageUrl
+          bannerImage: bannerImageUrl,
+          tables: {
+            ethereal: {
+              name: form.tables.ethereal.name,
+              pricePerPerson: Number(form.tables.ethereal.pricePerPerson),
+              limit: Number(form.tables.ethereal.limit)
+            },
+            obsidian: {
+              name: form.tables.obsidian.name,
+              pricePerPerson: Number(form.tables.obsidian.pricePerPerson),
+              limit: Number(form.tables.obsidian.limit)
+            }
+          }
         }),
       })
 
@@ -292,6 +329,83 @@ function ResturentProfilePage() {
             ))}
           </div>
         </div>
+
+        {/* Table Booking Configurations */}
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900 mb-4 pb-2 border-b border-slate-100">Table Booking Configurations</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            
+            {/* Ethereal Table Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600">Luxury Experience</h4>
+              <div>
+                <label className="block mb-1 text-[11px] font-semibold text-slate-700">Experience Name</label>
+                <input
+                  type="text"
+                  value={form.tables?.ethereal?.name || ''}
+                  onChange={e => handleTableChange('ethereal', 'name', e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 text-[11px] font-semibold text-slate-700">Price ($ per person)</label>
+                  <input
+                    type="number"
+                    value={form.tables?.ethereal?.pricePerPerson || ''}
+                    onChange={e => handleTableChange('ethereal', 'pricePerPerson', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-[11px] font-semibold text-slate-700">Capacity (Tables)</label>
+                  <input
+                    type="number"
+                    value={form.tables?.ethereal?.limit || ''}
+                    onChange={e => handleTableChange('ethereal', 'limit', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Obsidian Table Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600">Sunset Dining</h4>
+              <div>
+                <label className="block mb-1 text-[11px] font-semibold text-slate-700">Experience Name</label>
+                <input
+                  type="text"
+                  value={form.tables?.obsidian?.name || ''}
+                  onChange={e => handleTableChange('obsidian', 'name', e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 text-[11px] font-semibold text-slate-700">Price ($ per person)</label>
+                  <input
+                    type="number"
+                    value={form.tables?.obsidian?.pricePerPerson || ''}
+                    onChange={e => handleTableChange('obsidian', 'pricePerPerson', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-[11px] font-semibold text-slate-700">Capacity (Tables)</label>
+                  <input
+                    type="number"
+                    value={form.tables?.obsidian?.limit || ''}
+                    onChange={e => handleTableChange('obsidian', 'limit', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
 
         {/* Save */}
         <div className="flex items-center justify-end gap-4 pt-2 border-t border-slate-100">
