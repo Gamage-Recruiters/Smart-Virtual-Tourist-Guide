@@ -136,7 +136,7 @@ export default function IncidentReportPage() {
   }
 
   const goToReportsPage = () => {
-    navigate('/safety/my-incidents')
+    navigate(-1)
   }
 
   const submitReport = async () => {
