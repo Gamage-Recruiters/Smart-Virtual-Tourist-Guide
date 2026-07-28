@@ -25,10 +25,23 @@ const validateReview = (req, res, next) => {
             'number.max': 'Rating cannot exceed 5 stars.',
             'any.required': 'Rating is required.'
         }),
+        
+        // --- NEW: Validate Title ---
+        title: Joi.string().min(2).max(100).optional().allow(null, '').messages({
+            'string.min': 'Review title must be at least 2 characters long.',
+            'string.max': 'Review title cannot exceed 100 characters.'
+        }),
+        
         reviewText: Joi.string().min(5).max(1000).required().messages({
             'string.min': 'Review text is too short. It must be at least 5 characters long.',
             'string.max': 'Review text is too long. It cannot exceed 1000 characters.',
             'any.required': 'Review text is required.'
+        }),
+
+        // --- NEW: Validate Images Array (Checks if they are valid URLs) ---
+        images: Joi.array().items(Joi.string().uri()).optional().default([]).messages({
+            'string.uri': 'Image must be a valid URL.',
+            'array.base': 'Images must be an array of URLs.'
         })
     });
 

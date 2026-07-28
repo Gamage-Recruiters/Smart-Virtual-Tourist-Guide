@@ -1,21 +1,19 @@
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema({
-
   touristId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-
-  // The provider being reviewed (could be a driver, hotel, vehicle, activity, or restaurant)
+  // The provider being reviewed (could be a driver, hotel, vehicle, activity, restaurant, or guide)
   targetProviderId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
   targetType: {
     type: String,
-    enum: ['Driver', 'Hotel', 'Vehicle', 'Activity', 'Restaurant'],
+    enum: ['Driver', 'Guide', 'Hotel', 'Vehicle', 'Activity', 'Restaurant'], // Added 'Guide' here
     required: true
   },
   rating: {
@@ -24,10 +22,21 @@ const reviewSchema = new mongoose.Schema({
     min: 1,
     max: 5
   },
+  // --- NEW: Review Title ---
+  title: {
+    type: String,
+    trim: true,
+    default: null
+  },
   reviewText: {
     type: String,
     required: true,
     trim: true
+  },
+  // --- NEW: Array of Cloudinary Image URLs ---
+  images: {
+    type: [String], 
+    default: []
   },
   helpfulCount: {
     type: Number,
