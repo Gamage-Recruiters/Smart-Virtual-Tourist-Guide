@@ -43,6 +43,7 @@ export const getTouristArrivalStats = async (req, res) => {
     try {
 
         const tourists = await User.find({ role: 'tourist_user' });
+        console.log(tourists)
 
         const regionsList = [
             "Asia",

@@ -240,7 +240,7 @@ const FinalTripReport = () => {
         {/* Main Section */}
         <main className="w-full min-h-screen bg-gradient-to-b from-[#D3EEFD] to-[#F4F9FF] px-4 sm:px-6 md:px-10 lg:px-16 py-7 space-y-7 flex flex-col items-center">
           <TripItinerary touristId={touristId} tripId={tripId} />
-          <FinancialSummary />
+          <FinancialSummary touristId={touristId} tripId={tripId} />
           <ServiceProviders />
           <HealthSafetyLog touristId={touristId} />
           <TripHighlights touristId={touristId} tripId={tripId} />

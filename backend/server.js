@@ -16,6 +16,7 @@ import reportRoutes from './src/routes/reportRoutes.js';
 import pdfRoutes from './src/routes/pdfRoutes.js';
 import healthRoutes from './src/routes/healthRoutes.js';
 import emailRoutes from './src/routes/emailRoutes.js';
+import financialSummeryRoutes from './src/routes/financialSummeryRoutes.js';
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/export', pdfRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/api/budget', financialSummeryRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

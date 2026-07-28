@@ -14,7 +14,7 @@ const HealthSafetyLog = ({ touristId }) => {
 
                 const result = await fetchIncidentCount(touristId);
                 if (result.success) {
-                    setIncidentCount(result.count); 
+                    setIncidentCount(result.count);
                 }
             } catch (error) {
                 console.error("Failed to load incident count:", error);
@@ -49,10 +49,14 @@ const HealthSafetyLog = ({ touristId }) => {
                 Health & Safety Log
             </h3>
 
-            <div className="inline-flex items-center gap-2.5 bg-gradient-to-b from-white to-[#BCE4FC] text-[#2ECC71] text-xs sm:text-sm font-bold px-4 py-1.5 rounded-xl border border-[#A2D5FF]/30 shadow-sm mb-10">
-                <span>✅</span>
-                <span className="text-[#2ECC71] font-black">All Clear</span>
-                <span className="text-[#27AE60] font-semibold">No incidents reported</span>
+            <div className={`inline-flex items-center gap-2.5 bg-gradient-to-b from-white to-[#BCE4FC] text-xs sm:text-sm font-bold px-4 py-1.5 rounded-xl border shadow-sm mb-10 ${incidentCount > 0 ? 'text-red-500 border-red-200' : 'text-[#2ECC71] border-[#A2D5FF]/30'}`}>
+                <span>{incidentCount > 0 ? "⚠️" : "✅"}</span>
+                <span className="font-black">
+                    {incidentCount > 0 ? `${incidentCount} Incidents` : "All Clear"}
+                </span>
+                <span className="font-semibold">
+                    {incidentCount > 0 ? "reported" : "No incidents reported"}
+                </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-12 sm:gap-x-16 lg:gap-x-24">
@@ -104,7 +108,7 @@ const HealthSafetyLog = ({ touristId }) => {
                         Insurance
                     </h4>
                     <p className="text-sm sm:text-base md:text-lg text-gray-600 font-medium leading-relaxed pl-1">
-                        <span>{loading ? "Loading..." : `${incidentCount} incidents`}</span> 
+                        <span>{loading ? "Loading..." : `${incidentCount} incidents`}</span>
                     </p>
                 </div>
 
