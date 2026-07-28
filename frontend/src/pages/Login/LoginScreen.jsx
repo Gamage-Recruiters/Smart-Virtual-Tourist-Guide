@@ -692,19 +692,6 @@ const LoginScreen = () => {
                 Under Active Development
               </span>
             </div>
-            
-            <div className="pt-4">
-              <button 
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('userData');
-                  window.location.reload();
-                }} 
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-              >
-                Sign Out
-              </button>
-            </div>
           </div>
         </main>
 

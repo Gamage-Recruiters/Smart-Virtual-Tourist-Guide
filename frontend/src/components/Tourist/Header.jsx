@@ -130,9 +130,22 @@ const Header = () => {
 
               {/* Sign In / User Profile display */}
               {user ? (
-                <div className="ml-2 px-5 py-2 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  {user.fullName || user.restaurantName || user.username || 'User'}
+                <div className="flex items-center gap-2">
+                  <div className="ml-2 px-5 py-2 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    {user.fullName || user.restaurantName || user.username || 'User'}
+                  </div>
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('userData');
+                      localStorage.removeItem('restaurantUser');
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-700 font-semibold rounded-lg text-xs transition-all cursor-pointer shadow-sm"
+                  >
+                    Sign out
+                  </button>
                 </div>
               ) : (
                 <button 
@@ -203,8 +216,22 @@ const Header = () => {
                 </div>
                 
                 {user ? (
-                  <div className="mx-4 py-3 border-t border-slate-100 text-[#0075FF] font-bold text-sm">
-                    {user.fullName || user.restaurantName || user.username || 'User'}
+                  <div className="mx-4 py-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[#0075FF] font-bold text-sm">
+                      {user.fullName || user.restaurantName || user.username || 'User'}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('userData');
+                        localStorage.removeItem('restaurantUser');
+                        window.location.reload();
+                      }}
+                      className="px-3 py-1.5 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 rounded-lg text-xs font-semibold"
+                    >
+                      Sign out
+                    </button>
                   </div>
                 ) : (
                   <button 
