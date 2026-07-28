@@ -56,6 +56,27 @@ const AdminDashboard = () => {
     { id: 4, title: 'Hotel Partners', count: formatCount(stats.hotelPartners), percentage: '8.4', isPositive: true, icon: <FiHome size={24} /> },
   ];
 
+  const [analytics, setAnalytics] = useState({
+    revenueChart: [],
+    bookingChart: [],
+    packagePerformance: [],
+    userDistribution: []
+});
+
+useEffect(() => {
+    const fetchAnalytics = async () => {
+        try {
+            const analyticsResult = await apiClient.get('/admin/dashboard-analytics');
+            if (analyticsResult && analyticsResult.success) {
+                setAnalytics(analyticsResult.data);
+            }
+        } catch (error) {
+            console.error("Failed to load analytics", error);
+        }
+    };
+    fetchAnalytics();
+}, []);
+
   return (
     <div className="w-full pb-12">
       
@@ -117,13 +138,13 @@ const AdminDashboard = () => {
           <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
              <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Revenue Trend</h3>
              <div className="flex-grow">
-               <RevenueChart />
+               <RevenueChart data={analytics.revenueChart}/>
              </div>
           </div>
           <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
              <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
              <div className="flex-grow">
-               <BookingChart />
+               <BookingChart data={analytics.bookingChart}/>
              </div>
           </div>
         </div>
@@ -132,13 +153,13 @@ const AdminDashboard = () => {
           <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
              <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Package Performance</h3>
              <div className="flex-grow">
-               <PackagePerformanceChart />
+               <PackagePerformanceChart data={analytics.packagePerformance}/>
              </div>
           </div>
           <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
              <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
              <div className="flex-grow">
-               <BookingPieChart />
+               <BookingPieChart data={analytics.userDistribution}/>
              </div>
           </div>
         </div>

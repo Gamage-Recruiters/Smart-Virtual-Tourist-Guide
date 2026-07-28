@@ -1,18 +1,18 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Jan', revenue: 1200 },
-  { name: 'Feb', revenue: 3500 },
-  { name: 'Mar', revenue: 7200 },
-  { name: 'Apr', revenue: 3500 },
-  { name: 'May', revenue: 2500 },
-  { name: 'Jun', revenue: 6800 },
-  { name: 'Jul', revenue: 4800 },
-  { name: 'Aug', revenue: 0 },
-];
+// const data = [
+//   { name: 'Jan', revenue: 1200 },
+//   { name: 'Feb', revenue: 3500 },
+//   { name: 'Mar', revenue: 7200 },
+//   { name: 'Apr', revenue: 3500 },
+//   { name: 'May', revenue: 2500 },
+//   { name: 'Jun', revenue: 6800 },
+//   { name: 'Jul', revenue: 4800 },
+//   { name: 'Aug', revenue: 0 },
+// ];
 
-const RevenueChart = () => {
+const RevenueChart = ({ data }) => {
   return (
     <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height={300}>

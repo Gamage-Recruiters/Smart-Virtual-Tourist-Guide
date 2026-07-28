@@ -1,15 +1,15 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Jan', bookings: 40 },
-  { name: 'Feb', bookings: 90 },
-  { name: 'Mar', bookings: 39 },
-  { name: 'Apr', bookings: 58 },
-  { name: 'May', bookings: 30 },
-];
+// const data = [
+//   { name: 'Jan', bookings: 40 },
+//   { name: 'Feb', bookings: 90 },
+//   { name: 'Mar', bookings: 39 },
+//   { name: 'Apr', bookings: 58 },
+//   { name: 'May', bookings: 30 },
+// ];
 
-const BookingChart = () => {
+const BookingChart = ({ data }) => {
   return (
     <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height={300}>

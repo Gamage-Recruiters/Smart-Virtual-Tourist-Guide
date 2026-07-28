@@ -1,12 +1,13 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Customers', value: 1650, color: '#8B5CF6' },
-  { name: 'Agencies', value: 45, color: '#F87171' },
-  { name: 'Drivers', value: 320, color: '#2DD4BF' },
-  { name: 'Partners', value: 240, color: '#FBBF24' },
-];
+// const data = [
+//   { name: 'Customers', value: 1650, color: '#8B5CF6' },
+//   { name: 'Agencies', value: 45, color: '#F87171' },
+//   { name: 'Drivers', value: 320, color: '#2DD4BF' },
+//   { name: 'Partners', value: 240, color: '#FBBF24' },
+// ];
+const COLORS = ["#8B5CF6", "#F87171", "#2DD4BF", "#FBBF24", "#60A5FA", "#34D399", "#F97316"];
 
 // Custom function to show text inside pie slices
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }) => {
@@ -26,7 +27,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-const BookingPieChart = () => {
+const BookingPieChart = ({ data }) => {
   return (
     <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height={300}>
@@ -41,8 +42,8 @@ const BookingPieChart = () => {
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
+    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+))}
           </Pie>
           <Tooltip 
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
