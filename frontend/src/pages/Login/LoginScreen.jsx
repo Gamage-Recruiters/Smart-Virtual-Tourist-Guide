@@ -605,6 +605,7 @@ import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
+import Header from '../../components/Tourist/Header';
 
 // Import social icons from assets (SVG files)
 import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
@@ -623,7 +624,7 @@ const LoginScreen = () => {
 
   const getDashboardRoute = (role) => {
     switch (role) {
-      case 'tourist_user': return '/dashboard-Tourist';
+      case 'tourist_user': return '/';
       case 'guide_user': return '/dashboard-Guide';
       case 'hotelowner_user': return '/dashboard-HotelOwner';
       case 'restaurant_user': return '/dashboard-Restaurant';
@@ -631,8 +632,6 @@ const LoginScreen = () => {
       case 'renter_user': return '/dashboard-Renter';
       case 'driver_user': return '/dashboard-Driver';
       case 'admin': return '/dashboard-Admin';
-
-
       default: return null;
     }
   };
@@ -641,7 +640,6 @@ const LoginScreen = () => {
     e.preventDefault();
     setError('');
 
-    // validation
     if (!identifier || !password) {
       setError('Please fill in all fields');
       return;
@@ -653,12 +651,10 @@ const LoginScreen = () => {
         password,
       });
 
-      // success login
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userData', JSON.stringify(data.user));
 
-        // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);
         if (route) {
           navigate(route);
@@ -672,6 +668,52 @@ const LoginScreen = () => {
       setError(err.message || 'Login failed. Please check your credentials.');
     }
   };
+
+  // If already logged in as tourist, show the coming soon home page directly instead of the Sign In screen
+  const token = localStorage.getItem('token');
+  const userDataRaw = localStorage.getItem('userData');
+  const loggedInUser = userDataRaw ? JSON.parse(userDataRaw) : null;
+
+  if (token && loggedInUser && loggedInUser.role === 'tourist_user') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+        <Header />
+        
+        <main className="flex-1 flex flex-col items-center justify-center px-4 py-20 text-center">
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="text-6xl">✨</div>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Homepage Coming Soon</h1>
+            <p className="text-slate-500 text-sm leading-relaxed">
+              Welcome back, {loggedInUser.fullName || loggedInUser.username || 'Traveler'}! We are curating a premium, personalized journey planner for your ultimate Sri Lankan travel experience. Stay tuned!
+            </p>
+            <div className="pt-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                Under Active Development
+              </span>
+            </div>
+            
+            <div className="pt-4">
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('userData');
+                  window.location.reload();
+                }} 
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <div className="bg-slate-100 py-6 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()} SVTG. All rights reserved.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthLayout

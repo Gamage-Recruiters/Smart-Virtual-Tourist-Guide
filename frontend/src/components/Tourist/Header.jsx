@@ -12,6 +12,10 @@ const Header = () => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
 
+  // Load user data if logged in
+  const userDataRaw = localStorage.getItem('userData');
+  const user = userDataRaw ? JSON.parse(userDataRaw) : null;
+
   const navigate = useNavigate();
 
   const navItems = ['Home', 'Features', 'Destinations', 'Restaurants', 'How it Works', 'Contact'];
@@ -124,13 +128,20 @@ const Header = () => {
                 )}
               </div>
 
-              {/* Sign In Button */}
-              <button 
-                onClick={() => navigate('/login')}
-                className="ml-2 px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
-              >
-                Sign in
-              </button>
+              {/* Sign In / User Profile display */}
+              {user ? (
+                <div className="ml-2 px-5 py-2 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  {user.fullName || user.restaurantName || user.username || 'User'}
+                </div>
+              ) : (
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="ml-2 px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
+                >
+                  Sign in
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -191,15 +202,21 @@ const Header = () => {
                   </div>
                 </div>
                 
-                <button 
-                  className="px-4 py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-colors mt-2 text-center"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    navigate('/login');
-                  }}
-                >
-                  Sign in
-                </button>
+                {user ? (
+                  <div className="mx-4 py-3 border-t border-slate-100 text-[#0075FF] font-bold text-sm">
+                    {user.fullName || user.restaurantName || user.username || 'User'}
+                  </div>
+                ) : (
+                  <button 
+                    className="px-4 py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-colors mt-2 text-center"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate('/login');
+                    }}
+                  >
+                    Sign in
+                  </button>
+                )}
               </div>
             </div>
           )}
