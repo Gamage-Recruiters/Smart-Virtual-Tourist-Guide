@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const Admin = require('../models/Admin');
+const Booking = require("../models/Booking");
+const Package = require("../models/Package");
 const Advertisement = require('../models/Advertisement');
 // Fetch dashboard statistics
 const getDashboardStats = async (req, res) => {
@@ -196,6 +198,94 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// ===============================
+// Dashboard Analytics
+// GET /admin/dashboard-analytics
+// ===============================
+const getDashboardAnalytics = async (req, res) => {
+    try {
+        // Monthly Revenue
+        const revenue = await Booking.aggregate([
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    revenue: { $sum: "$pricing.total" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        // Monthly Bookings
+        const bookings = await Booking.aggregate([
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    bookings: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        // Package Categories
+        const packagePerformance = await Package.aggregate([
+            { $unwind: "$BasicInformation.categories" },
+            {
+                $group: {
+                    _id: "$BasicInformation.categories",
+                    value: { $sum: 1 }
+                }
+            },
+            { $sort: { value: -1 } }
+        ]);
+
+        // User Roles
+        const userDistribution = await User.aggregate([
+            {
+                $group: {
+                    _id: "$role",
+                    value: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        // Format Data for Charts
+        const revenueChart = months.map((month, index) => {
+            const item = revenue.find(r => r._id === index + 1);
+            return { name: month, revenue: item ? item.revenue : 0 };
+        });
+
+        const bookingChart = months.map((month, index) => {
+            const item = bookings.find(r => r._id === index + 1);
+            return { name: month, bookings: item ? item.bookings : 0 };
+        });
+
+        res.json({
+            success: true,
+            data: {
+                revenueChart,
+                bookingChart,
+                packagePerformance: packagePerformance.map(item => ({
+                    name: item._id,
+                    value: item.value
+                })),
+                userDistribution: userDistribution.map(item => ({
+                    name: item._id,
+                    value: item.value
+                }))
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to load dashboard analytics"
+        });
+    }
+};
+
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
@@ -206,5 +296,6 @@ module.exports = {
     getAdvertisementById,
     updateAdvertisement,
     deleteAdvertisement,
+    getDashboardAnalytics,
     deleteUser
 };

@@ -1,15 +1,15 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Beach', value: 65 },
-  { name: 'Adventure', value: 70 },
-  { name: 'Cultural', value: 85 },
-  { name: 'Wildlife', value: 12 },
-  { name: 'Cruise', value: 50 },
-];
+// const data = [
+//   { name: 'Beach', value: 65 },
+//   { name: 'Adventure', value: 70 },
+//   { name: 'Cultural', value: 85 },
+//   { name: 'Wildlife', value: 12 },
+//   { name: 'Cruise', value: 50 },
+// ];
 
-const PackagePerformanceChart = () => {
+const PackagePerformanceChart = ({ data }) => {
   return (
     <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height={300}>

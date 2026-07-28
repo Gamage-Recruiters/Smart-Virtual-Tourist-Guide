@@ -10,6 +10,7 @@ const {
     deleteAdvertisement, 
     getAdvertisementById, 
     updateAdvertisement, 
+    getDashboardAnalytics,
     deleteUser 
 } = require('../controllers/adminController');
 
@@ -20,24 +21,25 @@ const { protectAdmin, authorizeRoles } = require('../middleware/authMiddleware')
 router.use(protectAdmin);
 
 // === SECURED ROUTES === //
-router.get('/dashboard-stats', authorizeRoles('Admin'), getDashboardStats);
-router.get('/users', authorizeRoles('Admin'), getAllUsers);
+router.get('/dashboard-stats', authorizeRoles('Admin', 'Administrator'), getDashboardStats);
+router.get('/users', authorizeRoles('Admin', 'Administrator'), getAllUsers);
 
 // 2
-router.put('/users/:id/status', authorizeRoles('Admin'), updateUserStatus);
+router.put('/users/:id/status', authorizeRoles('Admin', 'Administrator'), updateUserStatus);
+router.get('/dashboard-analytics', authorizeRoles('Admin', 'Administrator'), getDashboardAnalytics);
 
-router.get('/ads', authorizeRoles('Admin'), getAllAds);
-router.patch('/ads/:id/status', authorizeRoles('Admin'), updateAdStatus);
+router.get('/ads', authorizeRoles('Admin', 'Administrator'), getAllAds);
+router.patch('/ads/:id/status', authorizeRoles('Admin', 'Administrator'), updateAdStatus);
 
 // Add these below your existing advertisement routes
-router.get('/ads/:id', authorizeRoles('Admin'), getAdvertisementById);
-router.put('/ads/:id', authorizeRoles('Admin'), updateAdvertisement);
-router.post('/ads', authorizeRoles('Admin'), createAdvertisement);
+router.get('/ads/:id', authorizeRoles('Admin', 'Administrator'), getAdvertisementById);
+router.put('/ads/:id', authorizeRoles('Admin', 'Administrator'), updateAdvertisement);
+router.post('/ads', authorizeRoles('Admin', 'Administrator'), createAdvertisement);
 
 // 3
-router.delete('/ads/:id', authorizeRoles('Admin'), deleteAdvertisement);
+router.delete('/ads/:id', authorizeRoles('Admin', 'Administrator'), deleteAdvertisement);
 
 // 4
-router.delete('/users/:id', authorizeRoles('Admin'), deleteUser);
+router.delete('/users/:id', authorizeRoles('Admin', 'Administrator'), deleteUser);
 
 module.exports = router;

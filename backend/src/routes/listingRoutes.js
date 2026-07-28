@@ -12,14 +12,14 @@ const { protectAdmin, authorizeRoles } = require('../middleware/authMiddleware')
 router.use(protectAdmin);
 
 // Route to fetch all listings and stats (Accessible to Admin, Moderator, and Editor)
-router.get('/all', authorizeRoles('Admin', 'Moderator', 'Editor'), getAllListings);
+router.get('/all', authorizeRoles('Admin', 'Administrator', 'Moderator', 'Editor'), getAllListings);
 
 // Route to approve a listing (Restricted to Admin and Moderator only)
-router.patch('/:id/approve', authorizeRoles('Admin', 'Moderator'), approveListing);
+router.patch('/:id/approve', authorizeRoles('Admin','Administrator', 'Moderator'), approveListing);
 
 // Route to reject a listing (Restricted to Admin and Moderator only)
-router.patch('/:id/reject', authorizeRoles('Admin', 'Moderator'), rejectListing);
+router.patch('/:id/reject', authorizeRoles('Admin','Administrator', 'Moderator'), rejectListing);
 
-router.get('/:id', authorizeRoles('Admin', 'Moderator', 'Editor'), getListingById);
+router.get('/:id', authorizeRoles('Admin','Administrator', 'Moderator', 'Editor'), getListingById);
 
 module.exports = router;
