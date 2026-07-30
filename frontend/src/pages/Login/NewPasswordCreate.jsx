@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa';
 import { MdFlashOn } from 'react-icons/md';
-import AuthLayout from '../../components/Tourist/AuthLayout';
+import AuthLayout from '../../components/AuthLayout';
 import newPasswordImg from '../../assets/HotelOwner/bg3.png';
 import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
 import SuccessPopup from './successPage';

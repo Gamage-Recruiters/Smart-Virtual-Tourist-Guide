@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AuthLayout from '../../components/Tourist/AuthLayout';
+import AuthLayout from '../../components/AuthLayout';
 import forgottenPasswordImg from '../../assets/HotelOwner/bg2.png';
 import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
 import SuccessPopup from './successPage';

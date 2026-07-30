@@ -25,7 +25,8 @@ function App() {
       <Routes>
         {/* ===== AUTH ROUTES ===== */}
         {/* DEV: swap the element below to test any page directly */}
-        <Route path="/" element={<LoginScreen   />} />
+        <Route path="/" element={<HotelInfo   />} />
+        <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/create-password" element={<NewPasswordCreate />} />
 
