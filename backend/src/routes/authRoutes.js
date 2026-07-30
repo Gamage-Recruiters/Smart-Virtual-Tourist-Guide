@@ -13,7 +13,6 @@ import {
   resetPassword,
   updateTravelInfo,
   addHotelInfo,
-  googleAuth,
   getMe
 } from '../controllers/authController.js';
 import {
@@ -54,9 +53,6 @@ router.post(
 
 // Unified login route
 router.post('/login', validateLogin, loginUser);
-
-// Google OAuth route (Firebase ID token verification)
-router.post('/google', googleAuth);
 
 // Update travel preferences & safety info (protected)
 router.put('/update-travel-info', protect, updateTravelInfo);

@@ -4,7 +4,7 @@ import logger from '../utils/logger.js';
 const connectDB = async () => {
   try {
     const connection = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/tourdb'
+      process.env.MONGODB_URI_TOURISM || 'mongodb://localhost:27017/tourismGuideDB'
     );
 
     logger.info('MongoDB connected successfully');

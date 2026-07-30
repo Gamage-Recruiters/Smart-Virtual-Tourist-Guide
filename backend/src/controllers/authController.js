@@ -1,7 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
-import { auth, firebaseInitialized } from '../configs/firebase.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -578,64 +577,6 @@ const updateTravelInfo = async (req, res) => {
   }
 };
 
-const googleAuth = async (req, res) => {
-  try {
-    if (!firebaseInitialized) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Google Auth is not configured on this server. Please provide valid Firebase credentials in the backend .env file.' 
-      });
-    }
-
-    const { idToken, role } = req.body;
-
-    if (!idToken) {
-      return res.status(400).json({ success: false, message: 'ID token is required' });
-    }
-
-    // Verify the Firebase ID token
-    const decoded = await auth.verifyIdToken(idToken);
-    const { email, name, uid } = decoded;
-
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email not available from Google account' });
-    }
-
-    const emailNormalized = email.toLowerCase().trim();
-    let user = await User.findOne({ email: emailNormalized });
-
-    if (user) {
-      // Existing user — login
-      return res.json({
-        success: true,
-        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
-        token: generateToken(user._id),
-      });
-    }
-
-    // New user — register with provided role (or default tourist_user)
-    const assignedRole = role || 'tourist_user';
-    const username = await generateUsername(emailNormalized);
-
-    user = await User.create({
-      fullName: name || emailNormalized.split('@')[0],
-      username,
-      email: emailNormalized,
-      password: uid, // Firebase UID as placeholder password (not used for login)
-      role: assignedRole,
-      googleId: uid,
-    });
-
-    res.status(201).json({
-      success: true,
-      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
-      token: generateToken(user._id),
-    });
-  } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(401).json({ success: false, message: 'Invalid or expired Google token' });
-  }
-};
 
 const getMe = async (req, res) => {
   try {
@@ -675,6 +616,5 @@ export {
   resetPassword,
   updateTravelInfo,
   addHotelInfo,
-  googleAuth,
   getMe,
 };

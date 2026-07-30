@@ -3,10 +3,10 @@ const { connect, connection } = mongoConn;
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI;
+    const mongoURI = process.env.MONGODB_URI_TOURISM;
 
     if (!mongoURI) {
-      throw new Error('MONGODB_URI is not defined in .env file');
+      throw new Error('MONGODB_URI_TOURISM is not defined in .env file');
     }
 
     await connect(mongoURI);
