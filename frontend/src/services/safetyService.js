@@ -118,7 +118,7 @@ const safetyService = {
   // 4. EMERGENCY RESOURCES (Leaflet optimized)
   async getPoliceStations(params = {}) {
     try {
-      const response = await apiClient.get('/emergency-locations/police', { params })
+      const response = await apiClient.get('/emergency-locations/tourist_police', { params })
       return unwrapList(response)
     } catch (error) {
       console.error('Error fetching police stations:', error)

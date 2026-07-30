@@ -51,7 +51,7 @@ router.route('/location/:shareCode')
   .delete(locationController.stopSharingLocation);
 
 // --- Emergency Location Routes ---
-router.get('/emergency-locations/police', emergencyLocationController.getPoliceStations);
+router.get('/emergency-locations/tourist_police', emergencyLocationController.getPoliceStations);
 router.get('/emergency-locations/local-police', emergencyLocationController.getNearbyPoliceStations);
 router.get('/emergency-locations/hospitals', emergencyLocationController.getNearbyHospitals);
 
