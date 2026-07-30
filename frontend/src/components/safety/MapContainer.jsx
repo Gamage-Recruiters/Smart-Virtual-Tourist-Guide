@@ -103,7 +103,7 @@ export default function MapContainer({
     poiMarkersRef.current = []
 
     // Add new markers
-    markers.forEach((markerData, index) => {
+    markers.forEach((markerData) => {
       const { lat, lng, popup, icon = null, color = 'blue' } = markerData
 
       let markerIcon = L.icon({
