@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithGoogle } from '../services/firebase';
+import { signInWithGoogle, isFirebaseConfigured } from '../services/firebase';
 import { socialAuthAPI } from '../services/api';
 
 const getDashboardRoute = (role) => {
@@ -24,6 +24,10 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
     setGoogleError('');
     setGoogleLoading(true);
     try {
+      if (!isFirebaseConfigured) {
+        throw new Error('Google Sign-In is not configured yet. Please add Firebase credentials to the .env file.');
+      }
+
       // Step 1: Firebase popup → Google Authentication → Firebase returns user + idToken
       const { idToken } = await signInWithGoogle();
 
