@@ -1,7 +1,7 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./configs/database');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { connectDB } from './configs/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 connectDB();
 
 // API routes
-const bookingRoutes = require('./routes/bookingRoutes');
+import bookingRoutes from './routes/bookingRoutes.js';
 app.use('/api/bookings', bookingRoutes);
 
 // Basic health check route
@@ -31,4 +31,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-module.exports = app;
+export default app;

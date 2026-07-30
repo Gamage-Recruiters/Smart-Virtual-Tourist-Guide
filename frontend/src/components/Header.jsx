@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react"; // Replaced Search, Globe, Bell with ChevronDown
-import logo from "../assets/headerAssets/Lanka.png";
-import textImage from "../assets/headerAssets/main-test-2.png";
+import logo from "../assets/touristDashboard/Lanka.png";
+import textImage from "../assets/touristDashboard/main_text.png";
 import { Link } from "react-router-dom";
 
 function Header() {

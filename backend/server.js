@@ -1,7 +1,7 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config(); 
 
@@ -22,16 +22,16 @@ app.get("/api/health", (req, res) => {
 });
 
 // Feature Routes
-const bidRouter = require("./src/routes/bidRouter");
-const driverRouter = require("./src/routes/driverRouter");
-const activityRouter = require("./src/routes/activityRouter");
+import bidRouter from "./src/routes/bidRouter.js";
+import driverRouter from "./src/routes/driverRouter.js";
+import activityRouter from "./src/routes/activityRouter.js";
 
 app.use("/api/bids", bidRouter);
 app.use("/api/drivers", driverRouter);
 app.use("/api/activities", activityRouter);
 
 // Error Handler (must be after routes)
-const errorHandler = require("./src/middleware/errorHandler");
+import errorHandler from "./src/middleware/errorHandler.js";
 app.use(errorHandler);
 
 // DB connection
