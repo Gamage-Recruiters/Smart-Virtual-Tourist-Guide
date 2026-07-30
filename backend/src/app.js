@@ -3,6 +3,16 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './configs/database.js';
 
+// Feature Routes
+import bookingRoutes from './routes/bookingRoutes.js';
+import bidRouter from './routes/bidRouter.js';
+import driverRouter from './routes/driverRouter.js';
+import activityRouter from './routes/activityRouter.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+
+// Middleware
+import errorHandler from './middleware/errorHandler.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -16,19 +26,23 @@ app.use(express.urlencoded({ extended: true }));
 // Connect to MongoDB
 connectDB();
 
-// API routes
-import bookingRoutes from './routes/bookingRoutes.js';
-app.use('/api/bookings', bookingRoutes);
+// Basic routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
+});
 
-// Basic health check route
 app.get('/api/health', (req, res) => {
-  res.json({ message: 'Server is running' });
+  res.json({ status: 'Server is running' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message });
-});
+// API routes
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/bids', bidRouter);
+app.use('/api/drivers', driverRouter);
+app.use('/api/activities', activityRouter);
+app.use('/api/dashboard', dashboardRoutes);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 export default app;
