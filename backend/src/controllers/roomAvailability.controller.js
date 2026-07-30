@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
-import Room from '../models/room.model.js';
+import getTestDb from '../configs/testDb.js';
+import RoomBase from '../models/room.model.js';
+
+const getRoomModel = async () => {
+  const conn = await getTestDb();
+  return conn.models.Room || conn.model('Room', RoomBase.schema);
+};
 
 const handleError = (res, error) => {
     if (error?.name === 'ValidationError') {
@@ -69,6 +75,7 @@ export const getMonthlyCalendar = async (req, res) => {
         const yearNum   = Number(year);
         const totalDays = daysInMonth(monthNum, yearNum);
 
+        const Room = await getRoomModel();
         const rooms = await Room.find({ roomType }).sort({ roomNumber: 1 });
         if (rooms.length === 0) {
             return res.status(200).json({
@@ -137,6 +144,7 @@ export const getRoomCalendar = async (req, res) => {
         const yearNum   = Number(year);
         const totalDays = daysInMonth(monthNum, yearNum);
 
+        const Room = await getRoomModel();
         const doc = await Room.findById(roomId);
         if (!doc) return res.status(404).json({ message: 'Room not found' });
         const blocked = doc.blockedDates     || [];
@@ -186,6 +194,7 @@ export const saveBlockedDates = async (req, res) => {
             endDate:   normalizeDate(p.endDate),
         }));
 
+        const Room = await getRoomModel();
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { blockedDates: normalized } },
@@ -218,6 +227,7 @@ export const saveMaintenanceDates = async (req, res) => {
             endDate:   normalizeDate(p.endDate),
         }));
 
+        const Room = await getRoomModel();
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { maintenanceDates: normalized } },
@@ -237,6 +247,7 @@ export const updateBlockedPeriod = async (req, res) => {
         if (!mongoose.isValidObjectId(roomId) || !mongoose.isValidObjectId(periodId))
             return res.status(400).json({ message: 'Invalid id' });
         const { startDate, endDate } = req.body;
+        const Room = await getRoomModel();
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'blockedDates._id': periodId },
             { $set: { 'blockedDates.$.startDate': normalizeDate(startDate), 'blockedDates.$.endDate': normalizeDate(endDate) } },
@@ -253,6 +264,7 @@ export const updateMaintenancePeriod = async (req, res) => {
         if (!mongoose.isValidObjectId(roomId) || !mongoose.isValidObjectId(periodId))
             return res.status(400).json({ message: 'Invalid id' });
         const { startDate, endDate } = req.body;
+        const Room = await getRoomModel();
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'maintenanceDates._id': periodId },
             { $set: { 'maintenanceDates.$.startDate': normalizeDate(startDate), 'maintenanceDates.$.endDate': normalizeDate(endDate) } },

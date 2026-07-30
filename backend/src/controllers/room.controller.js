@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
-import Room from '../models/room.model.js';
+import getTestDb from '../configs/testDb.js';
+import roomModelSchema from '../models/room.model.js';
+
+const getRoomModel = async () => {
+  const conn = await getTestDb();
+  return conn.models.Room || conn.model('Room', roomModelSchema.schema);
+};
 
 const getDuplicateMessage = () => 'Room with this name or number already exists';
 
@@ -21,6 +27,7 @@ const handleError = (res, error) => {
 //create a new room
 export const createRoom = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const count = await Room.countDocuments();
         const roomNumber = `R${count + 1}`;
 
@@ -35,6 +42,7 @@ export const createRoom = async (req, res) => {
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
 
         const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [] });
+
         return res.status(201).json({
             message: 'Room created successfully',
             room,
@@ -50,6 +58,7 @@ export const createRoom = async (req, res) => {
  */
 export const getAllRooms = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { status, roomType, adults, children } = req.query;
         const query = {};
 
@@ -78,6 +87,7 @@ export const getAllRooms = async (req, res) => {
  */
 export const getRoomById = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { id } = req.params;
 
         if (!mongoose.isValidObjectId(id)) {
@@ -104,6 +114,7 @@ export const getRoomById = async (req, res) => {
  */
 export const updateRoom = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { id } = req.params;
 
         if (!mongoose.isValidObjectId(id)) {
@@ -147,6 +158,7 @@ export const updateRoom = async (req, res) => {
  */
 export const updateRoomStatus = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { id } = req.params;
         const { status } = req.body;
 
@@ -183,6 +195,7 @@ export const updateRoomStatus = async (req, res) => {
  */
 export const bulkUpdateRoomStatuses = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { roomIds, status } = req.body;
 
         if (!Array.isArray(roomIds) || roomIds.length === 0 || !status) {
@@ -214,6 +227,7 @@ export const bulkUpdateRoomStatuses = async (req, res) => {
  */
 export const deleteRoom = async (req, res) => {
     try {
+        const Room = await getRoomModel();
         const { id } = req.params;
 
         if (!mongoose.isValidObjectId(id)) {

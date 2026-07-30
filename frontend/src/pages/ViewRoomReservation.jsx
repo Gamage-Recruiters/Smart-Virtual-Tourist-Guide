@@ -1,22 +1,33 @@
-import React, { useState } from 'react';
-import { FaSearch, FaChevronLeft, FaChevronRight, FaFilter, FaCalendarAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaChevronLeft, FaChevronRight, FaCalendarAlt } from 'react-icons/fa';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import reservation from "../assets/reservation.png";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 export default function ViewRoomReservation() {
-  // Mock reservation dataset
-  const [reservations] = useState([
-    { name: "Daniel Nightingale", guests: "2 adults, 1 child (3)", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Family Room with Bathroom", bookedDate: "March 19, 2026", status: "Ok", price: "US$38.88", bookingNo: "5420687772" },
-    { name: "Jennie Beer", guests: "2 adults", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Deluxe Double Room", bookedDate: "March 18, 2026", status: "Ok", price: "US$31.58", bookingNo: "5697454643" },
-    { name: "Olivia Robin", guests: "2 adults", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Family Suite", bookedDate: "February 19, 2026", status: "Canceled", price: "US$56.88", bookingNo: "5897924681" },
-    { name: "Kathrin Ranegger", guests: "2 adults, 1 child (3)", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Villa with Garden View", bookedDate: "March 19, 2026", status: "Ok", price: "US$238.88", bookingNo: "5420687799" },
-    { name: "Erin Stark", guests: "1 adult", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Family Room with Bathroom", bookedDate: "March  9, 2026", status: "Ok", price: "US$25.88", bookingNo: "3420817752" },
-    { name: "Turcotte Alexandre", guests: "2 adults, 1 child (3)", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Superior Villa", bookedDate: "March  2, 2026", status: "Ok", price: "US$128.88", bookingNo: "5430687173" },
-    { name: "Léo Paran", guests: "2 adults, 1 child (3)", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Family Room with Bathroom", bookedDate: "March  1, 2026", status: "Canceled", price: "US$38.88", bookingNo: "5420687772" },
-    { name: "Benjamin Aubert", guests: "2 adults", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Deluxe Double Room", bookedDate: "March 16, 2026", status: "Ok", price: "US$38.88", bookingNo: "5420687772" },
-    { name: "Nethil Domis", guests: "2 adults, 1 child (3)", checkIn: "March 20, 2026", checkOut: "March 21, 2026", room: "Family Room with Bathroom", bookedDate: "March 12, 2026", status: "Canceled", price: "US$38.88", bookingNo: "5420687772" }
-  ]);
+  const [rooms, setRooms] = useState([]);
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/reservations`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch');
+        setRooms(data.rooms || []);
+        setPackages(data.packages || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="w-full bg-[#EBF7FF] min-h-screen text-slate-700">

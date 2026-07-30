@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
-import SpecialPackage from '../models/specialPackage.model.js';
+import getTestDb from '../configs/testDb.js';
+import specialPackageBase from '../models/specialPackage.model.js';
+
+const getPackageModel = async () => {
+  const conn = await getTestDb();
+  return conn.models.SpecialPackage || conn.model('SpecialPackage', specialPackageBase.schema);
+};
 
 const handleError = (res, error) => {
     if (error?.code === 11000) {
@@ -26,6 +32,7 @@ const parseBody = (raw) => {
 
 export const createPackage = async (req, res) => {
     try {
+        const SpecialPackage = await getPackageModel();
         const body = parseBody(req.body);
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
         const pkg = await SpecialPackage.create({ ...body, images });
@@ -37,6 +44,7 @@ export const createPackage = async (req, res) => {
 
 export const getAllPackages = async (req, res) => {
     try {
+        const SpecialPackage = await getPackageModel();
         const packages = await SpecialPackage.find().sort({ createdAt: -1 });
         return res.status(200).json({ message: 'Packages fetched successfully', count: packages.length, packages });
     } catch {
@@ -46,6 +54,7 @@ export const getAllPackages = async (req, res) => {
 
 export const getPackageById = async (req, res) => {
     try {
+        const SpecialPackage = await getPackageModel();
         const { id } = req.params;
         if (!mongoose.isValidObjectId(id)) return res.status(400).json({ message: 'Invalid package id' });
         const pkg = await SpecialPackage.findById(id);
@@ -58,6 +67,7 @@ export const getPackageById = async (req, res) => {
 
 export const updatePackage = async (req, res) => {
     try {
+        const SpecialPackage = await getPackageModel();
         const { id } = req.params;
         if (!mongoose.isValidObjectId(id)) return res.status(400).json({ message: 'Invalid package id' });
 
@@ -77,6 +87,7 @@ export const updatePackage = async (req, res) => {
 
 export const deletePackage = async (req, res) => {
     try {
+        const SpecialPackage = await getPackageModel();
         const { id } = req.params;
         if (!mongoose.isValidObjectId(id)) return res.status(400).json({ message: 'Invalid package id' });
         const pkg = await SpecialPackage.findByIdAndDelete(id);
