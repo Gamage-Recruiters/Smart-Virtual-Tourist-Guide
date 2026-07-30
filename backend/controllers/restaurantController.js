@@ -1,9 +1,9 @@
 // src/controllers/restaurantController.js
-const RestaurantProfile = require('../models/RestaurantProfile');
-const cloudinary = require('../config/cloudinary');
+import RestaurantProfile from '../models/RestaurantProfile.js';
+import cloudinary from '../config/cloudinary.js';
 
 // Get restaurant profile
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const profile = await RestaurantProfile.findOne({ user: req.user.id });
     
@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // Create or update restaurant profile
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { restaurantInfo, operatingHours, features, menu } = req.body;
     
@@ -51,7 +51,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Upload profile photo
-exports.uploadPhoto = async (req, res) => {
+export const uploadPhoto = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -85,7 +85,7 @@ exports.uploadPhoto = async (req, res) => {
 };
 
 // Upload gallery images
-exports.uploadGallery = async (req, res) => {
+export const uploadGallery = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
@@ -116,7 +116,7 @@ exports.uploadGallery = async (req, res) => {
 };
 
 // Delete gallery image
-exports.deleteGalleryImage = async (req, res) => {
+export const deleteGalleryImage = async (req, res) => {
   try {
     const { imageId } = req.params;
     

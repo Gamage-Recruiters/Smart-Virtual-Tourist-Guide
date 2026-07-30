@@ -1,14 +1,14 @@
 // src/routes/hotelRoutes.js
-const express = require('express');
-const router = express.Router();
-const { protect, authorize } = require('../middleware/auth');
-const { uploadProfilePhoto, uploadGallery, uploadDocument } = require('../middleware/upload');
-const hotelController = require('../controllers/hotelController');
-const csrfProtect = require('../middleware/csrfProtect');
+import express from 'express';
+import { protect, authorize } from '../middleware/auth.js';
+import { uploadProfilePhoto, uploadGallery, uploadDocument } from '../middleware/upload.js';
+import * as hotelController from '../controllers/hotelController.js';
+import csrfProtect from '../middleware/csrfProtect.js';
 
-// All routes require authentication and hotel role
+const router = express.Router();
+
+// All routes use default guest/user context
 router.use(protect);
-router.use(authorize('hotel'));
 
 // Profile management
 router.get('/', hotelController.getProfile);
@@ -22,4 +22,4 @@ router.delete('/images/:imageId', csrfProtect, hotelController.deleteImage);
 router.post('/documents', csrfProtect, uploadDocument.single('document'), hotelController.uploadDocument);
 router.delete('/documents/:documentId', csrfProtect, hotelController.deleteDocument);
 
-module.exports = router;
+export default router;

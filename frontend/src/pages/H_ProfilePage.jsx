@@ -10,6 +10,7 @@ const ProfilePage = () => {
     fullName: 'Haritha Prageeth',
     email: 'harithaprageeth@gmail.com',
     password: '',
+    currentPassword: '',
     confirmPassword: '',
     contactNumber: '',
     hotelName: '',
@@ -43,29 +44,40 @@ const ProfilePage = () => {
     setLoading(true);
     setMessage('');
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password && formData.password !== formData.confirmPassword) {
       setMessage('Passwords do not match');
       setLoading(false);
       return;
     }
 
-    const formDataToSend = new FormData();
-    
-    // Append all fields
-    Object.keys(formData).forEach(key => {
-      if (formData[key]) {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
-
-    // Append image if exists
-    if (profileImage) {
-      formDataToSend.append('profileImage', profileImage);
-    }
-
     try {
-      await apiClient.upload('/hotel', formDataToSend);
+      // Update auth profile (fullName, contactNumber, profileImage)
+      const authFormData = new FormData();
+      if (formData.fullName) authFormData.append('fullName', formData.fullName);
+      if (formData.contactNumber) authFormData.append('contactNumber', formData.contactNumber);
+      if (profileImage) authFormData.append('profileImage', profileImage);
+      await apiClient.upload('/auth/update', authFormData);
+
+      // Change password if provided
+      if (formData.password) {
+        await apiClient.put('/auth/change-password', {
+          currentPassword: formData.currentPassword,
+          newPassword: formData.password
+        });
+      }
+
+      // Update hotel-specific profile
+      await apiClient.put('/hotel', {
+        hotelInfo: {
+          hotelName: formData.hotelName,
+          hotelPosition: formData.hotelPosition,
+          officialAddress: formData.officialAddress,
+          hotelRegisterName: formData.hotelRegisterName,
+          hotelRegisterNo: formData.hotelRegisterNo,
+          officialWebsite: formData.officialWebsite
+        }
+      });
+
       setMessage('Profile saved successfully!');
       setTimeout(() => setMessage(''), 5000);
     } catch (error) {

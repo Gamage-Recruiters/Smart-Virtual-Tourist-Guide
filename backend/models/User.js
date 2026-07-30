@@ -1,65 +1,164 @@
-// src/models/User.js
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
+  fullName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  username: {
+    type: String,
+    trim: true,
+    unique: true,
+    sparse: true
+  },
   email: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true,
-    trim: true
+    trim: true,
+    lowercase: true
   },
   password: {
     type: String,
-    required: true
+    required: function() {
+      // Password is required if not using Google auth
+      return !this.googleId;
+    }
   },
-  fullName: {
+  googleId: {
     type: String,
-    required: true
+    trim: true,
+    sparse: true
   },
   role: {
     type: String,
-    enum: ['guide', 'hotel', 'restaurant', 'tourist'],
-    default: 'tourist'
-  },
-  profileImage: {
-    url: String,
-    publicId: String
+    enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'admin'],
+    required: true
   },
   contactNumber: {
     type: String,
     trim: true
   },
-  isVerified: {
-    type: Boolean,
-    default: false
+  // Tourist specific fields
+  country: {
+    type: String,
+    trim: true
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  travelType: {
+    type: String,
+    trim: true
   },
-  lastLogin: Date,
-  createdAt: {
-    type: Date,
-    default: Date.now
+  travelPreferences: {
+    travelStart: { type: Date },
+    travelEnd: { type: Date },
+    budgetRange: {
+      min: { type: Number },
+      max: { type: Number },
+      currency: { type: String, default: 'LKR' }
+    },
+    travelStyle: [String],
+    accommodationType: { type: String }
+  },
+  passportNumber: {
+    type: String,
+    trim: true
+  },
+  healthInfo: {
+    bloodType: { type: String },
+    medicalCondition: { type: String },
+    covid19: { status: { type: String }, fileUrl: { type: String } },
+    hepatitisA: { status: { type: String }, fileUrl: { type: String } },
+    typhoid: { status: { type: String }, fileUrl: { type: String } },
+    yellowFever: { status: { type: String }, fileUrl: { type: String } }
+  },
+  emergencyContact: {
+    name: { type: String },
+    phoneNumber: { type: String },
+    relationship: { type: String },
+    country: { type: String }
+  },
+  // Hotel Owner specific fields — array to support multiple hotels per owner
+  hotels: {
+    type: [
+      {
+        hotelName: { type: String, trim: true },
+        hotelRegistrationNo: { type: String, trim: true },
+        hotelEmail: { type: String, trim: true, lowercase: true },
+        hotelRegisteredYear: { type: String, trim: true },
+        hotelContactNumber: { type: String, trim: true },
+      }
+    ],
+    default: undefined
+  },
+  // Guide specific fields
+  guideId: {
+    type: String,
+    trim: true
+  },
+  dob: {
+    type: String,
+    trim: true
+  },
+  gender: {
+    type: String,
+    trim: true
+  },
+  // Government specific fields
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
+  // Driver specific fields
+  vehicleType: {
+    type: String,
+    trim: true
+  },
+  vehicleNumber: {
+    type: String,
+    trim: true
+  },
+  licenseNumber: {
+    type: String,
+    trim: true
+  },
+  licenseImages: [{
+    type: String
+  }],
+  regBookImages: [{
+    type: String
+  }],
+  vehicleImages: [{
+    type: String
+  }],
+  lastLogin: {
+    type: Date
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'users'
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+// Method to check password
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
+  if (!this.password.startsWith('$2')) {
+    return enteredPassword === this.password;
+  }
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+// Pre-save hook to hash password if it's modified
+userSchema.pre('save', async function () {
+  if (!this.password || !this.isModified('password')) return;
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+const User = mongoose.model('User', userSchema);
+export default User;

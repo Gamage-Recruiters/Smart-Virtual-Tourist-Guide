@@ -1,5 +1,5 @@
 // src/models/HotelProfile.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const hotelProfileSchema = new mongoose.Schema({
   user: {
@@ -78,4 +78,4 @@ const hotelProfileSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('HotelProfile', hotelProfileSchema);
+export default mongoose.model('HotelProfile', hotelProfileSchema);

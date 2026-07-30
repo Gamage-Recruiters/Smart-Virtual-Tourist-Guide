@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/apiClient';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -19,15 +20,67 @@ function D_ProfilePage() {
   const placeholder = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22100%22%3E%3Crect width=%22150%22 height=%22100%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22%3ENo Image%3C/text%3E%3C/svg%3E';
 
   const [profileData, setProfileData] = useState({
-    vehicleType: 'Toyota Prius',
-    vehicleNumber: 'ABC-1234',
-    licenseNumber: 'DL-2024-5678',
+    vehicleType: '',
+    vehicleNumber: '',
+    licenseNumber: '',
     licenseImages: [placeholder, placeholder],
     regBookImages: [placeholder],
     vehicleImages: [placeholder, placeholder, placeholder]
   });
-
+  const [userInfo, setUserInfo] = useState({ fullName: '', email: '', contactNumber: '' });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', newPass: '', confirm: '' });
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { user } = await apiClient.get('/auth/me');
+        setUserInfo({ fullName: user.fullName || '', email: user.email || '', contactNumber: user.contactNumber || '' });
+      } catch (err) { console.error(err); }
+    };
+    load();
+  }, []);
+
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      await apiClient.put('/auth/update', {
+        fullName: userInfo.fullName,
+        contactNumber: userInfo.contactNumber
+      });
+      setMessage('Profile saved successfully!');
+      setTimeout(() => setMessage(''), 4000);
+    } catch (err) {
+      setMessage(err.message || 'Error saving profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwords.newPass !== passwords.confirm) {
+      setMessage('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    setMessage('');
+    try {
+      await apiClient.put('/auth/change-password', {
+        currentPassword: passwords.current,
+        newPassword: passwords.newPass
+      });
+      setMessage('Password updated successfully!');
+      setPasswords({ current: '', newPass: '', confirm: '' });
+      setTimeout(() => setMessage(''), 4000);
+    } catch (err) {
+      setMessage(err.message || 'Error updating password');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setProfileData(prev => ({
@@ -105,13 +158,19 @@ function D_ProfilePage() {
 
         <div className="space-y-6">
           
+          {message && (
+            <div className={`p-3 rounded-lg text-sm ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {message}
+            </div>
+          )}
+
           {/* SECTION 1: PROFILE DETAILS */}
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800">Profile Details</h3>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition">
+              <button onClick={handleSaveProfile} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition disabled:opacity-50">
                 <Save size={16} />
-                Save Changes
+                {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
 
@@ -124,10 +183,18 @@ function D_ProfilePage() {
                 </div>
               </div>
               <div className="flex-1 grid grid-cols-2 gap-6">
-                <InputGroup label="Full Name" value="Ishan Lankathilaka" />
-                <InputGroup label="Business Name" value="Lanka Rentals" />
-                <InputGroup label="Contact Email" value="Lankarentals@gmail.co" />
-                <InputGroup label="Phone Number" value="+947 000-1234" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Full Name</label>
+                  <input type="text" value={userInfo.fullName} onChange={e => setUserInfo(p => ({...p, fullName: e.target.value}))} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Contact Email</label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-500">{userInfo.email}</div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Phone Number</label>
+                  <input type="text" value={userInfo.contactNumber} onChange={e => setUserInfo(p => ({...p, contactNumber: e.target.value}))} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
               </div>
             </div>
           </div>
@@ -298,8 +365,8 @@ function D_ProfilePage() {
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
-                    value="........" 
-                    readOnly 
+                    value={passwords.current}
+                    onChange={e => setPasswords(p => ({...p, current: e.target.value}))}
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                   />
                   <button 
@@ -316,8 +383,8 @@ function D_ProfilePage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
                   <input 
                     type="password" 
-                    value="........" 
-                    readOnly 
+                    value={passwords.newPass}
+                    onChange={e => setPasswords(p => ({...p, newPass: e.target.value}))}
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -325,8 +392,8 @@ function D_ProfilePage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
                   <input 
                     type="password" 
-                    value="........" 
-                    readOnly 
+                    value={passwords.confirm}
+                    onChange={e => setPasswords(p => ({...p, confirm: e.target.value}))}
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -335,8 +402,8 @@ function D_ProfilePage() {
               <p className="text-xs text-slate-400">Password must be at least 12 characters long with symbols.</p>
 
               <div className="flex justify-end pt-2">
-                <button className="bg-[#F06B2D] hover:bg-[#d65a22] text-white px-6 py-2.5 rounded-lg font-medium text-sm transition">
-                  Update Password
+                <button onClick={handleChangePassword} disabled={loading} className="bg-[#F06B2D] hover:bg-[#d65a22] text-white px-6 py-2.5 rounded-lg font-medium text-sm transition disabled:opacity-50">
+                  {loading ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
             </div>

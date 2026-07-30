@@ -12,4 +12,4 @@ const csrfProtect = (req, res, next) => {
   next();
 };
 
-module.exports = csrfProtect;
+export default csrfProtect;

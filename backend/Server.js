@@ -1,20 +1,31 @@
 // server.js
-const dns = require('dns');
+import dns from 'dns';
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const connectDB = require('./config/database');
-const path = require('path');
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import connectDB from './config/database.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import authRoutes from './routes/authRoutes.js';
+import guideRoutes from './routes/guideRoutes.js';
+import hotelRoutes from './routes/hotelRoutes.js';
+import restaurantRoutes from './routes/restaurantRoutes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import { seedTestUsers } from './seedTestUsers.js';
 
 // Load environment variables
 dotenv.config();
 
-// Connect to database
-connectDB();
+// Connect to database and seed test accounts
+connectDB().then(() => seedTestUsers());
 
 const app = express();
 
@@ -40,10 +51,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/guide', require('./routes/guideRoutes'));
-app.use('/api/hotel', require('./routes/hotelRoutes'));
-app.use('/api/restaurant', require('./routes/restaurantRoutes'));
+app.use('/api/auth', authRoutes);
+app.use('/api/guide', guideRoutes);
+app.use('/api/hotel', hotelRoutes);
+app.use('/api/restaurant', restaurantRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

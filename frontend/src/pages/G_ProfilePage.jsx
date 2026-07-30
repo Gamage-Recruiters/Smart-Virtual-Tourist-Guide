@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/apiClient';
 
 // --- Icons (Lucide React) ---
 const UserIcon = () => (
@@ -51,6 +52,64 @@ const CheckboxCard = ({ label, checked = false }) => (
 );
 
 export default function ProfileSettings() {
+  const [formData, setFormData] = useState({
+    fullName: '', contactNumber: '', email: '',
+    guideIdNumber: '', yearsOfExperience: '', bio: '', specialSkills: ''
+  });
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { user } = await apiClient.get('/auth/me');
+        setFormData(prev => ({
+          ...prev,
+          fullName: user.fullName || '',
+          contactNumber: user.contactNumber || '',
+          email: user.email || ''
+        }));
+        const { profile } = await apiClient.get('/guide');
+        if (profile) {
+          setFormData(prev => ({
+            ...prev,
+            guideIdNumber: profile.guideDetails?.guideIdNumber || '',
+            yearsOfExperience: profile.guideDetails?.yearsOfExperience || '',
+            bio: profile.aboutMe?.bio || '',
+            specialSkills: profile.aboutMe?.specialSkills || ''
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    loadProfile();
+  }, []);
+
+  const handleSave = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      if (profilePhoto) {
+        const fd = new FormData();
+        fd.append('profilePhoto', profilePhoto);
+        await apiClient.upload('/guide/photo', fd);
+      }
+      await apiClient.put('/guide', {
+        personalInfo: { fullName: formData.fullName, contactNumber: formData.contactNumber },
+        guideDetails: { guideIdNumber: formData.guideIdNumber, yearsOfExperience: formData.yearsOfExperience },
+        aboutMe: { bio: formData.bio, specialSkills: formData.specialSkills }
+      });
+      setMessage('Profile saved successfully!');
+      setTimeout(() => setMessage(''), 4000);
+    } catch (err) {
+      setMessage(err.message || 'Error saving profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans text-gray-800">
       
@@ -82,6 +141,12 @@ export default function ProfileSettings() {
             <p className="text-sm text-gray-500 mt-1">Manage your professional guide identity and preferences.</p>
           </div>
 
+          {message && (
+            <div className={`mb-6 p-3 rounded-lg text-sm ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              {message}
+            </div>
+          )}
+
           {/* Form Card */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-10">
             
@@ -90,11 +155,16 @@ export default function ProfileSettings() {
               <span className="text-sm font-semibold text-gray-700 pt-2 w-32">Profile Photo</span>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-200 border border-gray-300"></div>
+                  <div className="w-20 h-20 rounded-full bg-gray-200 border border-gray-300 overflow-hidden">
+                    {profilePhoto && <img src={URL.createObjectURL(profilePhoto)} className="w-full h-full object-cover" alt="profile" />}
+                  </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
-                      <button className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full hover:bg-blue-200 transition">Change Photo</button>
-                      <button className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200 transition">Remove</button>
+                      <label className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full hover:bg-blue-200 transition cursor-pointer">
+                        Change Photo
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && setProfilePhoto(e.target.files[0])} />
+                      </label>
+                      <button onClick={() => setProfilePhoto(null)} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full hover:bg-gray-200 transition">Remove</button>
                     </div>
                   </div>
                 </div>
@@ -108,7 +178,10 @@ export default function ProfileSettings() {
                 <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Personal Information</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                <InputField label="Full Name" placeholder="Enter full name" />
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">Full Name</label>
+                  <input type="text" value={formData.fullName} onChange={e => setFormData(p => ({...p, fullName: e.target.value}))} placeholder="Enter full name" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-700">Gender</label>
                   <div className="flex items-center gap-6 pt-1">
@@ -127,9 +200,13 @@ export default function ProfileSettings() {
                   </div>
                 </div>
                 <InputField label="Date of Birth" type="date" />
-                <InputField label="Contact Number" placeholder="Enter contact number" />
-                <div className="md:col-span-2">
-                  <InputField label="Email Address" placeholder="Enter email address" />
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">Contact Number</label>
+                  <input type="text" value={formData.contactNumber} onChange={e => setFormData(p => ({...p, contactNumber: e.target.value}))} placeholder="Enter contact number" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div className="md:col-span-2 flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">Email Address</label>
+                  <input type="email" value={formData.email} readOnly className="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500" />
                 </div>
               </div>
             </div>
@@ -141,8 +218,14 @@ export default function ProfileSettings() {
                 <h3 className="text-sm font-bold uppercase tracking-wide text-gray-700">Guide Details</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                <InputField label="Guide ID Number" placeholder="Enter ID number" />
-                <InputField label="Years of Experience" placeholder="Enter years" />
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">Guide ID Number</label>
+                  <input type="text" value={formData.guideIdNumber} onChange={e => setFormData(p => ({...p, guideIdNumber: e.target.value}))} placeholder="Enter ID number" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-gray-700">Years of Experience</label>
+                  <input type="text" value={formData.yearsOfExperience} onChange={e => setFormData(p => ({...p, yearsOfExperience: e.target.value}))} placeholder="Enter years" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
                 
                 <div className="md:col-span-2 flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-700">Languages Spoken</label>
@@ -175,11 +258,11 @@ export default function ProfileSettings() {
               <div className="grid grid-cols-1 gap-y-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-700">Short Professional Bio</label>
-                  <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                  <textarea value={formData.bio} onChange={e => setFormData(p => ({...p, bio: e.target.value}))} className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-semibold text-gray-700">Special Skills or Highlights</label>
-                  <textarea className="w-full border border-gray-300 rounded-lg px-3 py-2 h-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                  <textarea value={formData.specialSkills} onChange={e => setFormData(p => ({...p, specialSkills: e.target.value}))} className="w-full border border-gray-300 rounded-lg px-3 py-2 h-16 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                 </div>
               </div>
             </div>
@@ -206,8 +289,10 @@ export default function ProfileSettings() {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
-              <button className="px-6 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition">Cancel Changes</button>
-              <button className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">Save Changes</button>
+              <button onClick={() => window.location.reload()} className="px-6 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition">Cancel Changes</button>
+              <button onClick={handleSave} disabled={loading} className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
 
           </div>

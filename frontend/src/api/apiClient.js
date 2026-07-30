@@ -8,12 +8,8 @@ export const apiClient = {
       throw new Error('Request blocked: invalid endpoint origin');
     }
 
-    const token = localStorage.getItem('token');
     const headers = { ...options.headers };
 
-    if (token && !options.isFormData) {
-      headers.Authorization = `Bearer ${token}`;
-    }
     if (!options.isFormData) {
       headers['Content-Type'] = 'application/json';
     }

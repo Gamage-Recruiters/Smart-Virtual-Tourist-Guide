@@ -1,5 +1,5 @@
 // src/models/RestaurantProfile.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const restaurantProfileSchema = new mongoose.Schema({
   user: {
@@ -82,4 +82,4 @@ const restaurantProfileSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('RestaurantProfile', restaurantProfileSchema);
+export default mongoose.model('RestaurantProfile', restaurantProfileSchema);

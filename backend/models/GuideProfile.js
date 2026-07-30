@@ -1,5 +1,5 @@
 // src/models/GuideProfile.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const guideProfileSchema = new mongoose.Schema({
   user: {
@@ -97,4 +97,4 @@ guideProfileSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('GuideProfile', guideProfileSchema);
+export default mongoose.model('GuideProfile', guideProfileSchema);

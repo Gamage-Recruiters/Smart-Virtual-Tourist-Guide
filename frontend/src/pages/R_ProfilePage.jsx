@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/apiClient';
 import { 
   Instagram, 
   MapPin, 
@@ -7,11 +8,64 @@ import {
   Edit2
 } from 'lucide-react';
 
-// IMPORT THE IMAGE FROM ASSETS
-// Make sure you have a file named 'hero-bg.jpg' in your src/assets folder
 import heroImage from '../assets/Rest.jpg'; 
 
 const RestaurantProfile = () => {
+  const [formData, setFormData] = useState({
+    restaurantName: '', bio: '', phone: '', email: '', address: '',
+    website: '', instagram: '', tiktok: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { profile } = await apiClient.get('/restaurant');
+        if (profile) {
+          const i = profile.restaurantInfo || {};
+          setFormData({
+            restaurantName: i.restaurantName || '',
+            bio: i.bio || '',
+            phone: i.phone || '',
+            email: i.email || '',
+            address: i.address || '',
+            website: i.website || '',
+            instagram: i.instagram || '',
+            tiktok: i.tiktok || ''
+          });
+        }
+      } catch (err) { console.error(err); }
+    };
+    load();
+  }, []);
+
+  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleSave = async () => {
+    setLoading(true);
+    setMessage('');
+    try {
+      await apiClient.put('/restaurant', {
+        restaurantInfo: {
+          restaurantName: formData.restaurantName,
+          bio: formData.bio,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          website: formData.website,
+          instagram: formData.instagram,
+          tiktok: formData.tiktok
+        }
+      });
+      setMessage('Profile saved successfully!');
+      setTimeout(() => setMessage(''), 4000);
+    } catch (err) {
+      setMessage(err.message || 'Error saving profile');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-800">
       
@@ -52,10 +106,16 @@ const RestaurantProfile = () => {
               Configure your establishment's public persona. High-quality imagery and accurate operational hours ensure a premium customer experience.
             </p>
           </div>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shadow-sm">
-            + Add New Property
+          <button onClick={handleSave} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm font-medium transition-colors shadow-sm disabled:opacity-50">
+            {loading ? 'Saving...' : '+ Add New Property'}
           </button>
         </div>
+
+        {message && (
+          <div className={`mb-6 p-3 rounded-lg text-sm ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {message}
+          </div>
+        )}
 
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -69,18 +129,14 @@ const RestaurantProfile = () => {
               
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-gray-500 mb-1">RESTAURANT NAME</label>
-                <input 
-                  type="text" 
-                  defaultValue="Ceylon Harvest"
+                <input name="restaurantName" type="text" value={formData.restaurantName} onChange={handleChange}
                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">BIO / DESCRIPTION</label>
-                <textarea 
-                  rows="4"
-                  defaultValue="An intimate dining experience combining traditional Gaelic techniques with contemporary seasonal ingredients."
+                <textarea name="bio" rows="4" value={formData.bio} onChange={handleChange}
                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
                 ></textarea>
               </div>
@@ -93,17 +149,13 @@ const RestaurantProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1">PHONE NUMBER</label>
-                  <input 
-                    type="text" 
-                    defaultValue="+94 757418433"
+                  <input name="phone" type="text" value={formData.phone} onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1">PUBLIC EMAIL</label>
-                  <input 
-                    type="email" 
-                    defaultValue="reservations@lmalon.com"
+                  <input name="email" type="email" value={formData.email} onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
@@ -111,9 +163,7 @@ const RestaurantProfile = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">PHYSICAL ADDRESS</label>
-                <input 
-                  type="text" 
-                  defaultValue="No. 12, Marine Drive, Kollupitiya, Colombo 03"
+                <input name="address" type="text" value={formData.address} onChange={handleChange}
                   className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
@@ -126,25 +176,19 @@ const RestaurantProfile = () => {
               <div className="space-y-3">
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Globe size={16}/></span>
-                  <input 
-                    type="text" 
-                    defaultValue="https://ceylonharvest.com"
+                  <input name="website" type="text" value={formData.website} onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Instagram size={16}/></span>
-                  <input 
-                    type="text" 
-                    defaultValue="@ceylon_harvest"
+                  <input name="instagram" type="text" value={formData.instagram} onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><span className="font-bold text-[10px]">t</span></span>
-                  <input 
-                    type="text" 
-                    defaultValue="TikTok Username"
+                  <input name="tiktok" type="text" value={formData.tiktok} onChange={handleChange}
                     className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
                 </div>
@@ -153,11 +197,11 @@ const RestaurantProfile = () => {
 
             {/* Form Actions */}
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-              <button className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+              <button onClick={() => window.location.reload()} className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
                 Discard changes
               </button>
-              <button className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-md flex items-center justify-center gap-2">
-                Save Profile
+              <button onClick={handleSave} disabled={loading} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
 

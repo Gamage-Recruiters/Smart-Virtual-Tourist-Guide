@@ -1,14 +1,14 @@
 // src/routes/restaurantRoutes.js
-const express = require('express');
-const router = express.Router();
-const { protect, authorize } = require('../middleware/auth');
-const { uploadProfilePhoto, uploadGallery } = require('../middleware/upload');
-const restaurantController = require('../controllers/restaurantController');
-const csrfProtect = require('../middleware/csrfProtect');
+import express from 'express';
+import { protect, authorize } from '../middleware/auth.js';
+import { uploadProfilePhoto, uploadGallery } from '../middleware/upload.js';
+import * as restaurantController from '../controllers/restaurantController.js';
+import csrfProtect from '../middleware/csrfProtect.js';
 
-// All routes require authentication and restaurant role
+const router = express.Router();
+
+// All routes use default guest/user context
 router.use(protect);
-router.use(authorize('restaurant'));
 
 // Profile management
 router.get('/', restaurantController.getProfile);
@@ -19,4 +19,4 @@ router.post('/photo', csrfProtect, uploadProfilePhoto.single('profileImage'), re
 router.post('/gallery', csrfProtect, uploadGallery.array('gallery', 10), restaurantController.uploadGallery);
 router.delete('/gallery/:imageId', csrfProtect, restaurantController.deleteGalleryImage);
 
-module.exports = router;
+export default router;

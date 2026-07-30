@@ -1,7 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoginPage from './pages/LoginPage';
 import H_ProfilePage from './pages/H_ProfilePage';
 import T_ProfilePage from './pages/T_ProfilePage';
 import R_ProfilePage from './pages/R_ProfilePage';
@@ -23,12 +25,20 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/driver-profile" element={<D_ProfilePage />} />
-        <Route path="/" element={<WithNavbar><H_ProfilePage /></WithNavbar>} />
+        {/* Main routes */}
+        <Route path="/" element={<Navigate to="/hotel-profile" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Profile routes */}
         <Route path="/hotel-profile" element={<WithNavbar><H_ProfilePage /></WithNavbar>} />
         <Route path="/tourist-profile" element={<WithNavbar><T_ProfilePage /></WithNavbar>} />
         <Route path="/restaurant-profile" element={<WithNavbar><R_ProfilePage /></WithNavbar>} />
         <Route path="/guide-profile" element={<WithNavbar><G_ProfilePage /></WithNavbar>} />
+        <Route path="/driver-profile" element={<D_ProfilePage />} />
+        <Route path="/va-profile" element={<VA_ProfilePage />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/hotel-profile" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,9 +1,9 @@
 // src/controllers/guideController.js
-const GuideProfile = require('../models/GuideProfile');
-const cloudinary = require('../config/cloudinary');
+import GuideProfile from '../models/GuideProfile.js';
+import cloudinary from '../config/cloudinary.js';
 
 // Get guide profile
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const profile = await GuideProfile.findOne({ user: req.user.id });
     
@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // Create or update guide profile
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { personalInfo, guideDetails, aboutMe } = req.body;
     
@@ -49,7 +49,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Upload profile photo
-exports.uploadPhoto = async (req, res) => {
+export const uploadPhoto = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -83,7 +83,7 @@ exports.uploadPhoto = async (req, res) => {
 };
 
 // Upload document
-exports.uploadDocument = async (req, res) => {
+export const uploadDocument = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -118,7 +118,7 @@ exports.uploadDocument = async (req, res) => {
 };
 
 // Delete document
-exports.deleteDocument = async (req, res) => {
+export const deleteDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
     
@@ -148,7 +148,7 @@ exports.deleteDocument = async (req, res) => {
 };
 
 // Get profile status
-exports.getStatus = async (req, res) => {
+export const getStatus = async (req, res) => {
   try {
     const profile = await GuideProfile.findOne({ user: req.user.id });
     if (!profile) {

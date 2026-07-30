@@ -1,9 +1,9 @@
 // src/controllers/hotelController.js
-const HotelProfile = require('../models/HotelProfile');
-const cloudinary = require('../config/cloudinary');
+import HotelProfile from '../models/HotelProfile.js';
+import cloudinary from '../config/cloudinary.js';
 
 // Get hotel profile
-exports.getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
   try {
     const profile = await HotelProfile.findOne({ user: req.user.id });
     
@@ -19,7 +19,7 @@ exports.getProfile = async (req, res) => {
 };
 
 // Create or update hotel profile
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { hotelInfo, amenities, roomTypes } = req.body;
     
@@ -49,7 +49,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Upload hotel images
-exports.uploadImages = async (req, res) => {
+export const uploadImages = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
@@ -86,7 +86,7 @@ exports.uploadImages = async (req, res) => {
 };
 
 // Delete image
-exports.deleteImage = async (req, res) => {
+export const deleteImage = async (req, res) => {
   try {
     const { imageId } = req.params;
     
@@ -122,7 +122,7 @@ exports.deleteImage = async (req, res) => {
 };
 
 // Upload document
-exports.uploadDocument = async (req, res) => {
+export const uploadDocument = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -157,7 +157,7 @@ exports.uploadDocument = async (req, res) => {
 };
 
 // Delete document
-exports.deleteDocument = async (req, res) => {
+export const deleteDocument = async (req, res) => {
   try {
     const { documentId } = req.params;
     

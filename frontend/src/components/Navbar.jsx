@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-// IMPORT YOUR FLAG IMAGE HERE
+import { useNavigate } from 'react-router-dom';
 import sriLankaFlag from '../assets/SLFH.jpg'; 
-// IMPORT YOUR LOGO IMAGE HERE
 import logoImage from '../assets/logo.png'; 
-// IMPORT YOUR BACKGROUND IMAGE HERE
 import bg4Image from '../assets/bg4.png'; 
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -94,14 +100,7 @@ const Navbar = () => {
             {/* Language Selector */}
             <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
               <span>EN</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-3 w-3" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>

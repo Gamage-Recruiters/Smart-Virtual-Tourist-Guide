@@ -1,14 +1,14 @@
 // src/routes/guideRoutes.js
-const express = require('express');
-const router = express.Router();
-const { protect, authorize } = require('../middleware/auth');
-const { uploadProfilePhoto, uploadDocument } = require('../middleware/upload');
-const guideController = require('../controllers/guideController');
-const csrfProtect = require('../middleware/csrfProtect');
+import express from 'express';
+import { protect, authorize } from '../middleware/auth.js';
+import { uploadProfilePhoto, uploadDocument } from '../middleware/upload.js';
+import * as guideController from '../controllers/guideController.js';
+import csrfProtect from '../middleware/csrfProtect.js';
 
-// All routes require authentication and guide role
+const router = express.Router();
+
+// All routes use default guest/user context
 router.use(protect);
-router.use(authorize('guide'));
 
 // Profile management
 router.get('/', guideController.getProfile);
@@ -24,4 +24,4 @@ router.delete('/documents/:documentId', csrfProtect, guideController.deleteDocum
 // Status
 router.get('/status', guideController.getStatus);
 
-module.exports = router;
+export default router;
