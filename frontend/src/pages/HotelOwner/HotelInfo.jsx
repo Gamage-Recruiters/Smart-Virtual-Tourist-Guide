@@ -66,13 +66,16 @@ const HotelInfo = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await hotelOwnerAPI.addHotelInfo({
+      const response = await hotelOwnerAPI.addHotelInfo({
         hotelName: formData.hotelName,
         hotelRegistrationNo: formData.hotelRegistrationNo,
         hotelEmail: formData.hotelEmail,
         hotelRegisteredYear: formData.hotelRegisteredYear,
         hotelContactNumber: `${formData.countryCode}${formData.hotelPhoneNumber}`,
       });
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      userData.hotels = response.hotels || [{ hotelName: formData.hotelName }];
+      localStorage.setItem('userData', JSON.stringify(userData));
       navigate('/dashboard-HotelOwner');
     } catch (error) {
       alert(error.message || 'Failed to save hotel information. Please try again.');

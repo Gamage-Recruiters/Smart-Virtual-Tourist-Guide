@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Footer from '../components/Footer.jsx'
 import Header from '../components/Header.jsx'
@@ -6,6 +7,14 @@ import bgImage from '../assets/Background Image.png'
 
 function HotelOwnerDashboard() {
 	const navigate = useNavigate()
+	const [username, setUsername] = useState('')
+	const [hasHotel, setHasHotel] = useState(false)
+
+	useEffect(() => {
+		const userData = JSON.parse(localStorage.getItem('userData') || '{}')
+		setUsername(userData.username || userData.fullName || 'Hotel Owner')
+		setHasHotel(Array.isArray(userData.hotels) && userData.hotels.length > 0)
+	}, [])
 	return (
 		<div className="min-h-screen w-full overflow-x-hidden text-slate-800">
 			<div className="mx-auto flex min-h-screen w-auto flex-col gap-6">
@@ -24,17 +33,17 @@ function HotelOwnerDashboard() {
 						<div className="relative z-10 flex min-h-[620px] items-center justify-center rounded-[28px] bg-white/10 px-4 py-12 text-center sm:min-h-[700px]">
 							<div className="flex max-w-3xl flex-col items-start gap-8 text-slate-950">
 								<h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-									Welcome Thilini !
+									Welcome {username} !
 								</h1>
 								<p className="text-xl font-medium text-slate-800" style={{ wordSpacing: '5px' }}>
 									Manage Your Hotel and Boost <span className="font-bold">Your</span> Booking
 								</p>
 								<button
-									onClick={() => (location.href = 'view-rooms-packages')}
+									onClick={() => hasHotel ? (location.href = 'view-rooms-packages') : navigate('/hotel-info')}
 									className="inline-flex h-12 items-center justify-center rounded-sm border border-slate-500 bg-white/70 px-10 text-lg font-medium text-slate-700 shadow-sm transition hover:bg-white"
 									type="button"
 								>
-									Explore More...
+									{hasHotel ? 'Explore More...' : 'Add Your Hotel'}
 								</button>
 							</div>
 						</div>
@@ -56,8 +65,9 @@ function HotelOwnerDashboard() {
 								</div>
 								<button
 									type="button"
+									disabled={!hasHotel}
 									onClick={() => navigate('/add-room-package')}
-									className="inline-flex h-11 items-center justify-center rounded-md bg-sky-800 px-5 text-sm font-semibold text-white transition hover:bg-sky-900"
+									className="inline-flex h-11 items-center justify-center rounded-md bg-sky-800 px-5 text-sm font-semibold text-white transition hover:bg-sky-900 disabled:opacity-40 disabled:cursor-not-allowed"
 								>
 									+&nbsp;Add New Room
 								</button>
@@ -66,32 +76,36 @@ function HotelOwnerDashboard() {
 								<aside className="rounded-xl p-6" style={{ background: 'linear-gradient(180deg, #FFFFFF 0%, #A0DBFF 100%)' }}>
 										<div className="grid gap-2">
 											<button type="button"
+											disabled={!hasHotel}
 											onClick={() => navigate('/view-rooms-packages')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3  cursor-pointer">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
 												Add Rooms &amp; Packages
 											</button>
 											<button type="button"
+											disabled={!hasHotel}
 											onClick={() => navigate('/manage-availability')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
 												Manage Availability
 											</button>
-											<button type="button" 
+											<button type="button"
+											disabled={!hasHotel}
 											onClick={() => navigate('/view-reservations')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
 												View Booking
 											</button>
-											<button type="button" 
+											<button type="button"
 											onClick={() => navigate('')}
 											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
 												Profile setting
 											</button>
 											<button type="button"
+											disabled={!hasHotel}
 											onClick={() => navigate('/financial-analysis')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
 												Financial Analyze
 											</button>
@@ -210,7 +224,13 @@ function HotelOwnerDashboard() {
 								</div>
 
 								<div className="mt-8 flex justify-end">
-									<button type="button" className="text-lg font-medium text-slate-900">&lt; Back</button>
+									<button
+										type="button"
+										onClick={() => navigate('/')}
+										className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-lg font-semibold text-slate-900 hover:text-sky-600 cursor-pointer transition-colors duration-200"
+									>
+										&lt; Back
+									</button>
 								</div>
 							</div>
 						</div>

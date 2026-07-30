@@ -415,6 +415,7 @@ const loginUser = async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
+          hotels: user.hotels,
         },
         token: generateToken(user._id),
       });
