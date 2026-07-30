@@ -51,7 +51,7 @@ function ResturentLogingPage() {
       }
 
       // Store JWT and user info
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('restaurantToken', data.token)
       localStorage.setItem('restaurantUser', JSON.stringify(data.user))
 
       // Redirect to dashboard

@@ -23,7 +23,7 @@ function ResturentSidebar() {
   useEffect(() => {
     const fetchRestaurantName = async () => {
       try {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('restaurantToken')
         const res = await fetch(`${API_BASE}/restaurants`, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -48,7 +48,7 @@ function ResturentSidebar() {
     .slice(0, 2)
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
+    localStorage.removeItem('restaurantToken')
     localStorage.removeItem('restaurantUser')
     navigate('/resturent/login', { replace: true })
   }

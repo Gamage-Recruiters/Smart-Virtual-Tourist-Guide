@@ -22,6 +22,38 @@ export default function TouristRestaurantDetailsPage() {
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selectedFoodType, setSelectedFoodType] = useState('All'); // All, Vegetarian, Non-Vegetarian, Vegan
 
+  // Reservation Modal & State
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [bookDate, setBookDate] = useState(new Date().toISOString().split('T')[0]);
+  const [bookTableType, setBookTableType] = useState('ethereal');
+  const [bookGuestCount, setBookGuestCount] = useState(1);
+  const [availDetails, setAvailDetails] = useState(null);
+  const [checkingAvail, setCheckingAvail] = useState(false);
+  const [submittingBooking, setSubmittingBooking] = useState(false);
+  const [bookingSuccessMsg, setBookingSuccessMsg] = useState('');
+  const [bookingErrorMsg, setBookingErrorMsg] = useState('');
+
+  // Fetch slot availability when date or restaurant changes
+  useEffect(() => {
+    if (id && bookDate) {
+      const fetchAvailability = async () => {
+        setCheckingAvail(true);
+        try {
+          const res = await fetch(`${API_BASE}/reservations/availability?restaurantId=${id}&date=${bookDate}`);
+          if (res.ok) {
+            const data = await res.json();
+            setAvailDetails(data);
+          }
+        } catch (err) {
+          console.error("Error fetching availability:", err);
+        } finally {
+          setCheckingAvail(false);
+        }
+      };
+      fetchAvailability();
+    }
+  }, [id, bookDate]);
+
   useEffect(() => {
     const fetchRestaurantData = async () => {
       try {
@@ -57,6 +89,71 @@ export default function TouristRestaurantDetailsPage() {
   }, [id]);
 
   const activeOffer = offers.find(o => o.isActive);
+
+  // Calculate pricing values
+  const getTablePricePerPerson = () => {
+    if (!restaurant) return 0;
+    return restaurant.tables?.[bookTableType]?.pricePerPerson || (bookTableType === 'ethereal' ? 285 : 195);
+  };
+
+  const getBookingCostDetails = () => {
+    const ppp = getTablePricePerPerson();
+    const subtotal = ppp * bookGuestCount;
+    const serviceCharge = parseFloat((subtotal * 0.15).toFixed(2));
+    const total = parseFloat((subtotal + serviceCharge).toFixed(2));
+    return { subtotal, serviceCharge, total };
+  };
+
+  const handleProcessBooking = async () => {
+    setSubmittingBooking(true);
+    setBookingSuccessMsg('');
+    setBookingErrorMsg('');
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setBookingErrorMsg("Please sign in first to make a table reservation.");
+        setSubmittingBooking(false);
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/reservations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          restaurantId: id,
+          tableType: bookTableType,
+          guestCount: Number(bookGuestCount),
+          date: bookDate
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setBookingSuccessMsg("Seat reservation paid and completed successfully!");
+        // Refresh availability
+        const availRes = await fetch(`${API_BASE}/reservations/availability?restaurantId=${id}&date=${bookDate}`);
+        if (availRes.ok) {
+          const freshAvail = await availRes.json();
+          setAvailDetails(freshAvail);
+        }
+        setTimeout(() => {
+          setIsBookModalOpen(false);
+          setBookingSuccessMsg('');
+        }, 2500);
+      } else {
+        setBookingErrorMsg(data.message || "Failed to complete reservation booking.");
+      }
+    } catch (err) {
+      setBookingErrorMsg("Network error. Please try again.");
+    } finally {
+      setSubmittingBooking(false);
+    }
+  };
+
 
   const getDiscountedPrice = (price) => {
     if (!activeOffer) return price;
@@ -341,6 +438,7 @@ export default function TouristRestaurantDetailsPage() {
             <div className="space-y-2">
               <button
                 type="button"
+                onClick={() => setIsBookModalOpen(true)}
                 className="w-full py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-bold rounded-xl text-sm transition-colors shadow-md hover:shadow-lg cursor-pointer"
               >
                 Reserve a Table
@@ -357,6 +455,141 @@ export default function TouristRestaurantDetailsPage() {
 
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {isBookModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl relative border border-slate-100 animate-fadeIn">
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsBookModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Book a Seat</h3>
+            <p className="text-xs text-slate-500 mb-6">Select your seat type, reservation date, and guests to calculate rates.</p>
+
+            {/* Error Message */}
+            {bookingErrorMsg && (
+              <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs text-red-600 font-semibold">
+                {bookingErrorMsg}
+              </div>
+            )}
+
+            {/* Success Message */}
+            {bookingSuccessMsg && (
+              <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5 text-xs text-green-700 font-bold">
+                {bookingSuccessMsg}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {/* Date selection */}
+              <div>
+                <label className="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Select Date</label>
+                <input
+                  type="date"
+                  value={bookDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={e => setBookDate(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:bg-white focus:border-blue-500"
+                />
+              </div>
+
+              {/* Table / Experience type */}
+              <div>
+                <label className="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Experience Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setBookTableType('ethereal')}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                      bookTableType === 'ethereal'
+                        ? 'border-blue-500 bg-blue-50/50'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="block text-xs font-extrabold text-slate-800">
+                      {restaurant.tables?.ethereal?.name || 'Luxury Experience'}
+                    </span>
+                    <span className="mt-1 block text-xs text-blue-600 font-bold">
+                      ${restaurant.tables?.ethereal?.pricePerPerson || 285} / person
+                    </span>
+                    {availDetails && (
+                      <span className="mt-2 block text-[10px] text-slate-400 font-medium">
+                        {availDetails.ethereal.available} seats left today
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBookTableType('obsidian')}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                      bookTableType === 'obsidian'
+                        ? 'border-blue-500 bg-blue-50/50'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="block text-xs font-extrabold text-slate-800">
+                      {restaurant.tables?.obsidian?.name || 'Sunset Dining'}
+                    </span>
+                    <span className="mt-1 block text-xs text-blue-600 font-bold">
+                      ${restaurant.tables?.obsidian?.pricePerPerson || 195} / person
+                    </span>
+                    {availDetails && (
+                      <span className="mt-2 block text-[10px] text-slate-400 font-medium">
+                        {availDetails.obsidian.available} seats left today
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Guest Count */}
+              <div>
+                <label className="block mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">Number of Guests</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={bookGuestCount}
+                  onChange={e => setBookGuestCount(Math.max(1, Number(e.target.value)))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm outline-none focus:bg-white focus:border-blue-500"
+                />
+              </div>
+
+              {/* Calculations Block */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                <div className="flex justify-between text-slate-600">
+                  <span>Subtotal ({bookGuestCount} × ${getTablePricePerPerson()})</span>
+                  <span className="font-semibold">${getBookingCostDetails().subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Service Charge (15%)</span>
+                  <span className="font-semibold">${getBookingCostDetails().serviceCharge.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-200">
+                  <span>Total Amount</span>
+                  <span>${getBookingCostDetails().total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Pay Now Action */}
+              <button
+                type="button"
+                disabled={submittingBooking || (availDetails && bookGuestCount > (bookTableType === 'ethereal' ? availDetails.ethereal.available : availDetails.obsidian.available))}
+                onClick={handleProcessBooking}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md hover:shadow-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingBooking ? 'Processing Payment...' : 'Pay Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

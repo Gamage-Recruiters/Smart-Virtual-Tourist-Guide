@@ -19,7 +19,7 @@ function ResturentProfilePage() {
     const init = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('restaurantToken')
         const headers = { Authorization: `Bearer ${token}` }
 
         const restRes = await fetch(`${API_BASE}/restaurants`, { headers })
@@ -125,7 +125,7 @@ function ResturentProfilePage() {
     setSaving(true)
     setSaveMsg('')
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       let bannerImageUrl = form.bannerImage
 
       if (selectedFile) {

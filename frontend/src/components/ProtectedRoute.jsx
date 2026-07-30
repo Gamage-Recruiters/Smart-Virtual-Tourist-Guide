@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom'
  * Redirects to /resturent/login if no JWT token is found in localStorage.
  */
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('restaurantToken')
   const user = JSON.parse(localStorage.getItem('restaurantUser') || 'null')
 
   // No token or user is not a restaurant_user → redirect to login

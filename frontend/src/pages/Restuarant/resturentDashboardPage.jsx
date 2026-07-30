@@ -7,13 +7,15 @@ function ResturentDashboardPage() {
   const [restaurantData, setRestaurantData] = useState(null)
   const [menuCount, setMenuCount] = useState(0)
   const [activeOffers, setActiveOffers] = useState(0)
+  const [reservations, setReservations] = useState([])
+  const [revenueData, setRevenueData] = useState({ totalRevenue: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('restaurantToken')
         const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
         // Fetch all restaurants to find this owner's restaurant
@@ -26,10 +28,12 @@ function ResturentDashboardPage() {
         if (matchedRestaurant) {
           setRestaurantData(matchedRestaurant)
 
-          // Fetch menu items for this restaurant and offers for this restaurant
-          const [menuRes, offersRes] = await Promise.all([
+          // Fetch menu items, offers, reservations, and revenue
+          const [menuRes, offersRes, reservRes, revRes] = await Promise.all([
             fetch(`${API_BASE}/menu/restaurant/${matchedRestaurant._id}`, { headers }),
             fetch(`${API_BASE}/offers/restaurant/${matchedRestaurant._id}`, { headers }),
+            fetch(`${API_BASE}/reservations/restaurant/${matchedRestaurant._id}`, { headers }),
+            fetch(`${API_BASE}/reservations/restaurant/${matchedRestaurant._id}/revenue`, { headers }),
           ])
 
           const menuItems = await menuRes.json()
@@ -40,6 +44,16 @@ function ResturentDashboardPage() {
             ? offersData.filter(o => o.isActive).length
             : 0
           setActiveOffers(activeCount)
+
+          if (reservRes.ok) {
+            const reservData = await reservRes.json()
+            setReservations(Array.isArray(reservData) ? reservData : [])
+          }
+
+          if (revRes.ok) {
+            const revData = await revRes.json()
+            setRevenueData(revData)
+          }
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err)
@@ -53,22 +67,15 @@ function ResturentDashboardPage() {
 
   const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
 
+  // Calculate today's reservations count
+  const todayStr = new Date().toISOString().split('T')[0]
+  const todayReservationsCount = reservations.filter(r => r.date === todayStr).length
+
   const stats = [
     { label: 'Menu Items', value: loading ? '...' : menuCount, sub: 'Total items listed' },
-    { label: 'Today Reservations', value: '—', sub: 'Coming soon' },
+    { label: 'Today Reservations', value: loading ? '...' : todayReservationsCount, sub: 'Diners visiting today' },
     { label: 'Active Offers', value: loading ? '...' : activeOffers, sub: 'Currently running' },
-    { label: 'Avg. Rating', value: '—', sub: 'Based on reviews' },
-  ]
-
-  const sections = [
-    { title: 'Upcoming Reservations' },
-    { title: 'Active Offers' },
-    { title: 'Recent Reviews' },
-  ]
-
-  const rightSections = [
-    { title: 'Top Performing Dishes' },
-    { title: 'Revenue Analytics' },
+    { label: 'Total Revenue', value: loading ? '...' : `$${(revenueData.totalRevenue || 0).toFixed(2)}`, sub: 'Lifetime earnings' },
   ]
 
   return (
@@ -131,37 +138,58 @@ function ResturentDashboardPage() {
 
         <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
           <div className="grid gap-4">
-            {sections.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-2xl border border-white/70 bg-white/78 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-[2px]"
-              >
-                <header className="mb-6 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                  <span className="text-xs text-slate-500 cursor-pointer hover:text-blue-600">View All</span>
-                </header>
+            {/* Upcoming Reservations section */}
+            <article className="rounded-2xl border border-white/70 bg-white/78 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-[2px]">
+              <header className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Upcoming Reservations</h3>
+              </header>
+              {loading ? (
+                <div className="py-6 text-center text-xs text-slate-400">Loading...</div>
+              ) : reservations.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
-                  No data yet
+                  No reservations yet
                 </div>
-              </article>
-            ))}
+              ) : (
+                <div className="space-y-2 max-h-[220px] overflow-y-auto">
+                  {reservations.slice(0, 5).map(r => (
+                    <div key={r._id} className="flex justify-between items-center bg-white/80 p-3 rounded-xl border border-slate-100 text-xs">
+                      <div>
+                        <span className="font-bold text-slate-800 block">{r.userName}</span>
+                        <span className="text-[10px] text-slate-400">{r.userEmail} • {r.guestCount} guests</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-semibold text-blue-600 block">{r.tableType === 'ethereal' ? 'Ethereal' : 'Obsidian'}</span>
+                        <span className="text-slate-500 text-[10px]">{r.date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            {/* Active Offers Section */}
+            <article className="rounded-2xl border border-white/70 bg-white/78 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-[2px]">
+              <header className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Active Offers</h3>
+              </header>
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                Manage offers from the sidebar settings page.
+              </div>
+            </article>
           </div>
 
           <div className="grid gap-4">
-            {rightSections.map((section) => (
-              <article
-                key={section.title}
-                className="rounded-2xl border border-white/70 bg-white/78 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-[2px]"
-              >
-                <header className="mb-6 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                  <span className="text-xs text-slate-500 cursor-pointer hover:text-blue-600">View All</span>
-                </header>
-                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
-                  No data yet
-                </div>
-              </article>
-            ))}
+            {/* Revenue Analytics Section */}
+            <article className="rounded-2xl border border-white/70 bg-white/78 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-[2px]">
+              <header className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Revenue Analytics</h3>
+              </header>
+              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center space-y-3">
+                <p className="text-xs text-slate-500">Total processed revenue</p>
+                <p className="text-3xl font-extrabold text-blue-600">${(revenueData.totalRevenue || 0).toFixed(2)}</p>
+                <div className="text-[10px] text-slate-400">Includes 15% service charge details.</div>
+              </div>
+            </article>
           </div>
         </div>
       </div>
@@ -169,4 +197,4 @@ function ResturentDashboardPage() {
   )
 }
 
-export default ResturentDashboardPage
+export default ResturentDashboardPage;

@@ -36,7 +36,7 @@ function ResturentMenuPage() {
     const init = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('restaurantToken')
         const headers = { Authorization: `Bearer ${token}` }
 
         // Find this owner's restaurant
@@ -96,7 +96,7 @@ function ResturentMenuPage() {
 
   const handleToggleAvailability = async (id) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       const res = await fetch(`${API_BASE}/menu/${id}/availability`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
@@ -115,7 +115,7 @@ function ResturentMenuPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this menu item?')) return
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       const res = await fetch(`${API_BASE}/menu/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },

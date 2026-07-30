@@ -18,7 +18,7 @@ function ResturentOfferPage() {
     const init = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('restaurantToken')
         const headers = { Authorization: `Bearer ${token}` }
 
         const restRes = await fetch(`${API_BASE}/restaurants`, { headers })
@@ -44,7 +44,7 @@ function ResturentOfferPage() {
 
   const handleToggle = async (id) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       const res = await fetch(`${API_BASE}/offers/${id}/status`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
@@ -78,7 +78,7 @@ function ResturentOfferPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this offer?')) return
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       const res = await fetch(`${API_BASE}/offers/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -98,7 +98,7 @@ function ResturentOfferPage() {
     setSubmitting(true)
     setFormError('')
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
       const url = editingId ? `${API_BASE}/offers/${editingId}` : `${API_BASE}/offers`
       const method = editingId ? 'PUT' : 'POST'
 

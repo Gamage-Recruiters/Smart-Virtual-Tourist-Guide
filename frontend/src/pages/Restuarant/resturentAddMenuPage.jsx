@@ -30,7 +30,7 @@ function ResturentAddMenuPage() {
     if (isEditMode) {
       const fetchMenuItem = async () => {
         try {
-          const token = localStorage.getItem('token')
+          const token = localStorage.getItem('restaurantToken')
           const res = await fetch(`${API_BASE}/menu/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
@@ -87,7 +87,7 @@ function ResturentAddMenuPage() {
     setApiError('')
     try {
       const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('restaurantToken')
 
       // Find this owner's restaurant
       const restRes = await fetch(`${API_BASE}/restaurants`, {
