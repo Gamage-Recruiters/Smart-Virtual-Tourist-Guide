@@ -1,0 +1,93 @@
+import React from 'react';
+// Import matching icons from react-icons
+import { FaUsers, FaRulerCombined, FaDollarSign, FaTree, FaWifi, FaWind } from 'react-icons/fa';
+import { MdBalcony } from 'react-icons/md';
+
+function RoomCard({ room }) {
+  // Graceful fallback if amenities aren't provided
+  const amenities = room.amenities || {};
+
+  return (
+    <div className="flex flex-col sm:flex-row border border-gray-100 rounded-xl p-2.5 shadow-md bg-white hover:shadow-lg transition-shadow duration-200 max-w-sm">
+      
+      {/* Left Side: Room Image */}
+      <div className="w-full sm:w-20 h-16 sm:h-auto shrink-0 mb-2 sm:mb-0">
+        <img
+          src={room.image}
+          alt={room.name}
+          className="w-full h-full object-cover rounded-xl"
+        />
+      </div>
+
+      {/* Right Side: Information Content */}
+      <div className="grow flex flex-col justify-between pl-0 sm:pl-3">
+        <div>
+          {/* Room Name */}
+          <p className="text-slate-900 font-bold text-sm mb-2 leading-tight">
+            {room.name}
+          </p>
+
+          {/* Metadata Specs */}
+          <div className="space-y-1 text-xs font-semibold text-gray-700 mb-3">
+            <div className="flex items-center gap-2">
+              <FaUsers className="text-gray-800 text-sm w-4" />
+              <span>Capacity:</span>
+              <span className="text-gray-500 font-medium">{room.capacity}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <FaRulerCombined className="text-gray-800 text-sm w-4" />
+              <span>Size:</span>
+              <span className="text-gray-500 font-medium">{room.size}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className="border border-gray-800 rounded-full p-px flex items-center justify-center w-4 h-4">
+                <FaDollarSign className="text-gray-800 text-[10px]" />
+              </div>
+              <span>Price:</span>
+              <span className="text-gray-500 font-medium">{room.price}</span>
+            </div>
+          </div>
+
+          {/* Amenities Row */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-medium text-gray-600 border-t border-gray-100 pt-2 mb-3">
+            {amenities.terrace && (
+              <span className="flex items-center gap-1">
+                <MdBalcony className="text-xs text-gray-700" /> Terrace
+              </span>
+            )}
+            {amenities.gardenView && (
+              <span className="flex items-center gap-1">
+                <FaTree className="text-xs text-gray-700" /> Garden View
+              </span>
+            )}
+            {amenities.wifi && (
+              <span className="flex items-center gap-1">
+                <FaWifi className="text-xs text-gray-700" /> Free WiFi
+              </span>
+            )}
+            {amenities.ac && (
+              <span className="flex items-center gap-1">
+                <FaWind className="text-xs text-gray-700" /> Air Conditions
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Edit / Delete Buttons */}
+        <div className="flex items-center gap-3 mt-auto">
+          <button className="flex-1 bg-[#28a745] hover:bg-green-600 text-white font-bold text-xs py-1 rounded-md transition-colors text-center">
+            Edit
+          </button>
+          <button className="flex-1 bg-[#dc3545] hover:bg-red-600 text-white font-bold text-xs py-1 rounded-md transition-colors text-center">
+            Delete
+          </button>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+export default RoomCard;
