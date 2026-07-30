@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, CheckCircle } from 'lucide-react';
+import { User, Mail, CheckCircle, MapPin } from 'lucide-react';
 import { hotelOwnerAPI } from '../../services/api';
 import Header from '../../components/HotelOwner/Header';
 import Footer from '../../components/HotelOwner/Footer';
@@ -22,6 +22,7 @@ const HotelInfo = () => {
   const [formData, setFormData] = useState({
     hotelName: '',
     hotelRegistrationNo: '',
+    hotelAddress: '',
     hotelEmail: '',
     hotelRegisteredYear: new Date().getFullYear().toString(),
     countryCode: '+94',
@@ -69,6 +70,7 @@ const HotelInfo = () => {
       const response = await hotelOwnerAPI.addHotelInfo({
         hotelName: formData.hotelName,
         hotelRegistrationNo: formData.hotelRegistrationNo,
+        hotelAddress: formData.hotelAddress,
         hotelEmail: formData.hotelEmail,
         hotelRegisteredYear: formData.hotelRegisteredYear,
         hotelContactNumber: `${formData.countryCode}${formData.hotelPhoneNumber}`,
@@ -163,6 +165,22 @@ const HotelInfo = () => {
                         onChange={handleChange}
                         required
                         placeholder="567890456788"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3CB4FF] bg-gray-50/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Hotel Address */}
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 mb-1 block">Hotel Address</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                      <input
+                        type="text"
+                        name="hotelAddress"
+                        value={formData.hotelAddress}
+                        onChange={handleChange}
+                        placeholder="123 Main Street, Kandy"
                         className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3CB4FF] bg-gray-50/50 text-sm"
                       />
                     </div>

@@ -77,6 +77,7 @@ const userSchema = new mongoose.Schema({
         hotelEmail: { type: String, trim: true, lowercase: true },
         hotelRegisteredYear: { type: String, trim: true },
         hotelContactNumber: { type: String, trim: true },
+        hotelAddress: { type: String, trim: true },
       }
     ],
     default: undefined

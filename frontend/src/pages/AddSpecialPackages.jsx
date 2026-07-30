@@ -281,7 +281,10 @@ export default function AddSpecialPackages() {
     setFieldErrors({});
     setLoading(true);
     try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const hotelId = userData.hotels?.[0]?._id;
       const fd = new FormData();
+      if (hotelId) fd.append('hotelId', hotelId);
       fd.append('packageName', formData.packageName);
       fd.append('roomType', formData.roomType);
       fd.append('roomSize', Number(formData.roomSize));

@@ -8,7 +8,20 @@ const datePeriodSchema = new mongoose.Schema(
     { _id: true }
 );
 
+const bookingDateSchema = new mongoose.Schema(
+    {
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        note: { type: String, default: '' },
+    },
+    { _id: true }
+);
+
 const roomSchema = new mongoose.Schema({
+    hotelId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+    },
     roomNumber: {
         type: String,
         unique: true,
@@ -91,6 +104,10 @@ const roomSchema = new mongoose.Schema({
     },
     maintenanceDates: {
         type: [datePeriodSchema],
+        default: [],
+    },
+    bookingDates: {
+        type: [bookingDateSchema],
         default: [],
     },
     createdAt: {

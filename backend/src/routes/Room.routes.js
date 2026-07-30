@@ -7,7 +7,9 @@ import {
     updateRoom,
     updateRoomStatus,
     bulkUpdateRoomStatuses,
-    deleteRoom
+    deleteRoom,
+    addBookingDate,
+    updateBookingDate,
 } from '../controllers/room.controller.js';
 
 const router = express.Router();
@@ -24,5 +26,7 @@ router.route('/:id')
     .delete(deleteRoom);
 
 router.patch('/:id/status', updateRoomStatus);
+router.post('/:id/bookings', addBookingDate);
+router.patch('/:id/bookings/:bookingId', updateBookingDate);
 
 export default router;

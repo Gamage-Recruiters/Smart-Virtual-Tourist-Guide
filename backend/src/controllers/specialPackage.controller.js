@@ -45,7 +45,8 @@ export const createPackage = async (req, res) => {
 export const getAllPackages = async (req, res) => {
     try {
         const SpecialPackage = await getPackageModel();
-        const packages = await SpecialPackage.find().sort({ createdAt: -1 });
+        const filter = req.query.hotelId ? { hotelId: req.query.hotelId } : {};
+        const packages = await SpecialPackage.find(filter).sort({ createdAt: -1 });
         return res.status(200).json({ message: 'Packages fetched successfully', count: packages.length, packages });
     } catch {
         return res.status(500).json({ message: 'Internal server error' });

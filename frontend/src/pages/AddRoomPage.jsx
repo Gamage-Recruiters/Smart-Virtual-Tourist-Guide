@@ -247,6 +247,10 @@ export default function AddRoomPage() {
     try {
       const fd = new FormData();
 
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const hotelId = userData.hotels?.[0]?._id;
+      if (hotelId) fd.append('hotelId', hotelId);
+
       fd.append('roomName', formData.roomName);
       fd.append('roomType', formData.roomType);
       fd.append('roomSize', Number(formData.roomSize));

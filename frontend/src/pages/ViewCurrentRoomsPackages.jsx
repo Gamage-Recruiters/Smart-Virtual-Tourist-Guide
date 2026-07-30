@@ -43,14 +43,24 @@ export default function ViewCurrentRoomsPackages() {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/rooms')
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const hotelId = userData.hotels?.[0]?._id;
+        const url = hotelId
+            ? `http://localhost:5000/api/rooms?hotelId=${hotelId}`
+            : 'http://localhost:5000/api/rooms';
+        fetch(url)
             .then((res) => res.json())
             .then((data) => { setRooms(data.rooms || []); setRoomsLoading(false); })
             .catch(() => { setRoomsError('Failed to load rooms.'); setRoomsLoading(false); });
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/packages')
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const hotelId = userData.hotels?.[0]?._id;
+        const url = hotelId
+            ? `http://localhost:5000/api/packages?hotelId=${hotelId}`
+            : 'http://localhost:5000/api/packages';
+        fetch(url)
             .then((res) => res.json())
             .then((data) => { setPackages(data.packages || []); setPackagesLoading(false); })
             .catch(() => { setPackagesError('Failed to load packages.'); setPackagesLoading(false); });

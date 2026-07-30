@@ -41,7 +41,7 @@ export const createRoom = async (req, res) => {
         // Attach uploaded image paths
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
 
-        const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [] });
+        const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [], bookingDates: [] });
 
         return res.status(201).json({
             message: 'Room created successfully',
@@ -59,10 +59,11 @@ export const createRoom = async (req, res) => {
 export const getAllRooms = async (req, res) => {
     try {
         const Room = await getRoomModel();
-        const { status, roomType, adults, children } = req.query;
+        const { status, roomType, adults, children, hotelId } = req.query;
         const query = {};
 
         // Dynamic Filtering
+        if (hotelId) query.hotelId = hotelId;
         if (status) query.status = status;
         if (roomType) query.roomType = roomType;
         
@@ -223,6 +224,70 @@ export const bulkUpdateRoomStatuses = async (req, res) => {
 };
 
 /**
+ * POST /:id/bookings — push a new booking date range into bookingDates
+ * Body: { startDate, endDate, note? }
+ */
+export const addBookingDate = async (req, res) => {
+    try {
+        const Room = await getRoomModel();
+        const { id } = req.params;
+        const { startDate, endDate, note } = req.body;
+
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid room id' });
+        }
+        if (!startDate || !endDate) {
+            return res.status(400).json({ message: 'startDate and endDate are required' });
+        }
+
+        const room = await Room.findByIdAndUpdate(
+            id,
+            { $push: { bookingDates: { startDate, endDate, note: note || '' } } },
+            { new: true, runValidators: true }
+        );
+
+        if (!room) return res.status(404).json({ message: 'Room not found' });
+
+        return res.status(201).json({ message: 'Booking date added', bookingDates: room.bookingDates });
+    } catch (error) {
+        return handleError(res, error);
+    }
+};
+
+/**
+ * PATCH /:id/bookings/:bookingId — update an existing booking entry
+ * Body: { startDate?, endDate?, note? }
+ */
+export const updateBookingDate = async (req, res) => {
+    try {
+        const Room = await getRoomModel();
+        const { id, bookingId } = req.params;
+        const { startDate, endDate, note } = req.body;
+
+        if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(bookingId)) {
+            return res.status(400).json({ message: 'Invalid id' });
+        }
+
+        const update = {};
+        if (startDate) update['bookingDates.$.startDate'] = startDate;
+        if (endDate)   update['bookingDates.$.endDate']   = endDate;
+        if (note !== undefined) update['bookingDates.$.note'] = note;
+
+        const room = await Room.findOneAndUpdate(
+            { _id: id, 'bookingDates._id': bookingId },
+            { $set: update },
+            { new: true, runValidators: true }
+        );
+
+        if (!room) return res.status(404).json({ message: 'Room or booking not found' });
+
+        return res.status(200).json({ message: 'Booking date updated', bookingDates: room.bookingDates });
+    } catch (error) {
+        return handleError(res, error);
+    }
+};
+
+/**
  * Delete a room from inventory data records
  */
 export const deleteRoom = async (req, res) => {
@@ -257,4 +322,6 @@ export default {
     updateRoomStatus,
     bulkUpdateRoomStatuses,
     deleteRoom,
+    addBookingDate,
+    updateBookingDate,
 };
