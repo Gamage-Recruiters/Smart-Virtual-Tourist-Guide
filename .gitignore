@@ -7,14 +7,9 @@ dist/
 **/dist/
 
 # Environment files
-.env
-.env.*
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-**/.env
-**/.env.*
 
 # Logs
 logs
@@ -32,3 +27,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+config.bat

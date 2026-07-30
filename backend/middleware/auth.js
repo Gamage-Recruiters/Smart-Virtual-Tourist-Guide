@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -13,10 +13,6 @@ const protect = async (req, res, next) => {
       
       if (!req.user) {
         return res.status(401).json({ message: 'User not found' });
-      }
-      
-      if (!req.user.isActive) {
-        return res.status(401).json({ message: 'Account is deactivated' });
       }
       
       next();
@@ -31,7 +27,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-const authorize = (...roles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ 
@@ -41,5 +37,3 @@ const authorize = (...roles) => {
     next();
   };
 };
-
-module.exports = { protect, authorize };
