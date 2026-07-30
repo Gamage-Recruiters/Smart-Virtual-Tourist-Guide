@@ -168,6 +168,7 @@ export default function AddSpecialPackages() {
   const [discountPercent, setDiscountPercent] = useState(20);
   const [discountDescription, setDiscountDescription] = useState('Book now and enjoy an exclusive discount on your stay. Limited rooms available at this special rate.');
   const [promoCode, setPromoCode] = useState(['S', 'P', 'K', '2', '0', '5']);
+  const [discountSaved, setDiscountSaved] = useState(false);
 
   const [calYear, setCalYear] = useState(2026);
   const [calMonth, setCalMonth] = useState(2);
@@ -196,6 +197,7 @@ export default function AddSpecialPackages() {
 
   const handleDayClick = (day) => {
     const iso = toISO(calYear, calMonth, day);
+    setDiscountSaved(false);
     setCalSel((prev) => {
       if (!prev.from || (prev.from && prev.to)) return { from: iso, to: null };
       if (iso === prev.from) return { from: null, to: null };
@@ -289,13 +291,21 @@ export default function AddSpecialPackages() {
       fd.append('amenities', JSON.stringify(formData.amenities));
       fd.append('contactInfo', JSON.stringify({ contactName: formData.contactName, contactNumber: formData.contactNumber, email: formData.email }));
       fd.append('locationAndPricing', JSON.stringify([{ aboutLocation: formData.aboutLocation, basePrice: Number(formData.basePrice), paymentMethods: formData.paymentMethods }]));
-      fd.append('discount', JSON.stringify({
-        discountPercent: discountPercent !== '' ? Number(discountPercent) : null,
-        discountAmountPerNight: (formData.basePrice !== '' && discountPercent !== '') ? Number((Number(formData.basePrice) * Number(discountPercent) / 100).toFixed(2)) : null,
-        validFrom: calSel.from || null,
-        validTo: calSel.to || null,
-        promoCode: promoCode.join('').trim() || null,
-      }));
+      fd.append('discount', JSON.stringify(
+        discountSaved ? {
+          discountPercent: discountPercent !== '' ? Number(discountPercent) : null,
+          discountAmountPerNight: (formData.basePrice !== '' && discountPercent !== '') ? Number((Number(formData.basePrice) * Number(discountPercent) / 100).toFixed(2)) : null,
+          validFrom: calSel.from || null,
+          validTo: calSel.to || null,
+          promoCode: promoCode.join('').trim() || null,
+        } : {
+          discountPercent: null,
+          discountAmountPerNight: null,
+          validFrom: null,
+          validTo: null,
+          promoCode: null,
+        }
+      ));
       const keptImages = [];
       slotFiles.forEach((file, i) => {
         if (file) {
@@ -674,14 +684,14 @@ export default function AddSpecialPackages() {
                           <input
                             type="number" min="0" max="100"
                             value={discountPercent}
-                            onChange={(e) => setDiscountPercent(e.target.value)}
+                            onChange={(e) => { setDiscountPercent(e.target.value); setDiscountSaved(false); }}
                             className="w-16 text-3xl font-extrabold text-rose-500 text-right bg-transparent border-b-2 border-dashed border-rose-200 focus:outline-none focus:border-rose-400"
                           />
                           <span className="text-3xl font-extrabold text-rose-500">% OFF</span>
                         </div>
                         <textarea
                           value={discountDescription}
-                          onChange={(e) => setDiscountDescription(e.target.value)}
+                          onChange={(e) => { setDiscountDescription(e.target.value); setDiscountSaved(false); }}
                           rows={3}
                           className="w-full max-w-xs mx-auto text-xs text-slate-500 leading-relaxed mb-6 text-center bg-transparent border border-dashed border-slate-200 p-2 focus:outline-none focus:border-blue-300 resize-none"
                         />
@@ -689,7 +699,7 @@ export default function AddSpecialPackages() {
                           <p className="text-xs font-bold text-slate-700 tracking-wide">PROMO CODE</p>
                           <button type="button" onClick={generatePromoCode} className="text-[10px] font-bold text-blue-600 hover:text-blue-700 underline">Generate</button>
                         </div>
-                        <PromoCodeInput code={promoCode} setCode={setPromoCode} />
+                        <PromoCodeInput code={promoCode} setCode={(c) => { setPromoCode(c); setDiscountSaved(false); }} />
                         <p className="text-[11px] text-slate-400 mt-1.5 mb-6">Type directly into the boxes, or click Generate for a random code</p>
                         <div className="flex items-center justify-center gap-4 mb-6">
                           <div className="text-left">
@@ -704,10 +714,12 @@ export default function AddSpecialPackages() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => console.log('Save discount:', { discountPercent, discountDescription, promoCode: promoCode.join(''), discountFrom, discountTo })}
-                        className="w-full max-w-xs mx-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors"
+                        onClick={() => setDiscountSaved(true)}
+                        className={`w-full max-w-xs mx-auto px-6 py-3 text-white text-sm font-bold transition-colors ${
+                          discountSaved ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
                       >
-                        Save Discount
+                        {discountSaved ? '✓ Discount Saved' : 'Save Discount'}
                       </button>
                     </div>
                   </div>
