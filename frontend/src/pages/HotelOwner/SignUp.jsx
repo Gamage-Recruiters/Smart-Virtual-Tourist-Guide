@@ -4,7 +4,6 @@ import { User, Mail, Lock, CheckCircle, Phone } from 'lucide-react';
 import { hotelOwnerAPI } from '../../services/api';
 import Header from '../../components/HotelOwner/Header';
 import Footer from '../../components/HotelOwner/Footer';
-import useGoogleAuth from '../../hooks/useGoogleAuth';
 
 // Import 4 images from assets
 import heroImage from '../../assets/HotelOwner/HO1.png';
@@ -21,7 +20,6 @@ import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 const SignUp = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, 'hotelowner_user', '/hotel-info');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -240,20 +238,11 @@ const SignUp = () => {
                 {/* Social Sign In */}
                 <div className="mt-6 text-center">
                   <p className="text-xs text-gray-400 mb-3">Sign in With</p>
-                  {googleError && (
-                    <div className="text-red-500 text-xs text-center mb-2 bg-red-50 p-1 rounded max-w-[200px] mx-auto">
-                      {googleError}
-                    </div>
-                  )}
                   <div className="flex justify-center gap-6">
                     <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
                       <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
                     </div>
-                    <div
-                      className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                      onClick={handleGoogleAuth}
-                      title="Sign up with Google"
-                    >
+                    <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
                       <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
                     </div>
                     <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">

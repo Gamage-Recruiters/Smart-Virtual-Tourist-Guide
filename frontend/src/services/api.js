@@ -207,13 +207,4 @@ export const driverAPI = {
   },
 };
 
-/**
- * SOCIAL AUTH
- */
-export const socialAuthAPI = {
-  googleAuth(idToken, role) {
-    return apiClient.post('/auth/google', { idToken, role });
-  },
-};
-
 export default apiClient;

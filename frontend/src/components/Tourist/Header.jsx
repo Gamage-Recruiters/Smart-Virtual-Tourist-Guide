@@ -228,9 +228,9 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 // Import your logo images
-import logoIcon from '../../assets/Tourist/logo.png';
-import logoText from '../../assets/Tourist/name.png';
-import navBg from '../../assets/Tourist/Headder.png';
+import logoIcon from '../../assets/HotelOwner/logo.png';
+import logoText from '../../assets/HotelOwner/name.png';
+import navBg from '../../assets/HotelOwner/Headder.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -601,15 +601,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import AuthLayout from '../../components/Tourist/AuthLayout';
-import loginImg from '../../assets/Tourist/loginImg.png';
-import leftLoginImg from '../../assets/Tourist/commonImg.png';
+import loginImg from '../../assets/HotelOwner/bg1.jpg';
+import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
 import apiClient from '../../services/api';
-import useGoogleAuth from '../../hooks/useGoogleAuth';
-
-// Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
-import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -617,9 +611,6 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // Google auth — role=null means backend uses existing user's role
-  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, null);
 
   const getDashboardRoute = (role) => {
     switch (role) {
@@ -769,31 +760,6 @@ const LoginScreen = () => {
             Sign In →
           </button>
         </form>
-
-         {/* Social Sign In */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-400 mb-3">Sign in With</p>
-            {googleError && (
-              <div className="text-red-500 text-xs text-center mb-2 bg-red-50 p-1 rounded">
-                {googleError}
-              </div>
-            )}
-            <div className="flex justify-center gap-6">
-              <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-              </div>
-              <div
-                className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                onClick={handleGoogleAuth}
-                title="Sign in with Google"
-              >
-                <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-              </div>
-              <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
-              </div>
-            </div>
-          </div>
 
         {/* REGISTER */}
         <div className="mt-6">

@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa';
 import { MdFlashOn } from 'react-icons/md';
 import AuthLayout from '../../components/Tourist/AuthLayout';
-import newPasswordImg from '../../assets/Tourist/newPasswordImg.png';
-import leftLoginImg from '../../assets/Tourist/commonImg.png';
+import newPasswordImg from '../../assets/HotelOwner/bg3.png';
+import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
 import SuccessPopup from './successPage';
 import apiClient from '../../services/api';
 

@@ -297,7 +297,7 @@
 import React from 'react';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
-import logoText from '../../assets/Tourist/name.png';
+import logoText from '../../assets/HotelOwner/name.png';
 
 const AuthLayout = ({
   children,

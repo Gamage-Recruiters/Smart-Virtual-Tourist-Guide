@@ -2,10 +2,10 @@ import React from 'react';
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
 // Import your images
-import leftImage from '../../assets/Tourist/fbg1.png';
-import rightImage from '../../assets/Tourist/fbg2.png';
-import logoImage from '../../assets/Tourist/logo.png';
-import nameImage from '../../assets/Tourist/name.png';
+import leftImage from '../../assets/HotelOwner/fbg1.png';
+import rightImage from '../../assets/HotelOwner/fbg2.png';
+import logoImage from '../../assets/HotelOwner/logo.png';
+import nameImage from '../../assets/HotelOwner/name.png';
 
 const Footer = () => {
   return (
