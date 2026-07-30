@@ -145,12 +145,8 @@
 # =====================
 # ENV FILES (SECURE)
 # =====================
-.env
 backend/.env
 frontend/.env
-.env.local
-.env.development
-.env.production
 
 # =====================
 # DEPENDENCIES
@@ -232,3 +228,4 @@ coverage
 *.tgz
 
 frontend/vite.config copy.js
+config.bat
