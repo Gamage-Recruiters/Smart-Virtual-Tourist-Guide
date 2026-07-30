@@ -66,7 +66,9 @@ function ToggleRow({ label, dotClass, checked, onChange }) {
 }
 
 function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRoomNumber, onRoomSelect, statusType, selectedRoomId, onSaveSuccess }) {
-  const [monthIdx, setMonthIdx] = useState(2);
+  const slMonth = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' })).getMonth();
+  const initIdx = CALENDAR_MONTHS.findIndex((m) => m.label.startsWith(['January','February','March','April','May','June','July','August','September','October','November','December'][slMonth]));
+  const [monthIdx, setMonthIdx] = useState(initIdx !== -1 ? initIdx : 0);
   const { label, days, startDay } = CALENDAR_MONTHS[monthIdx];
 
   const [blocks, setBlocks] = useState([]);
@@ -476,6 +478,8 @@ export default function ManageRoomAvailability() {
   const [roomsData, setRoomsData] = useState([]);   // array of { roomNumber, currentStatus, roomId }
   const [calLoading, setCalLoading] = useState(false);
 
+  const hotelId = JSON.parse(localStorage.getItem('userData') || '{}').hotels?.[0]?._id || '';
+
   // Selected room (clicked from visual grid or calendar search)
   const [selectedRoom, setSelectedRoom] = useState(null); // { roomId, roomNumber, adults, children }
   const [editAdults, setEditAdults] = useState(0);
@@ -488,7 +492,8 @@ export default function ManageRoomAvailability() {
 
   // Fetch distinct room types for search suggestions
   useEffect(() => {
-    fetch(`${BASE_URL}/api/rooms`)
+    const url = hotelId ? `${BASE_URL}/api/rooms?hotelId=${hotelId}` : `${BASE_URL}/api/rooms`;
+    fetch(url)
       .then((r) => r.json())
       .then((data) => {
         const types = [...new Set((data.rooms || []).map((r) => r.roomType))];
@@ -503,7 +508,8 @@ export default function ManageRoomAvailability() {
 
   const refreshCalendar = () => {
     if (!selectedRoomType) return;
-    fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+    const params = new URLSearchParams({ roomType: selectedRoomType, month: calMonth, year: calYear, ...(hotelId && { hotelId }) });
+    fetch(`${BASE_URL}/api/room-availability/calendar?${params}`)
       .then((r) => r.json())
       .then((data) => setRoomsData(data.rooms || []))
       .catch(() => {});
@@ -513,7 +519,8 @@ export default function ManageRoomAvailability() {
   useEffect(() => {
     if (!selectedRoomType) return;
     setCalLoading(true);
-    fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+    const params = new URLSearchParams({ roomType: selectedRoomType, month: calMonth, year: calYear, ...(hotelId && { hotelId }) });
+    fetch(`${BASE_URL}/api/room-availability/calendar?${params}`)
       .then((r) => r.json())
       .then((data) => {
         setRoomsData(data.rooms || []);
@@ -533,7 +540,8 @@ export default function ManageRoomAvailability() {
       .then((data) => {
         const cap = data.room?.capacity || { adults: 0, children: 0 };
         // Always fetch fresh availability so dates are never stale
-        fetch(`${BASE_URL}/api/room-availability/calendar?roomType=${encodeURIComponent(selectedRoomType)}&month=${calMonth}&year=${calYear}`)
+        const calParams = new URLSearchParams({ roomType: selectedRoomType, month: calMonth, year: calYear, ...(hotelId && { hotelId }) });
+        fetch(`${BASE_URL}/api/room-availability/calendar?${calParams}`)
           .then((r) => r.json())
           .then((calData) => {
             const freshRooms = calData.rooms || [];

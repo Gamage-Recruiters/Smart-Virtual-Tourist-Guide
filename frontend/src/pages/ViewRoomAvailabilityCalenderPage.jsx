@@ -55,6 +55,9 @@ export default function ViewRoomAvailabilityCalendar() {
   const [calendarData, setCalendarData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState(null); // { roomNumber, adults, children }
+
+  const hotelId = JSON.parse(localStorage.getItem('userData') || '{}').hotels?.[0]?._id || '';
 
   const { label: selectedMonthLabel, days: selectedDays } = ALL_MONTHS[selectedMonthIdx];
 
@@ -69,6 +72,7 @@ export default function ViewRoomAvailabilityCalendar() {
           roomType: selectedRoomType,
           month: String(selectedMonthIdx + 1),
           year: '2026',
+          ...(hotelId && { hotelId }),
         });
 
         const res = await fetch(`${BASE_URL}/api/room-availability/calendar?${params.toString()}`, {
@@ -82,6 +86,7 @@ export default function ViewRoomAvailabilityCalendar() {
 
         setCalendarData(data);
         setPopupRoom(null);
+        setSelectedRoom(null);
       } catch (err) {
         if (err.name !== 'AbortError') {
           setError(err.message || 'Something went wrong while loading the calendar');
@@ -98,7 +103,17 @@ export default function ViewRoomAvailabilityCalendar() {
 
   const rooms = calendarData?.rooms || [];
   const totalRooms = calendarData?.totalRooms ?? 0;
-  const capacity = calendarData?.capacity || { adults: 0, children: 0 };
+  const capacity = selectedRoom ?? calendarData?.capacity ?? { adults: 0, children: 0 };
+
+  const handleRoomClick = (room) => {
+    fetch(`${BASE_URL}/api/rooms/${room.roomId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const cap = data.room?.capacity || { adults: 0, children: 0 };
+        setSelectedRoom({ roomNumber: room.roomNumber, adults: cap.adults, children: cap.children });
+      })
+      .catch(() => {});
+  };
 
   return (
     <div className="w-full bg-[#EBF7FF] min-h-screen text-slate-800">
@@ -230,7 +245,7 @@ export default function ViewRoomAvailabilityCalendar() {
 
               <div className="bg-gray-200 p-3 rounded min-h-[120px]">
               <h2 className="text-[16px] font-extrabold text-slate-800 mb-3">
-                Room Capacity
+                {selectedRoom ? `${selectedRoom.roomNumber} Capacity` : 'Room Capacity'}
               </h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="border border-slate-300 text-xs px-2 py-1.5 text-slate-700 bg-white">
@@ -283,7 +298,10 @@ export default function ViewRoomAvailabilityCalendar() {
                   {rooms.map((room) => (
                     <div
                       key={room.roomId}
-                      className={`aspect-square flex items-center justify-center text-lg font-medium transition-colors ${STATUS_GRID_STYLES[room.currentStatus] || STATUS_GRID_STYLES['Available']}`}
+                      onClick={() => handleRoomClick(room)}
+                      className={`aspect-square flex items-center justify-center text-lg font-medium cursor-pointer transition-all ${STATUS_GRID_STYLES[room.currentStatus] || STATUS_GRID_STYLES['Available']} ${
+                        selectedRoom?.roomNumber === room.roomNumber ? 'ring-2 ring-offset-1 ring-slate-700 scale-105' : 'hover:scale-105'
+                      }`}
                     >
                       {room.roomNumber}
                     </div>

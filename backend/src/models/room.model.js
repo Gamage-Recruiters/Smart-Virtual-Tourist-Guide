@@ -24,12 +24,10 @@ const roomSchema = new mongoose.Schema({
     },
     roomNumber: {
         type: String,
-        unique: true,
     },
     roomName: {
         type: String,
         required: true,
-        unique: true,
     },
     roomType: {
         type: String,
@@ -116,4 +114,9 @@ const roomSchema = new mongoose.Schema({
     },
 });
 
+// Compound unique indexes — scoped per hotel
+roomSchema.index({ hotelId: 1, roomName: 1 }, { unique: true });
+roomSchema.index({ hotelId: 1, roomNumber: 1 }, { unique: true });
+
+export { roomSchema };
 export default mongoose.model('Room', roomSchema);

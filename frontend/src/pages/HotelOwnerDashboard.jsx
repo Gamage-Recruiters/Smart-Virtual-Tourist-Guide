@@ -9,6 +9,7 @@ function HotelOwnerDashboard() {
 	const navigate = useNavigate()
 	const [username, setUsername] = useState('')
 	const [hasHotel, setHasHotel] = useState(false)
+	const [tooltipVisible, setTooltipVisible] = useState(false)
 
 	useEffect(() => {
 		const userData = JSON.parse(localStorage.getItem('userData') || '{}')
@@ -17,8 +18,8 @@ function HotelOwnerDashboard() {
 	}, [])
 	return (
 		<div className="min-h-screen w-full overflow-x-hidden text-slate-800">
-			<div className="mx-auto flex min-h-screen w-auto flex-col gap-6">
-				<Header />
+			<div className="mx-auto flex min-h-screen w-auto flex-col gap-6 pt-28">
+				<Header hasHotel={hasHotel} />
 
 				<main className="flex flex-1 flex-col gap-6">
 					<section
@@ -31,16 +32,41 @@ function HotelOwnerDashboard() {
 						}}
 					>
 						<div className="relative z-10 flex min-h-[620px] items-center justify-center rounded-[28px] bg-white/10 px-4 py-12 text-center sm:min-h-[700px]">
-							<div className="flex max-w-3xl flex-col items-start gap-8 text-slate-950">
+							<div className="relative flex max-w-3xl flex-col items-start gap-8 text-slate-950">
 								<h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
 									Welcome {username} !
 								</h1>
 								<p className="text-xl font-medium text-slate-800" style={{ wordSpacing: '5px' }}>
 									Manage Your Hotel and Boost <span className="font-bold">Your</span> Booking
 								</p>
+								<style>{`
+									@keyframes btn-shine {
+										0%   { background-position: -250% center; }
+										100% { background-position: 250% center; }
+									}
+									.shine-btn {
+										background: linear-gradient(110deg, #e0eaff 0%, #e0eaff 35%, #ffffff 50%, #e0eaff 65%, #e0eaff 100%);
+										background-size: 250% auto;
+										animation: btn-shine 1.8s linear infinite;
+									}
+									@keyframes tooltip-fade {
+										0%   { opacity: 0; transform: translateY(4px); }
+										10%  { opacity: 1; transform: translateY(0); }
+										80%  { opacity: 1; }
+										100% { opacity: 0; }
+									}
+									.tooltip-anim { animation: tooltip-fade 3s ease forwards; }
+								`}</style>
+								{!hasHotel && tooltipVisible && (
+									<div className="tooltip-anim absolute left-0 top-full mt-2 z-50 max-w-xs rounded-lg bg-slate-800 px-4 py-2.5 text-xs text-white shadow-lg leading-relaxed pointer-events-none">
+										Next step: Click here to add your hotel. You cannot work with the system until you do.
+										<span className="absolute -top-1.5 left-6 h-3 w-3 rotate-45 bg-slate-800" />
+									</div>
+								)}
 								<button
 									onClick={() => hasHotel ? (location.href = 'view-rooms-packages') : navigate('/hotel-info')}
-									className="inline-flex h-12 items-center justify-center rounded-sm border border-slate-500 bg-white/70 px-10 text-lg font-medium text-slate-700 shadow-sm transition hover:bg-white"
+									onMouseEnter={() => { if (!hasHotel) { setTooltipVisible(true); setTimeout(() => setTooltipVisible(false), 3000); } }}
+									className={`inline-flex h-12 items-center justify-center rounded-sm border border-slate-500 px-10 text-lg font-medium text-slate-700 shadow-sm transition cursor-pointer${!hasHotel ? ' shine-btn' : ' bg-white/70 hover:bg-white'}`}
 									type="button"
 								>
 									{hasHotel ? 'Explore More...' : 'Add Your Hotel'}
@@ -67,7 +93,7 @@ function HotelOwnerDashboard() {
 									type="button"
 									disabled={!hasHotel}
 									onClick={() => navigate('/add-room-package')}
-									className="inline-flex h-11 items-center justify-center rounded-md bg-sky-800 px-5 text-sm font-semibold text-white transition hover:bg-sky-900 disabled:opacity-40 disabled:cursor-not-allowed"
+									className="inline-flex h-11 items-center justify-center rounded-md bg-sky-800 px-5 text-sm font-semibold text-white transition hover:bg-sky-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
 								>
 									+&nbsp;Add New Room
 								</button>
@@ -78,21 +104,21 @@ function HotelOwnerDashboard() {
 											<button type="button"
 											disabled={!hasHotel}
 											onClick={() => navigate('/view-rooms-packages')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
 												Add Rooms &amp; Packages
 											</button>
 											<button type="button"
 											disabled={!hasHotel}
 											onClick={() => navigate('/manage-availability')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
 												Manage Availability
 											</button>
 											<button type="button"
 											disabled={!hasHotel}
 											onClick={() => navigate('/view-reservations')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
 												View Booking
 											</button>
@@ -105,7 +131,7 @@ function HotelOwnerDashboard() {
 											<button type="button"
 											disabled={!hasHotel}
 											onClick={() => navigate('/financial-analysis')}
-											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed">
+											className="rounded-lg border border-slate-300 bg-white px-4 py-4 text-left text-base font-medium text-slate-700 shadow-sm flex items-center gap-3 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
 												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0 text-sky-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
 												Financial Analyze
 											</button>

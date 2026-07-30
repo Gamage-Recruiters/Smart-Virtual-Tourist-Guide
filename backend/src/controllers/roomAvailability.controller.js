@@ -40,8 +40,8 @@ const daysInMonth = (month, year) => new Date(year, month, 0).getDate();
  */
 const buildDayLookup = (blockedDates, maintenanceDates, monthNum, yearNum, totalDays) => {
     const lookup = {};
-    const monthStart = normalizeDate(new Date(yearNum, monthNum - 1, 1));
-    const monthEnd   = normalizeDate(new Date(yearNum, monthNum - 1, totalDays));
+    const monthStart = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+    const monthEnd   = new Date(Date.UTC(yearNum, monthNum - 1, totalDays));
 
     const applyPeriods = (periods, status) => {
         for (const period of periods) {
@@ -76,7 +76,8 @@ export const getMonthlyCalendar = async (req, res) => {
         const totalDays = daysInMonth(monthNum, yearNum);
 
         const Room = await getRoomModel();
-        const rooms = await Room.find({ roomType }).sort({ roomNumber: 1 });
+        const query = { roomType, ...(req.query.hotelId && { hotelId: req.query.hotelId }) };
+        const rooms = await Room.find(query).sort({ roomNumber: 1 });
         if (rooms.length === 0) {
             return res.status(200).json({
                 message: 'No rooms found for this room type',
@@ -103,7 +104,7 @@ export const getMonthlyCalendar = async (req, res) => {
             for (let day = 1; day <= totalDays; day++) {
                 const override = lookup[day];
                 const status   = override ? override.status : 'Available';
-                days.push({ day, date: normalizeDate(new Date(yearNum, monthNum - 1, day)), status, periodId: override?.periodId || null });
+                days.push({ day, date: new Date(Date.UTC(yearNum, monthNum - 1, day)), status, periodId: override?.periodId || null });
             }
 
             return {
@@ -156,7 +157,7 @@ export const getRoomCalendar = async (req, res) => {
             const override = lookup[day];
             days.push({
                 day,
-                date: normalizeDate(new Date(yearNum, monthNum - 1, day)),
+                date: new Date(Date.UTC(yearNum, monthNum - 1, day)),
                 status: override ? override.status : 'Available',
                 periodId: override?.periodId || null,
             });

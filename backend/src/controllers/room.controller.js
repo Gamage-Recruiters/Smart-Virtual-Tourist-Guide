@@ -24,29 +24,26 @@ const handleError = (res, error) => {
     return res.status(500).json({ message: 'Internal server error' });
 };
 
-//create a new room
 export const createRoom = async (req, res) => {
     try {
         const Room = await getRoomModel();
-        const count = await Room.countDocuments();
-        const roomNumber = `R${count + 1}`;
 
-        // Parse JSON-stringified nested fields sent via FormData
         const body = { ...req.body };
-        if (typeof body.capacity === 'string')         body.capacity = JSON.parse(body.capacity);
-        if (typeof body.amenities === 'string')        body.amenities = JSON.parse(body.amenities);
-        if (typeof body.contactInfo === 'string')      body.contactInfo = JSON.parse(body.contactInfo);
+        if (typeof body.capacity === 'string')           body.capacity = JSON.parse(body.capacity);
+        if (typeof body.amenities === 'string')          body.amenities = JSON.parse(body.amenities);
+        if (typeof body.contactInfo === 'string')        body.contactInfo = JSON.parse(body.contactInfo);
         if (typeof body.locationAndPricing === 'string') body.locationAndPricing = JSON.parse(body.locationAndPricing);
 
-        // Attach uploaded image paths
-        const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
+        const hotelId = body.hotelId;
+        if (!hotelId) return res.status(400).json({ message: 'hotelId is required' });
 
+        const count = await Room.countDocuments({ hotelId });
+        const roomNumber = `R${count + 1}`;
+
+        const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
         const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [], bookingDates: [] });
 
-        return res.status(201).json({
-            message: 'Room created successfully',
-            room,
-        });
+        return res.status(201).json({ message: 'Room created successfully', room });
     } catch (error) {
         return handleError(res, error);
     }
