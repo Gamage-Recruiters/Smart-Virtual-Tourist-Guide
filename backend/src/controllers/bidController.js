@@ -1,4 +1,4 @@
-const Bid = require('../models/bid');
+import Bid from '../models/bid.js';
 
 const submitBid = async (req, res, next) => {
     try {
@@ -62,7 +62,7 @@ const getBidsByTrip = async (req, res, next) => {
     }
 };
 
-module.exports = {
+export {
     submitBid,
     getBidsByTrip
 };

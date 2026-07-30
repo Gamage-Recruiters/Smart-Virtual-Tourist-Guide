@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { submitBid, getBidsByTrip } = require('../controllers/bidController');
+import { submitBid, getBidsByTrip } from '../controllers/bidController.js';
 
 
 router.post('/', submitBid);
 
 router.get('/:tripId', getBidsByTrip);
 
-module.exports = router;
+export default router;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const driverSchema = new mongoose.Schema(
   {
@@ -40,4 +40,4 @@ const driverSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Driver", driverSchema);
+export default mongoose.model("Driver", driverSchema);

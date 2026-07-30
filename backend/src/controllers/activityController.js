@@ -1,4 +1,4 @@
-const Activity = require('../models/activity');
+import Activity from '../models/activity.js';
 
 // Get all activities
 const getActivities = async (req, res) => {
@@ -10,6 +10,6 @@ const getActivities = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   getActivities
 };

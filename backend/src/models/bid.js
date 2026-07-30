@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const bidSchema = new mongoose.Schema({
     tripId: 
@@ -23,4 +23,4 @@ const bidSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Bid', bidSchema);
+export default mongoose.model('Bid', bidSchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const pricingItemSchema = new mongoose.Schema({
   label: { type: String, required: true },
@@ -52,4 +52,4 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Booking', bookingSchema);
+export default mongoose.model('Booking', bookingSchema);

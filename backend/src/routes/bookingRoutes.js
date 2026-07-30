@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bookingController = require('../controllers/bookingController');
+import * as bookingController from '../controllers/bookingController.js';
 
 router.post('/', bookingController.createBooking);
 router.get('/', bookingController.getBookings);
 router.get('/:id', bookingController.getBookingById);
 
-module.exports = router;
+export default router;

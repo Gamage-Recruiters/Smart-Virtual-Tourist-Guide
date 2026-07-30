@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const activitySchema = new mongoose.Schema(
   {
@@ -104,4 +104,4 @@ activitySchema.index({ category: 1, location: 1, status: 1 });
 
 const Activity = mongoose.models.Activity || mongoose.model('Activity', activitySchema);
 
-module.exports = Activity;
+export default Activity;

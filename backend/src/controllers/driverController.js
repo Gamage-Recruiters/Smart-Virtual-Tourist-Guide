@@ -1,4 +1,4 @@
-const Driver = require("../models/driver");
+import Driver from '../models/driver.js';
 
 // Add driver details
 const addDriver = async (req, res, next) => {
@@ -115,7 +115,7 @@ const updateDriver = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   addDriver,
   getAllDrivers,
   getDriverById,

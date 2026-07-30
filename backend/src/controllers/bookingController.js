@@ -1,5 +1,5 @@
-const Booking = require('../models/Booking');
-const { buildBookingData } = require('../services/bookingService');
+import Booking from '../models/Booking.js';
+import { buildBookingData } from '../services/bookingService.js';
 
 const validateBookingPayload = (payload) => {
   const errors = [];
@@ -35,7 +35,7 @@ const validateBookingPayload = (payload) => {
   return errors;
 };
 
-exports.createBooking = async (req, res, next) => {
+export const createBooking = async (req, res, next) => {
   try {
     const {
       service,
@@ -76,7 +76,7 @@ exports.createBooking = async (req, res, next) => {
   }
 };
 
-exports.getBookings = async (req, res, next) => {
+export const getBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.find().sort({ createdAt: -1 });
     res.json({ success: true, bookings });
@@ -85,7 +85,7 @@ exports.getBookings = async (req, res, next) => {
   }
 };
 
-exports.getBookingById = async (req, res, next) => {
+export const getBookingById = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id);
 
