@@ -1,18 +1,21 @@
+// FRONTEND/src/pages/reviews/ReviewSection.jsx
 import React, { useState } from 'react';
 import ReviewStats from '../../components/reviews/ReviewStats';
 import ReviewFilter from '../../components/reviews/ReviewFilter';
 import ReviewCard from '../../components/reviews/ReviewCard';
 import ReportModal from '../../components/reviews/ReportModal';
+import WriteReviewModal from '../../components/reviews/WriteReviewModal';
 
-// Custom hook to manage review data, filtering, sorting, and actions
+// Ape custom hook eka
 import { useReviews } from '../../hooks/reviews/useReviews';
+// API service eken submitReview ekath gannawa
+import { submitReview } from '../../services/reviews/review.service';
 
-const ReviewSection = ({ targetType, targetProviderId }) => {
-  // State for managing the report modal visibility and selected review
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const ReviewSection = ({ targetType, targetProviderId, targetName = "the provider" }) => {
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
 
-  // Use the custom hook to fetch and manage reviews, stats, and actions
   const {
     stats,
     loading,
@@ -25,9 +28,10 @@ const ReviewSection = ({ targetType, targetProviderId }) => {
     submitReport
   } = useReviews(targetType, targetProviderId);
 
+  // --- Handlers ---
   const handleOpenReport = (review) => {
     setSelectedReview(review);
-    setIsModalOpen(true);
+    setIsReportModalOpen(true);
   };
 
   const handleReportSubmit = async (reportData) => {
@@ -38,7 +42,60 @@ const ReviewSection = ({ targetType, targetProviderId }) => {
       } else {
         alert('Failed to report the review. Please try again.');
       }
-      setIsModalOpen(false);
+      setIsReportModalOpen(false);
+    }
+  };
+
+  // --- REAL SUBMIT LOGIC (Cloudinary + MongoDB) ---
+  const handleWriteReviewSubmit = async (reviewData) => {
+    try {
+      // 1. Modal eken ena data tika wen karagannawa
+      const { rating, title, reviewText, files } = reviewData;
+      const uploadedImageUrls = [];
+
+      // 2. Cloudinary Upload (Photos thiyenawanam witarak)
+      if (files && files.length > 0) {
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+        for (const file of files) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', uploadPreset);
+
+          const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          const uploadData = await uploadRes.json();
+          uploadedImageUrls.push(uploadData.secure_url); // Cloudinary dunna link eka array ekata danawa
+        }
+      }
+
+      // 3. Database ekata yawanna Payload eka hadanawa
+      const finalReviewPayload = {
+        touristId: "64b5f8e2c3e1a2b3c4d5e6f7", // TODO: Login system eka awama meka automatic enawa
+        targetProviderId: targetProviderId,
+        targetType: targetType,
+        rating: rating,
+        title: title,
+        reviewText: reviewText,
+        images: uploadedImageUrls // Cloudinary URLs
+      };
+
+      // 4. API Service eka haraha MongoDB ekata save karanawa
+      const response = await submitReview(finalReviewPayload);
+
+      if (response.success) {
+        alert("Awesome! Your review and photos were uploaded successfully!");
+        setIsWriteModalOpen(false);
+        window.location.reload(); // Aluth review eka pennanna page eka refresh karanawa
+      }
+
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("Failed to submit review. Please try again.");
     }
   };
 
@@ -48,9 +105,19 @@ const ReviewSection = ({ targetType, targetProviderId }) => {
 
   return (
     <div className="w-full max-w-5xl mx-auto py-10 px-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">View Ratings & Reviews</h2>
-        <p className="text-gray-600">See what other travelers say about service providers</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">View Ratings & Reviews</h2>
+          <p className="text-gray-600">See what other travelers say about service providers</p>
+        </div>
+        
+        <button 
+          onClick={() => setIsWriteModalOpen(true)}
+          className="bg-blue-600 text-white font-medium py-2.5 px-6 rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2 shrink-0"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+          Write a Review
+        </button>
       </div>
 
       <ReviewStats averageRating={stats.averageRating} starPercentages={stats.starPercentages} />
@@ -89,11 +156,19 @@ const ReviewSection = ({ targetType, targetProviderId }) => {
       </div>
 
       <ReportModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        review={selectedReview ? { authorName: selectedReview.touristId?.name || 'Anonymous Tourist', text: selectedReview.reviewText } : null}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        review={selectedReview ? { authorName: selectedReview.touristId?.name || 'Anonymous', text: selectedReview.reviewText } : null}
         onSubmit={handleReportSubmit}
       />
+
+      <WriteReviewModal 
+        isOpen={isWriteModalOpen}
+        onClose={() => setIsWriteModalOpen(false)}
+        targetName={targetName}
+        onSubmit={handleWriteReviewSubmit}
+      />
+      
     </div>
   );
 };
