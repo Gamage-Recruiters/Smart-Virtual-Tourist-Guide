@@ -5,18 +5,22 @@ const pricingItemSchema = new mongoose.Schema({
   amount: { type: Number, required: true, min: 0 },
 });
 
-const bookingSchema = new mongoose.Schema(
+const restaurantBookingSchema = new mongoose.Schema(
   {
     service: {
       serviceId: { type: String },
       name: { type: String, required: true },
-      type: { type: String },
+      type: { type: String, default: 'restaurant' },
       location: { type: String },
       image: { type: String },
       description: { type: String },
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    reservationDate: { type: String },
+    reservationTime: { type: String },
+    guests: { type: Number, min: 1 },
+    specialRequests: { type: String },
     bookingDetails: [
       {
         label: { type: String, required: true },
@@ -52,4 +56,4 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('Booking', bookingSchema);
+export default mongoose.model('RestaurantBooking', restaurantBookingSchema);

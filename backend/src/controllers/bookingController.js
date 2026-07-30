@@ -1,5 +1,25 @@
-import Booking from '../models/Booking.js';
+import ActivityBooking from '../models/ActivityBooking.js';
+import DriverBooking from '../models/DriverBooking.js';
+import GuideBooking from '../models/GuideBooking.js';
+import HotelBooking from '../models/HotelBooking.js';
+import RestaurantBooking from '../models/RestaurantBooking.js';
+import VehicleBooking from '../models/VehicleBooking.js';
 import { buildBookingData } from '../services/bookingService.js';
+
+const modelsMap = {
+  activity: ActivityBooking,
+  driver: DriverBooking,
+  guide: GuideBooking,
+  hotel: HotelBooking,
+  restaurant: RestaurantBooking,
+  vehicle: VehicleBooking,
+  vehiclerental: VehicleBooking,
+};
+
+export const getBookingModel = (serviceType) => {
+  if (!serviceType) return ActivityBooking;
+  return modelsMap[serviceType.toLowerCase()] || ActivityBooking;
+};
 
 const validateBookingPayload = (payload) => {
   const errors = [];
@@ -37,6 +57,8 @@ const validateBookingPayload = (payload) => {
 
 export const createBooking = async (req, res, next) => {
   try {
+    const serviceType = req.params.serviceType || req.body.serviceType || req.body.service?.type;
+    
     const {
       service,
       bookingDetails,
@@ -60,17 +82,20 @@ export const createBooking = async (req, res, next) => {
     }
 
     const bookingData = buildBookingData({
+      serviceType,
       service,
       bookingDetails,
       pricing,
       customer,
       paymentMethod,
       paymentDetails,
+      ...req.body,
     });
 
-    const booking = await Booking.create(bookingData);
+    const Model = getBookingModel(serviceType);
+    const booking = await Model.create(bookingData);
 
-    res.status(201).json({ success: true, booking });
+    res.status(201).json({ success: true, booking, serviceType: serviceType || 'activity' });
   } catch (error) {
     next(error);
   }
@@ -78,8 +103,33 @@ export const createBooking = async (req, res, next) => {
 
 export const getBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find().sort({ createdAt: -1 });
-    res.json({ success: true, bookings });
+    const serviceType = req.params.serviceType || req.query.serviceType;
+
+    if (serviceType) {
+      const Model = getBookingModel(serviceType);
+      const bookings = await Model.find().sort({ createdAt: -1 });
+      return res.json({ success: true, bookings, serviceType });
+    }
+
+    const [activities, drivers, guides, hotels, restaurants, vehicles] = await Promise.all([
+      ActivityBooking.find().sort({ createdAt: -1 }),
+      DriverBooking.find().sort({ createdAt: -1 }),
+      GuideBooking.find().sort({ createdAt: -1 }),
+      HotelBooking.find().sort({ createdAt: -1 }),
+      RestaurantBooking.find().sort({ createdAt: -1 }),
+      VehicleBooking.find().sort({ createdAt: -1 }),
+    ]);
+
+    const allBookings = [
+      ...activities,
+      ...drivers,
+      ...guides,
+      ...hotels,
+      ...restaurants,
+      ...vehicles,
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, bookings: allBookings, serviceType: 'all' });
   } catch (error) {
     next(error);
   }
@@ -87,13 +137,34 @@ export const getBookings = async (req, res, next) => {
 
 export const getBookingById = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id);
+    const serviceType = req.query.serviceType || req.params.serviceType;
 
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    if (serviceType) {
+      const Model = getBookingModel(serviceType);
+      const booking = await Model.findById(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ success: false, message: 'Booking not found.' });
+      }
+      return res.json({ success: true, booking });
     }
 
-    res.json({ success: true, booking });
+    const models = [
+      ActivityBooking,
+      DriverBooking,
+      GuideBooking,
+      HotelBooking,
+      RestaurantBooking,
+      VehicleBooking,
+    ];
+
+    for (const Model of models) {
+      const booking = await Model.findById(req.params.id);
+      if (booking) {
+        return res.json({ success: true, booking });
+      }
+    }
+
+    res.status(404).json({ success: false, message: 'Booking not found.' });
   } catch (error) {
     next(error);
   }
