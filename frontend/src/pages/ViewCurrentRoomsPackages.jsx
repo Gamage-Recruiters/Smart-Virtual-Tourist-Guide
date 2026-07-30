@@ -84,7 +84,7 @@ export default function ViewCurrentRoomsPackages() {
             <div className="flex flex-col rounded-2xl bg-white p-5 shadow-[0_18px_40px_rgba(31,41,55,0.12)] w-full">
                 <div className="flex flex-row gap-8">
                     <div className="relative shrink-0 overflow-hidden rounded-xl w-[150px] h-[150px] cursor-pointer group"
-                        onClick={() => hasMultiple && setImagePopup({ images, index: 0 })}>
+                        onClick={() => setImagePopup({ images: images.length ? images : [displayImage], index: 0 })}>
                         <img src={displayImage} alt={item.packageName} className="h-full w-full object-cover" />
                         {hasMultiple && (
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -158,7 +158,7 @@ export default function ViewCurrentRoomsPackages() {
             <div className="flex flex-col rounded-2xl bg-white p-5 shadow-[0_18px_40px_rgba(31,41,55,0.12)] w-full">
                 <div className="flex flex-row gap-8">
                     <div className="relative shrink-0 overflow-hidden rounded-xl w-[150px] h-[150px] cursor-pointer group"
-                        onClick={() => hasMultiple && setImagePopup({ images, index: 0 })}>
+                        onClick={() => setImagePopup({ images: images.length ? images : [displayImage], index: 0 })}>
                         <img src={displayImage} alt={item.roomName} className="h-full w-full object-cover" />
                         {hasMultiple && (
                             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

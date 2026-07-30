@@ -170,8 +170,9 @@ export default function AddSpecialPackages() {
   const [promoCode, setPromoCode] = useState(['S', 'P', 'K', '2', '0', '5']);
   const [discountSaved, setDiscountSaved] = useState(false);
 
-  const [calYear, setCalYear] = useState(2026);
-  const [calMonth, setCalMonth] = useState(2);
+  const slNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' }));
+  const [calYear, setCalYear] = useState(slNow.getFullYear());
+  const [calMonth, setCalMonth] = useState(slNow.getMonth());
   // calSel stores full ISO strings so selection survives month navigation
   const [calSel, setCalSel] = useState({ from: null, to: null });
 
