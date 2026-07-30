@@ -19,8 +19,6 @@ import NewPasswordCreate from './pages/Login/NewPasswordCreate';
 import HotelOwnerSignup from './pages/HotelOwner/SignUp';
 import HotelInfo from './pages/HotelOwner/HotelInfo';
 
-import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
-
 function App() {
   return (
     <BrowserRouter>
@@ -36,7 +34,7 @@ function App() {
         <Route path="/hotel-info" element={<HotelInfo />} />
 
         {/* ===== DASHBOARD ROUTES ===== */}
-        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
+        <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
 
         {/* ===== ACCOMMODATION MANAGEMENT ROUTES ===== */}
         <Route path="/view-rooms-packages" element={<ViewCurrentRoomsPackages />} />
