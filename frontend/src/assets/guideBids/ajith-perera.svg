@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Portrait illustration of Ajith Perera</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef1dc"/>
+      <stop offset="1" stop-color="#cdd5ae"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg)"/>
+  <path d="M31 158c5-34 21-52 49-52 27 0 44 18 49 52" fill="#60715f"/>
+  <path d="M67 103c3 12 23 12 26 0V87H67z" fill="#a96b48"/>
+  <ellipse cx="80" cy="69" rx="29" ry="36" fill="#bd7d55"/>
+  <path d="M51 62c2-27 13-41 31-41 22 0 32 16 29 44-8-14-23-22-44-22l-11 22z" fill="#5b5140"/>
+  <path d="M57 70h18M85 70h18M75 70h10" stroke="#3b3f3b" stroke-width="3" fill="none"/>
+  <circle cx="67" cy="71" r="9" fill="none" stroke="#3b3f3b" stroke-width="3"/>
+  <circle cx="93" cy="71" r="9" fill="none" stroke="#3b3f3b" stroke-width="3"/>
+  <path d="M69 88c7 4 15 4 22 0" fill="none" stroke="#744433" stroke-width="3" stroke-linecap="round"/>
+  <path d="M62 113l18 19 18-19 11 45H51z" fill="#6f826a"/>
+  <path d="m80 132-7 26h14z" fill="#d9e0d5"/>
+</svg>

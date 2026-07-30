@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Portrait illustration of Maliki Perera</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0da"/>
+      <stop offset="1" stop-color="#f2d4a8"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg)"/>
+  <path d="M30 158c5-35 22-53 50-53s45 18 50 53" fill="#2a7f85"/>
+  <path d="M67 101c2 13 24 13 26 0V85H67z" fill="#b96f4a"/>
+  <path d="M47 75c-2-35 13-55 34-55 25 0 38 24 32 59l-14 24H60z" fill="#38241f"/>
+  <ellipse cx="80" cy="67" rx="28" ry="36" fill="#cb8158"/>
+  <path d="M51 66c1-30 13-43 32-43 19 0 29 14 29 40-13-4-25-12-32-25-7 13-16 22-29 28z" fill="#4b3028"/>
+  <path d="M59 70c3-5 9-5 13 0M88 70c3-5 9-5 13 0" fill="none" stroke="#42271e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M69 87c7 5 15 5 22 0" fill="none" stroke="#884333" stroke-width="3" stroke-linecap="round"/>
+  <path d="m62 113 18 19 18-19 10 45H52z" fill="#f7faf9"/>
+</svg>

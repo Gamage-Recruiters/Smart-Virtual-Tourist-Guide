@@ -25,6 +25,7 @@ import Guides_Card from "./components/marketplace/Guides_Card";
 import Hotels_Card from "./components/marketplace/Hotels_Card";
 import Restaurants_Card from "./components/marketplace/Restaurants_Card";
 import Activities_Card from "./components/marketplace/Activities_Card";
+import GuideBidsPage from "./pages/guideBids/GuideBidsPage";
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/other-drivers" element={<Submit_Bids />} />
         <Route path="/ride-details" element={<Ride_Details />} />
         <Route path="/submit-bids" element={<Driver_Bids />} />
+        <Route path="/guide-bids" element={<GuideBidsPage />} />
 
       </Routes>
     </Router>

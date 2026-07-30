@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Portrait illustration of Rohan Perera</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff3ff"/>
+      <stop offset="1" stop-color="#b6def5"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg)"/>
+  <path d="M35 155c5-35 20-51 45-51s41 16 46 51" fill="#123f5a"/>
+  <path d="M68 102h24l7 19-19 15-19-15z" fill="#fff"/>
+  <path d="M67 101c2 12 24 12 26 0v-17H67z" fill="#b87854"/>
+  <ellipse cx="80" cy="67" rx="29" ry="36" fill="#c98a62"/>
+  <path d="M51 68c-3-30 10-47 31-47 23 0 34 17 27 49l-8-16c-15 4-28 0-38-10l-5 24z" fill="#24323c"/>
+  <path d="M60 70c3-6 9-6 13 0M87 70c3-6 9-6 13 0" fill="none" stroke="#3b2822" stroke-width="3" stroke-linecap="round"/>
+  <path d="M69 86c7 5 15 5 22 0" fill="none" stroke="#7d4132" stroke-width="3" stroke-linecap="round"/>
+  <path d="m64 116 16 20-12 19H51zM96 116l-16 20 12 19h17z" fill="#0d6e8b"/>
+</svg>
