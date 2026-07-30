@@ -10,6 +10,33 @@ export function useGeolocation() {
   const { userLocation, loading, setLoadingState, setErrorState, updateUserLocation } = useSafetyContext()
   const watchIdRef = useRef(null)
   const hasInitialLocationRef = useRef(false)
+  const recentAccuraciesRef = useRef([])
+
+  /**
+   * Adaptive accuracy filter — rolling-window median approach.
+   * Keeps the last 10 readings and rejects fixes that are
+   * significantly worse (>2x) than the recent median.
+   * Median is used instead of mean so that a burst of bad readings
+   * cannot shift the baseline — the middle value stays stable.
+   */
+  const isAcceptableAccuracy = (accuracy) => {
+    recentAccuraciesRef.current.push(accuracy)
+    if (recentAccuraciesRef.current.length > 10) {
+      recentAccuraciesRef.current.shift()
+    }
+
+    // Accept unconditionally until we have at least 3 readings
+    if (recentAccuraciesRef.current.length < 3) return true
+
+    // Median: sort a copy, pick the middle value
+    const sorted = [...recentAccuraciesRef.current].sort((a, b) => a - b)
+    const mid = Math.floor(sorted.length / 2)
+    const median = sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid]
+
+    return accuracy <= median * 2
+  }
 
   useEffect(() => {
     if (!('geolocation' in navigator)) {
@@ -43,11 +70,14 @@ export function useGeolocation() {
     // Then start watching for position updates (continuous tracking)
     const id = navigator.geolocation.watchPosition(
       (position) => {
-        updateUserLocation(
-          position.coords.latitude,
-          position.coords.longitude,
-          position.coords.accuracy
-        )
+        const { latitude, longitude, accuracy } = position.coords
+
+        if (!isAcceptableAccuracy(accuracy)) {
+          setErrorState('location', `Low accuracy (${Math.round(accuracy)}m) — waiting for better signal`)
+          return
+        }
+
+        updateUserLocation(latitude, longitude, accuracy)
         hasInitialLocationRef.current = true
         if (!userLocation.latitude || !userLocation.longitude) {
           setLoadingState('location', false)
@@ -62,7 +92,7 @@ export function useGeolocation() {
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 0,
+        maximumAge: 5000,
         timeout: 20000,
       }
     )

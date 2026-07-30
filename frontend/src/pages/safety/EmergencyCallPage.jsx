@@ -9,7 +9,7 @@ import { useLocalPoliceStations, useTouristPolice, useHospitals } from '../../ho
 import EmergencyTranslator from '../../components/safety/EmergencyTranslator';
 import heroBg from '../../assets/safety/Nine-Arches-Bridge 1.png';
 
-import { haversineDistance, policeIcon, nearestPoliceIcon, hospitalIcon, localPoliceIcon, myLocationIcon } from '../../utils/mapUtils';
+import { haversineDistance, policeIcon, nearestPoliceIcon, hospitalIcon, localPoliceIcon } from '../../utils/mapUtils';
 export default function EmergencyCallPage() {
   const navigate = useNavigate();
   const [activeEmergency, setActiveEmergency] = useState(null);
@@ -95,8 +95,15 @@ export default function EmergencyCallPage() {
   // If GPS finishes loading and fails (or user denies), then we fallback to the mapCenter.
   const shouldFetch = hasRealLocation || (!isLocationLoading && locationError);
 
-  const locationParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 20000 } : null;
-  const localPoliceParams = shouldFetch ? { lat: mapCenter[0], lng: mapCenter[1], radius: 20000 } : null;
+  // Round coordinates to 2 decimal places to prevent spamming backend on tiny GPS jitters (~1km resolution)
+  const fetchLat = shouldFetch ? parseFloat(mapCenter[0]).toFixed(2) : null;
+  const fetchLng = shouldFetch ? parseFloat(mapCenter[1]).toFixed(2) : null;
+
+  const locationParams = useMemo(() => {
+    return shouldFetch ? { lat: fetchLat, lng: fetchLng, radius: 20000 } : null;
+  }, [shouldFetch, fetchLat, fetchLng]);
+
+  const localPoliceParams = locationParams;
 
   // ── Police stations: from backend DB (instant map load, no GPS wait) ──
   const { data: rawTouristPoliceLocations = [], isLoading: isLoadingTouristPolice } = useTouristPolice({})
@@ -129,18 +136,6 @@ export default function EmergencyCallPage() {
 
 
 
-  const myLocationMarker = useMemo(() => {
-    if (!location.latitude || !location.longitude) return null
-
-    return {
-      id: 'my-location',
-      lat: location.latitude,
-      lng: location.longitude,
-      icon: myLocationIcon,
-      popup: '<strong>📍 Your Current Location</strong>',
-    }
-  }, [location.latitude, location.longitude])
-
   const createMarkers = (locs, customIcon, defaultType) => locs
     .filter((item) => item.location?.lat && item.location?.lng)
     .map((item) => ({
@@ -170,7 +165,6 @@ export default function EmergencyCallPage() {
 
   // Build police markers with auto-highlighted nearest stations
   const touristPoliceMarkers = [
-    ...(myLocationMarker ? [myLocationMarker] : []),
     ...touristPoliceLocations
       .filter((s) => s.location?.lat && s.location?.lng)
       .map((station) => {
@@ -214,7 +208,6 @@ export default function EmergencyCallPage() {
   ];
 
   const hospitalMarkers = [
-    ...(myLocationMarker ? [myLocationMarker] : []),
     ...createMarkers(hospitalLocations, hospitalIcon, 'hospital'),
   ];
 
@@ -403,7 +396,7 @@ export default function EmergencyCallPage() {
                     Local
                   </span>
                 )}
-                {myLocationMarker && (
+                {hasRealLocation && (
                   <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
                     <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
                     You
@@ -431,6 +424,7 @@ export default function EmergencyCallPage() {
                   center={hasRealLocation ? mapCenter : [7.8731, 80.7718]}
                   zoom={hasRealLocation ? 10 : 8}
                   markers={touristPoliceMarkers}
+                  userLocation={location}
                   onPopupAction={handleGoNavigation}
                 />
               </div>
@@ -441,7 +435,7 @@ export default function EmergencyCallPage() {
           <div>
             <div className="flex items-center justify-between mb-4 ml-1">
               <h3 className="text-[15px] font-bold text-slate-900">Hospitals</h3>
-              {myLocationMarker && (
+              {hasRealLocation && (
                 <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
                   <span className="inline-block w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow ring-2 ring-green-300" />
                   Your Location
@@ -473,6 +467,7 @@ export default function EmergencyCallPage() {
                     center={mapCenter}
                     zoom={10}
                     markers={hospitalMarkers}
+                    userLocation={location}
                     onPopupAction={handleGoNavigation}
                   />
                 )}

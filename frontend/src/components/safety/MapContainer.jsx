@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { myLocationIcon } from '../../utils/mapUtils'
 
 // Fix default marker icons
 delete L.Icon.Default.prototype._getIconUrl
@@ -33,6 +34,7 @@ export default function MapContainer({
   className = '',
   minHeight = '400px',
   markers = [],
+  userLocation = null,
   onMapClick = null,
   interactive = true,
   tileProvider = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -44,7 +46,8 @@ export default function MapContainer({
 }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
-  const markersRef = useRef({})
+  const poiMarkersRef = useRef([])
+  const userMarkerRef = useRef(null)
   const polylineRef = useRef(null)
   const mapCenter = center || [latitude, longitude]
   const mapCenterLat = mapCenter[0]
@@ -95,11 +98,9 @@ export default function MapContainer({
   useEffect(() => {
     if (!mapInstanceRef.current) return
 
-    // Clear existing markers
-    Object.values(markersRef.current).forEach((marker) => {
-      marker.remove()
-    })
-    markersRef.current = {}
+    // Clear existing POI markers
+    poiMarkersRef.current.forEach((m) => m.remove())
+    poiMarkersRef.current = []
 
     // Add new markers
     markers.forEach((markerData, index) => {
@@ -124,7 +125,7 @@ export default function MapContainer({
         marker.bindPopup(popup)
       }
 
-      markersRef.current[index] = marker
+      poiMarkersRef.current.push(marker)
     })
   }, [markers])
 
@@ -174,6 +175,38 @@ export default function MapContainer({
     container.addEventListener('click', handler)
     return () => container.removeEventListener('click', handler)
   }, [onPopupAction])
+
+  // Update user's live location marker in place (no re-add)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !userLocation?.latitude) return
+    const latLng = [userLocation.latitude, userLocation.longitude]
+
+    // Check if marker exists AND is still attached to the map
+    // (StrictMode cleanup may have removed it while leaving the ref non-null)
+    if (userMarkerRef.current && userMarkerRef.current._map) {
+      userMarkerRef.current.setLatLng(latLng)
+    } else {
+      // Remove stale marker if it exists but was detached
+      if (userMarkerRef.current) userMarkerRef.current.remove()
+      userMarkerRef.current = L.marker(latLng, {
+        icon: L.divIcon(myLocationIcon.options),
+      })
+        .bindPopup('<strong>📍 Your Current Location</strong>')
+        .addTo(mapInstanceRef.current)
+    }
+  }, [userLocation])
+
+  // Cleanup on unmount — null refs so StrictMode remount creates fresh markers
+  useEffect(() => {
+    return () => {
+      poiMarkersRef.current.forEach((m) => m.remove())
+      poiMarkersRef.current = []
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove()
+        userMarkerRef.current = null
+      }
+    }
+  }, [])
 
   return (
     <div
