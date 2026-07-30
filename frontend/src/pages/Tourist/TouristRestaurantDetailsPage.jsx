@@ -105,6 +105,7 @@ export default function TouristRestaurantDetailsPage() {
   };
 
   const handleProcessBooking = async () => {
+    if (submittingBooking) return;
     setSubmittingBooking(true);
     setBookingSuccessMsg('');
     setBookingErrorMsg('');
@@ -143,14 +144,15 @@ export default function TouristRestaurantDetailsPage() {
         setTimeout(() => {
           setIsBookModalOpen(false);
           setBookingSuccessMsg('');
+          setSubmittingBooking(false); // Only enable here after modal closes
         }, 2500);
       } else {
         setBookingErrorMsg(data.message || "Failed to complete reservation booking.");
+        setSubmittingBooking(false); // Enable immediately on error
       }
     } catch (err) {
       setBookingErrorMsg("Network error. Please try again.");
-    } finally {
-      setSubmittingBooking(false);
+      setSubmittingBooking(false); // Enable immediately on error
     }
   };
 
