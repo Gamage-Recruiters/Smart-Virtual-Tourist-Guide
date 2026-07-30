@@ -136,7 +136,7 @@ const ForgotPasswordScreen = () => {
           </div>
 
           <div className="flex justify-start text-sm text-gray-500">
-            <a href="/" className="hover:text-blue-400">← Back to Sign In</a>
+            <a href="/login" className="hover:text-blue-400">← Back to Sign In</a>
           </div>
 
           <button

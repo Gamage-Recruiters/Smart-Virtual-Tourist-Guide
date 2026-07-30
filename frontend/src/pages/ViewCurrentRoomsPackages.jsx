@@ -211,7 +211,7 @@ export default function ViewCurrentRoomsPackages() {
 
     return (
     <div>
-        <div>
+        <div className={imagePopup ? 'hidden' : ''}>
             <Header/>
         </div>
 
