@@ -1,0 +1,13 @@
+[33m2b0eafe[m[33m ([m[1;31morigin/Authentication_identity[m[33m)[m Update User.js
+[33m499bc9d[m Merge branch 'auth-accommodation-integration' into Authentication_identity
+[33m3951022[m Revert "Merge branch 'Booking-&-Reservation-System' into dev"
+[33m7a15560[m Merge branch 'Booking-&-Reservation-System' into dev
+[33m286ff61[m Update App.jsx
+[33m35e269a[m Create tourist dashboard
+[33m43963b3[m[33m ([m[1;31morigin/feature/payment-processing[m[33m, [m[1;31morigin/feature/language_management[m[33m, [m[1;31morigin/f/pay[m[33m)[m Merge branch 'main' of https://github.com/Gamage-Recruiters/Smart-Virtual-Tourist-Guide
+[33m0aaa703[m feat: initialize backend with Express, MongoDB connection, and basic health check
+[33ma43306e[m Revert "Create Booking marketplace"
+[33m92873cf[m Create Booking marketplace
+[33m03ef834[m Create vite.config.js
+[33maa45139[m fix error
+[33m0a27978[m[33m ([m[1;32mmain[m[33m, [m[1;32mdev[m[33m)[m feat: initialize frontend with React, Vite, and Tailwind CSS and initialize backend with sutable structure
