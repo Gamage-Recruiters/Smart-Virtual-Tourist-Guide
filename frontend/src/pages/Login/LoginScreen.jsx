@@ -600,9 +600,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-import AuthLayout from '../../components/AuthLayout';
-import loginImg from '../../assets/HotelOwner/bg1.jpg';
-import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
+import AuthLayout from '../../components/Tourist/AuthLayout';
+import loginImg from '../../assets/Tourist/loginImg.png';
+import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
 
 const LoginScreen = () => {

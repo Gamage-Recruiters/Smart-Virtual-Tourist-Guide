@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import AuthLayout from '../../components/AuthLayout';
-import forgottenPasswordImg from '../../assets/HotelOwner/bg2.png';
-import leftLoginImg from '../../assets/HotelOwner/abg.jpg';
+import AuthLayout from '../../components/Tourist/AuthLayout';
+import forgottenPasswordImg from '../../assets/Tourist/forgottenPasswordImg.png';
+import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import SuccessPopup from './successPage';
 import apiClient from '../../services/api';
 

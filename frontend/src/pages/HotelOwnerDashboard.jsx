@@ -7,13 +7,13 @@ import bgImage from '../assets/Background Image.png'
 
 function HotelOwnerDashboard() {
 	const navigate = useNavigate()
-	const [username, setUsername] = useState('')
+	const [firstName, setFirstName] = useState('')
 	const [hasHotel, setHasHotel] = useState(false)
 	const [tooltipVisible, setTooltipVisible] = useState(false)
 
 	useEffect(() => {
 		const userData = JSON.parse(localStorage.getItem('userData') || '{}')
-		setUsername(userData.username || userData.fullName || 'Hotel Owner')
+		setFirstName((userData.fullName || 'Hotel Owner').split(' ')[0])
 		setHasHotel(Array.isArray(userData.hotels) && userData.hotels.length > 0)
 	}, [])
 	return (
@@ -34,7 +34,7 @@ function HotelOwnerDashboard() {
 						<div className="relative z-10 flex min-h-[620px] items-center justify-center rounded-[28px] bg-white/10 px-4 py-12 text-center sm:min-h-[700px]">
 							<div className="relative flex max-w-3xl flex-col items-start gap-8 text-slate-950">
 								<h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
-									Welcome {username} !
+									Welcome {firstName} !
 								</h1>
 								<p className="text-xl font-medium text-slate-800" style={{ wordSpacing: '5px' }}>
 									Manage Your Hotel and Boost <span className="font-bold">Your</span> Booking
