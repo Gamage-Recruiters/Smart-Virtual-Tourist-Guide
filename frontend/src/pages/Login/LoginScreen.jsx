@@ -607,9 +607,7 @@ import apiClient from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -779,18 +777,12 @@ const LoginScreen = () => {
               </div>
             )}
             <div className="flex justify-center gap-6">
-              <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-              </div>
               <div
                 className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
                 onClick={handleGoogleAuth}
                 title="Sign in with Google"
               >
                 <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-              </div>
-              <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
               </div>
             </div>
           </div>

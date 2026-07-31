@@ -7,7 +7,6 @@ import heroImg from "../../assets/Restuarant/bg.jpg";
 import useGoogleAuth from "../../hooks/useGoogleAuth";
 
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const RestaurantSignup = () => {
   const navigate = useNavigate();
@@ -238,9 +237,6 @@ const RestaurantSignup = () => {
                   title="Sign up with Google"
                 >
                   <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-                </div>
-                <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                  <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
                 </div>
               </div>
             </div>

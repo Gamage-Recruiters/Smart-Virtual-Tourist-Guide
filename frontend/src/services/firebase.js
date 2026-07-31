@@ -13,6 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'consent' });
 
 export const signInWithGoogle = async () => {
   const result = await signInWithPopup(auth, googleProvider);

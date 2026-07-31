@@ -332,7 +332,7 @@ const rightStyle = {
 
       <Header />
 
-      <main className="relative min-h-[1200px] pt-1 overflow-hidden">
+      <main className="relative min-h-300 pt-1 overflow-hidden">
 
         {/* LEFT IMAGE */}
         <div
@@ -372,7 +372,7 @@ const rightStyle = {
               </p>
             </div>
 
-            <div className="w-full max-w-[950px]">
+            <div className="w-full max-w-237.5">
               {children}
             </div>
 

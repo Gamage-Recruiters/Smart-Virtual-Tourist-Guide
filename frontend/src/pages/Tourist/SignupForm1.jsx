@@ -14,9 +14,7 @@ import image4 from '../../assets/Tourist/bg4.png'
 import formBgImage from '../../assets/Tourist/form back.jpg'
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const countriesList = getNames();
 
@@ -223,18 +221,12 @@ const SignupForm = () => {
                           </div>
                         )}
                         <div className="mt-4 flex justify-center gap-6">
-                          <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                            <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-                          </div>
                           <div
                             className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
                             onClick={handleGoogleAuth}
                             title="Sign up with Google"
                           >
                             <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-                          </div>
-                          <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                            <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
                           </div>
                         </div>
                         <p className="text-center mt-6 text-gray-600">

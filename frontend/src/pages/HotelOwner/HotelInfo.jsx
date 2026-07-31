@@ -11,9 +11,7 @@ import mapImage from '../../assets/HotelOwner/HO2.png';
 import bottomImage from '../../assets/HotelOwner/HO3.png';
 import formBgImage from '../../assets/HotelOwner/form back.jpg';
 
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const HotelInfo = () => {
   const navigate = useNavigate();

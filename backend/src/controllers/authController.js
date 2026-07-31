@@ -450,9 +450,6 @@ const forgotPassword = async (req, res) => {
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/create-password?token=${resetToken}`;
-    
-    // Log the reset link for development and testing verification
-    console.log(`[PASS_RESET] Reset Link generated: ${resetLink}`);
 
     // Compose rich premium HTML email matching user design mockup
     const emailHtml = `
@@ -510,6 +507,7 @@ const forgotPassword = async (req, res) => {
 
     res.json({ message: 'Reset link sent to your inbox. Please check.' });
   } catch (error) {
+    console.error('[PASS_RESET_ERROR]', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
