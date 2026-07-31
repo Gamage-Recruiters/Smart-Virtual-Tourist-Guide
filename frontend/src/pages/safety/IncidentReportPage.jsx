@@ -140,6 +140,12 @@ export default function IncidentReportPage() {
   }
 
   const submitReport = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      setErrors({ submit: 'Please log in first to submit an incident report.' })
+      return
+    }
+
     if (!validateForm()) return
 
     setIsSubmitting(true)
@@ -153,8 +159,17 @@ export default function IncidentReportPage() {
       payload.append('district', formData.district)
       payload.append('location[lat]', formData.location.lat)
       payload.append('location[lng]', formData.location.lng)
-      // touristId is now set automatically by the backend from the authenticated user via the protect middleware.
       
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr)
+          payload.append('touristId', user._id || user.id)
+        } catch (e) {
+          console.error('Error parsing user from localStorage', e)
+        }
+      }
+
       // Attempt to retrieve active trip from AI Itinerary Engine
       const activeTripId = localStorage.getItem('activeTripId');
       if (activeTripId) {

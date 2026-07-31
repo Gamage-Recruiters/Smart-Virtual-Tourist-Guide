@@ -28,7 +28,6 @@ export default function IncidentReportSuccessPage() {
     <IncidentReportSuccess
       referenceNumber={state.referenceNumber}
       location={state.location}
-      district={state.district}
       images={state.images}
       onClose={handleClose}
       onViewDashboard={handleViewDashboard}

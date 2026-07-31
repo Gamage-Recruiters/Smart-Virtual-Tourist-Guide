@@ -34,9 +34,7 @@ export default function PublicIncidentsPage() {
     }
   }, [])
 
-  const visibleIncidents = useMemo(() => {
-    return incidents
-  }, [incidents])
+  // Rendering below
 
   return (
     <main
@@ -49,7 +47,7 @@ export default function PublicIncidentsPage() {
         </h2>
 
         <div className="space-y-10">
-          {visibleIncidents.map((incident) => (
+          {incidents.map((incident) => (
             <IncidentCard key={incident._id || incident.id} incident={incident} />
           ))}
         </div>
@@ -62,7 +60,7 @@ export default function PublicIncidentsPage() {
             {error}
           </p>
         )}
-        {!loading && !error && visibleIncidents.length === 0 && (
+        {!loading && !error && incidents.length === 0 && (
           <p className="mt-8 border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-slate-700">
             No public incidents are available from the backend yet.
           </p>

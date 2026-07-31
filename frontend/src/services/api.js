@@ -30,7 +30,12 @@ const apiClient = {
         },
       });
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || errorBody.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
       return await response.json();
     } catch (error) {
@@ -50,7 +55,12 @@ const apiClient = {
         body: isFormData ? data : JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || errorBody.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
       return await response.json();
     } catch (error) {
@@ -70,7 +80,12 @@ const apiClient = {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || errorBody.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
       return await response.json();
     } catch (error) {
@@ -89,7 +104,12 @@ const apiClient = {
         },
       });
       if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+        let errorMessage = `Request failed with status ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || errorBody.error || errorMessage;
+        } catch (e) {}
+        throw new Error(errorMessage);
       }
       return await response.json();
     } catch (error) {

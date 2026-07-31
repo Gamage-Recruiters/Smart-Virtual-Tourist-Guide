@@ -40,8 +40,7 @@ export default function IncidentCard({ incident }) {
         {location.lat && location.lng ? (
           <div className="h-[100px] w-full overflow-hidden border border-slate-200 md:h-[74px] md:w-[134px]">
             <MapContainer
-              latitude={location.lat}
-              longitude={location.lng}
+              center={[location.lat, location.lng]}
               zoom={12}
               minHeight="100%"
               className="!rounded-none !shadow-none"

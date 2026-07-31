@@ -205,6 +205,10 @@ export default function MapContainer({
         userMarkerRef.current.remove()
         userMarkerRef.current = null
       }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+      }
     }
   }, [])
 

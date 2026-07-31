@@ -77,7 +77,6 @@ export default function IncidentReportSuccess({ referenceNumber, location, image
                   )}
                 </div>
               </div>
-              <p className="text-xs text-slate-600 mt-2">Set pin on map</p>
             </div>
 
             {/* Photo Preview */}
