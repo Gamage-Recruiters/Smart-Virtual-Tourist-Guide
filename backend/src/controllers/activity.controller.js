@@ -37,11 +37,12 @@ const parseTimeSlotTemplates = (raw, fallback = []) => {
 // Query params: category, status, search, page, limit
 export const getActivities = async (req, res) => {
   try {
-    const { category, status, search, page = 1, limit = 12 } = req.query;
+    const { category, status, search, userID, userId, page = 1, limit = 12 } = req.query;
 
     const query = {};
     if (category && category !== 'All') query.category = category;
     if (status && status !== 'all') query.status = status;
+    if (userID || userId) query.userID = userID || userId;
     if (search) query.$text = { $search: search };
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
@@ -90,7 +91,7 @@ export const createActivity = async (req, res) => {
   try {
     const {
       title, category, description, location, duration,
-      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status,
+      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, userID, userId,
     } = req.body;
 
     const images = normalizeImages(
@@ -105,6 +106,7 @@ export const createActivity = async (req, res) => {
     const timeSlotTemplates = parseTimeSlotTemplates(req.body.timeSlotTemplates, []);
 
     const activity = await Activity.create({
+      userID: userID || userId || req.user?._id || req.user?.id,
       title,
       category,
       description,
@@ -137,7 +139,7 @@ export const updateActivity = async (req, res) => {
 
     const {
       title, category, description, location, duration,
-      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, existingImages,
+      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, existingImages, userID, userId,
     } = req.body;
 
     const newImages = normalizeImages(
@@ -162,6 +164,7 @@ export const updateActivity = async (req, res) => {
     const updated = await Activity.findByIdAndUpdate(
       req.params.id,
       {
+        userID: userID || userId || activity.userID,
         title: title || activity.title,
         category: category || activity.category,
         description: description || activity.description,

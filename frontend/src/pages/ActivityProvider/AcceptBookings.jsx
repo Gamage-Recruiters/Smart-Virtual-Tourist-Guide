@@ -1,121 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import ActivityProviderSidebar from '../../components/ActivityProviderSidebar';
 import heroBanner from '../../assets/safari.png';
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_BOOKINGS = [
-  {
-    _id: 'b1',
-    touristName: 'John Doe',
-    touristCountry: 'USA',
-    date: '12 Mar 2026',
-    service: 'Yala National Park Safari',
-    pickup: 'Colombo Hotel',
-    specialRequest: 'Extra child seat',
-    serviceType: 'Hiking & Adventure',
-    dropoff: 'Yala National Park',
-    price: 8500,
-    status: 'pending',
-    scheduledPickup: '06:00 AM',
-    activityTitle: 'Yala National Park Safari',
-    timeSlot: '06:00 AM – 12:00 PM',
-    guests: '2 Adults',
-    bookingRef: 'IE-YALA-123456',
-    subtotal: 17000,
-    addon: 'Private Guide (LKR 2,500)',
-    tax: 1950,
-    total: 21450,
-  },
-  {
-    _id: 'b2',
-    touristName: 'Emma Wilson',
-    touristCountry: 'UK',
-    date: '15 Mar 2026',
-    service: 'Sigiriya Rock Fortress Tour',
-    pickup: 'Dambulla Hotel',
-    specialRequest: 'Wheelchair accessible route',
-    serviceType: 'Sightseeing',
-    dropoff: 'Sigiriya',
-    price: 7500,
-    status: 'pending',
-    scheduledPickup: '07:30 AM',
-    activityTitle: 'Sigiriya Rock Fortress Tour',
-    timeSlot: '07:30 AM – 11:30 AM',
-    guests: '3 Adults',
-    bookingRef: 'IE-SIG-789012',
-    subtotal: 22500,
-    addon: 'None',
-    tax: 2250,
-    total: 24750,
-  },
-  {
-    _id: 'b3',
-    touristName: 'Hans Müller',
-    touristCountry: 'Germany',
-    date: '18 Mar 2026',
-    service: 'Ella Hiking Adventure',
-    pickup: 'Ella Train Station',
-    specialRequest: 'Extra luggage storage needed',
-    serviceType: 'Hiking & Adventure',
-    dropoff: 'Little Adams Peak',
-    price: 6500,
-    status: 'pending',
-    scheduledPickup: '05:30 AM',
-    activityTitle: 'Ella Hiking Adventure',
-    timeSlot: '05:30 AM – 10:00 AM',
-    guests: '2 Adults, 1 Child',
-    bookingRef: 'IE-ELLA-345678',
-    subtotal: 19500,
-    addon: 'Gear Rental (LKR 1,500)',
-    tax: 2100,
-    total: 23100,
-  },
-  {
-    _id: 'b4',
-    touristName: 'Sophie Martin',
-    touristCountry: 'France',
-    date: '20 Mar 2026',
-    service: 'Weligama Beach Surf Lessons',
-    pickup: 'Weligama Beach Hotel',
-    specialRequest: 'None',
-    serviceType: 'Water Sports',
-    dropoff: 'Weligama Beach',
-    price: 4500,
-    status: 'pending',
-    scheduledPickup: '08:00 AM',
-    activityTitle: 'Weligama Beach Surf Lessons',
-    timeSlot: '08:00 AM – 11:00 AM',
-    guests: '1 Adult',
-    bookingRef: 'IE-SURF-901234',
-    subtotal: 4500,
-    addon: 'None',
-    tax: 450,
-    total: 4950,
-  },
-  {
-    _id: 'b6',
-    touristName: 'Carlos Mendez',
-    touristCountry: 'Brazil',
-    date: '25 Mar 2026',
-    service: 'Mirissa Whale Watching',
-    pickup: 'Mirissa Beach',
-    specialRequest: 'Sea sickness medication needed',
-    serviceType: 'Water Sports',
-    dropoff: 'Mirissa Harbour',
-    price: 5500,
-    status: 'pending',
-    scheduledPickup: '06:30 AM',
-    activityTitle: 'Mirissa Whale Watching',
-    timeSlot: '06:30 AM – 11:00 AM',
-    guests: '2 Adults',
-    bookingRef: 'IE-WHALE-112233',
-    subtotal: 11000,
-    addon: 'Breakfast Pack (LKR 1,200)',
-    tax: 1220,
-    total: 13420,
-  }
-];
+import { activityAPI } from '../../services/activityAPI';
 
 // eslint-disable-next-line no-unused-vars
 const CATEGORY_COLORS = {
@@ -137,6 +24,47 @@ const COUNTRY_FLAGS = {
 const getFlag = (country) => COUNTRY_FLAGS[country] || '🌍';
 
 // ─── Confirmation Modal ───────────────────────────────────────────────────────
+const getBookingDisplay = (booking) => {
+  const customerName = [booking.customer?.firstName, booking.customer?.lastName].filter(Boolean).join(' ').trim();
+  const touristCountry = booking.bookingDetails?.find((item) => item.label?.toLowerCase() === 'country')?.value || 'Sri Lanka';
+  const pickup = booking.bookingDetails?.find((item) => item.label?.toLowerCase() === 'pickup')?.value || 'Pickup not provided';
+  const specialRequest = booking.bookingDetails?.find((item) => item.label?.toLowerCase() === 'request')?.value || 'None';
+  const dropoff = booking.bookingDetails?.find((item) => item.label?.toLowerCase() === 'dropoff')?.value || booking.service?.location || 'Not provided';
+  const activityTitle = booking.service?.name || 'Activity booking';
+  const serviceType = booking.service?.type || 'Activity';
+  const price = booking.pricing?.total || 0;
+  const date = booking.activityDate || booking.createdAt?.slice(0, 10) || 'TBD';
+  const bookingRef = booking._id?.slice(-6).toUpperCase() || 'N/A';
+  const guests = booking.participants ? `${booking.participants} guest${booking.participants > 1 ? 's' : ''}` : '1 guest';
+  const subtotal = booking.pricing?.items?.reduce((sum, item) => sum + (item.amount || 0), 0) || price;
+  const tax = Math.max(0, price - subtotal);
+  const addon = booking.pricing?.items?.find((item) => item.label?.toLowerCase() !== 'total')?.label || 'None';
+
+  return {
+    touristName: customerName || 'Guest',
+    touristCountry,
+    date,
+    service: activityTitle,
+    pickup,
+    specialRequest,
+    serviceType,
+    dropoff,
+    price,
+    status: booking.status,
+    scheduledPickup: booking.timeSlot || 'TBD',
+    activityTitle,
+    timeSlot: booking.timeSlot || 'TBD',
+    guests,
+    bookingRef,
+    subtotal,
+    addon,
+    tax,
+    total: price,
+    _id: booking._id,
+    raw: booking,
+  };
+};
+
 const ConfirmationModal = ({ booking, onClose }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[slideUp_0.2s_ease]">
@@ -203,7 +131,7 @@ const ConfirmationModal = ({ booking, onClose }) => (
 // ─── Booking Card ─────────────────────────────────────────────────────────────
 const BookingCard = ({ booking, onAccept, onDecline }) => {
   const isConfirmed = booking.status === 'confirmed';
-  const isDeclined  = booking.status === 'declined';
+  const isDeclined  = booking.status === 'cancelled';
 
   return (
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all ${
@@ -326,33 +254,58 @@ const BookingCard = ({ booking, onAccept, onDecline }) => {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const AcceptBookings = () => {
-  const [bookings, setBookings]         = useState(MOCK_BOOKINGS);
-  const [search, setSearch]             = useState('');
+  const [bookings, setBookings] = useState([]);
+  const [search, setSearch] = useState('');
   const [filterService, setFilterService] = useState('All Services');
-  // eslint-disable-next-line no-unused-vars
-  const [filterDate, setFilterDate]     = useState('All Dates');
-  const [sortOrder, setSortOrder]       = useState('Newest');
-  const [confirmedBooking, setConfirmedBooking] = useState(null); // for modal
-  const [toast, setToast]               = useState(null);
+  const [filterDate, setFilterDate] = useState('All Dates');
+  const [sortOrder, setSortOrder] = useState('Newest');
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAccept = (id) => {
-    const booking = bookings.find((b) => b._id === id);
-    setBookings((prev) =>
-      prev.map((b) => b._id === id ? { ...b, status: 'confirmed' } : b)
-    );
-    setConfirmedBooking(booking);
+  useEffect(() => {
+    const loadBookings = async () => {
+      try {
+        setLoading(true);
+        const response = await activityAPI.getBookings();
+        const bookingList = response?.data?.data || response?.data || [];
+        setBookings(Array.isArray(bookingList) ? bookingList : []);
+      } catch (error) {
+        showToast(error.message || 'Unable to load bookings', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBookings();
+  }, []);
+
+  const handleAccept = async (id) => {
+    try {
+      const response = await activityAPI.updateBookingStatus(id, 'confirmed');
+      const updatedBooking = response?.data?.data || response?.data || {};
+      setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, status: updatedBooking?.status || 'confirmed' } : b)));
+      setConfirmedBooking(getBookingDisplay(updatedBooking));
+      showToast('Booking confirmed successfully!');
+    } catch (error) {
+      showToast(error.message || 'Unable to confirm booking', 'error');
+    }
   };
 
-  const handleDecline = (id) => {
-    setBookings((prev) =>
-      prev.map((b) => b._id === id ? { ...b, status: 'declined' } : b)
-    );
-    showToast('Booking declined', 'error');
+  const handleDecline = async (id) => {
+    try {
+      const response = await activityAPI.updateBookingStatus(id, 'cancelled');
+      const updatedBooking = response?.data?.data || response?.data || {};
+      setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, status: updatedBooking?.status || 'cancelled' } : b)));
+      showToast('Booking cancelled', 'error');
+    } catch (error) {
+      showToast(error.message || 'Unable to cancel booking', 'error');
+    }
   };
 
   const handleModalClose = () => {
@@ -362,7 +315,7 @@ const AcceptBookings = () => {
 
   // Filter + sort
   const filtered = useMemo(() => {
-    let list = [...bookings];
+    let list = [...bookings].map(getBookingDisplay);
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -375,25 +328,30 @@ const AcceptBookings = () => {
     }
 
     if (filterService !== 'All Services') {
-      list = list.filter((b) => b.service === filterService);
+      list = list.filter((b) => b.serviceType === filterService);
     }
+
+    const parseDate = (value) => {
+      if (!value) return new Date(0);
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? new Date(0) : date;
+    };
 
     if (sortOrder === 'Newest') {
-      list = list.sort((a, b) => new Date(b.date) - new Date(a.date));
+      list = list.sort((a, b) => parseDate(b.date) - parseDate(a.date));
     } else if (sortOrder === 'Oldest') {
-      list = list.sort((a, b) => new Date(a.date) - new Date(b.date));
+      list = list.sort((a, b) => parseDate(a.date) - parseDate(b.date));
     }
 
-    // Show confirmed first, then pending, then declined
     list = list.sort((a, b) => {
-      const order = { confirmed: 0, pending: 1, declined: 2 };
+      const order = { confirmed: 0, pending: 1, cancelled: 2 };
       return order[a.status] - order[b.status];
     });
 
     return list;
   }, [bookings, search, filterService, sortOrder]);
 
-  const pendingCount   = bookings.filter((b) => b.status === 'pending').length;
+  const pendingCount = bookings.filter((b) => b.status === 'pending').length;
   const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
 
   return (
@@ -505,7 +463,9 @@ const AcceptBookings = () => {
           </div>
 
           {/* Booking cards */}
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-20 text-slate-500">Loading bookings…</div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-3">📋</div>
               <h4 className="text-base font-medium text-slate-700 mb-2">No bookings found</h4>

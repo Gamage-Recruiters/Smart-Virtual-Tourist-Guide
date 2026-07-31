@@ -13,9 +13,13 @@ const buildQueryString = (params = {}) => {
 };
 
 const request = async (path, options = {}) => {
+  const isFormData = options.body instanceof FormData;
+  const body = isFormData ? options.body : typeof options.body === 'string' ? options.body : options.body ? JSON.stringify(options.body) : undefined;
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers: options.body instanceof FormData ? options.headers : {
+    body,
+    headers: isFormData ? options.headers : {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     },
@@ -37,4 +41,9 @@ export const activityAPI = {
   update: (id, body) => request(`/activities/${id}`, { method: 'PUT', body }),
   delete: (id) => request(`/activities/${id}`, { method: 'DELETE' }),
   publish: (id) => request(`/activities/${id}/publish`, { method: 'PATCH' }),
+  getBookings: (params) => request(`/bookings${buildQueryString(params)}`),
+  updateBookingStatus: (id, status) => request(`/bookings/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  }),
 };

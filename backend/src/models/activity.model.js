@@ -2,6 +2,10 @@ import mongoose from 'mongoose';
 
 const activitySchema = new mongoose.Schema(
   {
+    userID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     title: {
       type: String,
       required: [true, 'Activity title is required'],
@@ -101,6 +105,7 @@ const activitySchema = new mongoose.Schema(
 
 activitySchema.index({ title: 'text', description: 'text' });
 activitySchema.index({ category: 1, location: 1, status: 1 });
+activitySchema.index({ userID: 1 });
 
 const Activity = mongoose.models.Activity || mongoose.model('Activity', activitySchema);
 

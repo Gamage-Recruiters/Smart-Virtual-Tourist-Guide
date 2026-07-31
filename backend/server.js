@@ -5,6 +5,7 @@ import connectDB from "./src/configs/database.js";
 import { configureCloudinary } from "./src/configs/cloudinary.js";
 import activityRoutes from "./src/routes/activity.routes.js";
 import activityCalenderRoutes from "./src/routes/activityCalender.routes.js";
+import activityBookingRoutes from "./src/routes/activityBooking.routes.js";
 import authRoutes from "./src/routes/auth-route/authRoutes.js";
 import dashboardRoutes from "./src/routes/auth-route/dashboardRoutes.js";
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activities', activityRoutes);
+app.use('/api/bookings', activityBookingRoutes);
 // Mount calendar routes so `:activityId` is a parent param
 app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
