@@ -360,7 +360,7 @@ const rightStyle = {
 
             <div className="mb-6">
               <h1 className="text-[48px] font-bold leading-tight text-[#111]">
-                Welcome <span className="text-[#27b6ff]">Traveler</span>
+                Welcome <span className="text-[#27b6ff]">Hotel Owner</span>
               </h1>
 
               <div className="mt-2">
