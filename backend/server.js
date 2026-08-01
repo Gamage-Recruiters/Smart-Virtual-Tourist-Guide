@@ -1,12 +1,13 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const cors = require("cors");
-
-dotenv.config(); 
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+dotenv.config(); 
+
 
 // Middleware
 app.use(cors());
@@ -20,19 +21,6 @@ app.get("/", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running" });
 });
-
-// Feature Routes
-const bidRouter = require("./src/routes/bidRouter");
-const driverRouter = require("./src/routes/driverRouter");
-const activityRouter = require("./src/routes/activityRouter");
-
-app.use("/api/bids", bidRouter);
-app.use("/api/drivers", driverRouter);
-app.use("/api/activities", activityRouter);
-
-// Error Handler (must be after routes)
-const errorHandler = require("./src/middleware/errorHandler");
-app.use(errorHandler);
 
 // DB connection
 const mongoUrl = process.env.MONGO_URL;

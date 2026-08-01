@@ -16,10 +16,6 @@ app.use(express.urlencoded({ extended: true }));
 // Connect to MongoDB
 connectDB();
 
-// API routes
-const bookingRoutes = require('./routes/bookingRoutes');
-app.use('/api/bookings', bookingRoutes);
-
 // Basic health check route
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
