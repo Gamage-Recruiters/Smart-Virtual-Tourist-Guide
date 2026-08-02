@@ -1,29 +1,60 @@
 // BACKEND/src/routes/review.routes.js
-const express = require('express');
+import express from 'express';
+
+// Import controller functions using named imports and .js extension
+import { 
+    createReview, 
+    getProviderReviews, 
+    reportReview, 
+    markHelpful, 
+    deleteReview 
+} from '../controllers/review.controller.js';
+
+// Import Joi validation middleware
+import { validateReview } from '../validators/review.validator.js';
+
 const router = express.Router();
 
-// 1. Controllers import karaganna
-const reviewController = require('../controllers/review.controller');
-
-// 2. Validators import karaganna (Ape Joi Guard eka)
-const { validateReview } = require('../validators/review.validator');
-
 /**  
- * @todo: Import the authentication middleware here later (e.g., const { protect } = require('../middleware/auth.middleware'); ).
- * @todo: Aysha (Authentication & Identity Management) will provide the exact middleware function name.
-*/
+ * @todo: Import the authentication middleware here later.
+ * Example: import { protect } from '../middleware/auth.middleware.js';
+ * Aysha (Authentication & Identity Management module) will provide the exact middleware function name.
+ */
 
-// 1. Create a new review (POST /api/reviews)
-// validateReview is added here as a middleware before createReview
-router.post('/', validateReview, reviewController.createReview);
+/**
+ * @route   POST /api/reviews
+ * @desc    Create a new review
+ * @access  Private (Needs auth middleware to ensure only logged-in users can post)
+ * @note    validateReview is executed first to ensure the payload is correct.
+ */
+router.post('/', validateReview, createReview);
 
-// 2. Get all reviews for a specific provider (GET /api/reviews/provider/:targetType/:targetProviderId)
-router.get('/provider/:targetType/:targetProviderId', reviewController.getProviderReviews);
+/**
+ * @route   GET /api/reviews/provider/:targetType/:targetProviderId
+ * @desc    Get all reviews and statistical data for a specific service provider
+ * @access  Public
+ */
+router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
 
-// 3. Report a specific review (PATCH /api/reviews/:id/report)
-router.patch('/:id/report', reviewController.reportReview);
+/**
+ * @route   PATCH /api/reviews/:id/report
+ * @desc    Report a specific review for spam or inappropriate content
+ * @access  Private
+ */
+router.patch('/:id/report', reportReview);
 
-// 4. Mark a review as helpful or unhelpful (PATCH /api/reviews/:id/helpful)
-router.patch('/:id/helpful', reviewController.markHelpful);
+/**
+ * @route   PATCH /api/reviews/:id/helpful
+ * @desc    Mark a review as helpful or unhelpful (👍/👎)
+ * @access  Private
+ */
+router.patch('/:id/helpful', markHelpful);
 
-module.exports = router;
+/**
+ * @route   DELETE /api/reviews/:id
+ * @desc    Delete a specific review (By the review author or Admin)
+ * @access  Private
+ */
+router.delete('/:id', deleteReview);
+
+export default router;
