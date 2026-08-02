@@ -1,7 +1,7 @@
 // BACKEND/src/routes/review.routes.js
 import express from 'express';
 
-// Import controller functions using named imports and .js extension
+// Import our controller functions
 import { 
     createReview, 
     getProviderReviews, 
@@ -10,28 +10,26 @@ import {
     deleteReview 
 } from '../controllers/review.controller.js';
 
-// Import Joi validation middleware
+// Import our Joi Validator
 import { validateReview } from '../validators/review.validator.js';
 
-const router = express.Router();
+// Import the authentication middleware 
+// Ensure the path and file name perfectly match the actual auth middleware file
+import { protect } from '../middleware/auth.middleware.js'; 
 
-/**  
- * @todo: Import the authentication middleware here later.
- * Example: import { protect } from '../middleware/auth.middleware.js';
- * Aysha (Authentication & Identity Management module) will provide the exact middleware function name.
- */
+const router = express.Router();
 
 /**
  * @route   POST /api/reviews
  * @desc    Create a new review
- * @access  Private (Needs auth middleware to ensure only logged-in users can post)
- * @note    validateReview is executed first to ensure the payload is correct.
+ * @access  Private
+ * @note    The 'protect' middleware ensures the user is authenticated before payload validation and review creation.
  */
-router.post('/', validateReview, createReview);
+router.post('/', protect, validateReview, createReview);
 
 /**
  * @route   GET /api/reviews/provider/:targetType/:targetProviderId
- * @desc    Get all reviews and statistical data for a specific service provider
+ * @desc    Get all reviews and statistical data for a specific provider
  * @access  Public
  */
 router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
@@ -41,20 +39,21 @@ router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
  * @desc    Report a specific review for spam or inappropriate content
  * @access  Private
  */
-router.patch('/:id/report', reportReview);
+router.patch('/:id/report', protect, reportReview);
 
 /**
  * @route   PATCH /api/reviews/:id/helpful
  * @desc    Mark a review as helpful or unhelpful (👍/👎)
  * @access  Private
  */
-router.patch('/:id/helpful', markHelpful);
+router.patch('/:id/helpful', protect, markHelpful);
 
 /**
  * @route   DELETE /api/reviews/:id
- * @desc    Delete a specific review (By the review author or Admin)
+ * @desc    Delete a specific review 
  * @access  Private
+ * @todo    Consider adding authorizeRoles('Admin') in the future for admin-specific deletions.
  */
-router.delete('/:id', deleteReview);
+router.delete('/:id', protect, deleteReview);
 
 export default router;
