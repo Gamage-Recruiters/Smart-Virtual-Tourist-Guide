@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
   touristId: {
@@ -62,4 +62,4 @@ const reviewSchema = new mongoose.Schema({
 // Create a compound index to optimize queries for reviews of a specific provider and type  
 reviewSchema.index({ targetProviderId: 1, targetType: 1 });
 
-module.exports = mongoose.model('Review', reviewSchema);
+export default mongoose.model('Review', reviewSchema);

@@ -1,5 +1,6 @@
-const Joi = require('joi');
-const { PROVIDER_TYPES } = require('../constants/review.constants');
+// BACKEND/src/validators/review.validator.js
+import Joi from 'joi';
+import { PROVIDER_TYPES } from '../constants/review.constants.js'; // Added .js extension
 
 /**
  * @desc    Middleware to validate incoming review data before processing
@@ -8,7 +9,7 @@ const { PROVIDER_TYPES } = require('../constants/review.constants');
  * @param   {Function} next - Express next middleware function
  * @returns {Object} JSON response with 400 status if validation fails, otherwise calls next()
  */
-const validateReview = (req, res, next) => {
+export const validateReview = (req, res, next) => {
     // 1. Define the validation schema rules using Joi
     const schema = Joi.object({
         touristId: Joi.string().required().messages({
@@ -26,19 +27,20 @@ const validateReview = (req, res, next) => {
             'any.required': 'Rating is required.'
         }),
         
-        // --- NEW: Validate Title ---
+        // Validate Review Title
         title: Joi.string().min(2).max(100).optional().allow(null, '').messages({
             'string.min': 'Review title must be at least 2 characters long.',
             'string.max': 'Review title cannot exceed 100 characters.'
         }),
         
+        // Validate Review Content
         reviewText: Joi.string().min(5).max(1000).required().messages({
             'string.min': 'Review text is too short. It must be at least 5 characters long.',
             'string.max': 'Review text is too long. It cannot exceed 1000 characters.',
             'any.required': 'Review text is required.'
         }),
 
-        // --- NEW: Validate Images Array (Checks if they are valid URLs) ---
+        // Validate Images Array (ensures all elements are valid secure URLs from Cloudinary)
         images: Joi.array().items(Joi.string().uri()).optional().default([]).messages({
             'string.uri': 'Image must be a valid URL.',
             'array.base': 'Images must be an array of URLs.'
@@ -59,8 +61,4 @@ const validateReview = (req, res, next) => {
 
     // 4. If validation is successful, proceed to the next middleware or controller
     next(); 
-};
-
-module.exports = {
-    validateReview
 };
