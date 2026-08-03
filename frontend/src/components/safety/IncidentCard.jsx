@@ -1,4 +1,5 @@
 import { FiMapPin } from 'react-icons/fi'
+import { formatDate } from '../../utils/dateUtils'
 import incidentImage from '../../assets/safety/Nine-Arches-Bridge 1.png'
 import MapContainer from './MapContainer'
 
@@ -59,11 +60,4 @@ export default function IncidentCard({ incident }) {
   )
 }
 
-function formatDate(value) {
-  if (!value) return 'Date not listed'
-  return new Date(value).toLocaleDateString('en-US', {
-    month: 'long',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
+

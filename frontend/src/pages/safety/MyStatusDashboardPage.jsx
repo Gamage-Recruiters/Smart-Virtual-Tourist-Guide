@@ -1,21 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { getIncidentCategory, getCurrentTouristId } from '../../utils/incidentUtils'
+import { formatDate } from '../../utils/dateUtils'
 import { FiUser, FiTrash2 } from 'react-icons/fi'
 import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 
-const getCurrentTouristId = () => {
-  try {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      return user._id || user.id;
-    }
-  } catch (e) {
-    console.warn('Could not parse user from localStorage', e);
-  }
-  return null;
-}
+
 
 
 export default function MyStatusDashboardPage() {
@@ -162,7 +153,7 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-slate-900 truncate">{referenceNumber}</p>
                   <p className="text-[13px] font-semibold text-slate-700 mt-1">{getIncidentCategory(incident)}</p>
-                  <p className="text-xs text-slate-500 mt-1">{formatStatusDate(incident.incidentDate || incident.createdAt)}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatDate(incident.incidentDate || incident.createdAt)}</p>
                 </div>
                 <StatusBadge status={incident.status} />
               </div>
@@ -223,7 +214,7 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
                 <tr key={incident._id || incident.id || referenceNumber} className={isHighlighted ? 'bg-orange-50' : 'bg-white/70'}>
                   <td className="border border-black px-3 py-2 font-medium">{referenceNumber}</td>
                   <td className="border border-black px-3 py-2">{getIncidentCategory(incident)}</td>
-                  <td className="border border-black px-3 py-2">{formatStatusDate(incident.incidentDate || incident.createdAt)}</td>
+                  <td className="border border-black px-3 py-2">{formatDate(incident.incidentDate || incident.createdAt)}</td>
                   <td className="border border-black px-3 py-2">
                     <StatusBadge status={incident.status} />
                   </td>
@@ -302,20 +293,7 @@ function StatusBadge({ status }) {
 }
 
 
-function formatStatusDate(value) {
-  if (!value) return 'Date not listed'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: '2-digit',
-    year: 'numeric',
-  })
-}
 
-function getIncidentCategory(incident) {
-  return incident.incidentCategory || incident.category || incident.type || 'Other'
-}
 
 function getReferenceNumber(incident, index = 0) {
   if (incident.referenceNumber) return incident.referenceNumber

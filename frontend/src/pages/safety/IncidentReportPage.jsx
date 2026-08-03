@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DISTRICT_COORDINATES_MAP, DISTRICT_NAMES } from '../../constants/sriLankaLocations'
+import { getCurrentTouristId } from '../../utils/incidentUtils'
 import { FiCamera, FiMapPin, FiTrash2 } from 'react-icons/fi'
 import { FaRegClipboard } from 'react-icons/fa'
 import { MdOutlineReportProblem } from 'react-icons/md'
@@ -9,34 +11,7 @@ import { useGeolocation } from '../../hooks/useGeolocation'
 import backgroundImage from '../../assets/safety/back_dp.png'
 
 const categories = ['Severe Weather (Flood/Wind)', 'Landslide', 'Road Blockage', 'Accident', 'Other Emergency']
-const districtCenters = {
-  Ampara: { lat: 7.3018, lng: 81.6747 },
-  Anuradhapura: { lat: 8.3114, lng: 80.4037 },
-  Badulla: { lat: 6.9934, lng: 81.055 },
-  Batticaloa: { lat: 7.7102, lng: 81.6924 },
-  Colombo: { lat: 6.9271, lng: 79.8612 },
-  Galle: { lat: 6.0535, lng: 80.221 },
-  Gampaha: { lat: 7.0873, lng: 79.999 },
-  Hambantota: { lat: 6.1241, lng: 81.1185 },
-  Jaffna: { lat: 9.6615, lng: 80.0255 },
-  Kalutara: { lat: 6.5854, lng: 79.9607 },
-  Kandy: { lat: 7.2906, lng: 80.6337 },
-  Kegalle: { lat: 7.2513, lng: 80.3464 },
-  Kilinochchi: { lat: 9.3803, lng: 80.377 },
-  Kurunegala: { lat: 7.4863, lng: 80.3647 },
-  Mannar: { lat: 8.981, lng: 79.9044 },
-  Matale: { lat: 7.4675, lng: 80.6234 },
-  Matara: { lat: 5.9549, lng: 80.555 },
-  Monaragala: { lat: 6.8728, lng: 81.3507 },
-  Mullaitivu: { lat: 9.2671, lng: 80.8142 },
-  'Nuwara Eliya': { lat: 6.9497, lng: 80.7891 },
-  Polonnaruwa: { lat: 7.9403, lng: 81.0188 },
-  Puttalam: { lat: 8.0362, lng: 79.8283 },
-  Ratnapura: { lat: 6.7056, lng: 80.3847 },
-  Trincomalee: { lat: 8.5874, lng: 81.2152 },
-  Vavuniya: { lat: 8.7514, lng: 80.4971 },
-}
-const districts = Object.keys(districtCenters)
+
 
 const initialForm = {
   reporterName: '',
@@ -110,7 +85,7 @@ export default function IncidentReportPage() {
     setFormData((prev) => ({
       ...prev,
       district,
-      location: districtCenters[district] || prev.location,
+      location: DISTRICT_COORDINATES_MAP[district] || prev.location,
     }))
     setErrors((prev) => {
       const next = { ...prev }
@@ -160,14 +135,9 @@ export default function IncidentReportPage() {
       payload.append('location[lat]', formData.location.lat)
       payload.append('location[lng]', formData.location.lng)
       
-      const userStr = localStorage.getItem('user')
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr)
-          payload.append('touristId', user._id || user.id)
-        } catch (e) {
-          console.error('Error parsing user from localStorage', e)
-        }
+      const touristId = getCurrentTouristId()
+      if (touristId) {
+        payload.append('touristId', touristId)
       }
 
       // Attempt to retrieve active trip from AI Itinerary Engine
@@ -247,7 +217,7 @@ export default function IncidentReportPage() {
                 </FormSection>
 
                 <FormSection icon={<FiMapPin />} iconClassName="bg-amber-400 text-emerald-600" title="3. Location Details">
-                  <CompactSelect label="District" value={formData.district} error={errors.district} options={districts} onChange={selectDistrict} />
+                  <CompactSelect label="District" value={formData.district} error={errors.district} options={DISTRICT_NAMES} onChange={selectDistrict} />
 
                   <div className="mt-3">
                     <p className="mb-1 text-[12px] font-extrabold">Exact Location</p>

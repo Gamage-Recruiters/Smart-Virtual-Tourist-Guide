@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { getIncidentCategory } from '../../utils/incidentUtils'
 import { Link } from 'react-router-dom'
 import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
@@ -247,9 +248,7 @@ function countBy(rows, getKey) {
   }, {})
 }
 
-function getIncidentCategory(incident) {
-  return incident.incidentCategory || incident.category || incident.type || 'Other'
-}
+
 
 function getDateKey(incident) {
   const value = incident.incidentDate || incident.createdAt
