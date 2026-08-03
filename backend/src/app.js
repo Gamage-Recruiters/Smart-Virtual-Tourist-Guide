@@ -1,13 +1,18 @@
 import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './configs/database.js';
+import {connectDB} from './configs/database.js';
+import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
+import cors from 'cors';
+import authRouter from './routes/authRoutes.js';
 
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
-const app = express();
+export const app = express();
+
+// 2. Configure CORS Middleware
+app.use(cors());
 
 // middleware
 app.use(cors());
@@ -21,6 +26,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
 });
+
+// Vehicle routes
+app.use('/api/vehicle', vehicleRouter);
+app.use('/api/auth', authRouter);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

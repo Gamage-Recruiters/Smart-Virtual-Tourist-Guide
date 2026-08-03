@@ -450,6 +450,9 @@ const forgotPassword = async (req, res) => {
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/create-password?token=${resetToken}`;
+    
+    // Log the reset link for development and testing verification
+    console.log(`[PASS_RESET] Reset Link generated: ${resetLink}`);
 
     // Compose rich premium HTML email matching user design mockup
     const emailHtml = `
@@ -674,5 +677,5 @@ export {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
-  getMe,
+  getMe
 };

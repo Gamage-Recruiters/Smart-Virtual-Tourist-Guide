@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import User  from '../models/User.js';
 
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -35,7 +35,7 @@ const protect = async (req, res, next) => {
 };
 
 // Authorize roles
-const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'Not authorized' });
@@ -50,9 +50,4 @@ const authorizeRoles = (...roles) => {
     
     next();
   };
-};
-
-export {
-  protect,
-  authorizeRoles,
 };
