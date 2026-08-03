@@ -59,7 +59,24 @@ const vehiclesData = [
 const Vehicles_Card = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [budget, setBudget] = useState(50000);
+  const [selectedType, setSelectedType] = useState('All');
+  const [ratingFilter, setRatingFilter] = useState({ 5: true, 4: false });
   const itemsPerPage = 6;
+  
+  const filteredVehicles = vehiclesData.filter(vehicle => {
+    // Check Budget
+    const priceNum = Number(vehicle.price.replace(/,/g, ''));
+    if (priceNum > budget) return false;
+    
+    // Check Type
+    if (selectedType !== 'All') {
+      if (selectedType === 'Luxury SUV' && !vehicle.badge.includes('Luxury')) return false;
+      if (selectedType === 'Budget' && priceNum > 5000) return false;
+    }
+    
+    return true;
+  });
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6"> 
@@ -76,41 +93,35 @@ const Vehicles_Card = () => {
               <span>Budget Guardian</span>
             </div>
             <span className="text-gray-400 text-[10px] block font-bold tracking-wider">AVAILABLE FUNDS</span>
-            <div className="flex items-baseline space-x-1 mb-4">
-              <span className="text-2xl font-black text-gray-900">145,000</span>
-              <span className="text-xs font-bold text-gray-700">LKR</span>
-            </div>
-            <div className="mb-4">
-              <div className="flex justify-between text-xs font-bold mb-1">
-                <span className="text-gray-500">Trip Progress</span>
-                <span className="text-[#1E40AF]">65% Used</span>
+            <div className="flex flex-col mb-4 mt-1">
+              <div className="flex items-baseline space-x-1 mb-2">
+                <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
+                <span className="text-xs font-bold text-gray-700">LKR / Day</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '65%' }}></div>
+              <input 
+                type="range" 
+                min="2000" 
+                max="50000" 
+                step="1000"
+                value={budget} 
+                onChange={(e) => {
+                  setBudget(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${((budget - 2000) / 48000) * 100}%, #E5E7EB ${((budget - 2000) / 48000) * 100}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>2k</span>
+                <span>50k</span>
               </div>
             </div>
-            <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
-              Manage Budget
-            </button>
           </div>
 
           {/* Filters Card */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-sm">Filters</h3>
-              <button className="text-xs font-bold text-blue-600 hover:underline">Reset</button>
-            </div>
-            <div className="mb-6">
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Price Range (LKR)</label>
-              <div className="h-1 bg-gray-200 rounded-lg relative mb-2 mt-4">
-                <div className="absolute h-1 bg-blue-600 rounded-lg left-0 right-0"></div>
-                <div className="absolute w-4 h-4 bg-white border-2 border-blue-600 rounded-full -top-1.5 left-0"></div>
-                <div className="absolute w-4 h-4 bg-white border-2 border-blue-600 rounded-full -top-1.5 right-0"></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-400 font-bold">
-                <span>5k</span>
-                <span>50k+</span>
-              </div>
             </div>
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Rating</label>
@@ -164,14 +175,23 @@ const Vehicles_Card = () => {
 
           {/* Vehicle Category Tabs */}
           <div className="flex space-x-2 text-xs font-bold">
-            <button className="bg-blue-600 text-white px-5 py-2.5 rounded-xl shadow-sm">All</button>
-            <button className="bg-white text-gray-500 border border-gray-100 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">Luxury Sedan</button>
-            <button className="bg-white text-gray-500 border border-gray-100 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">Budget</button>
+            {['All', 'Luxury SUV', 'Budget'].map(type => (
+              <button 
+                key={type}
+                onClick={() => {
+                  setSelectedType(type);
+                  setCurrentPage(1);
+                }}
+                className={`px-5 py-2.5 rounded-xl transition-colors ${selectedType === type ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}`}
+              >
+                {type}
+              </button>
+            ))}
           </div>
 
           {/* Vehicles Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {vehiclesData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle, index) => (
+            {filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle, index) => (
               <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
                 
                 {/* Vehicle Image section */}
@@ -227,7 +247,7 @@ const Vehicles_Card = () => {
 
           {/* Pagination Footer */}
           {(() => {
-            const totalPages = Math.ceil(vehiclesData.length / itemsPerPage);
+            const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
             return totalPages > 1 && (
               <div className="flex justify-center items-center space-x-2 pt-4">
                 <button 

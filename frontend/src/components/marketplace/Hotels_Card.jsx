@@ -82,9 +82,57 @@ const defaultHotelsData = [
 ];
 
 const Hotels_Card = () => {
+  const navigate = useNavigate();
   const [hotelsData, setHotelsData] = useState(defaultHotelsData);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStars, setSelectedStars] = useState([]);
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [budget, setBudget] = useState(100000);
   const itemsPerPage = 6;
+
+  React.useEffect(() => {
+    let filtered = defaultHotelsData;
+    
+    if (selectedStars.length > 0) {
+      filtered = filtered.filter(hotel => selectedStars.includes(hotel.starRating));
+    }
+    
+    if (selectedAmenities.length > 0) {
+      filtered = filtered.filter(hotel => 
+        selectedAmenities.every(a => hotel.amenities.includes(a))
+      );
+    }
+    
+    if (budget > 0) {
+      filtered = filtered.filter(hotel => {
+        const priceNum = Number(hotel.price.replace(/,/g, ''));
+        return priceNum <= budget;
+      });
+    }
+    
+    setHotelsData(filtered);
+    setCurrentPage(1);
+  }, [selectedStars, selectedAmenities, budget]);
+
+  const handleStarToggle = (star) => {
+    setSelectedStars(prev => 
+      prev.includes(star) ? prev.filter(s => s !== star) : [...prev, star]
+    );
+  };
+
+  const handleAmenityToggle = (amenityDisplay) => {
+    let key;
+    if (amenityDisplay === 'Swimming Pool') key = 'pool';
+    else if (amenityDisplay === 'Free WiFi') key = 'wifi';
+    else if (amenityDisplay === 'Air Conditioning') key = 'ac';
+    else if (amenityDisplay === 'Breakfast Incl.') key = 'coffee';
+
+    if (!key) return;
+
+    setSelectedAmenities(prev => 
+      prev.includes(key) ? prev.filter(a => a !== key) : [...prev, key]
+    );
+  };
 
   const getAmenityIcon = (type) => {
     switch(type) {
@@ -96,6 +144,8 @@ const Hotels_Card = () => {
       default: return null;
     }
   };
+
+  const budgetPercentage = ((budget - 10000) / 90000) * 100;
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -113,16 +163,26 @@ const Hotels_Card = () => {
               <span>Budget Guardian</span>
             </div>
             <span className="text-gray-400 text-[10px] block font-bold tracking-wider">HOTEL BUDGET</span>
-            <div className="flex items-baseline space-x-1 mb-4">
-              <span className="text-2xl font-black text-gray-900">250,000</span>
-              <span className="text-xs font-bold text-gray-700">LKR</span>
+            <div className="flex flex-col mb-4 mt-1">
+              <div className="flex items-baseline space-x-1 mb-2">
+                <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
+                <span className="text-xs font-bold text-gray-700">LKR</span>
+              </div>
+              <input 
+                type="range" 
+                min="10000" 
+                max="100000" 
+                step="5000"
+                value={budget} 
+                onChange={(e) => setBudget(Number(e.target.value))}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${budgetPercentage}%, #E5E7EB ${budgetPercentage}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>10k</span>
+                <span>100k</span>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-              <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '40%' }}></div>
-            </div>
-            <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
-              Update Budget
-            </button>
           </div>
 
           {/* Filters Card */}
@@ -135,7 +195,12 @@ const Hotels_Card = () => {
               <div className="space-y-2">
                 {[5, 4, 3].map(star => (
                   <label key={star} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded text-blue-600" 
+                      checked={selectedStars.includes(star)}
+                      onChange={() => handleStarToggle(star)}
+                    />
                     <div className="flex text-amber-400">
                       {[...Array(star)].map((_, i) => <FaStar key={i} size={10} />)}
                     </div>
@@ -148,12 +213,25 @@ const Hotels_Card = () => {
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Amenities</label>
               <div className="space-y-2">
-                {['Swimming Pool', 'Free WiFi', 'Air Conditioning', 'Breakfast Incl.'].map(item => (
-                  <label key={item} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600" />
-                    <span>{item}</span>
-                  </label>
-                ))}
+                {['Swimming Pool', 'Free WiFi', 'Air Conditioning', 'Breakfast Incl.'].map(item => {
+                  let key;
+                  if (item === 'Swimming Pool') key = 'pool';
+                  else if (item === 'Free WiFi') key = 'wifi';
+                  else if (item === 'Air Conditioning') key = 'ac';
+                  else if (item === 'Breakfast Incl.') key = 'coffee';
+
+                  return (
+                    <label key={item} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="rounded text-blue-600" 
+                        checked={selectedAmenities.includes(key)}
+                        onChange={() => handleAmenityToggle(item)}
+                      />
+                      <span>{item}</span>
+                    </label>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -228,7 +306,10 @@ const Hotels_Card = () => {
                       </div>
                       <p className="text-[10px] text-gray-400 font-medium">{hotel.reviews} reviews</p>
                     </div>
-                    <button className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all">
+                    <button 
+                      onClick={() => navigate('/hotel-booking', { state: { hotel } })}
+                      className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all"
+                    >
                       View Rooms
                     </button>
                   </div>

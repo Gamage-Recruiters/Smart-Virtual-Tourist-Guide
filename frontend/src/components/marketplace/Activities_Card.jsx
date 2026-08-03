@@ -89,8 +89,14 @@ const defaultActivitiesData = [
 
 const Activities_Card = () => {
   const navigate = useNavigate();
-  const [activitiesData, setActivitiesData] = useState(defaultActivitiesData);
+  const [fullActivitiesData, setFullActivitiesData] = useState([]);
+  const [activitiesData, setActivitiesData] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [budget, setBudget] = useState(25000);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [freeCancellation, setFreeCancellation] = useState(false);
+  const [instantConfirmation, setInstantConfirmation] = useState(false);
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -115,7 +121,10 @@ const Activities_Card = () => {
               ? act.images[0] 
               : 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600'
           }));
+          setFullActivitiesData(formattedData);
           setActivitiesData(formattedData);
+        } else {
+          setFullActivitiesData(defaultActivitiesData);
         }
       } catch (error) {
         console.error("Error fetching activities:", error);
@@ -126,6 +135,34 @@ const Activities_Card = () => {
 
     fetchActivities();
   }, []);
+
+  useEffect(() => {
+    let filtered = fullActivitiesData.length > 0 ? fullActivitiesData : defaultActivitiesData;
+    
+    if (budget > 0) {
+      filtered = filtered.filter(act => act.price <= budget);
+    }
+    
+    if (selectedTypes.length > 0) {
+      filtered = filtered.filter(act => selectedTypes.some(type => act.category.includes(type)));
+    }
+    
+    if (freeCancellation) {
+      filtered = filtered.filter(act => act.hasFreeCancellation);
+    }
+    
+    if (instantConfirmation) {
+      filtered = filtered.filter(act => act.isInstantBooking);
+    }
+    
+    setActivitiesData(filtered);
+  }, [fullActivitiesData, budget, selectedTypes, freeCancellation, instantConfirmation]);
+
+  const handleTypeToggle = (type) => {
+    setSelectedTypes(prev => 
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -143,16 +180,26 @@ const Activities_Card = () => {
               <span>Budget Guardian</span>
             </div>
             <span className="text-gray-400 text-[10px] block font-bold tracking-wider">ACTIVITIES BUDGET</span>
-            <div className="flex items-baseline space-x-1 mb-4">
-              <span className="text-2xl font-black text-gray-900">25,000</span>
-              <span className="text-xs font-bold text-gray-700">LKR</span>
+            <div className="flex flex-col mb-4 mt-1">
+              <div className="flex items-baseline space-x-1 mb-2">
+                <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
+                <span className="text-xs font-bold text-gray-700">LKR</span>
+              </div>
+              <input 
+                type="range" 
+                min="1000" 
+                max="25000" 
+                step="1000"
+                value={budget} 
+                onChange={(e) => setBudget(Number(e.target.value))}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${((budget - 1000) / 24000) * 100}%, #E5E7EB ${((budget - 1000) / 24000) * 100}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>1k</span>
+                <span>25k</span>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-              <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '40%' }}></div>
-            </div>
-            <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
-              Manage Budget
-            </button>
           </div>
 
           {/* Filters Card */}
@@ -163,9 +210,14 @@ const Activities_Card = () => {
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Activity Type</label>
               <div className="space-y-2">
-                {['Adventure & Sports', 'Cultural & History', 'Nature & Wildlife', 'Water Sports'].map(type => (
+                {['Adventure', 'History', 'Nature', 'Water Sports', 'Wildlife'].map(type => (
                   <label key={type} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded text-blue-600 w-4 h-4" 
+                      checked={selectedTypes.includes(type)}
+                      onChange={() => handleTypeToggle(type)}
+                    />
                     <span>{type}</span>
                   </label>
                 ))}
@@ -190,11 +242,21 @@ const Activities_Card = () => {
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Booking Options</label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                  <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-blue-600 w-4 h-4" 
+                    checked={freeCancellation}
+                    onChange={(e) => setFreeCancellation(e.target.checked)}
+                  />
                   <span>Free Cancellation</span>
                 </label>
                 <label className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                  <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-blue-600 w-4 h-4" 
+                    checked={instantConfirmation}
+                    onChange={(e) => setInstantConfirmation(e.target.checked)}
+                  />
                   <span>Instant Confirmation</span>
                 </label>
               </div>

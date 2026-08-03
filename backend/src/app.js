@@ -9,6 +9,7 @@ import bidRouter from './routes/bidRouter.js';
 import driverRouter from './routes/driverRouter.js';
 import activityRouter from './routes/activityRouter.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import hotelRoutes from './routes/hotelRoutes.js';
 
 // Middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -41,6 +42,7 @@ app.use('/api/bids', bidRouter);
 app.use('/api/drivers', driverRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/hotels', hotelRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

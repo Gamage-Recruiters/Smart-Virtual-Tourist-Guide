@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
-const HotelAvailabilityCard = () => {
+const HotelAvailabilityCard = ({ hotel }) => {
   const navigate = useNavigate();
 
   const [hotelData, setHotelData] = useState({
@@ -11,11 +12,44 @@ const HotelAvailabilityCard = () => {
     rooms: "",
   });
 
+  // Parse price which might be a string with commas e.g. "28,500"
+  const rawPrice = hotel?.price ? String(hotel.price).replace(/,/g, '') : "15000";
+  const basePricePerNight = Number(rawPrice) || 15000;
+
+  const calculateNights = () => {
+    if (hotelData.checkIn && hotelData.checkOut) {
+      const start = new Date(hotelData.checkIn);
+      const end = new Date(hotelData.checkOut);
+      const diffTime = end - start;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 ? diffDays : 1;
+    }
+    return 1;
+  };
+
+  const nights = calculateNights();
+  const roomsCount = Number(hotelData.rooms) || 1;
+  
+  const roomPrice = nights * basePricePerNight * roomsCount;
+  const taxesAndFees = Math.round(roomPrice * 0.15); // 15% tax
+
   const handleAvailabilityCheck = () => {
-    // API call can be added here
+    if (!hotelData.checkIn || !hotelData.checkOut || !hotelData.guests || !hotelData.rooms) {
+      toast.error("Please fill in all booking details.");
+      return;
+    }
 
     navigate("/booking-page", {
       state: {
+        service: {
+          image: hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
+          name: hotel?.name || "Cinnamon Grand Colombo",
+          location: hotel?.location || "Colombo, Sri Lanka",
+          rating: hotel?.rating || hotel?.userRating || 4.8,
+          reviews: hotel?.reviews || 230,
+          description: hotel?.description || "Luxury hotel with ocean view.",
+        },
+
         bookingDetails: [
           {
             label: "Check-in",
@@ -27,7 +61,7 @@ const HotelAvailabilityCard = () => {
           },
           {
             label: "Guests",
-            value: `${hotelData.guests} Adult(s)`,
+            value: `${hotelData.guests} Guest(s)`,
           },
           {
             label: "Rooms",
@@ -35,110 +69,107 @@ const HotelAvailabilityCard = () => {
           },
         ],
 
-        service: {
-          image:
-            "https://images.unsplash.com/photo-1566073771259-6a8506099945",
-          name: "Cinnamon Grand Colombo",
-          location: "Colombo, Sri Lanka",
-          rating: 4.8,
-          reviews: 230,
-          description:
-            "Luxury 5-star hotel with ocean view.",
-        },
-
         pricing: {
-          currency: "USD",
+          currency: "LKR",
           items: [
             {
-              label: "Room Price (3 Nights)",
-              amount: 360,
+              label: `Room Price (${roomsCount} Room(s) x ${nights} Night(s) x ${basePricePerNight.toLocaleString()} LKR)`,
+              amount: roomPrice,
             },
             {
-              label: "Taxes & Fees",
-              amount: 54,
+              label: "Taxes & Fees (15%)",
+              amount: taxesAndFees,
             },
           ],
         },
+
+        serviceType: "hotel",
       },
     });
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="font-bold text-lg mb-6">
+    <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
+      <h2 className="font-bold text-lg mb-6 text-gray-800">
         Check Availability
       </h2>
 
       <div className="space-y-4">
         <div>
-          <label>Check-in Date</label>
-
+          <label className="block text-sm font-bold text-gray-600 mb-1">Check-in Date</label>
           <input
             type="date"
             value={hotelData.checkIn}
             onChange={(e) =>
-              setHotelData({
-                ...hotelData,
-                checkIn: e.target.value,
-              })
+              setHotelData({ ...hotelData, checkIn: e.target.value })
             }
-            className="w-full border p-3 rounded-lg"
+            className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label>Check-out Date</label>
-
+          <label className="block text-sm font-bold text-gray-600 mb-1">Check-out Date</label>
           <input
             type="date"
             value={hotelData.checkOut}
             onChange={(e) =>
-              setHotelData({
-                ...hotelData,
-                checkOut: e.target.value,
-              })
+              setHotelData({ ...hotelData, checkOut: e.target.value })
             }
-            className="w-full border p-3 rounded-lg"
+            className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div>
-          <label>Guests</label>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-600 mb-1">Guests</label>
+            <input
+              type="number"
+              min="1"
+              value={hotelData.guests}
+              onChange={(e) =>
+                setHotelData({ ...hotelData, guests: e.target.value })
+              }
+              className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-          <input
-            type="number"
-            value={hotelData.guests}
-            onChange={(e) =>
-              setHotelData({
-                ...hotelData,
-                guests: e.target.value,
-              })
-            }
-            className="w-full border p-3 rounded-lg"
-          />
+          <div>
+            <label className="block text-sm font-bold text-gray-600 mb-1">Rooms</label>
+            <input
+              type="number"
+              min="1"
+              value={hotelData.rooms}
+              onChange={(e) =>
+                setHotelData({ ...hotelData, rooms: e.target.value })
+              }
+              className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
-        <div>
-          <label>Rooms</label>
-
-          <input
-            type="number"
-            value={hotelData.rooms}
-            onChange={(e) =>
-              setHotelData({
-                ...hotelData,
-                rooms: e.target.value,
-              })
-            }
-            className="w-full border p-3 rounded-lg"
-          />
+        {/* Total Price Display */}
+        <div className="pt-4 border-t border-gray-100 mt-4 mb-2">
+            <div className="flex justify-between items-center text-sm mb-1">
+                <span className="text-gray-500">Room Price ({nights} Night(s))</span>
+                <span className="font-semibold text-gray-700">LKR {roomPrice.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm mb-1">
+                <span className="text-gray-500">Taxes & Fees</span>
+                <span className="font-semibold text-gray-700">LKR {taxesAndFees.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                <span className="text-gray-800 font-bold">Total Price</span>
+                <span className="text-xl font-black text-blue-600">
+                    LKR {(roomPrice + taxesAndFees).toLocaleString()}
+                </span>
+            </div>
         </div>
 
         <button
           onClick={handleAvailabilityCheck}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold uppercase tracking-wider transition-colors shadow-md mt-4"
         >
-          Check Availability
+          Proceed to Booking
         </button>
       </div>
     </div>
