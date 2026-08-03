@@ -286,6 +286,65 @@ const getDashboardAnalytics = async (req, res) => {
     }
 };
 
+// ===============================
+// Get Recent Activities
+// GET /admin/recent-activities
+// ===============================
+const getRecentActivities = async (req, res) => {
+    try {
+        // Fetch data from all 3 collections in parallel
+        const [users, bookings, packages] = await Promise.all([
+            User.find({}).sort({ createdAt: -1 }).limit(5).select("name createdAt"),
+            Booking.find({}).sort({ createdAt: -1 }).limit(5).populate("customer", "firstName lastName"), 
+            Package.find({}).sort({ createdAt: -1 }).limit(5).select("BasicInformation.title AgencyContactInformation.agencyName createdAt")
+        ]);
+
+        const activities = [];
+
+        users.forEach(user => {
+            activities.push({
+                id: `user-${user._id}`,
+                type: "USER",
+                title: "User Registration",
+                subtitle: user.name,
+                createdAt: user.createdAt
+            });
+        });
+
+        bookings.forEach(booking => {
+            activities.push({
+                id: `booking-${booking._id}`,
+                type: "BOOKING",
+                title: "Booking Completed",
+                subtitle: booking.customer ? `${booking.customer.firstName} ${booking.customer.lastName}` : "Unknown User",
+                createdAt: booking.createdAt
+            });
+        });
+
+        packages.forEach(pkg => {
+            activities.push({
+                id: `pkg-${pkg._id}`,
+                type: "PACKAGE",
+                title: "New Package Published",
+                subtitle: pkg.AgencyContactInformation?.agencyName || pkg.BasicInformation?.title || "Travel Agency",
+                createdAt: pkg.createdAt
+            });
+        });
+
+        // Sort all merged activities by newest first
+        activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        res.json({
+            success: true,
+            data: activities.slice(0, 10) // Return only the top 10 newest activities
+        });
+
+    } catch (err) {
+        console.error("Recent Activity Error:", err);
+        res.status(500).json({ success: false, message: "Failed to load recent activities" });
+    }
+};
+
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
@@ -297,5 +356,6 @@ module.exports = {
     updateAdvertisement,
     deleteAdvertisement,
     getDashboardAnalytics,
+    getRecentActivities,
     deleteUser
 };

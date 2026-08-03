@@ -1,91 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import apiClient from '../../services/api';
 
-const activities = [
-  {
-    id: 1,
-    title: 'New package published',
-    subtitle: 'Paradise Travel Co.',
-    time: '2 mins ago',
-    dotColor: 'bg-red-500'
-  },
-  {
-    id: 2,
-    title: 'User registration',
-    subtitle: 'John Doe',
-    time: '15 minutes ago',
-    dotColor: 'bg-yellow-400'
-  },
-  {
-    id: 3,
-    title: 'Booking completed',
-    subtitle: 'Sarah Johnson',
-    time: '1 hours ago',
-    dotColor: 'bg-purple-500'
-  },
-  {
-    id: 4,
-    title: 'New package published',
-    subtitle: 'Paradise Travel Co.',
-    time: '2 hours ago',
-    dotColor: 'bg-orange-400'
-  },
-  {
-    id: 5,
-    title: 'User registration',
-    subtitle: 'sachin jayalth',
-    time: '2 hours ago',
-    dotColor: 'bg-yellow-400'
-  },
-  {
-    id: 6,
-    title: 'Package reviewed',
-    subtitle: 'Paradise Travel Co.',
-    time: '2 hours ago',
-    dotColor: 'bg-purple-500'
-  },
-  {
-    id: 7,
-    title: 'Payment received',
-    subtitle: 'Michael Chen',
-    time: '3 hours ago',
-    dotColor: 'bg-green-500'
-  }
-];
+const activityColor = {
+  USER: "bg-yellow-400",
+  BOOKING: "bg-purple-500",
+  PACKAGE: "bg-red-500",
+  PAYMENT: "bg-green-500"
+};
 
 const RecentActivity = () => {
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const res = await apiClient.get('/admin/recent-activities');
+        if (res && res.success) {
+          setActivities(res.data);
+        } else {
+          setError("Failed to load activities");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Unable to connect to the server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
   return (
-    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-[12px] shadow-sm border border-gray-100 mt-6 font-inter">
+    <div className="bg-white p-6 rounded-[12px] shadow-sm border border-gray-100 flex flex-col h-full">
       <div className="mb-6">
-        <h2 className="text-[24px] font-bold text-[#111111]">Recent Activity</h2>
-        <p className="text-[14px] text-gray-600 mt-1">New listings waiting for review.</p>
+        <h3 className="text-[20px] font-bold text-[#111111]">Recent Activity</h3>
+        <p className="text-[14px] text-gray-500 mt-1">Latest updates across the platform.</p>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {activities.map((activity) => (
-          <div key={activity.id} className="flex justify-between items-center group cursor-pointer">
-            <div className="flex items-start gap-4">
-              <div className={`w-2 h-2 rounded-full mt-2 ${activity.dotColor}`}></div>
-              <div className="flex flex-col">
-                <h4 className="text-[14px] font-medium text-[#111111] group-hover:text-blue-600 transition-colors">
-                  {activity.title}
-                </h4>
-                <span className="text-[12px] text-gray-500 mt-0.5">
-                  {activity.subtitle}
+      <div className="flex-grow flex flex-col justify-center">
+        {loading ? (
+          <div className="text-center text-gray-400 py-8 animate-pulse">Loading recent activities...</div>
+        ) : error ? (
+          <div className="text-center text-red-400 py-8">{error}</div>
+        ) : activities.length === 0 ? (
+          <div className="text-center text-gray-400 py-8">No recent activities found.</div>
+        ) : (
+          <div className="flex flex-col space-y-6">
+            {activities.map((activity) => (
+              <div key={activity.id} className="flex items-start justify-between group">
+                <div className="flex items-start gap-4">
+                  <div className="mt-2">
+                    <div className={`w-2 h-2 rounded-full ${activityColor[activity.type] || 'bg-gray-400'}`}></div>
+                  </div>
+                  <div>
+                    <h4 className="text-[14px] font-semibold text-[#111111] group-hover:text-blue-600 transition-colors">
+                      {activity.title}
+                    </h4>
+                    <p className="text-[13px] text-gray-500 mt-0.5">{activity.subtitle}</p>
+                  </div>
+                </div>
+                <span className="text-[12px] text-gray-400 whitespace-nowrap mt-1">
+                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                 </span>
               </div>
-            </div>
-            <span className="text-[12px] text-gray-500">
-              {activity.time}
-            </span>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="mt-8 flex justify-end">
-        <button className="bg-[#1877F2] text-white text-[12px] font-medium py-2 px-6 rounded-[6px] hover:bg-blue-600 transition-colors">
+      {!loading && !error && activities.length > 0 && (
+        <button className="mt-8 w-[100px] self-end bg-[#1877F2] text-white text-[13px] font-medium py-2 px-4 rounded-[6px] hover:bg-blue-600 transition-colors">
           See more
         </button>
-      </div>
+      )}
     </div>
   );
 };

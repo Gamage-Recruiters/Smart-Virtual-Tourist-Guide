@@ -11,6 +11,7 @@ const {
     getAdvertisementById, 
     updateAdvertisement, 
     getDashboardAnalytics,
+    getRecentActivities,
     deleteUser 
 } = require('../controllers/adminController');
 
@@ -41,5 +42,5 @@ router.delete('/ads/:id', authorizeRoles('Admin', 'Administrator'), deleteAdvert
 
 // 4
 router.delete('/users/:id', authorizeRoles('Admin', 'Administrator'), deleteUser);
-
+router.get("/recent-activities", authorizeRoles("Admin", "Administrator"), getRecentActivities);
 module.exports = router;
