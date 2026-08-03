@@ -3,6 +3,10 @@ const Admin = require('../models/Admin');
 const Booking = require("../models/Booking");
 const Package = require("../models/Package");
 const Advertisement = require('../models/Advertisement');
+const Review = require('../models/Review');
+const Room = require('../models/room.model');
+
+
 // Fetch dashboard statistics
 const getDashboardStats = async (req, res) => {
     try {
@@ -293,10 +297,14 @@ const getDashboardAnalytics = async (req, res) => {
 const getRecentActivities = async (req, res) => {
     try {
         // Fetch data from all 3 collections in parallel
-        const [users, bookings, packages] = await Promise.all([
+        const [users, bookings, packages, reviews, ads, rooms] = await Promise.all([
             User.find({}).sort({ createdAt: -1 }).limit(5).select("name createdAt"),
             Booking.find({}).sort({ createdAt: -1 }).limit(5).populate("customer", "firstName lastName"), 
-            Package.find({}).sort({ createdAt: -1 }).limit(5).select("BasicInformation.title AgencyContactInformation.agencyName createdAt")
+            Package.find({}).sort({ createdAt: -1 }).limit(5).select("BasicInformation.title AgencyContactInformation.agencyName createdAt"),
+
+            Review.find({}).sort({ createdAt: -1 }).limit(5).select("rating targetType createdAt"), //[cite: 2]
+            Advertisement.find({}).sort({ createdAt: -1 }).limit(5).select("title type createdAt"), //[cite: 8]
+            Room.find({}).sort({ createdAt: -1 }).limit(5).select("roomName createdAt") //[cite: 5]
         ]);
 
         const activities = [];
@@ -328,6 +336,35 @@ const getRecentActivities = async (req, res) => {
                 title: "New Package Published",
                 subtitle: pkg.AgencyContactInformation?.agencyName || pkg.BasicInformation?.title || "Travel Agency",
                 createdAt: pkg.createdAt
+            });
+        });
+        reviews.forEach(review => {
+            activities.push({
+                id: `rev-${review._id}`,
+                type: "REVIEW",
+                title: "New Review Posted",
+                subtitle: `${review.rating} Stars for ${review.targetType}`, //[cite: 2]
+                createdAt: review.createdAt //[cite: 2]
+            });
+        });
+
+        ads.forEach(ad => {
+            activities.push({
+                id: `ad-${ad._id}`,
+                type: "ADVERTISEMENT",
+                title: "New Advertisement",
+                subtitle: `${ad.title} - ${ad.type}`, //[cite: 8]
+                createdAt: ad.createdAt //[cite: 8]
+            });
+        });
+
+        rooms.forEach(room => {
+            activities.push({
+                id: `room-${room._id}`,
+                type: "ROOM",
+                title: "New Room Added",
+                subtitle: room.roomName, //[cite: 5]
+                createdAt: room.createdAt //[cite: 5]
             });
         });
 
