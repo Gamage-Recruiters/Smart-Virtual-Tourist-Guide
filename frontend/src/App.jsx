@@ -1,4 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import AboutUs from './pages/AboutUs';
+import HowItWorks from './pages/HowItWork';
+
 import SignupForm from './pages/Tourist/SignupForm1';
 import TravelSafetyInfo from './pages/Tourist/SignupForm2';
 import LoginScreen from './pages/Login/LoginScreen';
@@ -25,8 +31,6 @@ import DriverSignUp2 from './pages/Driver/SignUpForm2';
 import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
 
-
-
 import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
@@ -37,32 +41,33 @@ import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
 import DummyPageActivityProvider from './pages/ActivityProvider/dummyPage';
 
-
-
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginScreen />} />
-        <Route path="/tourist" element={<SignupForm />} />
-        <Route path="/travel-safety" element={<TravelSafetyInfo />} />
+        {/* Landing pages */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutUs />} />
+          <Route path="how-it-works" element={<HowItWorks />} />
+        </Route>
+
+        {/* Auth */}
+        <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/create-password" element={<NewPasswordCreate />} />
 
-        <Route path="/hotel-owner" element={<HotelOwnerSignup/>}/>
-        <Route path="/hotel-info" element={<HotelInfo/>}/>
-
-        <Route path="/restuarant" element={<RestuarantSignup/>}/>
-
-        <Route path="/guide" element={<GuideSignup/>}/>
-
-        <Route path="/renter" element={<RenterSignup/>}/>
-
-        <Route path="/government" element={<GovernmentSignup/>}/>
-        <Route path="/activity-provider" element={<ActivityProviderSignup/>}/>
-
-        <Route path="/admin" element={<AdminLogin/>}/>
+        {/* Signup flows */}
+        <Route path="/tourist" element={<SignupForm />} />
+        <Route path="/travel-safety" element={<TravelSafetyInfo />} />
+        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
+        <Route path="/hotel-info" element={<HotelInfo />} />
+        <Route path="/restuarant" element={<RestuarantSignup />} />
+        <Route path="/guide" element={<GuideSignup />} />
+        <Route path="/renter" element={<RenterSignup />} />
+        <Route path="/government" element={<GovernmentSignup />} />
+        <Route path="/activity-provider" element={<ActivityProviderSignup />} />
+        <Route path="/admin" element={<AdminLogin />} />
 
         {/* Driver signup — wrapped in shared context so all 3 steps share form state */}
         <Route
@@ -90,25 +95,16 @@ function App() {
           }
         />
 
-
-
-        <Route path="/dashboard-Tourist" element={<DummyPageTourist/>}/>
-        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner/>}/>
-        <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant/>}/>
-        <Route path="/dashboard-Guide" element={<DummyPageGuide/>}/>
-        <Route path="/dashboard-Renter" element={<DummyPageRenter/>}/>
-        <Route path="/dashboard-Government" element={<DummyPageGovernment/>}/>
-        <Route path="/dashboard-Driver" element={<DummyPageDriver/>}/>
-        <Route path="/dashboard-Admin" element={<DummyPageAdmin/>}/>
-        <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider/>}/>
-
-
-
-
-
-
-        
-
+        {/* Dashboards */}
+        <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
+        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
+        <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
+        <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
+        <Route path="/dashboard-Renter" element={<DummyPageRenter />} />
+        <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
+        <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
+        <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
+        <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider />} />
       </Routes>
     </BrowserRouter>
   );

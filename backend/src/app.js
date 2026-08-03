@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './configs/database.js';
 
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -18,6 +20,11 @@ app.use('/api/dashboard', dashboardRoutes);
 // basic routes
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
+});
+
+// Basic health check route
+app.get('/api/health', (req, res) => {
+  res.json({ message: 'Server is running' });
 });
 
 app.get('/api/health', (req, res) => {

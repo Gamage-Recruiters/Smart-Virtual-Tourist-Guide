@@ -1,4 +1,3 @@
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -52,7 +51,14 @@ const apiClient = {
           : privateHeaders(),
       });
 
-      return await response.json();
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      return json;
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
@@ -62,10 +68,9 @@ const apiClient = {
   async post(endpoint, data) {
     try {
       const isFormData = data instanceof FormData;
-      
+
       const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
-      
-      // Browser automatically sets correct Content-Type with boundary for FormData
+
       if (isFormData) {
         delete headers['Content-Type'];
       }
@@ -77,6 +82,11 @@ const apiClient = {
       });
 
       const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
 
       if (!response.ok) {
         throw { message: json.message || 'Request failed' };
@@ -135,6 +145,9 @@ const apiClient = {
 export const userAPI = {
   register(userData) {
     return apiClient.post('/auth/register/tourist', userData);
+  },
+  login(credentials) {
+    return apiClient.post('/auth/login', credentials);
   },
   updateTravelInfo(travelData) {
     return apiClient.put('/auth/update-travel-info', travelData);
