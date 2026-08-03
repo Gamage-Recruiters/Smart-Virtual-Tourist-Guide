@@ -28,7 +28,13 @@ function SettingsPage() {
 
   const nicInputRef = useRef(null);
   const businessLicenseInputRef = useRef(null);
-  const token = localStorage.getItem("renterToken");
+  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
+  };
 
   // 1. Create refs for each section
   const profileRef = useRef(null);
@@ -37,7 +43,7 @@ function SettingsPage() {
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+      .get(resolveApiUrl("/auth/me"), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -85,7 +91,7 @@ function SettingsPage() {
       }
 
       axios
-        .post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/reset-password`, {
+        .post(resolveApiUrl("/auth/reset-password"), {
           token,
           password: newPassword,
         })

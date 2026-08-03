@@ -62,7 +62,7 @@ const RenterSignup = () => {
       localStorage.setItem("token", response.token);
       localStorage.setItem("userData", JSON.stringify(response.user));
 
-      navigate("/dashboard-Renter");
+      navigate("/vehicle-admin");
     } catch (err) {
       console.error(err);
       setError(err.message || "Registration failed. Please try again.");

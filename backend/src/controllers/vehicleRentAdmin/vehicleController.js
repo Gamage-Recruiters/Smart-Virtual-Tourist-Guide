@@ -65,7 +65,7 @@ export const updateVehicle = async (req, res) => {
     const updatedVehicle = await Vehicle.findByIdAndUpdate(
       id,
       { $set: req.body },
-      { new: true, runValidators: true },
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!updatedVehicle) {

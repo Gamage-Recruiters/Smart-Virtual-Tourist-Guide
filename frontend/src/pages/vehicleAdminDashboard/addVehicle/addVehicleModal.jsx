@@ -13,7 +13,13 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
   // Added editData prop default fallback
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const token = localStorage.getItem("renterToken");
+  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
+  };
 
   const [formData, setFormData] = useState({
     brand: editData?.brand || "",
@@ -91,7 +97,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
       // Dynamic Routing: Use PUT if editData exists, otherwise use POST
       if (editData) {
         await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL}/api/vehicle/${editData._id}`,
+          resolveApiUrl(`/vehicle/${editData._id}`),
           finalPayload,
           {
             headers: {
@@ -102,7 +108,7 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         toast.success("Vehicle updated successfully!");
       } else {
         await axios.post(
-          import.meta.env.VITE_BACKEND_URL + "/api/vehicle",
+          resolveApiUrl("/vehicle"),
           finalPayload,
           {
             headers: {

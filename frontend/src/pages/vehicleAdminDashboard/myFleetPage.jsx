@@ -25,14 +25,20 @@ function MyFleetPage() {
   const [sortBy, setSortBy] = useState("none");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const token = localStorage.getItem("renterToken");
+  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
+  };
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       try {
         if (searchTerm.trim() === "") {
           const res = await axios.get(
-            import.meta.env.VITE_BACKEND_URL + "/api/vehicle/renter",
+            resolveApiUrl("/vehicle/renter"),
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -40,7 +46,7 @@ function MyFleetPage() {
           setFleetData(res.data);
         } else {
           const res = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/vehicle/search?query=${searchTerm}`,
+            `${resolveApiUrl("/vehicle/search")}?query=${searchTerm}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -304,9 +310,9 @@ function MyFleetPage() {
       ) : (
         // Live Populated Fleet Display Grid
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 pb-10">
-          {processedFleet.map((car) => (
+          {processedFleet.map((car, index) => (
             <div
-              key={car._id}
+              key={car._id || car.id || `${car.licensePlate || car.model || 'vehicle'}-${index}`}
               className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100/50 flex flex-col hover:shadow-md transition-shadow duration-300"
             >
               {/* Image & Status Badge */}

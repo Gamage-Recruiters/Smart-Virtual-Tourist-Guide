@@ -35,11 +35,16 @@ import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
-import DummyPageRenter from './pages/Renter/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
 import DummyPageActivityProvider from './pages/ActivityProvider/dummyPage';
+import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
+import Dashboard from './pages/vehicleAdminDashboard/dashboard';
+import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage';
+import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
+import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
+import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
 
 function App() {
   return (
@@ -100,11 +105,19 @@ function App() {
         <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
         <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
-        <Route path="/dashboard-Renter" element={<DummyPageRenter />} />
+        <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
         <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
         <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
         <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
         <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider />} />
+
+        <Route path="/vehicle-admin" element={<VehicleAdmin />}>
+          <Route index element={<Dashboard />} />
+          <Route path="requests" element={<RentalRequestsPage />} />
+          <Route path="fleet" element={<MyFleetPage />} />
+          <Route path="earnings" element={<EarningsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

@@ -88,19 +88,34 @@ function Dashboard() {
   const [isFleetLoading, setIsFleetLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const token = localStorage.getItem("renterToken");
+  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
+  };
+
+  const normalizeFleetData = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.vehicles)) return payload.vehicles;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.items)) return payload.items;
+    return [];
+  };
 
   useEffect(() => {
     axios
-      .get(import.meta.env.VITE_BACKEND_URL + "/api/vehicle/recent", {
+      .get(resolveApiUrl("/vehicle/recent"), {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setFleetData(res.data);
+        setFleetData(normalizeFleetData(res.data));
         setIsFleetLoading(false);
       })
       .catch((e) => {
         console.error(e.message);
+        setFleetData([]);
         setIsFleetLoading(false);
       });
   }, [refreshTrigger, token]);
@@ -278,7 +293,7 @@ function Dashboard() {
                     className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
                   >
                     <img
-                      src={car?.photos?.exterior}
+                      src={car?.photos?.exterior || "https://via.placeholder.com/64"}
                       alt={car.brand}
                       className="w-16 h-16 rounded-xl object-cover bg-slate-100"
                     />

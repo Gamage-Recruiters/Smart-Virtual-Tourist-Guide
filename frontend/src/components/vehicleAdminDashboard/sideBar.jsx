@@ -1,10 +1,11 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
   Car,
   DollarSign,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 function Sidebar() {
@@ -24,7 +25,18 @@ function Sidebar() {
     { name: "Earnings", path: "/vehicle-admin/earnings", icon: DollarSign },
     { name: "Settings", path: "/vehicle-admin/settings", icon: Settings },
   ];
-  const user = JSON.parse(localStorage.getItem("renter"));
+  const navigate = useNavigate();
+  const storedUser = localStorage.getItem("renter");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("renterToken");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("renter");
+    localStorage.removeItem("signupData");
+    navigate("/login");
+  };
 
   return (
     <aside className="w-64 bg-[#e8f0fe] h-full flex flex-col justify-between py-6 px-4">
@@ -62,25 +74,35 @@ function Sidebar() {
       </div>
 
       {/* Bottom Profile Section */}
-      <div className="border-t border-blue-200 pt-4 px-2 flex items-center gap-3 mt-4">
-        <div className="w-10 h-10 rounded-full bg-slate-300 cursor-pointer">
+      <div className="border-t border-blue-200 pt-4 px-2 mt-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-slate-300 cursor-pointer">
             <Link to="/login">
-            <img
-              src="#"
-              alt="Profile"
-              className="w-full h-full object-cover rounded-full"
-            />
+              <img
+                src="#"
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full"
+              />
             </Link>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-800 truncate">
+              {user?.fullName || "Guest"}
+            </p>
+            <p className="text-[10px] font-semibold text-slate-500 truncate">
+              {user?.email || ""}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-bold text-slate-800">
-            {user?.fullName || "Guest"}
-          </p>
-          <p className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-            {/* ✓ VERIFIED OWNER */}
-            {user?.email || ""}
-          </p>
-        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
       </div>
     </aside>
   );
