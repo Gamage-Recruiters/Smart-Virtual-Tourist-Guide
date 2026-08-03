@@ -1,32 +1,112 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { RenterLoginPage } from "./pages/loginPage";
-import RegisterPage from "./pages/registerPage";
-import VehicleAdmin from "./pages/vehicleAdminDashboard/vehicleAdminPage";
-import Dashboard from "./pages/vehicleAdminDashboard/dashboard";
-import RentalRequestsPage from "./pages/vehicleAdminDashboard/rentalRequestsPage";
-import MyFleetPage from "./pages/vehicleAdminDashboard/myFleetPage";
-import SettingsPage from "./pages/vehicleAdminDashboard/settingsPage";
-import EarningsPage from "./pages/vehicleAdminDashboard/earningsPage";
-import { Toaster } from 'react-hot-toast';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import AboutUs from './pages/AboutUs';
+import HowItWorks from './pages/HowItWork';
+
+import SignupForm from './pages/Tourist/SignupForm1';
+import TravelSafetyInfo from './pages/Tourist/SignupForm2';
+import LoginScreen from './pages/Login/LoginScreen';
+import ForgotPasswordScreen from './pages/Login/ForgotPasswordScreen';
+import NewPasswordCreate from './pages/Login/NewPasswordCreate';
+
+import HotelOwnerSignup from './pages/HotelOwner/SignUp';
+import HotelInfo from './pages/HotelOwner/HotelInfo';
+
+import RestuarantSignup from './pages/Restuarant/SignupPage';
+
+import GuideSignup from './pages/Guide/SignupPage';
+
+import RenterSignup from './pages/Renter/SignupPage';
+
+import GovernmentSignup from './pages/Government/SignupPage';
+
+import ActivityProviderSignup from './pages/ActivityProvider/SignupPage';
+
+import AdminLogin from './pages/Admin/LoginPage';
+
+import DriverSignUp1 from './pages/Driver/SignUpForm1';
+import DriverSignUp2 from './pages/Driver/SignUpForm2';
+import DriverSignUp3 from './pages/Driver/SignUpForm3';
+import { DriverSignupProvider } from './context/DriverSignupContext';
+
+import DummyPageTourist from './pages/Tourist/dummyPage';
+import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
+import DummyPageRestaurant from './pages/Restuarant/dummyPage';
+import DummyPageGuide from './pages/Guide/dummyPage';
+import DummyPageRenter from './pages/Renter/dummyPage';
+import DummyPageGovernment from './pages/Government/dummyPage';
+import DummyPageDriver from './pages/Driver/dummyPage';
+import DummyPageAdmin from './pages/Admin/dummyPage';
+import DummyPageActivityProvider from './pages/ActivityProvider/dummyPage';
 
 function App() {
   return (
-    <>
-    <Toaster position='top-right'/>
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<RenterLoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/vehicle-admin" element={<VehicleAdmin />}>
-          <Route index element={<Dashboard/>} />
-          <Route path="requests" element={<RentalRequestsPage/>} />
-          <Route path="fleet" element={<MyFleetPage />} />
-          <Route path="earnings" element={<EarningsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+        {/* Landing pages */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutUs />} />
+          <Route path="how-it-works" element={<HowItWorks />} />
         </Route>
+
+        {/* Auth */}
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+        <Route path="/create-password" element={<NewPasswordCreate />} />
+
+        {/* Signup flows */}
+        <Route path="/tourist" element={<SignupForm />} />
+        <Route path="/travel-safety" element={<TravelSafetyInfo />} />
+        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
+        <Route path="/hotel-info" element={<HotelInfo />} />
+        <Route path="/restuarant" element={<RestuarantSignup />} />
+        <Route path="/guide" element={<GuideSignup />} />
+        <Route path="/renter" element={<RenterSignup />} />
+        <Route path="/government" element={<GovernmentSignup />} />
+        <Route path="/activity-provider" element={<ActivityProviderSignup />} />
+        <Route path="/admin" element={<AdminLogin />} />
+
+        {/* Driver signup — wrapped in shared context so all 3 steps share form state */}
+        <Route
+          path="/driver-signup1"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp1 />
+            </DriverSignupProvider>
+          }
+        />
+        <Route
+          path="/driver-signup2"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp2 />
+            </DriverSignupProvider>
+          }
+        />
+        <Route
+          path="/driver-signup3"
+          element={
+            <DriverSignupProvider>
+              <DriverSignUp3 />
+            </DriverSignupProvider>
+          }
+        />
+
+        {/* Dashboards */}
+        <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
+        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
+        <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
+        <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
+        <Route path="/dashboard-Renter" element={<DummyPageRenter />} />
+        <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
+        <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
+        <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
+        <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider />} />
       </Routes>
-    </Router>
-    </>
+    </BrowserRouter>
   );
 }
 

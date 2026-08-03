@@ -5,20 +5,27 @@ import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import cors from 'cors';
 import authRouter from './routes/authRoutes.js';
 
-// Load environment variables
-dotenv.config();
+import authRoutes from './routes/authRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import errorHandler from './middleware/errorHandler.js';
 
 export const app = express();
 
 // 2. Configure CORS Middleware
 app.use(cors());
 
-// Middleware
+// middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-connectDB();
+// routes
+app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+
+// basic routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
+});
 
 // Vehicle routes
 app.use('/api/vehicle', vehicleRouter);
@@ -29,8 +36,11 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'Server is running' });
 });
+
+// error handler middleware
+app.use(errorHandler);
+
+export default app;

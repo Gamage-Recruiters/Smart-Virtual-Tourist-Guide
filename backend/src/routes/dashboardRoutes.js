@@ -1,5 +1,5 @@
-const express = require('express');
-const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+import express from 'express';
+import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -87,4 +87,4 @@ router.get(
   }
 );
 
-module.exports = router;
+export default router;
