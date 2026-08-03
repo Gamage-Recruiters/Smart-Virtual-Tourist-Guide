@@ -6,7 +6,10 @@ const activityColor = {
   USER: "bg-yellow-400",
   BOOKING: "bg-purple-500",
   PACKAGE: "bg-red-500",
-  PAYMENT: "bg-green-500"
+  PAYMENT: "bg-green-500",
+  REVIEW: "bg-orange-400",
+  ADVERTISEMENT: "bg-blue-500",
+  ROOM: "bg-teal-500"
 };
 
 const RecentActivity = () => {
