@@ -224,7 +224,7 @@
 // export default Header;
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
 // Import your logo images
@@ -236,6 +236,8 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/login/';
 
   return (
     <header className="sticky top-0 z-50">
@@ -271,14 +273,15 @@ const Header = () => {
               />
             </div>
 
-            {/* Desktop Login Button */}
-            <div className="hidden md:flex items-center">
-              <button
-                className="px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
-              >
-                Login
-              </button>
-            </div>
+            {!isLoginPage && (
+              <div className="hidden md:flex items-center">
+                <button
+                  className="px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
+                >
+                  Login
+                </button>
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
             <div className="md:hidden">
@@ -292,7 +295,7 @@ const Header = () => {
           </div>
 
           {/* Mobile Navigation */}
-          {isMenuOpen && (
+          {isMenuOpen && !isLoginPage && (
             <div className="md:hidden py-4 border-t border-gray-200 animate-slideDown">
               <button
                 className="w-full px-4 py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-colors text-center"
