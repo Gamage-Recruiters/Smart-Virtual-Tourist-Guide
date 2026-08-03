@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
+import firebaseAdminAuth from '../configs/firebaseAdmin.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -109,6 +110,76 @@ const registerHotelOwner = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+const googleAuth = async (req, res) => {
+  try {
+    const { idToken, role = 'hotelowner_user' } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'Google token is required' });
+    }
+
+    if (role !== 'hotelowner_user') {
+      return res.status(400).json({ success: false, message: 'Google sign-up is only enabled for hotel owners' });
+    }
+
+    const decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
+    const { uid, email, name } = decodedToken;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Google account email is required' });
+    }
+
+    const emailNormalized = email.toLowerCase().trim();
+    const existingUser = await User.findOne({ email: emailNormalized });
+
+    if (existingUser && existingUser.role !== role) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account already exists with this email under a different role',
+      });
+    }
+
+    let user = existingUser;
+
+    if (!user) {
+      const username = await generateUsername(emailNormalized);
+
+      user = await User.create({
+        fullName: name || emailNormalized.split('@')[0],
+        username,
+        email: emailNormalized,
+        googleId: uid,
+        role,
+        hotels: [],
+      });
+    } else {
+      user.googleId = user.googleId || uid;
+      if (!user.fullName && name) {
+        user.fullName = name;
+      }
+      await user.save();
+    }
+
+    res.status(existingUser ? 200 : 201).json({
+      success: true,
+      message: existingUser ? 'Google account connected successfully' : 'Google sign-up successful',
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        googleId: user.googleId,
+        contactNumber: user.contactNumber,
+        hotels: user.hotels,
+      },
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Google authentication failed', error: error.message });
   }
 };
 
@@ -451,8 +522,7 @@ const forgotPassword = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/create-password?token=${resetToken}`;
     
-    // Log the reset link for development and testing verification
-    console.log(`[PASS_RESET] Reset Link generated: ${resetLink}`);
+
 
     // Compose rich premium HTML email matching user design mockup
     const emailHtml = `
@@ -510,6 +580,7 @@ const forgotPassword = async (req, res) => {
 
     res.json({ message: 'Reset link sent to your inbox. Please check.' });
   } catch (error) {
+     console.error('[PASS_RESET_ERROR]', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -613,6 +684,7 @@ export {
   registerActivityProvider,
   registerGovernment,
   registerDriver,
+  googleAuth,
   forgotPassword,
   resetPassword,
   updateTravelInfo,

@@ -9,6 +9,7 @@ import {
   registerActivityProvider,
   registerGovernment,
   registerDriver,
+  googleAuth,
   forgotPassword,
   resetPassword,
   updateTravelInfo,
@@ -50,6 +51,8 @@ router.post(
   validateDriverRegister,
   registerDriver
 );
+
+router.post('/google', googleAuth);
 
 // Unified login route
 router.post('/login', validateLogin, loginUser);

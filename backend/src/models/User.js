@@ -137,6 +137,10 @@ const userSchema = new mongoose.Schema({
 
 // Method to check password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) {
+    return false;
+  }
+
   if (!this.password.startsWith('$2')) {
     // Fallback for plain text passwords
     return enteredPassword === this.password;
@@ -148,7 +152,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Pre-save hook to hash password if it's modified
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return;
   }
   const salt = await bcrypt.genSalt(10);

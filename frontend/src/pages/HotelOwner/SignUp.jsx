@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, CheckCircle, Phone } from 'lucide-react';
 import { hotelOwnerAPI } from '../../services/api';
+import useGoogleAuth from '../../hooks/useGoogleAuth';
 import Header from '../../components/HotelOwner/Header';
 import Footer from '../../components/HotelOwner/Footer';
 
@@ -20,6 +21,11 @@ import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 const SignUp = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(
+    navigate,
+    'hotelowner_user',
+    '/hotel-info'
+  );
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -242,13 +248,22 @@ const SignUp = () => {
                     <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
                       <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
                     </div>
-                    <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
+                    <button
+                      type="button"
+                      onClick={handleGoogleAuth}
+                      disabled={googleLoading}
+                      className="cursor-pointer hover:bg-gray-100 p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Continue with Google"
+                    >
                       <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-                    </div>
+                    </button>
                     <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
                       <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
                     </div>
                   </div>
+                  {googleError ? (
+                    <p className="mt-3 text-xs text-red-500">{googleError}</p>
+                  ) : null}
                   <div className="mt-4 text-xs text-gray-500">
                     Already have an account? <span className="text-[#3CB4FF] font-bold cursor-pointer" onClick={() => navigate('/login')}>Sign in</span>
                   </div>

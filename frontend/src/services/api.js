@@ -154,6 +154,15 @@ export const hotelOwnerAPI = {
 };
 
 /**
+ * SOCIAL AUTH APIs
+ */
+export const socialAuthAPI = {
+  googleAuth(idToken, role = 'hotelowner_user') {
+    return apiClient.post('/auth/google', { idToken, role });
+  },
+};
+
+/**
  * GUIDE APIs
  */
 export const guideAPI = {
