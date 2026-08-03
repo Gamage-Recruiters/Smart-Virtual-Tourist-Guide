@@ -46,15 +46,6 @@ export const DISTRICT_NAMES = SRI_LANKA_DISTRICTS.map(d => d.name);
 // All location names combined (for SecurityAlertsPage autocomplete)
 export const ALL_LOCATION_NAMES = [...DISTRICT_NAMES, ...TOURIST_SPOTS];
 
-/**
- * Look up coordinates for a district by name.
- * @param {string} name - District name (case-sensitive)
- * @returns {{ lat: number, lng: number } | null}
- */
-export const getDistrictCoords = (name) => {
-  const district = SRI_LANKA_DISTRICTS.find(d => d.name === name);
-  return district ? { lat: district.lat, lng: district.lng } : null;
-};
 
 /**
  * Build a coordinates lookup object keyed by district name.

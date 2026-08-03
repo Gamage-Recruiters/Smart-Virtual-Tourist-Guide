@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FiMapPin } from 'react-icons/fi';
 import safetyService from '../../services/safetyService';
 import AlertMap from '../../components/safety/AlertMap';
@@ -47,11 +47,7 @@ export default function SecurityAlertsPage() {
     setSelectedAlert(null);
   }, []);
 
-  // Filter by text when no geocode result (fallback)
-  const filteredAlerts = useMemo(() => {
-    // If we're doing server-side location filtering, show all results
-    return alerts;
-  }, [alerts]);
+
 
   return (
     <main className="min-h-screen bg-[#F6F8FA] px-4 py-5 sm:px-6 md:px-9 sm:py-7">
@@ -82,7 +78,7 @@ export default function SecurityAlertsPage() {
             {/* 3. The Real Leaflet Map */}
             <div className="order-2 xl:order-1">
               <AlertMap
-                alerts={filteredAlerts}
+                alerts={alerts}
                 selectedAlert={selectedAlert}
                 mapCenter={mapCenter}
                 onPopupClose={() => setSelectedAlert(null)}
@@ -98,8 +94,8 @@ export default function SecurityAlertsPage() {
               </div>
 
               <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-                {filteredAlerts.length > 0 ? (
-                  filteredAlerts.map((alert) => (
+                {alerts.length > 0 ? (
+                  alerts.map((alert) => (
                     <AlertCard
                       key={alert._id}
                       alert={alert}
