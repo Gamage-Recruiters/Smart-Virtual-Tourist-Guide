@@ -5,6 +5,7 @@ import MapContainer from '../../components/safety/MapContainer';
 import RouteInfoPanel from '../../components/safety/RouteInfoPanel';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { fetchAllRoutes } from '../../services/routingService';
+import { myLocationIcon } from '../../utils/mapUtils';
 
 
 export default function NavigationDirectionsPage() {
@@ -78,17 +79,7 @@ export default function NavigationDirectionsPage() {
   const polylineColor = activeMode === 'foot' ? '#16a34a' : activeMode === 'bike' ? '#f59e0b' : '#2563EB';
 
   // Marker icons
-  const originIcon = useMemo(() => L.divIcon({
-    className: '',
-    html: `<div style="position:relative;width:28px;height:28px;display:flex;align-items:center;justify-content:center">
-      <div style="position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,0.25);animation:pulse-ring 1.8s ease-out infinite"></div>
-      <div style="position:relative;width:14px;height:14px;border-radius:50%;background:#16a34a;border:2.5px solid #fff;box-shadow:0 0 0 2px rgba(22,163,74,0.5),0 2px 6px rgba(0,0,0,0.3)"></div>
-      <style>@keyframes pulse-ring{0%{transform:scale(0.6);opacity:1}100%{transform:scale(2.2);opacity:0}}</style>
-    </div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -18],
-  }), []);
+  const originIcon = myLocationIcon;
 
   const destIcon = useMemo(() => {
     const pinColor = destType === 'hospital' ? '#DC2626' : '#1E3A8A';

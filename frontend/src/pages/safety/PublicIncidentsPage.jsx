@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import safetyService from '../../services/safetyService'
 import backgroundImage from '../../assets/safety/back_dp.png'
 import IncidentCard from '../../components/safety/IncidentCard'

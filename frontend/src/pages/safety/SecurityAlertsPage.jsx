@@ -31,10 +31,7 @@ export default function SecurityAlertsPage() {
 
   // Initial load
   useEffect(() => {
-    const loadData = async () => {
-      await fetchAlerts();
-    };
-    loadData();
+    fetchAlerts();
   }, [fetchAlerts]);
 
   // Auto-refresh every 5 minutes

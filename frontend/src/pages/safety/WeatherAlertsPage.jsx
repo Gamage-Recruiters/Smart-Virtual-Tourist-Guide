@@ -119,12 +119,9 @@ export default function WeatherAlertsPage() {
 
   // Mark fetch timestamp whenever new weather data arrives
   useEffect(() => {
-    const updateTime = async () => {
-      if (weatherData.current) {
-        setWeatherFetchedAt(new Date())
-      }
+    if (weatherData.current) {
+      setWeatherFetchedAt(new Date())
     }
-    updateTime()
   }, [weatherData])
 
   // Auto-refresh weather & forecast every 5 minutes
@@ -221,10 +218,7 @@ export default function WeatherAlertsPage() {
   }, [])
 
   useEffect(() => {
-    const loadData = async () => {
-      await fetchAlerts()
-    }
-    loadData()
+    fetchAlerts()
   }, [fetchAlerts])
 
   // Auto-refresh alerts every 5 minutes

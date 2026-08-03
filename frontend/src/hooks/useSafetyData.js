@@ -9,7 +9,7 @@ import safetyService from '../services/safetyService'
  * @returns {Object} - { data, error, isLoading, refetch }
  */
 export function useSafetyData(dataType = 'incidents', options = {}) {
-  const context = useSafetyContext()
+  const { updateAlerts, updateIncidents, updateUserIncidents, updateWeatherData, updateWeatherAlerts, setErrorState, setLoadingState } = useSafetyContext()
   const [data, setData] = useState([])
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -24,28 +24,28 @@ export function useSafetyData(dataType = 'incidents', options = {}) {
       switch (dataType) {
         case 'alerts':
           response = await safetyService.getSecurityAlerts(options)
-          context.updateAlerts(response || [])
+          updateAlerts(response || [])
           break
 
         case 'incidents':
           response = await safetyService.getIncidents(options)
-          context.updateIncidents(response || [])
+          updateIncidents(response || [])
           setData(response || [])
           return
 
         case 'userIncidents':
           response = await safetyService.getUserIncidents(options)
-          context.updateUserIncidents(response || [])
+          updateUserIncidents(response || [])
           break
 
         case 'weather':
           response = await safetyService.getWeatherData(options)
-          context.updateWeatherData(response || {})
+          updateWeatherData(response || {})
           break
 
         case 'weatherAlerts':
           response = await safetyService.getWeatherAlerts(options)
-          context.updateWeatherAlerts(response?.alerts || response?.data?.alerts || [])
+          updateWeatherAlerts(response?.alerts || response?.data?.alerts || [])
           break
 
         case 'hospitals':
@@ -65,21 +65,21 @@ export function useSafetyData(dataType = 'incidents', options = {}) {
       }
 
       setData(response || [])
-      context.setErrorState(dataType, null)
+      setErrorState(dataType, null)
     } catch (err) {
       console.error(`Error fetching ${dataType}:`, err)
       const errorMessage = err.message || `Failed to fetch ${dataType}`
       setError(errorMessage)
-      context.setErrorState(dataType, errorMessage)
+      setErrorState(dataType, errorMessage)
     } finally {
       setIsLoading(false)
-      context.setLoadingState(dataType, false)
+      setLoadingState(dataType, false)
     }
-  }, [dataType, options, context])
+  }, [dataType, options, updateAlerts, updateIncidents, updateUserIncidents, updateWeatherData, updateWeatherAlerts, setErrorState, setLoadingState])
 
   useEffect(() => {
     if (options === null) return;
-    context.setLoadingState(dataType, true)
+    setLoadingState(dataType, true)
     fetchData()
   }, [dataType, JSON.stringify(options)])
 

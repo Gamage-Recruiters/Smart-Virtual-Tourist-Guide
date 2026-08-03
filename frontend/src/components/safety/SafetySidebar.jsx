@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { FiClipboard, FiAlertTriangle, FiFileText, FiBarChart2, FiCloud, FiX } from 'react-icons/fi'
 
@@ -12,6 +12,7 @@ const navLinks = [
 
 export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileMenu = () => {} }) {
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Auto-close mobile menu on route change
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileM
     <>
       {/* Desktop sidebar — unchanged behavior */}
       <aside className="sticky top-0 h-screen hidden bg-[#f5fbff] px-8 py-10 shadow-sm md:block overflow-y-auto">
-        <button type="button" className="mb-5 text-slate-400" aria-label="Back">
+        <button type="button" onClick={() => navigate(-1)} className="mb-5 text-slate-400 hover:text-slate-600 transition-colors" aria-label="Back">
           &larr;
         </button>
         {sidebarContent}

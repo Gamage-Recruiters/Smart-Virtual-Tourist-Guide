@@ -11,7 +11,7 @@ export default function EmergencyActionModal({ isOpen, onClose, data, onAction, 
     } else {
       setSelectedLocation(null);
     }
-  }, [isOpen, isLocationShare, currentLocation, setSelectedLocation]);
+  }, [isOpen, isLocationShare, currentLocation]);
 
   const selectedMarker = useMemo(() => {
     if (!selectedLocation) return [];
