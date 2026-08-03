@@ -1,6 +1,17 @@
 import EmergencyLocation from '../models/EmergencyLocation.js';
 import logger from '../utils/logger.js';
 
+const haversineDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
 // --- In-Memory Cache for Overpass API ---
 const apiCache = new Map();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -87,13 +98,17 @@ export const getNearbyHospitals = async (req, res, next) => {
 
     if (!response.ok) {
       logger.error('Overpass API HTTP error:', response.status);
-      
+
       // Fallback: Query database for all hospitals
       const fallbackHospitals = await EmergencyLocation.find({ type: 'hospital', isActive: true });
+      const filteredHospitals = fallbackHospitals.filter(h => {
+        if (!h.location || !h.location.lat || !h.location.lng) return false;
+        return haversineDistance(parseFloat(lat), parseFloat(lng), h.location.lat, h.location.lng) <= radius;
+      });
       return res.status(200).json({
         success: true,
-        count: fallbackHospitals.length,
-        data: fallbackHospitals,
+        count: filteredHospitals.length,
+        data: filteredHospitals,
         isFallback: true
       });
     }
@@ -142,14 +157,18 @@ export const getNearbyHospitals = async (req, res, next) => {
     });
   } catch (error) {
     logger.error('Error fetching nearby hospitals (Overpass API failed):', error);
-    
+
     try {
       // Fallback on Exception
       const fallbackHospitals = await EmergencyLocation.find({ type: 'hospital', isActive: true });
+      const filteredHospitals = fallbackHospitals.filter(h => {
+        if (!h.location || !h.location.lat || !h.location.lng) return false;
+        return haversineDistance(parseFloat(lat), parseFloat(lng), h.location.lat, h.location.lng) <= radius;
+      });
       return res.status(200).json({
         success: true,
-        count: fallbackHospitals.length,
-        data: fallbackHospitals,
+        count: filteredHospitals.length,
+        data: filteredHospitals,
         isFallback: true
       });
     } catch (fallbackError) {
@@ -210,13 +229,17 @@ export const getNearbyPoliceStations = async (req, res, next) => {
 
     if (!response.ok) {
       logger.error('Overpass API HTTP error (police):', response.status);
-      
+
       // Fallback: Query database for local police stations
       const fallbackPolice = await EmergencyLocation.find({ type: 'local_police', isActive: true });
+      const filteredPolice = fallbackPolice.filter(p => {
+        if (!p.location || !p.location.lat || !p.location.lng) return false;
+        return haversineDistance(parseFloat(lat), parseFloat(lng), p.location.lat, p.location.lng) <= radius;
+      });
       return res.status(200).json({
         success: true,
-        count: fallbackPolice.length,
-        data: fallbackPolice,
+        count: filteredPolice.length,
+        data: filteredPolice,
         isFallback: true
       });
     }
@@ -256,14 +279,18 @@ export const getNearbyPoliceStations = async (req, res, next) => {
     });
   } catch (error) {
     logger.error('Error fetching nearby police stations (Overpass API failed):', error);
-    
+
     try {
       // Fallback on Exception
       const fallbackPolice = await EmergencyLocation.find({ type: 'local_police', isActive: true });
+      const filteredPolice = fallbackPolice.filter(p => {
+        if (!p.location || !p.location.lat || !p.location.lng) return false;
+        return haversineDistance(parseFloat(lat), parseFloat(lng), p.location.lat, p.location.lng) <= radius;
+      });
       return res.status(200).json({
         success: true,
-        count: fallbackPolice.length,
-        data: fallbackPolice,
+        count: filteredPolice.length,
+        data: filteredPolice,
         isFallback: true
       });
     } catch (fallbackError) {
