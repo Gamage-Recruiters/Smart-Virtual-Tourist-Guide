@@ -52,11 +52,7 @@ const ActivityAvailabilityCard = ({ activity }) => {
           currency: "LKR",
           items: [
             {
-              label: "Price per Person",
-              amount: basePrice,
-            },
-            {
-              label: `Total (${participantsCount} Participants)`,
+              label: `${participantsCount} Participant(s) x ${basePrice} LKR`,
               amount: participantsCount * basePrice,
             },
           ],

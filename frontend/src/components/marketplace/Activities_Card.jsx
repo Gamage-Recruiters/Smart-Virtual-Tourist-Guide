@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaStar, FaMapMarkerAlt, FaClock, FaRunning, 
   FaCalendarAlt, FaCheckCircle, FaUserFriends 
@@ -87,6 +88,7 @@ const defaultActivitiesData = [
 ];
 
 const Activities_Card = () => {
+  const navigate = useNavigate();
   const [activitiesData, setActivitiesData] = useState(defaultActivitiesData);
   const [loading, setLoading] = useState(true);
 
@@ -301,7 +303,10 @@ const Activities_Card = () => {
                       <span className="text-gray-400 text-[11px] font-medium mb-0.5">Based on {act.reviews} reviews</span>
                     </div>
                     
-                    <button className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all shadow-xs flex items-center justify-center space-x-2">
+                    <button 
+                      onClick={() => navigate('/activity-booking', { state: { activity: act } })}
+                      className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all shadow-xs flex items-center justify-center space-x-2"
+                    >
                       <FaCalendarAlt size={11} />
                       <span>Check Availability</span>
                     </button>

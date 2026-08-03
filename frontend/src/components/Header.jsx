@@ -48,7 +48,7 @@ function Header() {
               <Link
                 key={item}
                 to={`/${item.toLowerCase()}`}
-                className="text-slate-800 font-bold hover:text-blue-600 transition-colors text-xl"
+                className="text-slate-800 font-bold hover:text-blue-600 transition-colors text-lg"
               >
                 {item}
               </Link>

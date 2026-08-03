@@ -211,6 +211,7 @@ const Vehicles_Card = () => {
                         </div>
                       </div>
                       <button 
+                        onClick={() => navigate('/vehicle-booking', { state: { vehicle } })}
                         className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
                       >
                         Rent Vehicle
