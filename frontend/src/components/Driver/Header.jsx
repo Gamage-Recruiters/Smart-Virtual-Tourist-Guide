@@ -292,7 +292,7 @@ const Header = () => {
       </nav>
 
       {/* Custom Animation */}
-      <style jsx>{`
+      <style>{`
         @keyframes slideDown {
           from {
             opacity: 0;
