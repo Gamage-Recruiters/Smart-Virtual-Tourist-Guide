@@ -1,5 +1,5 @@
-const Region = require("../models/Region");
-const logger = require("../utils/logger");
+import Region from "../models/Region.js";
+import logger from "./logger.js";
 
 /**
  * Location Helper
@@ -8,7 +8,7 @@ const logger = require("../utils/logger");
  * This function takes latitude and longitude coordinates and finds the corresponding
  * administrative division and district using our local MongoDB geographic data.
  */
-async function getRegionFromCoords(lat, lng) {
+export async function getRegionFromCoords(lat, lng) {
   try {
     // 1. Convert the incoming string coordinates into decimal numbers (floats)
     const nLat = parseFloat(lat);
@@ -55,7 +55,3 @@ async function getRegionFromCoords(lat, lng) {
     return null;
   }
 }
-
-module.exports = {
-  getRegionFromCoords,
-};

@@ -1,6 +1,12 @@
-const fs = require("fs");
-const path = require("path");
-const Region = require("../models/Region");
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import Region from "../models/Region.js";
+
+// ESM workaround for __dirname (not available in ES Modules)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Database Seeder for Regions
@@ -57,4 +63,4 @@ const seedRegions = async () => {
   }
 };
 
-module.exports = seedRegions;
+export default seedRegions;

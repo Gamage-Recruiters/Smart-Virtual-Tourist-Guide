@@ -1,23 +1,23 @@
-require("dotenv").config();
-const express = require("express");
-const http = require("http");
-const mongoose = require("mongoose");
-const { Server } = require("socket.io");
-const notificationHandler = require("./socket/notificationHandler");
-const notificationRoutes = require("./src/routes/notificationRoutes.js");
-const globalErrorHandler = require("./src/middleware/errorMiddleware");
-require("./src/configs/firebaseConfig");
-const seedRegions = require("./src/utils/dbSeeder");
-const socketAuth = require("./src/middleware/socketAuthMiddleware");
-const cors = require("cors");
-const userRoutes = require("./src/routes/userRoutes");
+import "dotenv/config";
+import express from "express";
+import http from "http";
+import mongoose from "mongoose";
+import { Server } from "socket.io";
+import cors from "cors";
+import morgan from "morgan";
+
+import notificationHandler from "./socket/notificationHandler.js";
+import notificationRoutes from "./src/routes/notificationRoutes.js";
+import globalErrorHandler from "./src/middleware/errorMiddleware.js";
+import "./src/configs/firebaseConfig.js";
+import seedRegions from "./src/utils/dbSeeder.js";
+import socketAuth from "./src/middleware/socketAuthMiddleware.js";
+import userRoutes from "./src/routes/userRoutes.js";
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
-
-const morgan = require("morgan");
 app.use(morgan("dev"));
 
 const io = new Server(server, {

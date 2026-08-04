@@ -1,10 +1,10 @@
-const Notification = require("../models/Notification");
-const AppError = require("../errors/appError");
-const { deliverViaSocket } = require("./delivery/socketDelivery");
-const { deliverViaPush } = require("./delivery/pushDelivery");
-const logger = require("../utils/logger");
+import Notification from "../models/Notification.js";
+import AppError from "../errors/appError.js";
+import { deliverViaSocket } from "./delivery/socketDelivery.js";
+import { deliverViaPush } from "./delivery/pushDelivery.js";
+import logger from "../utils/logger.js";
 
-const sendNotification = async (io, data) => {
+export const sendNotification = async (io, data) => {
   try {
     if (!io) {
       throw new AppError("Socket.io instance is required for delivery", 500);
@@ -33,5 +33,3 @@ const sendNotification = async (io, data) => {
     throw new AppError(`Notification processing failed: ${error.message}`, 500);
   }
 };
-
-module.exports = { sendNotification };

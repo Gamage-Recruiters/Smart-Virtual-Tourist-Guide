@@ -1,18 +1,14 @@
-const User = require("../models/User");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../errors/appError");
+import User from "../models/User.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../errors/appError.js";
 
 /**
  * Update User's FCM Token for Push Notifications
- * PATCH /api/users/:id/fcm-token
+ * PATCH /api/users/fcm-token (protected — userId from JWT token)
  */
-exports.updateFCMToken = catchAsync(async (req, res, next) => {
-  const userId = req.params.id;
+export const updateFCMToken = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
   const { fcmToken } = req.body;
-
-  if (!userId) {
-    return next(new AppError("User ID is required", 400));
-  }
 
   if (!fcmToken) {
     return next(new AppError("FCM Token is required", 400));

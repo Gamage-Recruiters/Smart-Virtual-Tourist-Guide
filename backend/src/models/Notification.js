@@ -1,12 +1,13 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-const {
+import mongoose from "mongoose";
+import {
   NOTIFICATION_SCOPES,
   RECIPIENT_ROLES,
   NOTIFICATION_CATEGORIES,
   NOTIFICATION_PRIORITIES,
   ENTITY_TYPES,
-} = require("../constants/notificationConstants");
+} from "../constants/notificationConstants.js";
+
+const { Schema } = mongoose;
 
 const notificationSchema = new Schema(
   {
@@ -144,4 +145,4 @@ notificationSchema.pre("save", async function () {
   }
 });
 
-module.exports = mongoose.model("Notification", notificationSchema);
+export default mongoose.model("Notification", notificationSchema);

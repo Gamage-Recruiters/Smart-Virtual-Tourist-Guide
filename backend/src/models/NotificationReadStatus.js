@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 /**
  * NotificationReadStatus Model
@@ -24,7 +24,7 @@ const readStatusSchema = new mongoose.Schema(
       required: true,
     },
     isDeleted: {
-      type: Boolean,  
+      type: Boolean,
       default: false,
     },
     // The exact time the user opened/read the message
@@ -54,5 +54,4 @@ readStatusSchema.index({ userId: 1, notificationId: 1 }, { unique: true });
  */
 readStatusSchema.index({ notificationId: 1 });
 
-module.exports = mongoose.model("NotificationReadStatus", readStatusSchema);
-
+export default mongoose.model("NotificationReadStatus", readStatusSchema);

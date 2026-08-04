@@ -1,8 +1,8 @@
-const { getMessaging } = require("firebase-admin/messaging");
-const logger = require("../../utils/logger");
+import { getMessaging } from "firebase-admin/messaging";
+import logger from "../../utils/logger.js";
 
 // Import the User model to remove invalid tokens from the database
-const User = require("../../models/User"); 
+import User from "../../models/User.js";
 
 // Helper function to remove spaces and special characters from topic names
 const sanitize = (name) => (name ? name.replace(/[^a-zA-Z0-9-_.~%]/g, "") : "");
@@ -11,7 +11,7 @@ const sanitize = (name) => (name ? name.replace(/[^a-zA-Z0-9-_.~%]/g, "") : "");
  * FCM Topic Management Service
  * Subscribes or unsubscribes a user's FCM token to regional and role-based topics.
  */
-exports.manageRegionalTopics = async (
+export const manageRegionalTopics = async (
   fcmToken,
   regionData,
   role,
@@ -28,12 +28,15 @@ exports.manageRegionalTopics = async (
   const divS = sanitize(division);
   const distS = sanitize(district);
 
-  // 3. Create the list of 4 topics this user should listen to
+  // 3. Create the list of 5 topics this user should listen to.
+  // Includes `topic_role_${role}` so country-wide role pushes
+  // (e.g., all drivers) actually reach the user.
   const topics = [
     `topic_div_${divS}`,
     `topic_dist_${distS}`,
     `topic_div_${divS}_role_${role}`,
     `topic_dist_${distS}_role_${role}`,
+    `topic_role_${role}`,
   ];
 
   try {
@@ -56,14 +59,14 @@ exports.manageRegionalTopics = async (
 
       if (res.status === "fulfilled") {
         const successCount = res.value?.successCount || 0;
-        
+
         if (successCount > 0) {
           logger.info(`FCM ${action} success: ${topicName}`);
         } else {
           // Firebase processed the request, but returned an error for this token
           const errorObj = res.value?.errors?.[0]?.error;
           const errorMessage = errorObj?.message || errorObj?.code || "Unknown error";
-          
+
           logger.error(`FCM ${action} failed for ${topicName}: ${errorMessage}`);
 
           // Check if Firebase says the token is no longer valid

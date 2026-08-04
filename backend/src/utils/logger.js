@@ -1,4 +1,4 @@
-const winston = require("winston");
+import winston from "winston";
 
 /**
  * System Logger
@@ -10,19 +10,19 @@ const winston = require("winston");
 const logger = winston.createLogger({
   // Record all messages that are 'info' level or more critical (like 'warn' and 'error')
   level: "info",
-  
+
   // Format the logs by adding a timestamp and structuring them as JSON.
   // JSON format is highly recommended for production because it is easy to analyze using monitoring tools.
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
   ),
-  
+
   // Transports define WHERE the logs should be saved
   transports: [
     // 1. Save ONLY 'error' level messages into the error.log file
     new winston.transports.File({ filename: "logs/error.log", level: "error" }),
-    
+
     // 2. Save ALL messages (info, warnings, and errors) into the combined.log file
     new winston.transports.File({ filename: "logs/combined.log" }),
   ],
@@ -41,4 +41,4 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
-module.exports = logger;
+export default logger;
