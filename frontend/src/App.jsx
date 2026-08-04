@@ -1,4 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import ActivityProviderDashboard from './pages/ActivityProvider/ActivityProviderDashboard.jsx';
+import ActivityList from './pages/ActivityProvider/ActivityList.jsx';
+import Activity from './pages/ActivityProvider/AddActivity.jsx';
+import ManageCalendar from './pages/ActivityProvider/ManageCalendar.jsx';
+import ViewRatings from './pages/ActivityProvider/ViewRatings.jsx';
+import AcceptBookings from './pages/ActivityProvider/AcceptBookings.jsx';
+
+
 
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -50,6 +58,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
+        <Route path="/activityprovider/activities" element={<ActivityList />} />
+        <Route path="/activityprovider/activities/new" element={<Activity />} />
+        <Route path="/activityprovider/activities/edit/:id" element={<Activity />} />
+        <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
+        <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
+        <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
         {/* Landing pages */}
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
