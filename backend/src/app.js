@@ -9,9 +9,7 @@ import { fileURLToPath } from 'url';
 import roomRoutes from './routes/Room.routes.js';
 import specialPackageRoutes from './routes/specialPackage.routes.js';
 import roomAvailabilityRoutes from './routes/roomAvailability.routes.js';
-import authRoutes from './routes/authRoutes.js';
-import dashboardRoutes from './routes/dashboardRoutes.js';
-import errorHandler from './middleware/errorHandler.js';
+
 
 config();
 
@@ -39,13 +37,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
 
-// Error handler middleware
-app.use(errorHandler);
 
 export default app;
