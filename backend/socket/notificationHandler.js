@@ -5,6 +5,7 @@ const fcmService = require("../src/services/delivery/fcmService");
 const calculateDistance = require("../src/utils/geoUtils.js");
 const AppError = require("../src/errors/appError");
 const logger = require("../src/utils/logger");
+const { RECIPIENT_ROLES } = require("../src/constants/notificationConstants");
 
 module.exports = (io) => {
   io.on("connection", async (socket) => {
@@ -205,7 +206,7 @@ const updateDBLocation = async (userId, lat, lng, role) => {
   try {
     await User.findByIdAndUpdate(userId, {
       currentLocation: { type: "Point", coordinates: [lng, lat] }, // [longitude, latitude]
-      ...(role === "DRIVER" && { showCurrentLocation: true }),
+      ...(role === RECIPIENT_ROLES.DRIVER && { showCurrentLocation: true }),
     });
   } catch (err) {
     logger.error(` DB Update Failed for User=${userId}: ${err.message}`);

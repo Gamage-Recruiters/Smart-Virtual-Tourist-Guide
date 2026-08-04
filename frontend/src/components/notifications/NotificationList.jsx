@@ -5,7 +5,7 @@ import { Bell, ChevronRight } from "lucide-react";
 
 // Actions & Selectors
 import { markAsReadLocal } from "../../store/slices/notificationSlice";
-import { selectUserId } from "../../store/selectors/authSelectors";
+import { selectUserId, selectAuthToken } from "../../store/selectors/authSelectors";
 
 // Helpers & Components
 import { timeAgo } from "../../utils/timeHelper";
@@ -27,6 +27,7 @@ const NotificationList = () => {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState(null);
   const userId = useSelector(selectUserId);
+  const token = useSelector(selectAuthToken);
 
   const {
     data,
@@ -35,14 +36,14 @@ const NotificationList = () => {
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useNotifications(userId);
+  } = useNotifications(userId, token);
 
   const list = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) || [];
   }, [data]);
 
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId) => markAsReadApi(notificationId, userId),
+    mutationFn: (notificationId) => markAsReadApi(notificationId, token),
     onMutate: async (notificationId) => {
       await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
       const previousNotifications = queryClient.getQueryData(["notifications", userId]);
@@ -99,7 +100,7 @@ const NotificationList = () => {
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto p-4 custom-scrollbar" onScroll={handleScroll}>
+    <div className="w-full h-full p-4 overflow-y-auto custom-scrollbar" onScroll={handleScroll}>
       {isLoading && (
         <div className="flex flex-col gap-3">
           {[...Array(6)].map((_, i) => (
@@ -127,7 +128,7 @@ const NotificationList = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
+                  <div className="flex items-start justify-between mb-1">
                     <h4
                       className={`text-sm pr-2 transition-all truncate ${
                         isExpanded
@@ -145,7 +146,7 @@ const NotificationList = () => {
                         {timeAgo(notification.createdAt)}
                       </span>
                       {!notification.isRead && (
-                        <span className="relative flex h-2 w-2">
+                        <span className="relative flex w-2 h-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E53935] opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E53935]"></span>
                         </span>
@@ -193,7 +194,7 @@ const NotificationList = () => {
       )}
 
       {!hasNextPage && list.length > 0 && (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <span className="px-4 py-1.5 rounded-full bg-[#F4F9FF] text-[10px] font-semibold text-[#111111]/70 tracking-widest uppercase">
             End of updates
           </span>

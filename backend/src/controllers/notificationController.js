@@ -15,21 +15,9 @@ const User = require("../models/User");
  * It loads messages in chunks (pagination) to save data and improve speed.
  */
 const getNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
-
-  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-    return next(
-      new AppError(
-        "Testing Error: Please provide valid 'user-id' in Headers",
-        400,
-      ),
-    );
-  }
-
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found in Database", 404));
-
-  const userRole = user.role;
+  const userId = req.user._id.toString();
+  const userRole = req.user.role;
+  const user = req.user;
   let userDistrict = null,
     userDivision = null;
 
@@ -121,15 +109,7 @@ const getNotifications = catchAsync(async (req, res, next) => {
  */
 const markAsRead = catchAsync(async (req, res, next) => {
   const { id } = req.params; // The ID of the notification from the URL
-
-  // Get user ID from headers (for testing)
-  const userId = req.headers["user-id"];
-
-  if (!userId) {
-    return next(
-      new AppError("Testing Error: Please provide 'user-id' in Headers", 400),
-    );
-  }
+  const userId = req.user._id.toString();
 
   // Validate if the provided ID is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -183,18 +163,9 @@ const markAsRead = catchAsync(async (req, res, next) => {
  * This is useful for displaying the red badge number on the notification bell icon.
  */
 const getUnreadCount = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
-
-  if (!userId) {
-    return next(
-      new AppError("Testing Error: Please provide 'user-id' in Headers", 400),
-    );
-  }
-
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found in Database", 404));
-
-  const userRole = user.role;
+  const userId = req.user._id.toString();
+  const userRole = req.user.role;
+  const user = req.user;
   let userDistrict = null;
   let userDivision = null;
 
@@ -281,14 +252,9 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
  */
 
 const markAllAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
-
-  if (!userId) return next(new AppError("User ID required", 400));
-
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found", 404));
-
-  const { role: userRole, currentLocation } = user;
+  const userId = req.user._id.toString();
+  const userRole = req.user.role;
+  const currentLocation = req.user.currentLocation;
 
   let userDistrict = null,
     userDivision = null;
@@ -369,14 +335,9 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
  */
 
 const clearAllNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
-
-  if (!userId) return next(new AppError("User ID required", 400));
-
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found", 404));
-
-  const { role: userRole, currentLocation } = user;
+  const userId = req.user._id.toString();
+  const userRole = req.user.role;
+  const currentLocation = req.user.currentLocation;
 
   let userDistrict = null,
     userDivision = null;

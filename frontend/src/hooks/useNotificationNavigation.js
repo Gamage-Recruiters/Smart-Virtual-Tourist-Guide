@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Import Redux actions and API calls (Adjust paths if necessary)
 import { toggleNotificationModal } from "../store/slices/notificationSlice";
 import { markAsReadApi } from "../api/notificationApi";
+import { selectAuthToken } from "../store/selectors/authSelectors";
 
 /**
  * CUSTOM HOOK: useNotificationNavigation
@@ -35,11 +36,12 @@ export const useNotificationNavigation = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const token = useSelector(selectAuthToken);
 
   // 1. React Query Mutation to update the database in the background
   // This tells the backend that the user has read this specific notification.
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId) => markAsReadApi(notificationId),
+    mutationFn: (notificationId) => markAsReadApi(notificationId, token),
     onSuccess: () => {
       // Refresh the cache to instantly remove the "Unread" blue dot from the UI
       queryClient.invalidateQueries({ queryKey: ["notifications"] });

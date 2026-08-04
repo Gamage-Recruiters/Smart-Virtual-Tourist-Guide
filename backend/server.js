@@ -1,82 +1,63 @@
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
+const cors = require("cors");
+const morgan = require("morgan");
 const mongoose = require("mongoose");
 const { Server } = require("socket.io");
+
 const notificationHandler = require("./socket/notificationHandler");
 const notificationRoutes = require("./src/routes/notificationRoutes.js");
-const globalErrorHandler = require("./src/middleware/errorMiddleware");
-require("./src/configs/firebaseConfig");
-const seedRegions = require("./src/utils/dbSeeder");
-const socketAuth = require("./src/middleware/socketAuthMiddleware");
-const cors = require("cors");
 const userRoutes = require("./src/routes/userRoutes");
+const authRoutes = require("./src/routes/authRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
+const serviceRoutes = require("./src/routes/serviceRouter");
+const globalErrorHandler = require("./src/middleware/errorMiddleware");
+const socketAuth = require("./src/middleware/socketAuthMiddleware");
+const seedRegions = require("./src/utils/dbSeeder");
+require("./src/configs/firebaseConfig");
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
-
-const morgan = require("morgan");
 app.use(morgan("dev"));
-
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
-
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173", // Frontend URL එක
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
     credentials: true,
   }),
 );
 
-// --- NOTIFICATION ENGINE SETUP START ---
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-/*
- * Make the Socket.io instance globally available in the Express app.
- * This allows our external controllers (e.g., exampleController) to access 'io'
- * and send real-time notifications via req.app.get('io').
- */
 app.set("io", io);
-
-/*
- * Secure the notification socket connection.
- * This middleware ensures that only authenticated users with a valid JWT can receive live alerts.
- */
 io.use(socketAuth);
-
-/*
- * Initialize the core real-time notification engine.
- * This handles user room joining, FCM topic subscriptions, and live GPS tracking/throttling.
- */
 notificationHandler(io);
 
-/*
- * Register the HTTP routes for the notification system.
- * This handles fetching message history, marking messages as read, and unread counts.
- */
+app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/service", serviceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/user", userRoutes);
 
-// --- NOTIFICATION ENGINE SETUP END ---
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 app.use(globalErrorHandler);
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/tourdb")
   .then(async () => {
     console.log("DB connection successful!");
-
-    /*
-     * Auto-seed geographic regions on startup.
-     * This is required for the Notification Engine's local geo-fencing (location-based alerts) to work properly.
-     */
     await seedRegions();
 
     const PORT = process.env.PORT || 5000;

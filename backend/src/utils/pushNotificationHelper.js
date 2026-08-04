@@ -24,7 +24,7 @@ const sendPushNotification = async (target, title, body, data = {}) => {
   // 2. Determine the delivery method
   // If the target name starts with "topic_", tell Firebase to broadcast it to that topic group.
   // Otherwise, treat it as a direct device token for a single user.
-  if (target.startsWith('topic_')) {
+  if (target?.startsWith('topic_')) {
     message.topic = target;
   } else {
     message.token = target;
@@ -55,7 +55,7 @@ const sendPushNotification = async (target, title, body, data = {}) => {
         ` Stale FCM Token Detected. Removing from DB: ${target.slice(0, 20)}...`
       );
 
-      await User.updateOne({ fcmToken: target }, { $set: { fcmToken: null } });
+      await User.updateMany({ fcmToken: target }, { $set: { fcmToken: null } });
     }
 
     // Log the exact error for debugging

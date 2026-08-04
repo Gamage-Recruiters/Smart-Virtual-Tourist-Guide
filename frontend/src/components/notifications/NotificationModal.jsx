@@ -6,7 +6,7 @@ import NotificationList from "./NotificationList";
 // Redux Actions & Selectors
 import { toggleNotificationModal, markAllAsReadLocal } from "../../store/slices/notificationSlice";
 import { selectIsModalOpen } from "../../store/selectors/notificationSelectors";
-import { selectUserId } from "../../store/selectors/authSelectors";
+import { selectUserId, selectAuthToken } from "../../store/selectors/authSelectors";
 
 // React Query & API
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ const NotificationModal = () => {
 
   const isModalOpen = useSelector(selectIsModalOpen);
   const userId = useSelector(selectUserId);
+  const token = useSelector(selectAuthToken);
 
   const [isMuted, setIsMuted] = useState(
     typeof window !== "undefined" && localStorage.getItem("mute_alerts") === "true",
@@ -32,7 +33,7 @@ const NotificationModal = () => {
   };
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => markAllAsReadApi(userId),
+    mutationFn: () => markAllAsReadApi(token),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
       const previousNotifications = queryClient.getQueryData(["notifications", userId]);
@@ -66,7 +67,7 @@ const NotificationModal = () => {
   };
 
   const clearAllMutation = useMutation({
-    mutationFn: () => clearAllNotifications(userId),
+    mutationFn: () => clearAllNotifications(token),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
       const previousNotifications = queryClient.getQueryData(["notifications", userId]);
@@ -160,7 +161,7 @@ const NotificationModal = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col relative">
+        <div className="relative flex flex-col flex-1 overflow-hidden">
           <NotificationList />
         </div>
       </div>

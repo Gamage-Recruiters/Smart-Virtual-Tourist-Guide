@@ -54,7 +54,7 @@ export const SocketProvider = ({ children }) => {
 
       requestForToken().then((fcmToken) => {
         if (fcmToken) {
-          updateFCMTokenApi(user._id, fcmToken)
+          updateFCMTokenApi(fcmToken, token)
             .then(() => console.log("✅ FCM Token saved in DB successfully!"))
             .catch((err) => console.error("❌ Failed to save FCM Token:", err));
         }
