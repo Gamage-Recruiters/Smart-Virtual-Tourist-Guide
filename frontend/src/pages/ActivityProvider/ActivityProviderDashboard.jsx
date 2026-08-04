@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import Sidebar from '../../components/ActivityProviderSidebar';
-import { activityAPI } from '../../services/activityAPI';
-import apiClient from '../../services/auth/api';
+// import Header from '../../components/Header';
+// import Footer from '../../components/Footer';
+import Sidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
+import { activityAPI } from '../../services/ActivityProvider/activityAPI';
+// import apiClient from '../../services/auth/api';
 import {
   FiUsers,
   FiMap,
@@ -59,17 +59,17 @@ const ActivityProviderDashboard = () => {
     }
 
     // Attempt fetching fresh profile data from backend
-    apiClient
-      .get('/auth/me')
-      .then((res) => {
-        if (res?.user) {
-          setUser(res.user);
-          localStorage.setItem('userData', JSON.stringify(res.user));
-        }
-      })
-      .catch((err) => {
-        console.log('Failed to fetch user profile, using stored data:', err);
-      });
+    // apiClient
+    //   .get('/auth/me')
+    //   .then((res) => {
+    //     if (res?.user) {
+    //       setUser(res.user);
+    //       localStorage.setItem('userData', JSON.stringify(res.user));
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     console.log('Failed to fetch user profile, using stored data:', err);
+    //   });
 
     // 2. Fetch live activity statistics
     activityAPI
@@ -94,7 +94,7 @@ const ActivityProviderDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
-      <Header />
+      {/* <Header /> */}
 
       <div className="flex-1 flex">
         <Sidebar />
@@ -286,13 +286,12 @@ const ActivityProviderDashboard = () => {
 
                       <div className="flex items-center gap-3 shrink-0">
                         <span
-                          className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold capitalize ${
-                            activity.status === 'active'
-                              ? 'bg-green-100 text-green-700'
-                              : activity.status === 'draft'
+                          className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold capitalize ${activity.status === 'active'
+                            ? 'bg-green-100 text-green-700'
+                            : activity.status === 'draft'
                               ? 'bg-yellow-100 text-yellow-700'
                               : 'bg-gray-100 text-gray-600'
-                          }`}
+                            }`}
                         >
                           {activity.status}
                         </span>
@@ -313,7 +312,7 @@ const ActivityProviderDashboard = () => {
         </main>
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

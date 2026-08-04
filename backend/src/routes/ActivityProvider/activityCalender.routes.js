@@ -1,5 +1,5 @@
 import express from 'express';
-import calendarController from '../controllers/activityCalender.controller.js';
+import calendarController from '../../controllers/ActivityProvider/activityCalender.controller.js';
 
 const router = express.Router({ mergeParams: true });
 

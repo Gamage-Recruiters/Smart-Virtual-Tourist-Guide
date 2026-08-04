@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
-import ActivityProviderSidebar from '../../components/ActivityProviderSidebar';
+import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
 import heroBanner from '../../assets/safari.png';
-import { activityAPI } from '../../services/activityAPI';
+import { activityAPI } from '../../services/ActivityProvider/activityAPI';
 
 // eslint-disable-next-line no-unused-vars
 const CATEGORY_COLORS = {
   'Hiking & Adventure': 'bg-green-100 text-green-700',
-  'Safari':             'bg-yellow-100 text-yellow-700',
-  'Water Sports':       'bg-blue-100 text-blue-700',
-  'Cultural':           'bg-purple-100 text-purple-700',
-  'Wellness':           'bg-pink-100 text-pink-700',
-  'Food & Cuisine':     'bg-orange-100 text-orange-700',
-  'Sightseeing':        'bg-indigo-100 text-indigo-700',
+  'Safari': 'bg-yellow-100 text-yellow-700',
+  'Water Sports': 'bg-blue-100 text-blue-700',
+  'Cultural': 'bg-purple-100 text-purple-700',
+  'Wellness': 'bg-pink-100 text-pink-700',
+  'Food & Cuisine': 'bg-orange-100 text-orange-700',
+  'Sightseeing': 'bg-indigo-100 text-indigo-700',
 };
 
 const COUNTRY_FLAGS = {
@@ -131,12 +131,11 @@ const ConfirmationModal = ({ booking, onClose }) => (
 // ─── Booking Card ─────────────────────────────────────────────────────────────
 const BookingCard = ({ booking, onAccept, onDecline }) => {
   const isConfirmed = booking.status === 'confirmed';
-  const isDeclined  = booking.status === 'cancelled';
+  const isDeclined = booking.status === 'cancelled';
 
   return (
-    <div className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all ${
-      isConfirmed ? 'border-green-200' : isDeclined ? 'border-red-100 opacity-60' : 'border-gray-100'
-    }`}>
+    <div className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all ${isConfirmed ? 'border-green-200' : isDeclined ? 'border-red-100 opacity-60' : 'border-gray-100'
+      }`}>
       {/* Card header */}
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
@@ -152,13 +151,12 @@ const BookingCard = ({ booking, onAccept, onDecline }) => {
         </div>
 
         {/* Status badge */}
-        <span className={`text-xs font-semibold px-4 py-1.5 rounded-full ${
-          isConfirmed
-            ? 'bg-blue-600 text-white'
-            : isDeclined
-              ? 'bg-red-100 text-red-600'
-              : 'bg-gray-100 text-gray-500'
-        }`}>
+        <span className={`text-xs font-semibold px-4 py-1.5 rounded-full ${isConfirmed
+          ? 'bg-blue-600 text-white'
+          : isDeclined
+            ? 'bg-red-100 text-red-600'
+            : 'bg-gray-100 text-gray-500'
+          }`}>
           {isConfirmed ? 'Confirmed' : isDeclined ? 'Declined' : 'Pending'}
         </span>
       </div>
@@ -362,11 +360,10 @@ const AcceptBookings = () => {
 
         {/* Toast */}
         {toast && (
-          <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border animate-[slideIn_0.2s_ease] ${
-            toast.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border-rose-200'
-          }`}>
+          <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border animate-[slideIn_0.2s_ease] ${toast.type === 'success'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}>
             {toast.msg}
           </div>
         )}
@@ -426,21 +423,19 @@ const AcceptBookings = () => {
                 <button
                   key={s}
                   onClick={() => setFilterService(s)}
-                  className={`px-4 py-2 rounded-full text-xs font-medium border transition-colors ${
-                    filterService === s
-                      ? 'bg-slate-800 text-white border-slate-800'
-                      : 'bg-white border-gray-200 text-slate-600 hover:border-gray-400'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-medium border transition-colors ${filterService === s
+                    ? 'bg-slate-800 text-white border-slate-800'
+                    : 'bg-white border-gray-200 text-slate-600 hover:border-gray-400'
+                    }`}
                 >
                   {s}
                 </button>
               ))}
 
-              <button className={`px-4 py-2 rounded-full text-xs font-medium border transition-colors ${
-                filterDate === 'All Dates'
-                  ? 'bg-white border-gray-200 text-slate-600'
-                  : 'bg-slate-800 text-white border-slate-800'
-              }`}>
+              <button className={`px-4 py-2 rounded-full text-xs font-medium border transition-colors ${filterDate === 'All Dates'
+                ? 'bg-white border-gray-200 text-slate-600'
+                : 'bg-slate-800 text-white border-slate-800'
+                }`}>
                 All Dates
               </button>
 

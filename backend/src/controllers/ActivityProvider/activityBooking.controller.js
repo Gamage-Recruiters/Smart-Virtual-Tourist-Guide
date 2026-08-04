@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import ActivityBooking from '../models/ActivityBooking.js';
-import Availability from '../models/checkavailability.model.js';
-import Calendar from '../models/activityCalender.model.js';
-import Activity from '../models/activity.model.js';
+import ActivityBooking from '../../models/ActivityProvider/ActivityBooking.js';
+import Availability from '../../models/ActivityProvider/checkavailability.model.js';
+import Calendar from '../../models/ActivityProvider/activityCalender.model.js';
+import Activity from '../../models/ActivityProvider/activity.model.js';
 
 const normalizeBooking = (booking) => ({
   ...booking.toObject ? booking.toObject() : booking,

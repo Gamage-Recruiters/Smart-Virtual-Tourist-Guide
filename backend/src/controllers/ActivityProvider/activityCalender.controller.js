@@ -1,6 +1,6 @@
-import Calendar from '../models/activityCalender.model.js';
-import Activity from '../models/activity.model.js';
-import Availability from '../models/checkavailability.model.js';
+import Calendar from '../../models/ActivityProvider/activityCalender.model.js';
+import Activity from '../../models/ActivityProvider/activity.model.js';
+import Availability from '../../models/ActivityProvider/checkavailability.model.js';
 
 // Last-resort fallback if an activity has zero time slot templates defined.
 // Gives the activity a single full-day slot sized to its maxParticipants.

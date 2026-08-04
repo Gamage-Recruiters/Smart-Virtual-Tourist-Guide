@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { FiSearch, FiFlag, FiThumbsUp, FiThumbsDown, FiChevronDown } from 'react-icons/fi';
-import ActivityProviderSidebar from '../../components/ActivityProviderSidebar';
+import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
 import heroBanner from '../../assets/nature.png';
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -155,8 +155,8 @@ const RatingOverview = ({ avg, total, breakdown }) => (
 
 const ReviewCard = ({ review }) => {
   const [localYes, setLocalYes] = useState(review.helpfulYes);
-  const [localNo, setLocalNo]   = useState(review.helpfulNo);
-  const [voted, setVoted]       = useState(null);
+  const [localNo, setLocalNo] = useState(review.helpfulNo);
+  const [voted, setVoted] = useState(null);
   const [reported, setReported] = useState(false);
 
   const handleVote = (v) => {
@@ -204,18 +204,16 @@ const ReviewCard = ({ review }) => {
             <button
               onClick={() => handleVote('yes')}
               disabled={!!voted}
-              className={`flex items-center gap-1 transition ${
-                voted === 'yes' ? 'text-blue-600' : 'hover:text-blue-600 disabled:cursor-default'
-              }`}
+              className={`flex items-center gap-1 transition ${voted === 'yes' ? 'text-blue-600' : 'hover:text-blue-600 disabled:cursor-default'
+                }`}
             >
               <FiThumbsUp className="w-3.5 h-3.5" /> {localYes}
             </button>
             <button
               onClick={() => handleVote('no')}
               disabled={!!voted}
-              className={`flex items-center gap-1 transition ${
-                voted === 'no' ? 'text-red-500' : 'hover:text-red-500 disabled:cursor-default'
-              }`}
+              className={`flex items-center gap-1 transition ${voted === 'no' ? 'text-red-500' : 'hover:text-red-500 disabled:cursor-default'
+                }`}
             >
               <FiThumbsDown className="w-3.5 h-3.5" /> {localNo}
             </button>
@@ -230,11 +228,10 @@ const ReviewCard = ({ review }) => {
 
         <button
           onClick={() => setReported(true)}
-          className={`px-4 py-1.5 text-xs font-medium rounded-lg transition ${
-            reported
+          className={`px-4 py-1.5 text-xs font-medium rounded-lg transition ${reported
               ? 'bg-gray-100 text-gray-400 cursor-default'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
+            }`}
           disabled={reported}
         >
           {reported ? 'Reported' : 'Report'}
@@ -247,9 +244,9 @@ const ReviewCard = ({ review }) => {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 const ViewRatings = () => {
   const [currentActivityId, setCurrentActivityId] = useState('a1');
-  const [filterRating, setFilterRating]           = useState('');
-  const [sort, setSort]                           = useState('recent');
-  const [search, setSearch]                       = useState('');
+  const [filterRating, setFilterRating] = useState('');
+  const [sort, setSort] = useState('recent');
+  const [search, setSearch] = useState('');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const allReviews = MOCK_REVIEWS[currentActivityId] || [];
@@ -286,9 +283,9 @@ const ViewRatings = () => {
       );
     }
 
-    if (sort === 'recent')  list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (sort === 'recent') list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     if (sort === 'highest') list.sort((a, b) => b.rating - a.rating);
-    if (sort === 'lowest')  list.sort((a, b) => a.rating - b.rating);
+    if (sort === 'lowest') list.sort((a, b) => a.rating - b.rating);
     if (sort === 'helpful') list.sort((a, b) => b.helpfulYes - a.helpfulYes);
 
     return list;
@@ -335,11 +332,10 @@ const ViewRatings = () => {
                 <button
                   key={r}
                   onClick={() => setFilterRating(filterRating === r ? '' : r)}
-                  className={`px-3 py-1 rounded-full text-xs border transition ${
-                    filterRating === r
+                  className={`px-3 py-1 rounded-full text-xs border transition ${filterRating === r
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'border-gray-300 text-gray-600 hover:border-gray-400 bg-white'
-                  }`}
+                    }`}
                 >
                   {r}+ Stars
                 </button>

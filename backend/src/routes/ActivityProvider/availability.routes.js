@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAvailability, getAvailabilityByDate } from '../controllers/availability.controller.js';
+import { getAvailability, getAvailabilityByDate } from '../../controllers/ActivityProvider/availability.controller.js';
 
 const router = express.Router();
 

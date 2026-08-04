@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { activityAPI } from '../../services/activityAPI';
+import { activityAPI } from '../../services/ActivityProvider/activityAPI';
 import {
   CATEGORIES,
   LOCATIONS,
@@ -9,8 +9,8 @@ import {
   EQUIPMENT_OPTIONS,
   CATEGORY_ICON,
   ICON_COLORS,
-} from '../../constants/activityindex';
-import ActivityProviderSidebar from '../../components/ActivityProviderSidebar';
+} from '../../constants/ActivityProvider/activityindex';
+import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
 import { FiCheck, FiClipboard, FiPlus, FiUpload, FiSave, FiX } from 'react-icons/fi';
 import { IoRocket } from 'react-icons/io5';
 import heroBanner from '../../assets/fisherman.png';
@@ -488,11 +488,10 @@ const ActivityForm = () => {
                       key={item}
                       type="button"
                       onClick={() => toggleEquipment(item)}
-                      className={`px-4 py-1.5 rounded-full text-xs border transition ${
-                        form.requiredEquipment.includes(item)
-                          ? 'bg-blue-100 border-blue-500 text-blue-600 font-medium'
-                          : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
-                      }`}
+                      className={`px-4 py-1.5 rounded-full text-xs border transition ${form.requiredEquipment.includes(item)
+                        ? 'bg-blue-100 border-blue-500 text-blue-600 font-medium'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
+                        }`}
                     >
                       {item}
                     </button>

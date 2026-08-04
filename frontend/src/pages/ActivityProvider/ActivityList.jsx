@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { activityAPI } from '../../services/activityAPI';
+import { activityAPI } from '../../services/ActivityProvider/activityAPI';
 import {
   CATEGORIES,
   CATEGORY_BG,
   CATEGORY_ICON,
   CATEGORY_COLOR,
   ICON_COLORS,
-} from '../../constants/activityindex';
+} from '../../constants/ActivityProvider/activityindex';
 import { FiSearch, FiMap, FiMapPin, FiClock, FiUsers, FiPlus, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import { IoRocket } from 'react-icons/io5';
-import ActivityProviderSidebar from '../../components/ActivityProviderSidebar';
+import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
 import heroBanner from '../../assets/fisherman.png';
 
 const getImageSrc = (image) =>
@@ -121,11 +121,10 @@ const ActivityList = () => {
         {/* Toast */}
         {toastMsg && (
           <div
-            className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-lg text-sm font-medium shadow-lg animate-slideIn ${
-              toastMsg.type === 'success'
-                ? 'bg-green-50 text-green-700 border border-green-300'
-                : 'bg-red-50 text-red-700 border border-red-300'
-            }`}
+            className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-lg text-sm font-medium shadow-lg animate-slideIn ${toastMsg.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-300'
+              : 'bg-red-50 text-red-700 border border-red-300'
+              }`}
           >
             {toastMsg.msg}
           </div>
@@ -221,11 +220,10 @@ const ActivityList = () => {
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm border transition ${
-                  category === cat
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-800'
-                }`}
+                className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm border transition ${category === cat
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-800'
+                  }`}
               >
                 {cat !== 'All' && (
                   <span className="flex items-center justify-center">{CATEGORY_ICON[cat]}</span>
@@ -287,13 +285,12 @@ const ActivityList = () => {
                     )}
 
                     <span
-                      className={`absolute top-3 right-3 px-1.5 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
-                        a.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : a.status === 'draft'
+                      className={`absolute top-3 right-3 px-1.5 py-0.5 rounded-full text-[10px] font-semibold capitalize ${a.status === 'active'
+                        ? 'bg-green-100 text-green-700'
+                        : a.status === 'draft'
                           ? 'bg-yellow-100 text-yellow-700'
                           : 'bg-gray-200 text-gray-600'
-                      }`}
+                        }`}
                     >
                       {a.status}
                     </span>
@@ -382,11 +379,10 @@ const ActivityList = () => {
                 <button
                   key={i}
                   onClick={() => fetchActivities(i + 1)}
-                  className={`px-3 py-2 text-sm rounded-lg border transition ${
-                    pagination.page === i + 1
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white border-gray-300 hover:border-blue-500 hover:text-blue-600'
-                  }`}
+                  className={`px-3 py-2 text-sm rounded-lg border transition ${pagination.page === i + 1
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white border-gray-300 hover:border-blue-500 hover:text-blue-600'
+                    }`}
                 >
                   {i + 1}
                 </button>

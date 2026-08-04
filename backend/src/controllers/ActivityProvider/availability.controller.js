@@ -1,4 +1,4 @@
-import Availability from '../models/checkavailability.model.js';
+import Availability from '../../models/ActivityProvider/checkavailability.model.js';
 
 // GET /api/availability
 export const getAvailability = async (req, res) => {

@@ -1,9 +1,9 @@
 import express from 'express';
-import activityController from '../controllers/activity.controller.js';
+import activityController from '../../controllers/ActivityProvider/activity.controller.js';
 import {
 	uploadActivityImages,
 	uploadActivityImagesToCloudinary,
-} from '../middleware/uploadActivityImages.js';
+} from '../../middleware/ActivityProvider/uploadActivityImages.js';
 
 const router = express.Router();
 

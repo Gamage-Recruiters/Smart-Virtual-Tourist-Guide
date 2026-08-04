@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FiChevronLeft, FiChevronRight, FiEdit3 } from 'react-icons/fi';
-import calendarAPI from '../../services/calendarAPI.js';
-import { activityAPI } from '../../services/activityAPI.js';
-import ActivityProviderSidebar from '../../components/ActivityProviderSidebar.jsx';
+import calendarAPI from '../../services/ActivityProvider/calendarAPI.js';
+import { activityAPI } from '../../services/ActivityProvider/activityAPI.js';
+import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar.jsx';
 import EditAvailabilityModal from './EditAvailabilityModal.jsx';
 import heroBanner from '../../assets/hotel.png';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DAY_NAMES_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTH_NAMES = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December',
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
 const toDateString = (year, month, day) =>
@@ -33,10 +33,10 @@ const formatDisplayDate = (dateStr) => {
 const slotBadge = (slot) => `(${slot.booked}/${slot.capacity})`;
 
 const STATUS_CONFIG = {
-  available:    { label: 'Available',    badge: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', dot: 'bg-emerald-500' },
-  pending:      { label: 'Pending',      badge: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',          dot: 'bg-blue-500' },
-  fully_booked: { label: 'Fully Booked', badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200',          dot: 'bg-rose-500' },
-  unavailable:  { label: 'Unavailable',  badge: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200',      dot: 'bg-slate-400' },
+  available: { label: 'Available', badge: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', dot: 'bg-emerald-500' },
+  pending: { label: 'Pending', badge: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200', dot: 'bg-blue-500' },
+  fully_booked: { label: 'Fully Booked', badge: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200', dot: 'bg-rose-500' },
+  unavailable: { label: 'Unavailable', badge: 'bg-slate-100 text-slate-500 ring-1 ring-slate-200', dot: 'bg-slate-400' },
 };
 
 // ─── Hero Banner ──────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ const ManageCalendar = () => {
     if (!currentActivityId) return;
     calendarAPI.getSummary(currentActivityId)
       .then((res) => setSummary(res.data.data))
-      .catch(() => {});
+      .catch(() => { });
   }, [currentActivityId]);
 
   // ── Toggle slot in right panel ──────────────────────────────────────────────
@@ -242,11 +242,11 @@ const ManageCalendar = () => {
 
   const progressPct = dateDetail
     ? (() => {
-        const active = (dateDetail.timeSlots || []).filter((s) => s.isActive);
-        const total  = active.reduce((s, x) => s + x.capacity, 0);
-        const booked = active.reduce((s, x) => s + x.booked, 0);
-        return total > 0 ? Math.round((booked / total) * 100) : 0;
-      })()
+      const active = (dateDetail.timeSlots || []).filter((s) => s.isActive);
+      const total = active.reduce((s, x) => s + x.capacity, 0);
+      const booked = active.reduce((s, x) => s + x.booked, 0);
+      return total > 0 ? Math.round((booked / total) * 100) : 0;
+    })()
     : 0;
 
   return (
@@ -257,11 +257,10 @@ const ManageCalendar = () => {
 
         {/* Toast */}
         {toast && (
-          <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border animate-[slideIn_0.2s_ease] ${
-            toast.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border-rose-200'
-          }`}>
+          <div className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border animate-[slideIn_0.2s_ease] ${toast.type === 'success'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}>
             {toast.msg}
           </div>
         )}
@@ -345,10 +344,10 @@ const ManageCalendar = () => {
                   ))}
                   {cells.map((day, idx) => {
                     if (!day) return <div key={`e-${idx}`} />;
-                    const dateStr    = toDateString(viewYear, viewMonth, day);
-                    const status     = monthData[dateStr];
-                    const isToday    = dateStr === todayStr;
-                    const isPast     = isPastDate(dateStr);
+                    const dateStr = toDateString(viewYear, viewMonth, day);
+                    const status = monthData[dateStr];
+                    const isToday = dateStr === todayStr;
+                    const isPast = isPastDate(dateStr);
                     const isSelected = dateStr === selectedDate;
 
                     return (
@@ -369,9 +368,8 @@ const ManageCalendar = () => {
                         {day}
                         {/* Only show status dots on non-past dates */}
                         {status && !isPast && (
-                          <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${
-                            isSelected ? 'bg-white/70' : STATUS_CONFIG[status]?.dot || 'bg-slate-300'
-                          }`} />
+                          <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/70' : STATUS_CONFIG[status]?.dot || 'bg-slate-300'
+                            }`} />
                         )}
                       </button>
                     );
@@ -498,13 +496,11 @@ const ManageCalendar = () => {
                               <button
                                 onClick={() => toggleSlot(slot._id || slot.label)}
                                 aria-label={slot.isActive ? 'Disable slot' : 'Enable slot'}
-                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                                  slot.isActive ? 'bg-emerald-500' : 'bg-slate-300'
-                                }`}
+                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${slot.isActive ? 'bg-emerald-500' : 'bg-slate-300'
+                                  }`}
                               >
-                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                                  slot.isActive ? 'translate-x-5' : 'translate-x-0'
-                                }`} />
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${slot.isActive ? 'translate-x-5' : 'translate-x-0'
+                                  }`} />
                               </button>
                             </div>
                           ))}

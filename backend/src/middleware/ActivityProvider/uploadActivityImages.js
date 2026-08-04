@@ -1,5 +1,5 @@
 import multer from "multer";
-import { cloudinary } from "../configs/cloudinary.js";
+import { cloudinary } from "../../configs/ActivityProvider/cloudinary.js";
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {

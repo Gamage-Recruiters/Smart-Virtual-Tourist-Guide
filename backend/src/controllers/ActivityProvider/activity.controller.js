@@ -1,4 +1,4 @@
-import Activity from '../models/activity.model.js';
+import Activity from '../../models/ActivityProvider/activity.model.js';
 
 const normalizeImages = (images = []) =>
   [...new Set(
