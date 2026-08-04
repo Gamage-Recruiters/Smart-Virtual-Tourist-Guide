@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { activityProviderAPI } from "../../services/auth/api";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
+import { activityProviderAPI } from "../../services/api";
+import Header from "../../components/ActivityProvider/Header";
+import Footer from "../../components/ActivityProvider/Footer";
 import heroImg from "../../assets/ActivityProvider/bg.png";
 import useGoogleAuth from "../../hooks/useGoogleAuth";
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
 
 const ActivityProviderSignup = () => {
@@ -241,9 +240,6 @@ const ActivityProviderSignup = () => {
                   title="Sign up with Google"
                 >
                   <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
-                </div>
-                <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                  <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
                 </div>
               </div>
         
