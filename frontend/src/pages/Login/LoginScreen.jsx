@@ -628,7 +628,7 @@ const LoginScreen = () => {
       case 'government_user': return '/dashboard-Government';
       case 'renter_user': return '/vehicle-admin';
       case 'driver_user': return '/dashboard-Driver';
-      case 'activityprovider_user': return '/dashboard-ActivityProvider';
+      case 'activityprovider_user': return '/activityprovider/dashboard';
       case 'admin': return '/dashboard-Admin';
 
 

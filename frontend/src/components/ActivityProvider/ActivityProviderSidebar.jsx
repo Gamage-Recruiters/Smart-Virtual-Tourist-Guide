@@ -1,4 +1,4 @@
-import { FiGrid, FiList, FiPlus, FiCalendar, FiBookmark, FiStar } from 'react-icons/fi';
+import { FiGrid, FiList, FiPlus, FiCalendar, FiBookmark, FiStar, FiLogOut } from 'react-icons/fi';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const items = [
@@ -14,12 +14,18 @@ const ActivityProviderSidebar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    navigate('/');
+  };
 
   return (
-    <aside className="w-56 bg-white border-r border-gray-100 min-h-screen p-4 hidden md:block">
-      <nav className="flex flex-col gap-2">
-        {items.map((it) => {
-          const active = it.exact ? pathname === it.to : pathname.startsWith(it.to);
+    <aside className="w-56 bg-white border-r border-gray-100 min-h-screen p-4 hidden md:flex md:flex-col md:justify-between">
+      <div className="space-y-4">
+        <nav className="flex flex-col gap-2">
+          {items.map((it) => {
+            const active = it.exact ? pathname === it.to : pathname.startsWith(it.to);
 
           return (
             <button
@@ -37,8 +43,18 @@ const ActivityProviderSidebar = () => {
           );
         })}
       </nav>
+      </div>
 
-
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+        >
+          <FiLogOut className="w-4 h-4" />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 };

@@ -256,15 +256,6 @@ const Header = () => {
               />
             </div>
 
-            {/* Desktop Login Button */}
-            <div className="hidden md:flex items-center">
-              <button
-                className="px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
-              >
-                Login
-              </button>
-            </div>
-
             {/* Mobile Menu Button */}
             <div className="md:hidden">
               <button

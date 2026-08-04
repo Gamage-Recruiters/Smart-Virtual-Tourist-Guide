@@ -46,7 +46,6 @@ import DummyPageGuide from './pages/Guide/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
-import DummyPageActivityProvider from './pages/ActivityProvider/dummyPage';
 import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
 import Dashboard from './pages/vehicleAdminDashboard/dashboard';
 import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage';
@@ -125,7 +124,7 @@ function App() {
         <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
         <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
         <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
-        <Route path="/dashboard-ActivityProvider" element={<DummyPageActivityProvider />} />
+        <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
 
         <Route path="/vehicle-admin" element={<VehicleAdmin />}>
           <Route index element={<Dashboard />} />

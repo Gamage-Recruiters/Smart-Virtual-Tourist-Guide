@@ -1,25 +1,16 @@
 import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import connectDB from "./src/configs/database.js";
+import app from "./src/app.js";
+import { connectDB } from "./src/configs/database.js";
 import { configureCloudinary } from "./src/configs/ActivityProvider/cloudinary.js";
 import activityRoutes from "./src/routes/ActivityProvider/activity.routes.js";
 import activityCalenderRoutes from "./src/routes/ActivityProvider/activityCalender.routes.js";
 import activityBookingRoutes from "./src/routes/ActivityProvider/activityBooking.routes.js";
 import availabilityRoutes from "./src/routes/ActivityProvider/availability.routes.js";
 
-
 // Configure cloudinary
 configureCloudinary();
 
-// create express app
-const app = express();
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-
-// Routes in Activity-Provider
+// Mount Activity Provider routes
 app.use('/api/activities', activityRoutes);
 app.use('/api/bookings', activityBookingRoutes);
 app.use('/api/availability', availabilityRoutes);

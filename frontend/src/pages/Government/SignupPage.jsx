@@ -94,9 +94,8 @@ const RegisterScreen = () => {
             className="
               w-full
               max-w-[600px]
-              bg-white/20
-              backdrop-blur-md
-              border border-white/40
+              bg-white
+              border border-gray-200
               rounded-3xl
               shadow-2xl
               px-8
@@ -307,10 +306,10 @@ const RegisterScreen = () => {
               <p className="text-center text-sm text-black">
                 Already have an account?{" "}
                 <Link
-                  to="/"
+                  to="/login"
                   className="text-blue-700 font-bold"
                 >
-                  Login
+                  Sign in
                 </Link>
               </p>
 
