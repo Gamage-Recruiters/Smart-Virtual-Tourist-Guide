@@ -604,6 +604,10 @@ import AuthLayout from '../../components/Tourist/AuthLayout';
 import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
+import useGoogleAuth from '../../hooks/useGoogleAuth';
+
+// Import social icons from assets (SVG files)
+import googleIcon from '../../assets/HotelOwner/svg/google.svg';
 
 const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -611,6 +615,9 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Google auth — role=null means backend uses existing user's role
+  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, 'hotelowner_user');
 
   const getDashboardRoute = (role) => {
     switch (role) {
@@ -760,6 +767,25 @@ const LoginScreen = () => {
             Sign In →
           </button>
         </form>
+
+         {/* Social Sign In */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-400 mb-3">Sign in With</p>
+            {googleError && (
+              <div className="text-red-500 text-xs text-center mb-2 bg-red-50 p-1 rounded">
+                {googleError}
+              </div>
+            )}
+            <div className="flex justify-center gap-6">
+              <div
+                className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                onClick={handleGoogleAuth}
+                title="Sign in with Google"
+              >
+                <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
+              </div>
+            </div>
+          </div>
 
         {/* REGISTER */}
         <div className="mt-6">

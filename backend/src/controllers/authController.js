@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
-import firebaseAdminAuth from '../configs/firebaseAdmin.js';
+import firebaseAdminAuth from '../configs/firebase.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -121,10 +121,6 @@ const googleAuth = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Google token is required' });
     }
 
-    if (role !== 'hotelowner_user') {
-      return res.status(400).json({ success: false, message: 'Google sign-up is only enabled for hotel owners' });
-    }
-
     const decodedToken = await firebaseAdminAuth.verifyIdToken(idToken);
     const { uid, email, name } = decodedToken;
 
@@ -135,11 +131,10 @@ const googleAuth = async (req, res) => {
     const emailNormalized = email.toLowerCase().trim();
     const existingUser = await User.findOne({ email: emailNormalized });
 
-    if (existingUser && existingUser.role !== role) {
-      return res.status(400).json({
-        success: false,
-        message: 'An account already exists with this email under a different role',
-      });
+    // Existing user: sign in regardless of role
+    // New user: only allow hotelowner_user sign-up via Google
+    if (!existingUser && role !== 'hotelowner_user') {
+      return res.status(400).json({ success: false, message: 'Google sign-up is only enabled for hotel owners' });
     }
 
     let user = existingUser;

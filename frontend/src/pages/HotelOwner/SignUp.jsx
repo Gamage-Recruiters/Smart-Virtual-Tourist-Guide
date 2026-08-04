@@ -14,9 +14,7 @@ import bottomImage from '../../assets/HotelOwner/HO3.png';
 import formBgImage from '../../assets/HotelOwner/form back.jpg';
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -245,9 +243,6 @@ const SignUp = () => {
                 <div className="mt-6 text-center">
                   <p className="text-xs text-gray-400 mb-3">Sign in With</p>
                   <div className="flex justify-center gap-6">
-                    <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                      <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-                    </div>
                     <button
                       type="button"
                       onClick={handleGoogleAuth}
@@ -257,9 +252,7 @@ const SignUp = () => {
                     >
                       <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
                     </button>
-                    <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                      <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
-                    </div>
+                   
                   </div>
                   {googleError ? (
                     <p className="mt-3 text-xs text-red-500">{googleError}</p>
