@@ -1,5 +1,6 @@
 import Calendar from '../models/activityCalender.model.js';
 import Activity from '../models/activity.model.js';
+import Availability from '../models/checkavailability.model.js';
 
 // Last-resort fallback if an activity has zero time slot templates defined.
 // Gives the activity a single full-day slot sized to its maxParticipants.
@@ -30,6 +31,29 @@ const slotsFromTemplates = (activity) => {
   }
 
   return fallbackSlots(activity.maxParticipants);
+};
+
+// Helper to fetch Availability booked tourists for date
+const fetchBookedTourists = async (activityId, date) => {
+  try {
+    const query = { date, status: { $ne: 'cancelled' } };
+    if (activityId) query.activityId = activityId;
+
+    const availabilities = await Availability.find(query).sort({ createdAt: -1 });
+
+    return availabilities.map((a) => ({
+      _id: a._id,
+      name: a.customerName || 'Guest',
+      email: a.customerEmail || '',
+      phone: a.customerPhone || '',
+      time: a.timeSlot || 'Full Day',
+      participants: a.participants || 1,
+      bookingId: a.bookingId,
+      serviceName: a.serviceName,
+    }));
+  } catch {
+    return [];
+  }
 };
 
 // ─── GET /api/calendar/:activityId/month?year=2025&month=6 ────────────────────
@@ -65,6 +89,7 @@ const getDateDetail = async (req, res) => {
     const { activityId, date } = req.params;
 
     let entry = await Calendar.findOne({ activityId, date });
+    const bookedTourists = await fetchBookedTourists(activityId, date);
 
     if (!entry) {
       const activity = await Activity.findById(activityId).select('timeSlotTemplates maxParticipants');
@@ -83,11 +108,15 @@ const getDateDetail = async (req, res) => {
           timeSlots: slotsFromTemplates(activity),
           notes: '',
           isDefault: true,    // signals frontend this hasn't been saved yet
+          bookedTourists,
         },
       });
     }
 
-    res.json({ success: true, data: entry });
+    const data = entry.toObject();
+    data.bookedTourists = bookedTourists;
+
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -119,7 +148,11 @@ const saveCalendarDate = async (req, res) => {
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
 
-    res.json({ success: true, data: entry, message: 'Calendar updated successfully' });
+    const bookedTourists = await fetchBookedTourists(activityId, date);
+    const data = entry.toObject();
+    data.bookedTourists = bookedTourists;
+
+    res.json({ success: true, data, message: 'Calendar updated successfully' });
   } catch (err) {
     if (err.name === 'ValidationError') {
       const messages = Object.values(err.errors).map((e) => e.message);
@@ -141,7 +174,11 @@ const markUnavailable = async (req, res) => {
       { new: true, upsert: true }
     );
 
-    res.json({ success: true, data: entry, message: 'Date marked as unavailable' });
+    const bookedTourists = await fetchBookedTourists(activityId, date);
+    const data = entry.toObject();
+    data.bookedTourists = bookedTourists;
+
+    res.json({ success: true, data, message: 'Date marked as unavailable' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

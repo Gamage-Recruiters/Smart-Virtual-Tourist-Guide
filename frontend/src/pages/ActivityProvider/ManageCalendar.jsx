@@ -32,11 +32,6 @@ const formatDisplayDate = (dateStr) => {
 
 const slotBadge = (slot) => `(${slot.booked}/${slot.capacity})`;
 
-const DEMO_TOURISTS = [
-  { name: 'Emma L.', country: 'USA', time: '08:00 AM' },
-  { name: 'James K.', country: 'UK', time: '01:00 PM' },
-];
-
 const STATUS_CONFIG = {
   available:    { label: 'Available',    badge: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', dot: 'bg-emerald-500' },
   pending:      { label: 'Pending',      badge: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',          dot: 'bg-blue-500' },
@@ -523,21 +518,29 @@ const ManageCalendar = () => {
                         <h4 className="text-sm font-semibold text-slate-700 mb-3">
                           Booked Tourists
                           <span className="ml-2 text-xs font-normal text-slate-400">
-                            ({DEMO_TOURISTS.length})
+                            ({(dateDetail?.bookedTourists || []).length})
                           </span>
                         </h4>
                         <div className="space-y-1">
-                          {DEMO_TOURISTS.map((t) => (
-                            <div key={t.name} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50">
-                              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm flex-shrink-0">
-                                👤
+                          {(dateDetail?.bookedTourists || []).length === 0 ? (
+                            <p className="text-xs text-slate-400 italic py-2 px-1">
+                              No active bookings for this date.
+                            </p>
+                          ) : (
+                            (dateDetail?.bookedTourists || []).map((t, idx) => (
+                              <div key={t._id || idx} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50">
+                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm flex-shrink-0">
+                                  👤
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-slate-800">{t.name}</p>
+                                  <p className="text-xs text-slate-400">
+                                    {t.time} • {t.participants} guest{t.participants > 1 ? 's' : ''}
+                                  </p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-sm font-medium text-slate-800">{t.name}, {t.country}</p>
-                                <p className="text-xs text-slate-400">{t.time}</p>
-                              </div>
-                            </div>
-                          ))}
+                            ))
+                          )}
                         </div>
                       </div>
 
