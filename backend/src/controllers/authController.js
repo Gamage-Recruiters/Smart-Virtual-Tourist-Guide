@@ -1,4 +1,4 @@
-const { createUser, loginUser } = require("../services/touristStore");
+import { createUser, loginUser } from "../services/touristStore.js";
 
 async function register(req, res) {
   try {
@@ -25,7 +25,7 @@ async function login(req, res) {
   }
 }
 
-module.exports = {
+export {
   register,
   login,
 };

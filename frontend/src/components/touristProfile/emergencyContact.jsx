@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react"
+import React from "react"
 
 function EmergencyContact({formData, handleChange}) {
   return (
@@ -30,27 +30,14 @@ function EmergencyContact({formData, handleChange}) {
                       className="w-full bg-white border-none rounded-2xl py-4 px-5 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-400 shadow-sm"
                     />
     
-                    <div className="relative">
-                      <select
-                        name="emergencyRelation"
-                        value={formData.emergencyRelation}
-                        onChange={handleChange}
-                        className="w-full bg-white border-none rounded-2xl py-4 px-5 text-sm text-slate-400 focus:ring-2 focus:ring-blue-500 outline-none appearance-none shadow-sm cursor-pointer"
-                      >
-                        <option value="" disabled>
-                          Relationship
-                        </option>
-                        <option value="parent">Parent</option>
-                        <option value="spouse">Spouse</option>
-                        <option value="sibling">Sibling</option>
-                        <option value="friend">Friend</option>
-                        <option value="other">Other</option>
-                      </select>
-                      <ChevronDown
-                        size={18}
-                        className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      name="emergencyRelation"
+                      value={formData.emergencyRelation}
+                      onChange={handleChange}
+                      placeholder="Relationship (e.g., Parent, Spouse, Friend)"
+                      className="w-full bg-white border-none rounded-2xl py-4 px-5 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-400 shadow-sm"
+                    />
                   </div>
                 </div>
               </section>

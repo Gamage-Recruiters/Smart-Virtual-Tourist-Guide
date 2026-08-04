@@ -1,6 +1,6 @@
-const crypto = require("crypto");
-const User = require("../models/User");
-const TouristProfile = require("../models/TouristProfile");
+import crypto from "crypto";
+import User from "../models/User.js";
+import TouristProfile from "../models/TouristProfile.js";
 
 function publicUser(user) {
   if (!user) {
@@ -20,7 +20,7 @@ function getUserId(user) {
   return String(user._id || user.id || "");
 }
 
-async function createUser({ fullName, email, password }) {
+async function createUser({ fullName, email, password, gender, country, travelType }) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
 
   if (!fullName || !normalizedEmail || !password) {
@@ -41,6 +41,9 @@ async function createUser({ fullName, email, password }) {
     fullName: String(fullName).trim(),
     email: normalizedEmail,
     password,
+    gender: gender || "Male",
+    country: country || "Sri Lanka",
+    travelType: travelType || "Solo",
     sessionToken,
   });
 
@@ -78,6 +81,11 @@ async function saveTouristProfile({ userId, profile }) {
   return savedProfile;
 }
 
+async function getTouristProfile(userId) {
+  const profile = await TouristProfile.findOne({ userId });
+  return profile;
+}
+
 async function loginUser({ email, password }) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
 
@@ -104,9 +112,10 @@ async function loginUser({ email, password }) {
   };
 }
 
-module.exports = {
+export {
   createUser,
   loginUser,
   getUserFromToken,
   saveTouristProfile,
-};
+  getTouristProfile,
+};

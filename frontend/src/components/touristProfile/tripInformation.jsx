@@ -66,25 +66,25 @@ function TripInformation({ formData, handleChange, togglePreference }) {
         {/* Budget Slider */}
         <div className="space-y-4">
           <label className="text-sm font-bold text-slate-800">
-            Budget Range
+            Budget Range (Rs.)
           </label>
           <div className="pt-2">
-            <span className="text-sm font-bold text-slate-800 block mb-3">
-              ${formData.budget.toLocaleString()}
+            <span className="text-sm font-bold text-blue-600 block mb-3">
+              Rs. {Number(formData.budget || 50000).toLocaleString()}
             </span>
             <input
               type="range"
               name="budget"
-              min="500"
-              max="10000"
-              step="100"
-              value={formData.budget}
+              min="5000"
+              max="500000"
+              step="5000"
+              value={formData.budget || 50000}
               onChange={handleChange}
               className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
             <div className="flex justify-between text-[10px] text-slate-400 font-bold mt-2">
-              <span>$500</span>
-              <span>$10,000</span>
+              <span>Rs. 5,000</span>
+              <span>Rs. 500,000</span>
             </div>
           </div>
         </div>

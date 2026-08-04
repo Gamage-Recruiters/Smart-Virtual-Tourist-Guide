@@ -1,7 +1,11 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { createProfile } = require("../controllers/touristController");
+import { registerTourist, getProfile, updateProfile, createProfile } from "../controllers/touristController.js";
 
 router.post("/", createProfile);
+router.post("/register", registerTourist);
+router.get("/profile", getProfile);
+router.put("/profile", updateProfile);
+router.post("/profile", updateProfile);
 
-module.exports = router;
+export default router;

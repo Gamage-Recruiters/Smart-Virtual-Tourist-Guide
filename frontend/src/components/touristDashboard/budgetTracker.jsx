@@ -9,7 +9,7 @@ const BudgetTracker = () => {
     const tripData = localStorage.getItem("tripInfo");
     if (tripData) {
       const parsed = JSON.parse(tripData);
-      const userBudget = Number(parsed.budgetUSD) || 5000;
+      const userBudget = Number(parsed.budgetLKR || parsed.budgetUSD) || 5000;
       setBudget(userBudget);
       setSpent(0);
     }
@@ -38,7 +38,7 @@ const BudgetTracker = () => {
               style={{ width: `${percentage}%` }}
             ></div>
             <span className="absolute left-1/2 -translate-x-1/2 text-xs font-bold text-slate-700">
-              ${spent} / ${budget}
+            LKR {spent} / LKR {budget}
             </span>
           </div>
         </div>
@@ -47,15 +47,15 @@ const BudgetTracker = () => {
         <div className="flex justify-between pt-4">
           <div className="text-center">
             <p className="text-xs font-semibold text-slate-400 mb-1">Budget</p>
-            <p className="text-xl font-bold text-slate-900">${budget}</p>
+            <p className="text-xl font-bold text-slate-900">LKR {budget.toLocaleString()}</p>
           </div>
           <div className="text-center">
             <p className="text-xs font-semibold text-slate-400 mb-1">Spent</p>
-            <p className="text-xl font-bold text-blue-900">${spent}</p>
+            <p className="text-xl font-bold text-blue-900">LKR {spent.toLocaleString()}</p>
           </div>
           <div className="text-center">
             <p className="text-xs font-semibold text-slate-400 mb-1">Remaining</p>
-            <p className="text-xl font-bold text-green-600">${remaining}</p>
+            <p className="text-xl font-bold text-green-600">LKR {remaining.toLocaleString()}</p>
           </div>
         </div>
 

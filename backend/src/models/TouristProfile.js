@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const touristProfileSchema = new mongoose.Schema(
   {
@@ -8,9 +8,19 @@ const touristProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    gender: {
+      type: String,
+      default: "Male",
+      trim: true,
+    },
     country: {
       type: String,
-      required: true,
+      default: "Sri Lanka",
+      trim: true,
+    },
+    travelType: {
+      type: String,
+      default: "Solo",
       trim: true,
     },
     passportNumber: {
@@ -20,24 +30,41 @@ const touristProfileSchema = new mongoose.Schema(
     },
     startDate: {
       type: String,
-      required: true,
+      default: "",
     },
     endDate: {
       type: String,
-      required: true,
+      default: "",
     },
     budget: {
       type: Number,
-      required: true,
-      min: 1,
+      default: 50000,
+    },
+    budgetMin: {
+      type: Number,
+      default: 10000,
+    },
+    budgetMax: {
+      type: Number,
+      default: 50000,
+    },
+    budgetRange: {
+      type: String,
+      default: "Rs. 10000 - Rs. 50000",
+      trim: true,
     },
     preferences: {
       type: [String],
       default: [],
     },
+    accommodationType: {
+      type: String,
+      default: "Hotel",
+      trim: true,
+    },
     bloodType: {
       type: String,
-      default: "",
+      default: "O+",
       trim: true,
     },
     allergies: {
@@ -49,24 +76,24 @@ const touristProfileSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    visaType: {
+    emergencyContactName: {
       type: String,
       default: "",
       trim: true,
     },
-    emergencyContactName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     emergencyPhone: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
     relationship: {
       type: String,
       default: "",
+      trim: true,
+    },
+    emergencyCountry: {
+      type: String,
+      default: "United States",
       trim: true,
     },
   },
@@ -76,4 +103,4 @@ const touristProfileSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("TouristProfile", touristProfileSchema);
+export default mongoose.model("TouristProfile", touristProfileSchema);

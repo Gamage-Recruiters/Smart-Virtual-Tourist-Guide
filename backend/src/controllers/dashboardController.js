@@ -1,7 +1,7 @@
-const TouristProfile = require("../models/TouristProfile");
-const Booking = require("../models/Booking");
-const Notification = require("../models/Notification");
-const TripItinerary = require("../models/TripItinerary");
+import TouristProfile from "../models/TouristProfile.js";
+import Booking from "../models/Booking.js";
+import Notification from "../models/Notification.js";
+import TripItinerary from "../models/TripItinerary.js";
 
 /**
  * GET /api/dashboard/summary
@@ -91,4 +91,4 @@ async function getDashboardSummary(req, res) {
   }
 }
 
-module.exports = { getDashboardSummary };
+export { getDashboardSummary };

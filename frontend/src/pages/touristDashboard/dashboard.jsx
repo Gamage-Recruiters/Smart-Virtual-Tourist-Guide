@@ -9,6 +9,43 @@ import TripCalendar from "../../components/touristDashboard/calender";
 import dayjs from "dayjs";
 
 function Dashboard() {
+  // Retrieve travel dates from localStorage (tripInfo or touristProfile)
+  const getDates = () => {
+    let startStr = "2026-05-15";
+    let endStr = "2026-05-25";
+
+    const tripInfo = localStorage.getItem("tripInfo");
+    const profile = localStorage.getItem("touristProfile");
+
+    if (tripInfo) {
+      try {
+        const parsed = JSON.parse(tripInfo);
+        if (parsed.startDate) startStr = parsed.startDate;
+        if (parsed.endDate) endStr = parsed.endDate;
+      } catch (e) {
+        console.error("Error parsing tripInfo", e);
+      }
+    } else if (profile) {
+      try {
+        const parsed = JSON.parse(profile);
+        if (parsed.travelStart) startStr = parsed.travelStart;
+        else if (parsed.startDate) startStr = parsed.startDate;
+        
+        if (parsed.travelEnd) endStr = parsed.travelEnd;
+        else if (parsed.endDate) endStr = parsed.endDate;
+      } catch (e) {
+        console.error("Error parsing touristProfile", e);
+      }
+    }
+
+    return {
+      startDate: dayjs(startStr),
+      endDate: dayjs(endStr)
+    };
+  };
+
+  const { startDate, endDate } = getDates();
+
   return (
     <div className="p-4 2xl:p-8 flex flex-col xl:flex-row gap-4 2xl:gap-8 overflow-y-auto">
       {/* Left Column */}
@@ -38,7 +75,7 @@ function Dashboard() {
       {/* Right Column (Sidebar/Widgets) */}
       <div className="flex-1 space-y-6">
         {/* Calendar Widget */}
-        <TripCalendar startDate={dayjs("2026-05-15")} endDate={dayjs("2026-05-25")} />
+        <TripCalendar startDate={startDate} endDate={endDate} />
 
         {/* Quick Actions */}
         <QuickActions />

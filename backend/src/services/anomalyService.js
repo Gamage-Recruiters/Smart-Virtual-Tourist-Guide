@@ -1,4 +1,4 @@
-const mlClient = require("./mlServices");
+import mlClient from "./mlServices.js";
 
 // ─────────────────────────────────────────────────────────────
 // 1. CHECK SINGLE BID
@@ -133,7 +133,7 @@ async function getFairPriceRange(serviceType) {
   return result.benchmark || null;
 }
 
-module.exports = {
+export {
   checkBidAnomaly,
   checkBidsBatch,
   validateBidPrice,

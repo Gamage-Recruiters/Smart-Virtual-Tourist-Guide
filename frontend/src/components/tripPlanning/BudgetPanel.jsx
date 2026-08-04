@@ -1,106 +1,116 @@
 import React, { useState, useEffect } from "react";
-import { Info, Car, Home, Utensils, MapPin } from "lucide-react";
+import { Info, Car, Home, Utensils, MapPin, RefreshCw } from "lucide-react";
 
 const BACKEND_URL = "http://localhost:5000";
 
-const USD_RATE = 320; // Assuming 320 LKR per USD to match backend logic
-
-function formatUSD(val) {
-  if (val === undefined || val === null) return "$0";
-  const usdValue = Math.round(Number(val) / USD_RATE);
-  return `$${usdValue.toLocaleString("en-US")}`;
+/** Format a LKR value compactly to prevent overflow in tight layouts */
+function formatLKR(val) {
+  if (val === undefined || val === null) return "LKR 0";
+  const n = Math.round(Number(val));
+  if (n >= 1_000_000) return `LKR ${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000)     return `LKR ${(n / 1_000).toFixed(0)}K`;
+  return `LKR ${n.toLocaleString("en-US")}`;
 }
 
 // ─────────────────────────────────────────────────────────────
-// Budget Recalculation Display (Matches User Image)
+// Budget Recalculation Display
 // ─────────────────────────────────────────────────────────────
 function BudgetRecalculationDisplay({ alloc, loading }) {
-  // Default dummy values just like the image if loading/missing
-  const totalUSD = alloc ? alloc.totalBudgetLKR / USD_RATE : 2000;
-  const estimatedUSD = alloc ? alloc.tripTotalLKR / USD_RATE : 1750;
-  const remainingUSD = alloc ? alloc.remainingLKR / USD_RATE : 250;
-  
-  const pct = Math.min(100, Math.round((estimatedUSD / totalUSD) * 100)) || 88;
-  
-  const daily = alloc?.totalAllocation || {};
-  const transport = daily.transport ? (daily.transport / USD_RATE) : 450;
-  const accommodation = daily.accommodation ? (daily.accommodation / USD_RATE) : 600;
-  const food = daily.food ? (daily.food / USD_RATE) : 400;
-  const activities = daily.activities ? (daily.activities / USD_RATE) : 300;
+  const storedTrip = JSON.parse(localStorage.getItem("tripInfo") || "{}");
+  const userBudgetLKR = Number(storedTrip.budgetLKR || storedTrip.budgetUSD) || 0;
+
+  // ── Stale-budget guard ────────────────────────────────────────
+  // If MongoDB returned a very different budget from what's in localStorage,
+  // it's leftover from a previous session. Fall back to localStorage estimates.
+  const allocIsValid =
+    alloc &&
+    (userBudgetLKR === 0 || Math.abs(alloc.totalBudgetLKR - userBudgetLKR) <= userBudgetLKR * 0.01);
+
+  const totalLKR      = allocIsValid ? alloc.totalBudgetLKR  : userBudgetLKR || 500000;
+  const estimatedLKR  = allocIsValid ? alloc.tripTotalLKR    : Math.round(totalLKR * 0.875);
+  const remainingLKR2 = allocIsValid ? alloc.remainingLKR    : totalLKR - estimatedLKR;
+
+  const pct = totalLKR > 0 ? Math.min(100, Math.round((estimatedLKR / totalLKR) * 100)) : 0;
+
+  const dailyAlloc    = allocIsValid ? (alloc.totalAllocation || {}) : {};
+  const transport     = dailyAlloc.transport     || Math.round(estimatedLKR * 0.25);
+  const accommodation = dailyAlloc.accommodation || Math.round(estimatedLKR * 0.34);
+  const food          = dailyAlloc.food          || Math.round(estimatedLKR * 0.23);
+  const activities    = dailyAlloc.activities    || Math.round(estimatedLKR * 0.18);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-center py-16">
+        <RefreshCw size={22} className="animate-spin text-blue-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <h3 className="text-xl font-bold text-gray-900 mb-6">Budget<br/>Recalculation</h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-4">Budget<br/>Recalculation</h3>
 
       {/* Budget Usage Bar */}
-      <div className="mb-6">
+      <div className="mb-5">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-800">Budget Usage</span>
-          <span className="text-sm font-semibold text-blue-600">{pct} %</span>
+          <span className="text-sm font-semibold text-blue-600">{pct}%</span>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-2.5">
           <div
-            className="h-2.5 rounded-full bg-blue-600 transition-all duration-700"
-            style={{ width: `${pct}%` }}
+            className="h-2.5 rounded-full transition-all duration-700"
+            style={{
+              width: `${pct}%`,
+              background: pct >= 90
+                ? "linear-gradient(90deg,#f97316,#ef4444)"
+                : pct >= 70
+                ? "linear-gradient(90deg,#f59e0b,#f97316)"
+                : "#2563eb",
+            }}
           />
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-2 mb-8">
-        <div>
-          <p className="text-[11px] text-gray-500 font-medium mb-1 leading-tight">Total<br/>Budget</p>
-          <p className="text-[17px] font-bold text-gray-900">${Math.round(totalUSD)}</p>
+      {/* Stats — stacked vertically to prevent overflow */}
+      <div className="flex flex-col gap-2 mb-6 bg-slate-50 rounded-xl p-3">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-500 font-medium">Total Budget</span>
+          <span className="text-sm font-bold text-gray-900">{formatLKR(totalLKR)}</span>
         </div>
-        <div>
-          <p className="text-[11px] text-gray-500 font-medium mb-1 leading-tight"><br/>Estimated</p>
-          <p className="text-[17px] font-bold text-[#2A528A]">${Math.round(estimatedUSD)}</p>
+        <div className="h-px bg-gray-200" />
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-500 font-medium">Estimated Cost</span>
+          <span className="text-sm font-bold text-blue-700">{formatLKR(estimatedLKR)}</span>
         </div>
-        <div>
-          <p className="text-[11px] text-gray-500 font-medium mb-1 leading-tight"><br/>Remaining</p>
-          <p className="text-[17px] font-bold text-[#4CAF50]">${Math.round(remainingUSD)}</p>
+        <div className="h-px bg-gray-200" />
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-500 font-medium">Remaining</span>
+          <span className="text-sm font-bold text-green-600">{formatLKR(remainingLKR2)}</span>
         </div>
       </div>
 
       {/* Breakdown */}
       <h4 className="text-sm font-bold text-gray-900 mb-4">Breakdown</h4>
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Car size={18} className="text-[#3A4A5A]" />
-            <span className="text-sm text-gray-800 font-medium">Transport</span>
+      <div className="flex flex-col gap-3 mb-6">
+        {[
+          { Icon: Car,      label: "Transport",     val: transport },
+          { Icon: Home,     label: "Accommodation", val: accommodation },
+          { Icon: Utensils, label: "Food",          val: food },
+          { Icon: MapPin,   label: "Activities",    val: activities },
+        ].map(({ Icon, label, val }) => (
+          <div key={label} className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Icon size={16} className="text-[#3A4A5A] flex-shrink-0" />
+              <span className="text-sm text-gray-800 font-medium">{label}</span>
+            </div>
+            <span className="text-sm font-bold text-gray-900">{formatLKR(val)}</span>
           </div>
-          <span className="text-sm font-bold text-gray-900">${Math.round(transport)}</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Home size={18} className="text-[#3A4A5A]" />
-            <span className="text-sm text-gray-800 font-medium">Accommodation</span>
-          </div>
-          <span className="text-sm font-bold text-gray-900">${Math.round(accommodation)}</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Utensils size={18} className="text-[#3A4A5A]" />
-            <span className="text-sm text-gray-800 font-medium">Food</span>
-          </div>
-          <span className="text-sm font-bold text-gray-900">${Math.round(food)}</span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <MapPin size={18} className="text-[#3A4A5A]" />
-            <span className="text-sm text-gray-800 font-medium">Activities</span>
-          </div>
-          <span className="text-sm font-bold text-gray-900">${Math.round(activities)}</span>
-        </div>
+        ))}
       </div>
 
       {/* Alert Box */}
       <div className="flex gap-3 bg-[#F4F7FB] rounded-xl p-4">
-        <Info size={18} className="text-[#3A4A5A] mt-0.5 flex-shrink-0" />
+        <Info size={16} className="text-[#3A4A5A] mt-0.5 flex-shrink-0" />
         <p className="text-xs text-gray-700 font-medium leading-relaxed">
           Updates automatically when you rearrange activities.
         </p>
@@ -109,6 +119,7 @@ function BudgetRecalculationDisplay({ alloc, loading }) {
   );
 }
 
+
 // ─────────────────────────────────────────────────────────────
 // Main Export (Sidebar)
 // ─────────────────────────────────────────────────────────────
@@ -116,23 +127,43 @@ export default function BudgetPanel() {
   const [alloc, setAlloc] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        const userId = user?._id || user?.id || "dummy_tourist_123";
-        const res = await fetch(`${BACKEND_URL}/api/budget/allocation/${userId}`);
-        if (res.ok) {
-          const json = await res.json();
-          setAlloc(json.data);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+  async function loadData() {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user?._id || user?.id || "dummy_tourist_123";
+      const res = await fetch(`${BACKEND_URL}/api/budget/allocation/${userId}`);
+      if (res.ok) {
+        const json = await res.json();
+        setAlloc(json.data);
+      } else {
+        setAlloc(null);
       }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadData();
+  }, []);
+
+  // Reload immediately when BudgetOverview finishes generating/recalculating a plan
+  useEffect(() => {
+    const handlePlanUpdated = () => loadData();
+    window.addEventListener("budgetPlanUpdated", handlePlanUpdated);
+    return () => window.removeEventListener("budgetPlanUpdated", handlePlanUpdated);
+  }, []);
+
+  // Re-load when DestinationForm updates trip info (after BudgetOverview generates a new plan)
+  useEffect(() => {
+    const handleTripInfoUpdate = () => {
+      // Small delay to let BudgetOverview finish generating the new plan first
+      setTimeout(() => loadData(), 2500);
+    };
+    window.addEventListener("tripInfoUpdated", handleTripInfoUpdate);
+    return () => window.removeEventListener("tripInfoUpdated", handleTripInfoUpdate);
   }, []);
 
   const numDays = alloc ? alloc.numDays : 5;

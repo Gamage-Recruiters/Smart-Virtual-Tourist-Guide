@@ -1,4 +1,4 @@
-const axios = require("axios");
+import axios from "axios";
 
 const ML_BASE_URL = process.env.ML_API_URL || "http://localhost:5001";
 const ML_TIMEOUT  = parseInt(process.env.ML_TIMEOUT_MS) || 8000;
@@ -26,4 +26,4 @@ mlClient.interceptors.response.use(
   }
 );
 
-module.exports = mlClient;
+export default mlClient;

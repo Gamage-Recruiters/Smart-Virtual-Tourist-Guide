@@ -1,12 +1,12 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const {
+import authMiddleware from "../middleware/authMiddleware.js";
+import {
   getItinerary,
   updateItinerary,
   generateFinalReport,
   getRecommendations,
-} = require("../controllers/itineraryController");
+} from "../controllers/itineraryController.js";
 
 // Recommendations don't require auth in the current frontend implementation
 router.post("/recommendations", getRecommendations);
@@ -44,4 +44,4 @@ router.put("/", updateItinerary);
  */
 router.get("/report", generateFinalReport);
 
-module.exports = router;
+export default router;

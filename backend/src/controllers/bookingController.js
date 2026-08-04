@@ -1,4 +1,4 @@
-const Booking = require("../models/Booking");
+import Booking from "../models/Booking.js";
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/bookings
@@ -123,7 +123,7 @@ async function deleteBooking(req, res) {
   }
 }
 
-module.exports = {
+export {
   getBookings,
   createBooking,
   updateBookingStatus,

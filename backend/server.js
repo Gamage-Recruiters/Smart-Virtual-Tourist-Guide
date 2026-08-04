@@ -1,18 +1,18 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const connectDB = require("./src/configs/database");
+import connectDB from "./src/configs/database.js";
 
 dotenv.config();
 
-const authRoutes = require("./src/routes/authRoutes");
-const budgetRoutes = require("./src/routes/budgetRoutes");
-const touristRoutes = require("./src/routes/touristRoutes");
-const dashboardRoutes = require("./src/routes/dashboardRoutes");
-const bookingRoutes = require("./src/routes/bookingRoutes");
-const notificationRoutes = require("./src/routes/notificationRoutes");
-const itineraryRoutes = require("./src/routes/itineraryRoutes");
+import authRoutes from "./src/routes/authRoutes.js";
+import budgetRoutes from "./src/routes/budgetRoutes.js";
+import touristRoutes from "./src/routes/touristRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
+import bookingRoutes from "./src/routes/bookingRoutes.js";
+import notificationRoutes from "./src/routes/notificationRoutes.js";
+import itineraryRoutes from "./src/routes/itineraryRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 5000;

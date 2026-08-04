@@ -1,5 +1,5 @@
-const mlClient = require("./mlServices");
-const BudgetAllocation = require("../models/BudgetAllocation");
+import mlClient from "./mlServices.js";
+import BudgetAllocation from "../models/BudgetAllocation.js";
 
 // ─────────────────────────────────────────────────────────────
 // Preference chip → trip_style mapping
@@ -62,7 +62,8 @@ function calculateNumDays(startDate, endDate) {
  * @param {Object} params
  * @param {string}   params.startDate      - from Start Date picker
  * @param {string}   params.endDate        - from End Date picker
- * @param {number}   params.budgetUSD      - from Budget Range slider (USD)
+ * @param {number}   [params.budgetLKR]    - tourist's total budget in LKR (preferred, used directly)
+ * @param {number}   [params.budgetUSD]    - legacy budget in USD (converted via USD_TO_LKR rate)
  * @param {string[]} params.preferences    - from Travel Preferences chips
  * @param {string}   [params.tripStyle]    - optional override
  * @param {Object}   [params.customWeights]- optional custom category weights
@@ -73,13 +74,16 @@ async function optimizeBudget({
   userId,
   startDate,
   endDate,
-  budgetUSD,
+  budgetLKR: inputBudgetLKR = null,
+  budgetUSD = null,
   preferences = [],
   tripStyle = null,
   customWeights = null,
 }) {
   const numDays = calculateNumDays(startDate, endDate);
-  const budgetLKR = Math.round(budgetUSD * USD_TO_LKR);
+  const budgetLKR = inputBudgetLKR 
+    ? Math.round(Number(inputBudgetLKR)) 
+    : Math.round(Number(budgetUSD || 0) * USD_TO_LKR);
   const resolvedStyle = tripStyle || mapPreferencesToStyle(preferences);
 
   const payload = {
@@ -201,7 +205,7 @@ function buildDailySummary(allocationPlan) {
   };
 }
 
-module.exports = {
+export {
   optimizeBudget,
   checkBudgetGuardian,
   getBudgetAllocation,

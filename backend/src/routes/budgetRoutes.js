@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const {
+import {
   optimizeBudget,
   getBudgetAllocation,
   checkGuardian,
@@ -9,7 +9,7 @@ const {
   checkAnomalyBatch,
   validateBid,
   getFairPrice,
-} = require("../controllers/budgetController");
+} from "../controllers/budgetController.js";
 
 // ─────────────────────────────────────────────────────────────
 // Middleware: log all budget requests in development
@@ -131,4 +131,4 @@ router.post("/anomaly/validate", validateBid);
  */
 router.get("/fair-price/:serviceType", getFairPrice);
 
-module.exports = router;
+export default router;

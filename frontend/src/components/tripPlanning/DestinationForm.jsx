@@ -15,7 +15,7 @@ const ALL_PREFERENCES = [
 export default function DestinationForm() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [budgetUSD, setBudgetUSD] = useState("");
+  const [budgetLKR, setBudgetLKR] = useState("");
   const [selected, setSelected] = useState([]);
 
   // Load initial data from localStorage (saved during profile creation)
@@ -23,15 +23,17 @@ export default function DestinationForm() {
     const tripInfo = JSON.parse(localStorage.getItem("tripInfo") || "{}");
     if (tripInfo.startDate) setStartDate(tripInfo.startDate);
     if (tripInfo.endDate) setEndDate(tripInfo.endDate);
-    if (tripInfo.budgetUSD) setBudgetUSD(tripInfo.budgetUSD);
+    if (tripInfo.budgetLKR) setBudgetLKR(tripInfo.budgetLKR);
     if (tripInfo.preferences) setSelected(tripInfo.preferences);
   }, []);
 
-  // Update localStorage whenever these fields change so that recalculation works
+  // Update localStorage and notify other components
   const updateLocalStorage = (key, value) => {
     const tripInfo = JSON.parse(localStorage.getItem("tripInfo") || "{}");
     tripInfo[key] = value;
     localStorage.setItem("tripInfo", JSON.stringify(tripInfo));
+    // Dispatch event so BudgetOverview / BudgetPanel can react
+    window.dispatchEvent(new CustomEvent("tripInfoUpdated", { detail: tripInfo }));
   };
 
   const handleStartDateChange = (e) => {
@@ -48,8 +50,8 @@ export default function DestinationForm() {
 
   const handleBudgetChange = (e) => {
     const val = e.target.value;
-    setBudgetUSD(val);
-    updateLocalStorage("budgetUSD", val);
+    setBudgetLKR(val);
+    updateLocalStorage("budgetLKR", val);
   };
 
   const togglePreference = (item) => {
@@ -61,6 +63,7 @@ export default function DestinationForm() {
       return newSelected;
     });
   };
+
 
   return (
     <div className="w-full max-w-7xl rounded-3xl bg-white p-8 shadow-md">
@@ -126,11 +129,11 @@ export default function DestinationForm() {
         {/* Budget */}
         <div>
           <label className="text-gray-500 text-sm mb-2 block">
-            Budget (USD)
+            Budget (LKR)
           </label>
           <input
             type="number"
-            value={budgetUSD}
+            value={budgetLKR}
             onChange={handleBudgetChange}
             className="w-full rounded-xl bg-slate-100 px-5 py-4 text-2xl outline-none"
           />

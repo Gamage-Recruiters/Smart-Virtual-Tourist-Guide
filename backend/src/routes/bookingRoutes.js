@@ -1,12 +1,12 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const {
+import authMiddleware from "../middleware/authMiddleware.js";
+import {
   getBookings,
   createBooking,
   updateBookingStatus,
   deleteBooking,
-} = require("../controllers/bookingController");
+} from "../controllers/bookingController.js";
 
 // All booking routes require authentication
 router.use(authMiddleware);
@@ -38,4 +38,4 @@ router.patch("/:id/status", updateBookingStatus);
  */
 router.delete("/:id", deleteBooking);
 
-module.exports = router;
+export default router;

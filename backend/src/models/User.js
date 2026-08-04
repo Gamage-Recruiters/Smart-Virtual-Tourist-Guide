@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -18,6 +18,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    gender: {
+      type: String,
+      default: "Male",
+      trim: true,
+    },
+    country: {
+      type: String,
+      default: "Sri Lanka",
+      trim: true,
+    },
+    travelType: {
+      type: String,
+      default: "Solo",
+      trim: true,
+    },
     sessionToken: {
       type: String,
       default: null,
@@ -30,4 +45,4 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);

@@ -1,6 +1,6 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./configs/database');
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './configs/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -30,13 +30,13 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── Routes ────────────────────────────────────────────────────────────────
-const authRoutes         = require('./routes/authRoutes');
-const budgetRoutes       = require('./routes/budgetRoutes');
-const bookingRoutes      = require('./routes/bookingRoutes');
-const dashboardRoutes    = require('./routes/dashboardRoutes');
-const itineraryRoutes    = require('./routes/itineraryRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const touristRoutes      = require('./routes/touristRoutes');
+import authRoutes from './routes/authRoutes.js';
+import budgetRoutes from './routes/budgetRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import itineraryRoutes from './routes/itineraryRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import touristRoutes from './routes/touristRoutes.js';
 
 app.use('/api/auth',          authRoutes);
 app.use('/api/budget',        budgetRoutes);
@@ -57,4 +57,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-module.exports = app;
+export default app;

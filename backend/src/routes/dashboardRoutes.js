@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const { getDashboardSummary } = require("../controllers/dashboardController");
+import authMiddleware from "../middleware/authMiddleware.js";
+import { getDashboardSummary } from "../controllers/dashboardController.js";
 
 /**
  * GET /api/dashboard/summary
@@ -14,4 +14,4 @@ const { getDashboardSummary } = require("../controllers/dashboardController");
  */
 router.get("/summary", authMiddleware, getDashboardSummary);
 
-module.exports = router;
+export default router;

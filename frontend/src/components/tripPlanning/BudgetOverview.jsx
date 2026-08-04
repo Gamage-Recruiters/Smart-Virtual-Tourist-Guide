@@ -50,12 +50,9 @@ const CATEGORY_CONFIG = {
   },
 };
 
-const USD_RATE = 320; // Matches backend USD_TO_LKR rate
-
-function formatUSD(val) {
-  if (val === undefined || val === null) return "$0";
-  const usdValue = Math.round(Number(val) / USD_RATE);
-  return `$${usdValue.toLocaleString("en-US")}`;
+function formatLKR(val) {
+  if (val === undefined || val === null) return "LKR 0";
+  return `LKR ${Math.round(Number(val)).toLocaleString("en-US")}`;
 }
 
 function GuardianBadge({ level }) {
@@ -83,7 +80,7 @@ function getTripInfoFromStorage() {
   return {
     startDate:   tripInfo.startDate   || "",
     endDate:     tripInfo.endDate     || "",
-    budgetUSD:   Number(tripInfo.budgetUSD) || 0,
+    budgetLKR:   Number(tripInfo.budgetLKR || tripInfo.budgetUSD) || 0,
     preferences: tripInfo.preferences || [],
   };
 }
@@ -105,7 +102,7 @@ export default function BudgetOverview() {
       const userId = user?._id || user?.id || "dummy_tourist_123";
       const trip   = getTripInfoFromStorage();
 
-      if (!trip.startDate || !trip.endDate || trip.budgetUSD <= 0) {
+      if (!trip.startDate || !trip.endDate || trip.budgetLKR <= 0) {
         throw new Error("Trip information is missing. Please complete registration first.");
       }
 
@@ -113,7 +110,7 @@ export default function BudgetOverview() {
         userId,
         startDate:   trip.startDate,
         endDate:     trip.endDate,
-        budgetUSD:   trip.budgetUSD,   // real amount e.g. 4600
+        budgetLKR:   trip.budgetLKR,
         preferences: trip.preferences,
       };
 
@@ -123,6 +120,9 @@ export default function BudgetOverview() {
         body:    JSON.stringify(body),
       });
       if (!res.ok) throw new Error(`Optimize failed: ${res.status}`);
+
+      // Notify BudgetPanel to reload with the freshly generated plan
+      window.dispatchEvent(new CustomEvent("budgetPlanUpdated"));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -130,19 +130,20 @@ export default function BudgetOverview() {
     }
   }, []);
 
+
   const fetch_data = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const user   = JSON.parse(localStorage.getItem("user") || "{}");
       const userId = user?._id || user?.id || "dummy_tourist_123";
+      const trip   = getTripInfoFromStorage();
 
       const res = await fetch(`${BACKEND_URL}/api/budget/allocation/${userId}`);
 
-      // No plan yet — auto-generate one, then re-fetch
+      // No plan yet — auto-generate one from the tourist's stored budget, then re-fetch
       if (res.status === 404) {
         await generatePlan();
-        // Try fetching again after generation
         const res2 = await fetch(`${BACKEND_URL}/api/budget/allocation/${userId}`);
         if (res2.ok) {
           const json2 = await res2.json();
@@ -159,6 +160,27 @@ export default function BudgetOverview() {
       if (!res.ok) throw new Error(`Server ${res.status}`);
       const json = await res.json();
       const alloc = json.data;
+
+      // ── Stale-budget check ──────────────────────────────────────────────────
+      // If the stored plan was generated with a different budget (e.g. a previous
+      // tourist's leftover data), regenerate it now with the correct LKR value.
+      const storedBudget = trip.budgetLKR;
+      const fetchedBudget = alloc.totalBudgetLKR;
+      if (storedBudget > 0 && Math.abs(storedBudget - fetchedBudget) > 1) {
+        // Budgets differ — regenerate silently
+        await generatePlan();
+        const res3 = await fetch(`${BACKEND_URL}/api/budget/allocation/${userId}`);
+        if (res3.ok) {
+          const json3 = await res3.json();
+          const alloc3 = json3.data;
+          setData(alloc3);
+          await fetchGuardian(alloc3.totalBudgetLKR);
+        }
+        setLoading(false);
+        return;
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
       setData(alloc);
       await fetchGuardian(alloc.totalBudgetLKR);
     } catch (e) {
@@ -167,6 +189,7 @@ export default function BudgetOverview() {
       setLoading(false);
     }
   }, [generatePlan]);
+
 
   async function fetchGuardian(totalBudgetLKR) {
     try {
@@ -184,35 +207,55 @@ export default function BudgetOverview() {
 
   // Trigger a fresh recalculation from the ML model
   const handleRecalculate = async () => {
-    if (!data) return;
     setRecalcLoading(true);
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const tripInfo = JSON.parse(localStorage.getItem("tripInfo") || "{}");
       const userId = user?._id || user?.id || "dummy_tourist_123";
+      const trip = getTripInfoFromStorage();
 
-      if (!userId) throw new Error("User ID is missing.");
+      if (!trip.startDate || !trip.endDate || trip.budgetLKR <= 0) {
+        throw new Error("Please fill in start date, end date and budget first.");
+      }
 
-      await fetch(`${BACKEND_URL}/api/budget/recalculate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          touristId: userId,
-          startDate: tripInfo.startDate || data.meta?.start_date,
-          endDate: tripInfo.endDate || data.meta?.end_date,
-          budgetUSD: tripInfo.budgetUSD || (data.totalBudgetLKR / 320),
-          preferences: tripInfo.preferences || [],
-        }),
-      });
-      await fetch_data(); // Refresh display
+      // Use recalculate if we already have data, otherwise generate fresh
+      if (data) {
+        await fetch(`${BACKEND_URL}/api/budget/recalculate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            touristId: userId,
+            startDate: tripInfo.startDate,
+            endDate: tripInfo.endDate,
+            budgetLKR: trip.budgetLKR,
+            preferences: tripInfo.preferences || [],
+          }),
+        });
+      } else {
+        await generatePlan();
+      }
+      await fetch_data();
     } catch (e) {
       console.error("Recalculate error:", e);
+      setError(e.message);
     } finally {
       setRecalcLoading(false);
     }
   };
 
   useEffect(() => { fetch_data(); }, [fetch_data]);
+
+  // Re-generate plan whenever DestinationForm updates trip info
+  useEffect(() => {
+    const handleTripInfoUpdate = () => {
+      const trip = getTripInfoFromStorage();
+      if (trip.startDate && trip.endDate && trip.budgetLKR > 0) {
+        generatePlan().then(() => fetch_data());
+      }
+    };
+    window.addEventListener("tripInfoUpdated", handleTripInfoUpdate);
+    return () => window.removeEventListener("tripInfoUpdated", handleTripInfoUpdate);
+  }, [generatePlan, fetch_data]);
 
   // Loading / Generating
   if (loading || generating) {
@@ -343,7 +386,7 @@ export default function BudgetOverview() {
       {/* Total Budget Progress */}
       <div className="flex justify-between mb-2">
         <span className="text-sm text-gray-500">Total Budget</span>
-        <span className="font-semibold text-slate-800">{formatUSD(totalBudgetLKR)}</span>
+        <span className="font-semibold text-slate-800">{formatLKR(totalBudgetLKR)}</span>
       </div>
       <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-1">
         <div
@@ -360,10 +403,10 @@ export default function BudgetOverview() {
       </div>
       <div className="flex justify-between text-sm mb-6">
         <span className="text-gray-500">
-          Allocated: <span className="font-semibold text-slate-800">{formatUSD(tripTotalLKR)}</span>
+          Allocated: <span className="font-semibold text-slate-800">{formatLKR(tripTotalLKR)}</span>
         </span>
         <span className="text-green-600 font-semibold">
-          {formatUSD(remainingLKR)} unallocated
+          {formatLKR(remainingLKR)} unallocated
         </span>
       </div>
 
@@ -371,7 +414,7 @@ export default function BudgetOverview() {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-slate-50 rounded-2xl p-3 text-center">
           <p className="text-xs text-gray-400 mb-1">Daily Budget</p>
-          <p className="text-sm font-bold text-slate-800">{formatUSD(dailyBudgetLKR)}</p>
+          <p className="text-sm font-bold text-slate-800">{formatLKR(dailyBudgetLKR)}</p>
         </div>
         <div className="bg-indigo-50 rounded-2xl p-3 text-center">
           <p className="text-xs text-indigo-400 mb-1">Allocated</p>
@@ -379,7 +422,7 @@ export default function BudgetOverview() {
         </div>
         <div className="bg-green-50 rounded-2xl p-3 text-center">
           <p className="text-xs text-green-500 mb-1">Unallocated</p>
-          <p className="text-sm font-bold text-green-700">{formatUSD(remainingLKR)}</p>
+          <p className="text-sm font-bold text-green-700">{formatLKR(remainingLKR)}</p>
         </div>
       </div>
 
@@ -400,7 +443,7 @@ export default function BudgetOverview() {
                 <span className="font-medium">{label}</span>
               </div>
               <div className="text-right">
-                <span className="font-semibold text-slate-700 text-sm">{formatUSD(totalAmt)}</span>
+                <span className="font-semibold text-slate-700 text-sm">{formatLKR(totalAmt)}</span>
                 <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
               </div>
             </div>
@@ -410,7 +453,7 @@ export default function BudgetOverview() {
                 style={{ width: `${pct}%`, backgroundColor: hex }}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">{formatUSD(dailyAmt)}/day</p>
+            <p className="text-xs text-gray-400 mt-0.5">{formatLKR(dailyAmt)}/day</p>
           </div>
         ))}
       </div>
@@ -427,7 +470,7 @@ export default function BudgetOverview() {
       <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
         <div>
           <p className="text-xs text-gray-400">Avg. per day</p>
-          <p className="font-bold text-indigo-600 text-sm">{formatUSD(dailyBudgetLKR)}</p>
+          <p className="font-bold text-indigo-600 text-sm">{formatLKR(dailyBudgetLKR)}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-400">Budget Alerts</p>

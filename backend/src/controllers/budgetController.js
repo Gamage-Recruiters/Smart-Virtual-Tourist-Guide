@@ -1,5 +1,5 @@
-const budgetService = require("../services/budgetService");
-const anomalyService = require("../services/anomalyService");
+import * as budgetService from "../services/budgetService.js";
+import * as anomalyService from "../services/anomalyService.js";
 
 // ─────────────────────────────────────────────────────────────
 // Helper: standardised API response format
@@ -14,23 +14,28 @@ const sendError = (res, message, statusCode = 400) =>
 // POST /api/budget/optimize
 //
 // Called right after tourist completes Step 02 registration.
-// Body: { startDate, endDate, budgetUSD, preferences[], tripStyle? }
+// Body: { startDate, endDate, budgetLKR, preferences[], tripStyle? }
+//       budgetUSD is also accepted for backward compatibility.
 // ─────────────────────────────────────────────────────────────
 const optimizeBudget = async (req, res) => {
   try {
-    const { userId, startDate, endDate, budgetUSD, preferences, tripStyle, customWeights } = req.body;
+    const { userId, startDate, endDate, budgetLKR, budgetUSD, preferences, tripStyle, customWeights } = req.body;
 
     if (!startDate) return sendError(res, "startDate is required.");
     if (!endDate) return sendError(res, "endDate is required.");
-    if (!budgetUSD) return sendError(res, "budgetUSD is required.");
-    if (isNaN(Number(budgetUSD))) return sendError(res, "budgetUSD must be a number.");
-    if (Number(budgetUSD) <= 0) return sendError(res, "budgetUSD must be greater than 0.");
+
+    // Accept budgetLKR (new) or budgetUSD (legacy) — at least one must be present
+    const rawBudget = budgetLKR ?? budgetUSD;
+    if (!rawBudget) return sendError(res, "budgetLKR (or budgetUSD) is required.");
+    if (isNaN(Number(rawBudget))) return sendError(res, "Budget must be a number.");
+    if (Number(rawBudget) <= 0) return sendError(res, "Budget must be greater than 0.");
 
     const result = await budgetService.optimizeBudget({
       userId,
       startDate,
       endDate,
-      budgetUSD: Number(budgetUSD),
+      budgetLKR: budgetLKR ? Number(budgetLKR) : null,
+      budgetUSD: budgetLKR ? null : Number(budgetUSD),
       preferences: Array.isArray(preferences) ? preferences : [],
       tripStyle: tripStyle || null,
       customWeights: customWeights || null,
@@ -95,21 +100,25 @@ const checkGuardian = async (req, res) => {
 // POST /api/budget/recalculate
 //
 // Called when tourist updates dates or budget on their profile.
-// Body: { touristId, startDate, endDate, budgetUSD, preferences[] }
+// Body: { touristId, startDate, endDate, budgetLKR, preferences[] }
+//       budgetUSD is also accepted for backward compatibility.
 // ─────────────────────────────────────────────────────────────
 const recalculateBudget = async (req, res) => {
   try {
-    const { touristId, startDate, endDate, budgetUSD, preferences } = req.body;
+    const { touristId, startDate, endDate, budgetLKR, budgetUSD, preferences } = req.body;
 
     if (!touristId) return sendError(res, "touristId is required.");
     if (!startDate) return sendError(res, "startDate is required.");
     if (!endDate) return sendError(res, "endDate is required.");
-    if (!budgetUSD) return sendError(res, "budgetUSD is required.");
+
+    const rawBudget = budgetLKR ?? budgetUSD;
+    if (!rawBudget) return sendError(res, "budgetLKR (or budgetUSD) is required.");
 
     const result = await budgetService.recalculateBudget(touristId, {
       startDate,
       endDate,
-      budgetUSD: Number(budgetUSD),
+      budgetLKR: budgetLKR ? Number(budgetLKR) : null,
+      budgetUSD: budgetLKR ? null : Number(budgetUSD),
       preferences: Array.isArray(preferences) ? preferences : [],
     });
 
@@ -211,7 +220,7 @@ const getFairPrice = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   optimizeBudget,
   getBudgetAllocation,
   checkGuardian,

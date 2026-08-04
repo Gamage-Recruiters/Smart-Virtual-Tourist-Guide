@@ -1,7 +1,7 @@
-const TripItinerary = require("../models/TripItinerary");
-const TouristProfile = require("../models/TouristProfile");
-const Booking = require("../models/Booking");
-const Notification = require("../models/Notification");
+import TripItinerary from "../models/TripItinerary.js";
+import TouristProfile from "../models/TouristProfile.js";
+import Booking from "../models/Booking.js";
+import Notification from "../models/Notification.js";
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/itinerary
@@ -224,7 +224,7 @@ async function getRecommendations(req, res) {
   }
 }
 
-module.exports = {
+export {
   getItinerary,
   updateItinerary,
   generateFinalReport,

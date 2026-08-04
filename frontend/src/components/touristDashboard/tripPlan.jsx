@@ -1,7 +1,6 @@
-import { MapPin, CloudSun, Calendar, DollarSign } from "lucide-react";
+import { MapPin, CloudSun, Calendar, Banknote } from "lucide-react";
 import Sigiriya from "../../assets/sigiriya.jpg";
 
-const USD_RATE = 320;
 
 function formatDate(dateStr) {
   if (!dateStr) return "—";
@@ -33,7 +32,7 @@ function TripPlan() {
 
   const startDate  = tripInfo.startDate   || "";
   const endDate    = tripInfo.endDate     || "";
-  const budgetUSD  = Number(tripInfo.budgetUSD || 0);
+  const budgetLKR  = Number(tripInfo.budgetLKR || tripInfo.budgetUSD || 0);
   const firstName  = (user.fullName || "Traveller").split(" ")[0];
 
   const { totalDays, currentDay, pct } = startDate && endDate
@@ -79,11 +78,11 @@ function TripPlan() {
 
             {/* Budget */}
             <div className="flex items-center gap-2 text-sm text-slate-700">
-              <DollarSign size={16} className="text-emerald-500 flex-shrink-0" />
+              <Banknote size={16} className="text-emerald-500 flex-shrink-0" />
               <span className="font-bold">Budget:</span>
               <span className="text-slate-500">
-                {budgetUSD > 0
-                  ? `$${budgetUSD.toLocaleString("en-US")} USD (≈ LKR ${(budgetUSD * USD_RATE).toLocaleString("en-US")})`
+                {budgetLKR > 0
+                  ? `LKR ${budgetLKR.toLocaleString("en-US")}`
                   : "Not set"}
               </span>
             </div>

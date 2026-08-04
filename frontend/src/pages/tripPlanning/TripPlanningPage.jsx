@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BudgetPanel from '../../components/tripPlanning/BudgetPanel.jsx'
 import BudgetOverview from '../../components/tripPlanning/BudgetOverview.jsx'
 import DailyItinerary from '../../components/tripPlanning/DailyItinerary.jsx'
@@ -6,14 +6,33 @@ import DestinationForm from '../../components/tripPlanning/DestinationForm.jsx'
 import DestinationHighlights from '../../components/tripPlanning/DestinationHighlights.jsx'
 import image from '../../assets/tripPlanning/image 12.png'
 
-
-const days = ["Day 1\n$190", "Day 2\n$71", "Day 3\n$21", "Day 4\n$34", "Day 5\n$24"];
-
-
 export default function TripPlanningPage() {
   const [activeNav, setActiveNav] = useState("Plan Trip");
   const [activeDay, setActiveDay] = useState(0);
   const [preferences, setPreferences] = useState(["Culture", "Nature"]);
+  const [tripDates, setTripDates] = useState({ startDate: "", endDate: "", numDays: 0 });
+
+  // Load trip dates from localStorage (set during sign-in)
+  useEffect(() => {
+    const loadDates = () => {
+      const tripInfo = JSON.parse(localStorage.getItem("tripInfo") || "{}");
+      const start = tripInfo.startDate || "";
+      const end   = tripInfo.endDate   || "";
+      let numDays = 0;
+      if (start && end) {
+        numDays = Math.max(1, Math.round((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)));
+      }
+      setTripDates({ startDate: start, endDate: end, numDays });
+    };
+    loadDates();
+    window.addEventListener("tripInfoUpdated", loadDates);
+    return () => window.removeEventListener("tripInfoUpdated", loadDates);
+  }, []);
+
+  const formatDate = (d) => {
+    if (!d) return "";
+    return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
 
   const togglePref = (p) =>
     setPreferences(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
@@ -22,7 +41,6 @@ export default function TripPlanningPage() {
 
   return (
     <div className="p-4 2xl:p-8 flex flex-col xl:flex-row gap-4 2xl:gap-8 overflow-y-auto">
-
 
       {/* Main layout: sidebar offset + content */}
       <div className="md:flex-[2.5] 2xl:flex-4 space-y-8">
@@ -69,13 +87,24 @@ export default function TripPlanningPage() {
           </div>
         </div>
 
-        {/* Date strip */}
+        {/* Date strip — populated from sign-in data */}
         <div className="bg-white border-b border-gray-100 px-8 py-2 flex items-center gap-2 text-xs text-gray-500">
           <span>📅</span>
-          <span className="font-medium text-gray-700">Nov 19 – Mar 25, 2026</span>
-          <span className="text-gray-300">•</span>
-          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">93 Days</span>
+          {tripDates.startDate && tripDates.endDate ? (
+            <>
+              <span className="font-medium text-gray-700">
+                {formatDate(tripDates.startDate)} – {formatDate(tripDates.endDate)}
+              </span>
+              <span className="text-gray-300">•</span>
+              <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+                {tripDates.numDays} Day{tripDates.numDays !== 1 ? "s" : ""}
+              </span>
+            </>
+          ) : (
+            <span className="text-gray-400 italic">Set your travel dates in Destination Details below</span>
+          )}
         </div>
+
 
         {/* Content area */}
         <div className="px-6 py-5 flex gap-5">

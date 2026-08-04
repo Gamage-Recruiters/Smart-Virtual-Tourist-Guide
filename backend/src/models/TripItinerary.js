@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // Sub-document for a single itinerary day
 const daySchema = new mongoose.Schema(
@@ -72,4 +72,4 @@ const tripItinerarySchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("TripItinerary", tripItinerarySchema);
+export default mongoose.model("TripItinerary", tripItinerarySchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const BudgetAllocationSchema = new mongoose.Schema({
   touristId: {
@@ -25,4 +25,4 @@ const BudgetAllocationSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('BudgetAllocation', BudgetAllocationSchema);
+export default mongoose.model('BudgetAllocation', BudgetAllocationSchema);
