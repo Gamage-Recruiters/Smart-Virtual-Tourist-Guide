@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   FaStar, FaMapMarkerAlt, FaUtensils, FaClock, 
   FaBiking, FaShoppingBag, FaStore 
@@ -75,9 +76,67 @@ const defaultRestaurantsData = [
 ];
 
 const Restaurants_Card = () => {
+  const navigate = useNavigate();
   const [restaurantsData, setRestaurantsData] = useState(defaultRestaurantsData);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  
+  // Filters state
+  const [budget, setBudget] = useState(100000);
+  const [selectedPriceLevels, setSelectedPriceLevels] = useState([]);
+  const [selectedCuisines, setSelectedCuisines] = useState([]);
+  const [dineInAvailable, setDineInAvailable] = useState(false);
+  const [deliveryOffered, setDeliveryOffered] = useState(false);
+
+  // Filter logic
+  const filteredRestaurants = restaurantsData.filter(rest => {
+    // Budget Filter (Map price levels to approximate maximum cost)
+    const priceLevelMap = {
+      '$': 5000,
+      '$$': 15000,
+      '$$$': 30000,
+      '$$$$': 50000,
+      '$$$$$': 100000
+    };
+    if (priceLevelMap[rest.priceLevel] > budget) return false;
+
+    // Price Level Filter
+    if (selectedPriceLevels.length > 0 && !selectedPriceLevels.includes(rest.priceLevel.substring(0, selectedPriceLevels[0].length))) {
+       // Just doing exact match for simplicity or let's do exact match
+       if (!selectedPriceLevels.includes(rest.priceLevel)) {
+         return false;
+       }
+    }
+    
+    // Cuisine Filter (basic keyword check)
+    if (selectedCuisines.length > 0) {
+      const match = selectedCuisines.some(cuisine => {
+        const lowerRestCuisine = rest.cuisine.toLowerCase();
+        if (cuisine === 'Sri Lankan' && lowerRestCuisine.includes('sri lankan')) return true;
+        if (cuisine === 'Seafood' && lowerRestCuisine.includes('seafood')) return true;
+        if (cuisine === 'Italian / Western' && (lowerRestCuisine.includes('italian') || lowerRestCuisine.includes('western') || lowerRestCuisine.includes('continental'))) return true;
+        if (cuisine === 'Cafes & Desserts' && (lowerRestCuisine.includes('cafe') || lowerRestCuisine.includes('coffee') || lowerRestCuisine.includes('dessert'))) return true;
+        return false;
+      });
+      if (!match) return false;
+    }
+
+    // Dining Options Filter
+    if (dineInAvailable && !rest.features.includes('dinein')) return false;
+    if (deliveryOffered && !rest.features.includes('delivery')) return false;
+
+    return true;
+  });
+
+  const togglePriceLevel = (level) => {
+    setSelectedPriceLevels(prev => prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]);
+    setCurrentPage(1);
+  };
+
+  const toggleCuisine = (cuisine) => {
+    setSelectedCuisines(prev => prev.includes(cuisine) ? prev.filter(c => c !== cuisine) : [...prev, cuisine]);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -95,16 +154,29 @@ const Restaurants_Card = () => {
               <span>Budget Guardian</span>
             </div>
             <span className="text-gray-400 text-[10px] block font-bold tracking-wider">FOOD & DINING BUDGET</span>
-            <div className="flex items-baseline space-x-1 mb-4">
-              <span className="text-2xl font-black text-gray-900">45,000</span>
-              <span className="text-xs font-bold text-gray-700">LKR</span>
+            <div className="flex flex-col mb-4 mt-1">
+              <div className="flex items-baseline space-x-1 mb-2">
+                <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
+                <span className="text-xs font-bold text-gray-700">LKR</span>
+              </div>
+              <input 
+                type="range" 
+                min="5000" 
+                max="100000" 
+                step="5000"
+                value={budget} 
+                onChange={(e) => {
+                  setBudget(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${((budget - 5000) / 95000) * 100}%, #E5E7EB ${((budget - 5000) / 95000) * 100}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>5k</span>
+                <span>100k</span>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-              <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '75%' }}></div>
-            </div>
-            <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
-              Manage Budget
-            </button>
           </div>
 
           {/* Filters Card */}
@@ -115,8 +187,12 @@ const Restaurants_Card = () => {
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Price Level</label>
               <div className="flex space-x-2">
-                {['$', '$$', '$$$', '$$$$'].map((level) => (
-                  <button key={level} className="flex-1 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:border-blue-600 hover:text-blue-600 transition-colors">
+                {['$$', '$$$', '$$$$', '$$$$$'].map((level) => (
+                  <button 
+                    key={level} 
+                    onClick={() => togglePriceLevel(level)}
+                    className={`flex-1 py-1.5 border rounded-lg text-xs font-bold transition-colors ${selectedPriceLevels.includes(level) ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-200 text-gray-600 hover:border-blue-600 hover:text-blue-600'}`}
+                  >
                     {level}
                   </button>
                 ))}
@@ -129,7 +205,12 @@ const Restaurants_Card = () => {
               <div className="space-y-2">
                 {['Sri Lankan', 'Seafood', 'Italian / Western', 'Cafes & Desserts'].map(type => (
                   <label key={type} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded text-blue-600 w-4 h-4" 
+                      checked={selectedCuisines.includes(type)}
+                      onChange={() => toggleCuisine(type)}
+                    />
                     <span>{type}</span>
                   </label>
                 ))}
@@ -141,11 +222,21 @@ const Restaurants_Card = () => {
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Dining Options</label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                  <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-blue-600 w-4 h-4" 
+                    checked={dineInAvailable}
+                    onChange={(e) => { setDineInAvailable(e.target.checked); setCurrentPage(1); }}
+                  />
                   <span>Dine-in Available</span>
                 </label>
                 <label className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                  <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-blue-600 w-4 h-4"
+                    checked={deliveryOffered}
+                    onChange={(e) => { setDeliveryOffered(e.target.checked); setCurrentPage(1); }}
+                  />
                   <span>Delivery Offered</span>
                 </label>
               </div>
@@ -177,7 +268,7 @@ const Restaurants_Card = () => {
 
           {/* Restaurants Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {restaurantsData.map((rest, index) => (
+            {filteredRestaurants.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((rest, index) => (
               <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all">
                 
                 {/* Image Section */}
@@ -250,7 +341,10 @@ const Restaurants_Card = () => {
                       </span>
                     </div>
                     
-                    <button className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all shadow-xs">
+                    <button 
+                      onClick={() => navigate('/restaurant-booking', { state: { restaurant: rest } })}
+                      className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all shadow-xs"
+                    >
                       Book a Table
                     </button>
                   </div>

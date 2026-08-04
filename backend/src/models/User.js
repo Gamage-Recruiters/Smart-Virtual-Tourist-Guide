@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'admin'],
+    enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user', 'admin'],
     required: true
   },
   contactNumber: {
@@ -65,6 +65,7 @@ const userSchema = new mongoose.Schema({
   emergencyContact: {
     name: { type: String },
     relationship: { type: String },
+    contactNumber: { type: String },
     country: { type: String }
   },
   // Hotel Owner specific fields — array to support multiple hotels per owner
@@ -76,6 +77,7 @@ const userSchema = new mongoose.Schema({
         hotelEmail: { type: String, trim: true, lowercase: true },
         hotelRegisteredYear: { type: String, trim: true },
         hotelContactNumber: { type: String, trim: true },
+        hotelAddress: { type: String, trim: true },
       }
     ],
     default: undefined
@@ -114,7 +116,20 @@ const userSchema = new mongoose.Schema({
   licenseNumber: {
     type: String,
     trim: true
-  }
+  },
+  licenseImages: [{
+    type: String
+  }],
+  regBookImages: [{
+    type: String
+  }],
+  vehicleImages: [{
+    type: String
+  }],
+  // Renter specific fields
+  renterVerificationDocument: [{
+    type: String
+  }]
 }, {
   timestamps: true,
   collection: 'users'

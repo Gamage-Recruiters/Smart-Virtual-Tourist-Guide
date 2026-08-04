@@ -8,15 +8,26 @@ const datePeriodSchema = new mongoose.Schema(
     { _id: true }
 );
 
+const bookingDateSchema = new mongoose.Schema(
+    {
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        note: { type: String, default: '' },
+    },
+    { _id: true }
+);
+
 const roomSchema = new mongoose.Schema({
+    hotelId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+    },
     roomNumber: {
         type: String,
-        unique: true,
     },
     roomName: {
         type: String,
         required: true,
-        unique: true,
     },
     roomType: {
         type: String,
@@ -93,10 +104,19 @@ const roomSchema = new mongoose.Schema({
         type: [datePeriodSchema],
         default: [],
     },
+    bookingDates: {
+        type: [bookingDateSchema],
+        default: [],
+    },
     createdAt: {
         type: Date,
         default: Date.now,
     },
 });
 
+// Compound unique indexes — scoped per hotel
+roomSchema.index({ hotelId: 1, roomName: 1 }, { unique: true });
+roomSchema.index({ hotelId: 1, roomNumber: 1 }, { unique: true });
+
+export { roomSchema };
 export default mongoose.model('Room', roomSchema);

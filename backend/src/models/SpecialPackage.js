@@ -30,6 +30,7 @@ const specialPackageSchema = new mongoose.Schema({
             required: true,
         },
     }],
+    hotelId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     discount: {
         discountPercent: { type: Number, default: null },
         discountAmountPerNight: { type: Number, default: null },
