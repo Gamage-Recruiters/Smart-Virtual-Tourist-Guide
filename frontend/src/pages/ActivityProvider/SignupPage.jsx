@@ -62,7 +62,7 @@ const ActivityProviderSignup = () => {
       localStorage.setItem("token", response.token);
       localStorage.setItem("userData", JSON.stringify(response.user));
 
-      navigate("/dashboard-ActivityProvider");
+      navigate("/activityprovider/dashboard");
     } catch (err) {
       console.error(err);
       setError(err.message || "Registration failed. Please try again.");
@@ -250,7 +250,7 @@ const ActivityProviderSignup = () => {
               <p className="text-gray-500">
                 Already have an account?{" "}
                 <Link
-                  to="/"
+                  to="/login"
                   className="text-blue-600 font-semibold"
                 >
                   Sign in

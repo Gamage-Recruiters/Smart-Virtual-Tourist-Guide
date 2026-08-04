@@ -329,7 +329,7 @@ const DriverSignUpForm1 = () => {
               Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/login")}
                 className="text-blue-600 font-semibold hover:underline"
               >
                 Log In

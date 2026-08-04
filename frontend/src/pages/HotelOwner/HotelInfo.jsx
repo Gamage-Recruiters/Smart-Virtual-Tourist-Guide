@@ -263,7 +263,7 @@ const HotelInfo = () => {
                       </div>
                     </div>
                     <div className="mt-4 text-xs text-gray-500">
-                      Already have an account? <span className="text-[#3CB4FF] font-bold cursor-pointer hover:underline" onClick={() => navigate('/')}>Sign in</span>
+                      Already have an account? <span className="text-[#3CB4FF] font-bold cursor-pointer hover:underline" onClick={() => navigate('/login')}>Sign in</span>
                     </div>
                   </div>
                 </form>

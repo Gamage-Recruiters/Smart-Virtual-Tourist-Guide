@@ -246,7 +246,7 @@ const RestaurantSignup = () => {
               <p className="text-gray-500">
                 Already have an account?{" "}
                 <Link
-                  to="/"
+                  to="/login"
                   className="text-blue-600 font-semibold"
                 >
                   Sign in
