@@ -1,12 +1,13 @@
-const User = require("../src/models/User.js");
-const { getRegionFromCoords } = require("../src/utils/locationHelper.js");
-const socketService = require("../src/services/delivery/socketService");
-const fcmService = require("../src/services/delivery/fcmService");
-const calculateDistance = require("../src/utils/geoUtils.js");
-const AppError = require("../src/errors/appError");
-const logger = require("../src/utils/logger");
+import User from "../src/models/User.js";
+import { getRegionFromCoords } from "../src/utils/locationHelper.js";
+import { manageRegionalRooms } from "../src/services/delivery/socketService.js";
+import { manageRegionalTopics } from "../src/services/delivery/fcmService.js";
+import calculateDistance from "../src/utils/geoUtils.js";
+import AppError from "../src/errors/appError.js";
+import logger from "../src/utils/logger.js";
+import { RECIPIENT_ROLES } from "../src/constants/notificationConstants.js";
 
-module.exports = (io) => {
+export default (io) => {
   io.on("connection", async (socket) => {
     // Get user details attached by the Socket Auth Middleware
     const userId = socket.userId;
@@ -58,11 +59,11 @@ module.exports = (io) => {
 
         if (regionData && typeof regionData === "object") {
           // Add user to the relevant Socket rooms
-          socketService.manageRegionalRooms(socket, regionData, role, "join");
+          manageRegionalRooms(socket, regionData, role, "join");
 
           // Subscribe user to the relevant Firebase (FCM) topics
           if (socket.fcmToken) {
-            await fcmService.manageRegionalTopics(
+            await manageRegionalTopics(
               socket.fcmToken,
               regionData,
               role,
@@ -138,7 +139,7 @@ module.exports = (io) => {
           regionData.division !== socket.currentDivision
         ) {
           // 1. Leave the old socket rooms and unsubscribe from old FCM topics
-          socketService.manageRegionalRooms(
+          manageRegionalRooms(
             socket,
             {
               division: socket.currentDivision,
@@ -149,7 +150,7 @@ module.exports = (io) => {
           );
 
           if (socket.fcmToken) {
-            await fcmService.manageRegionalTopics(
+            await manageRegionalTopics(
               socket.fcmToken,
               {
                 division: socket.currentDivision,
@@ -161,10 +162,10 @@ module.exports = (io) => {
           }
 
           // 2. Join the new socket rooms and subscribe to new FCM topics
-          socketService.manageRegionalRooms(socket, regionData, role, "join");
+          manageRegionalRooms(socket, regionData, role, "join");
 
           if (socket.fcmToken) {
-            await fcmService.manageRegionalTopics(
+            await manageRegionalTopics(
               socket.fcmToken,
               regionData,
               role,
@@ -205,7 +206,7 @@ const updateDBLocation = async (userId, lat, lng, role) => {
   try {
     await User.findByIdAndUpdate(userId, {
       currentLocation: { type: "Point", coordinates: [lng, lat] }, // [longitude, latitude]
-      ...(role === "DRIVER" && { showCurrentLocation: true }),
+      ...(role === RECIPIENT_ROLES.DRIVER && { showCurrentLocation: true }),
     });
   } catch (err) {
     logger.error(` DB Update Failed for User=${userId}: ${err.message}`);

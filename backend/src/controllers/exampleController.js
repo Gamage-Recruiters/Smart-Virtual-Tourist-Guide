@@ -1,7 +1,7 @@
-const { sendNotification } = require("../services/notificationService");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../errors/appError");
-const logger = require("../utils/logger");
+import { sendNotification } from "../services/NotificationService.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../errors/appError.js";
+import logger from "../utils/logger.js";
 
 /**
  * Example Controller for Notification Engine Integration
@@ -20,11 +20,11 @@ const logger = require("../utils/logger");
  * Step 2: Build the payload object matching the Notification Schema.
  * Step 3: Call 'await sendNotification(io, payload)'.
  */
-const triggerSimulation = catchAsync(async (req, res, next) => {
+export const triggerSimulation = catchAsync(async (req, res, next) => {
   // Step 1: Retrieve the global Socket.io instance from the Express app
   const io = req.app.get("io");
-  
-  const { 
+
+  const {
     type,        // Defines the scope: 'UNICAST', 'MULTICAST', or 'BROADCAST'
     scenario,    // Used here to auto-fill test data: 'ROAD_CLOSURE', 'SURF_ALERT', etc.
     recipientId, // Target User ID (Mandatory for UNICAST)
@@ -111,7 +111,3 @@ const triggerSimulation = catchAsync(async (req, res, next) => {
     data: result
   });
 });
-
-module.exports = {
-  triggerSimulation,
-};  

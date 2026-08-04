@@ -1,4 +1,4 @@
-const logger = require("../../utils/logger");
+import logger from "../../utils/logger.js";
 
 /**
  * Socket Delivery Service
@@ -7,11 +7,11 @@ const logger = require("../../utils/logger");
  * This function is responsible for sending real-time messages to users who are currently online (App is open).
  * It calculates the correct Socket.io "Room" based on the notification's scope and target details.
  */
-exports.deliverViaSocket = (io, notification) => {
+export const deliverViaSocket = (io, notification) => {
   // Extract all the necessary routing details from the notification document
   const { _id, scope, recipientId, recipientRole, region, district } =
     notification;
-    
+
   let targetRoom = null;
 
   switch (scope) {
@@ -29,19 +29,19 @@ exports.deliverViaSocket = (io, notification) => {
       // A. If sending to EVERYONE in a specific Division
       if (region && (!recipientRole || recipientRole === "ALL")) {
         targetRoom = `region_${region}`;
-      } 
+      }
       // B. If sending to EVERYONE in a specific District
       else if (district && (!recipientRole || recipientRole === "ALL")) {
         targetRoom = `district_${district}`;
-      } 
+      }
       // C. If sending to a specific Role in a Division (e.g., Drivers in Balangoda)
       else if (recipientRole && region) {
-        targetRoom =  `region_${region}_role_${recipientRole}`;
-      } 
+        targetRoom = `region_${region}_role_${recipientRole}`;
+      }
       // D. If sending to a specific Role in a District (e.g., Tourists in Ratnapura)
       else if (recipientRole && district) {
-        targetRoom = `district_${district}_role_${recipientRole}`;  
-      } 
+        targetRoom = `district_${district}_role_${recipientRole}`;
+      }
       // E. If sending to a Role across the whole country (e.g., All System Admins)
       else if (recipientRole) {
         targetRoom = `role_${recipientRole}`;

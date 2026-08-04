@@ -1,7 +1,10 @@
-const express = require("express");
+import express from "express";
+import { updateFCMToken } from "../controllers/userController.js";
+import { protect } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
-const userController = require("../controllers/userController"); 
 
-router.patch("/:id/fcm-token", userController.updateFCMToken);
+// Protected route — userId comes from req.user._id (authenticated token), not from URL params
+router.patch("/fcm-token", protect, updateFCMToken);
 
-module.exports = router;
+export default router;

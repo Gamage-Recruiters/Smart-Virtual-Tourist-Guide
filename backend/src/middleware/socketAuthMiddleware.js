@@ -1,10 +1,11 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const logger = require("../utils/logger");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import logger from "../utils/logger.js";
 
 /**
  * Socket Authentication Middleware.
- * This function checks if the user connecting to the socket has a valid token.
+ * This function checks if the user connecting to the socket has a valid JWT token
+ * signed with the application's JWT_SECRET.
  */
 const socketAuth = async (socket, next) => {
   try {
@@ -19,9 +20,10 @@ const socketAuth = async (socket, next) => {
       return next(new Error("Authentication error: Token missing"));
     }
 
-    // 2. Decode the token to extract the user data
-    // NOTE: Token verification is skipped here for performance during development.
-    const decoded = jwt.decode(token);
+    // 2. Verify the token using the real JWT_SECRET
+    // Previously used jwt.decode() which skipped signature verification,
+    // allowing any forged token to impersonate any user.
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Check if the decoded token has the required 'id' field
     if (!decoded || !decoded.id) {
@@ -32,8 +34,8 @@ const socketAuth = async (socket, next) => {
     }
 
     // 3. Find the user in the database to ensure they still exist and get their role
-    // We use .select("role") to make the database query faster
-    const user = await User.findById(decoded.id).select("role");
+    // Exclude password for security, matching the REST API's authMiddleware behavior
+    const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
       logger.warn(
@@ -55,11 +57,16 @@ const socketAuth = async (socket, next) => {
     // Allow the connection to proceed
     next();
   } catch (err) {
+    // Catch JWT verification failures (expired token, invalid signature, etc.)
+    if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
+      logger.error(`Socket Auth Failed: ${err.message}`);
+      return next(new Error("Authentication error: Invalid or expired token"));
+    }
+
     // Catch and log any unexpected server errors during authentication
     logger.error(`Socket Auth Middleware Exception: ${err.message}`);
     next(new Error("Authentication error: Internal server error"));
   }
 };
 
-
-module.exports = socketAuth;
+export default socketAuth;

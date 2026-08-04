@@ -1,4 +1,4 @@
-const logger = require("../../utils/logger");
+import logger from "../../utils/logger.js";
 
 /**
  * Socket Service - Room Management
@@ -8,7 +8,7 @@ const logger = require("../../utils/logger");
  * These rooms are based on the user's current physical location and their role.
  * It manages 4 types of rooms simultaneously to support our hybrid geo-fencing system.
  */
-exports.manageRegionalRooms = (socket, regionData, role, action = "join") => {
+export const manageRegionalRooms = (socket, regionData, role, action = "join") => {
   // 1. Safety Check: Ensure all required location data is available before proceeding
   // This prevents the server from crashing if location data is incomplete
   if (!regionData || !regionData.division || !regionData.district) {
@@ -41,5 +41,4 @@ exports.manageRegionalRooms = (socket, regionData, role, action = "join") => {
   logger.info(
     `Socket Rooms ${action}ed: Division=${division}, District=${district} for User=${socket.userId}`,
   );
-
 };

@@ -1,11 +1,11 @@
-const mongoose = require("mongoose");
-const Notification = require("../models/Notification");
-const NotificationReadStatus = require("../models/NotificationReadStatus");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../errors/appError");
-const logger = require("../utils/logger");
-const { getRegionFromCoords } = require("../utils/locationHelper");
-const User = require("../models/User");
+import mongoose from "mongoose";
+import Notification from "../models/Notification.js";
+import NotificationReadStatus from "../models/NotificationReadStatus.js";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../errors/appError.js";
+import logger from "../utils/logger.js";
+import { getRegionFromCoords } from "../utils/locationHelper.js";
+import User from "../models/User.js";
 
 /**
  * 1. Fetch notifications with Pagination
@@ -449,7 +449,7 @@ const clearAllNotifications = catchAsync(async (req, res, next) => {
   });
 });
 
-module.exports = {
+export {
   getNotifications,
   markAsRead,
   getUnreadCount,

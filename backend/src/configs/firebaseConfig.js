@@ -1,7 +1,13 @@
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import logger from "../utils/logger.js";
 
-const { initializeApp, cert, getApps } = require("firebase-admin/app");
-const path = require("path");
-const logger = require("../utils/logger");
+// ESM workaround for __dirname (not available in ES Modules)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let firebaseApp;
 
@@ -15,8 +21,6 @@ try {
     "../../firebase-service-account.json",
   );
 
-  const fs = require("fs");
-  
   // Safety Check: Verify if the service account file actually exists before trying to load it
   if (!fs.existsSync(serviceAccountPath)) {
     throw new Error(
@@ -24,8 +28,9 @@ try {
     );
   }
 
-  // Load the service account credentials
-  const serviceAccount = require(serviceAccountPath);
+  // Load the service account credentials using fs + JSON.parse (ESM JSON import workaround)
+  const rawData = fs.readFileSync(serviceAccountPath, "utf-8");
+  const serviceAccount = JSON.parse(rawData);
 
   /**
    * Singleton Pattern: Check if Firebase is already initialized.
@@ -48,4 +53,4 @@ try {
 }
 
 // Export the initialized app so other services (like FCM) can use it
-module.exports = firebaseApp;
+export default firebaseApp;

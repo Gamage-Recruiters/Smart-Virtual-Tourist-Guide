@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 /**
  * Region Model
@@ -40,5 +40,4 @@ const regionSchema = new mongoose.Schema({
  */
 regionSchema.index({ geometry: "2dsphere" });
 
-
-module.exports = mongoose.model("Region", regionSchema);
+export default mongoose.model("Region", regionSchema);

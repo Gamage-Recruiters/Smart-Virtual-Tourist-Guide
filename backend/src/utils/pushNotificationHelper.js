@@ -1,6 +1,6 @@
-const { getMessaging } = require('firebase-admin/messaging');
-const User = require('../models/User'); // Required to clean up invalid tokens from the database
-const logger = require('./logger');
+import { getMessaging } from "firebase-admin/messaging";
+import User from "../models/User.js"; // Required to clean up invalid tokens from the database
+import logger from "./logger.js";
 
 /**
  * Push Notification Helper
@@ -13,7 +13,7 @@ const sendPushNotification = async (target, title, body, data = {}) => {
   // 1. Construct the message payload
   const message = {
     notification: { title, body },
-    
+
     // IMPORTANT: Firebase requires all values inside the 'data' object to be strings.
     // Object.fromEntries converts any numbers or booleans in our data into strings safely.
     data: Object.fromEntries(
@@ -24,7 +24,7 @@ const sendPushNotification = async (target, title, body, data = {}) => {
   // 2. Determine the delivery method
   // If the target name starts with "topic_", tell Firebase to broadcast it to that topic group.
   // Otherwise, treat it as a direct device token for a single user.
-  if (target.startsWith('topic_')) {
+  if (target?.startsWith("topic_")) {
     message.topic = target;
   } else {
     message.token = target;
@@ -38,9 +38,8 @@ const sendPushNotification = async (target, title, body, data = {}) => {
     logger.info(
       ` FCM Push Sent Successfully | Target: ${target.slice(0, 15)}... | ID: ${response}`
     );
-    
+
     return { success: true, messageId: response };
-    
   } catch (error) {
     const errorCode = error.code || error.errorInfo?.code;
 
@@ -48,23 +47,23 @@ const sendPushNotification = async (target, title, body, data = {}) => {
     // If Firebase says the token is no longer valid (e.g., the user uninstalled the app),
     // we automatically remove that dead token from our MongoDB database to keep it clean.
     if (
-      errorCode === 'messaging/registration-token-not-registered' ||
-      errorCode === 'messaging/invalid-registration-token'
+      errorCode === "messaging/registration-token-not-registered" ||
+      errorCode === "messaging/invalid-registration-token"
     ) {
       logger.warn(
         ` Stale FCM Token Detected. Removing from DB: ${target.slice(0, 20)}...`
       );
 
-      await User.updateOne({ fcmToken: target }, { $set: { fcmToken: null } });
+      await User.updateMany({ fcmToken: target }, { $set: { fcmToken: null } });
     }
 
     // Log the exact error for debugging
     logger.error(` FCM Error [${errorCode}]: ${error.message}`);
 
-    // Return the failure status so the calling function knows it failed, 
+    // Return the failure status so the calling function knows it failed,
     // but don't crash the server.
     return { success: false, error: errorCode };
   }
 };
 
-module.exports = sendPushNotification;
+export default sendPushNotification;

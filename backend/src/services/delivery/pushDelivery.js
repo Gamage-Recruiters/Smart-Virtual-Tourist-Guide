@@ -1,6 +1,6 @@
-const User = require("../../../src/models/User");
-const sendPush = require("../../../src/utils/pushNotificationHelper");
-const logger = require("../../../src/utils/logger");
+import User from "../../models/User.js";
+import sendPush from "../../utils/pushNotificationHelper.js";
+import logger from "../../utils/logger.js";
 
 /**
  * Helper function to clean up topic names.
@@ -13,7 +13,7 @@ const sanitizeTopic = (name) =>
  * Delivers notifications to mobile devices via Firebase Cloud Messaging (FCM).
  * This runs in the background and does not block the main Socket.io delivery.
  */
-exports.deliverViaPush = async (notification) => {
+export const deliverViaPush = async (notification) => {
   // Extract notification details
   const {
     _id,
@@ -35,15 +35,15 @@ exports.deliverViaPush = async (notification) => {
     if (scope === "UNICAST") {
       // Find the specific user's device token from the database
       const user = await User.findById(recipientId).select("fcmToken");
-      
+
       if (user?.fcmToken) {
         await sendPush(user.fcmToken, title, message, pushData);
         logger.info(`📲 FCM Unicast sent to User: ${recipientId}`);
       } else {
         logger.warn(`⚠️ FCM Unicast skipped: No token for User ${recipientId}`);
       }
-    } 
-    
+    }
+
     // --- 2. GROUP MESSAGES (MULTICAST) ---
     else if (scope === "MULTICAST") {
       const role = recipientRole;
@@ -52,19 +52,19 @@ exports.deliverViaPush = async (notification) => {
       let targetTopic = "";
 
       // Determine the most specific Firebase topic to send the message to
-      
+
       // A. If sending to EVERYONE in a specific Division
       if (region && (!role || role === "ALL")) targetTopic = `topic_div_${div}`;
-      
+
       // B. If sending to EVERYONE in a specific District
       else if (district && (!role || role === "ALL")) targetTopic = `topic_dist_${dist}`;
-      
+
       // C. If sending to a specific Role in a Division (e.g., Drivers in Balangoda)
       else if (region && role) targetTopic = `topic_div_${div}_role_${role}`;
-      
+
       // D. If sending to a specific Role in a District (e.g., Tourists in Ratnapura)
       else if (district && role) targetTopic = `topic_dist_${dist}_role_${role}`;
-      
+
       // E. If sending to a Role across the whole country (e.g., All System Admins)
       else if (role) targetTopic = `topic_role_${role}`;
 
@@ -73,8 +73,8 @@ exports.deliverViaPush = async (notification) => {
         await sendPush(targetTopic, title, message, pushData);
         logger.info(` FCM Multicast sent to Topic: ${targetTopic}`);
       }
-    } 
-    
+    }
+
     // --- 3. PUBLIC MESSAGES (BROADCAST) ---
     else if (scope === "BROADCAST") {
       // Send to the global topic that every user is subscribed to
@@ -85,5 +85,4 @@ exports.deliverViaPush = async (notification) => {
     // If FCM fails, log the error but do not crash the server
     logger.error(` FCM Delivery Failed for Notif ${_id}: ${error.message}`);
   }
-
 };
