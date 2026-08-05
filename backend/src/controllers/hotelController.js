@@ -15,8 +15,31 @@ export const createRoom = async (req, res, next) => {
 
 export const getRooms = async (req, res, next) => {
     try {
-        const rooms = await Room.find();
-        res.status(200).json({ success: true, count: rooms.length, data: rooms });
+        const rooms = await Room.find()
+            .populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+
+        const enrichedRooms = rooms.map((room) => {
+            const roomObj = room.toObject({ getters: true, virtuals: false });
+            const hotelOwner = roomObj.hotelId;
+            const hotelInfo = Array.isArray(hotelOwner?.hotels) ? hotelOwner.hotels[0] : {};
+
+            return {
+                ...roomObj,
+                hotel: {
+                    id: hotelOwner?._id,
+                    ownerName: hotelOwner?.fullName,
+                    contactNumber: hotelOwner?.contactNumber,
+                    email: hotelOwner?.email,
+                    hotelName: hotelInfo?.hotelName || roomObj.roomName,
+                    hotelAddress: hotelInfo?.hotelAddress || roomObj.locationAndPricing?.[0]?.aboutLocation || '',
+                    hotelEmail: hotelInfo?.hotelEmail,
+                    hotelRegistrationNo: hotelInfo?.hotelRegistrationNo,
+                    hotelRegisteredYear: hotelInfo?.hotelRegisteredYear
+                }
+            };
+        });
+
+        res.status(200).json({ success: true, count: enrichedRooms.length, data: enrichedRooms });
     } catch (error) {
         next(error);
     }
@@ -24,11 +47,32 @@ export const getRooms = async (req, res, next) => {
 
 export const getRoomById = async (req, res, next) => {
     try {
-        const room = await Room.findById(req.params.id);
+        const room = await Room.findById(req.params.id)
+            .populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
         }
-        res.status(200).json({ success: true, data: room });
+
+        const roomObj = room.toObject({ getters: true, virtuals: false });
+        const hotelOwner = roomObj.hotelId;
+        const hotelInfo = Array.isArray(hotelOwner?.hotels) ? hotelOwner.hotels[0] : {};
+
+        const enrichedRoom = {
+            ...roomObj,
+            hotel: {
+                id: hotelOwner?._id,
+                ownerName: hotelOwner?.fullName,
+                contactNumber: hotelOwner?.contactNumber,
+                email: hotelOwner?.email,
+                hotelName: hotelInfo?.hotelName || roomObj.roomName,
+                hotelAddress: hotelInfo?.hotelAddress || roomObj.locationAndPricing?.[0]?.aboutLocation || '',
+                hotelEmail: hotelInfo?.hotelEmail,
+                hotelRegistrationNo: hotelInfo?.hotelRegistrationNo,
+                hotelRegisteredYear: hotelInfo?.hotelRegisteredYear
+            }
+        };
+
+        res.status(200).json({ success: true, data: enrichedRoom });
     } catch (error) {
         next(error);
     }

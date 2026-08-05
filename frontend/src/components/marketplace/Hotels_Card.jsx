@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaStar, FaMapMarkerAlt, FaWifi, FaSwimmingPool, 
@@ -84,14 +84,71 @@ const defaultHotelsData = [
 const Hotels_Card = () => {
   const navigate = useNavigate();
   const [hotelsData, setHotelsData] = useState(defaultHotelsData);
+  const [fullHotelsData, setFullHotelsData] = useState(defaultHotelsData);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStars, setSelectedStars] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [budget, setBudget] = useState(100000);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const itemsPerPage = 6;
 
-  React.useEffect(() => {
-    let filtered = defaultHotelsData;
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('/api/hotels/rooms');
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to load hotel rooms');
+        }
+
+        if (result.success && Array.isArray(result.data)) {
+          const formatted = result.data.map((room) => {
+            const hotelName = room.hotel?.hotelName || room.roomName || 'Hotel Room';
+            const location = room.hotel?.hotelAddress || room.locationAndPricing?.[0]?.aboutLocation || 'Sri Lanka';
+            const priceValue = Number(room.locationAndPricing?.[0]?.basePrice || 15000);
+            return {
+              id: room._id,
+              name: hotelName,
+              location,
+              starRating: 4,
+              price: priceValue.toLocaleString(),
+              priceValue,
+              priceUnit: 'night',
+              userRating: 4.5,
+              reviews: room.bookingDates?.length || 0,
+              isFeatured: !!room.hotel?.hotelName,
+              amenities: room.amenities || [],
+              image: room.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600',
+              description: room.description,
+              roomType: room.roomType,
+              capacity: room.capacity,
+              hotelData: room.hotel,
+              rawRoom: room
+            };
+          });
+          setFullHotelsData(formatted);
+          setHotelsData(formatted);
+        } else {
+          setFullHotelsData(defaultHotelsData);
+          setHotelsData(defaultHotelsData);
+        }
+      } catch (fetchError) {
+        console.error('Error loading hotel rooms:', fetchError);
+        setError(fetchError.message || 'Unable to load hotel rooms');
+        setFullHotelsData(defaultHotelsData);
+        setHotelsData(defaultHotelsData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
+    let filtered = fullHotelsData;
     
     if (selectedStars.length > 0) {
       filtered = filtered.filter(hotel => selectedStars.includes(hotel.starRating));
@@ -105,14 +162,14 @@ const Hotels_Card = () => {
     
     if (budget > 0) {
       filtered = filtered.filter(hotel => {
-        const priceNum = Number(hotel.price.replace(/,/g, ''));
+        const priceNum = Number(String(hotel.price).replace(/,/g, ''));
         return priceNum <= budget;
       });
     }
     
     setHotelsData(filtered);
     setCurrentPage(1);
-  }, [selectedStars, selectedAmenities, budget]);
+  }, [selectedStars, selectedAmenities, budget, fullHotelsData]);
 
   const handleStarToggle = (star) => {
     setSelectedStars(prev => 

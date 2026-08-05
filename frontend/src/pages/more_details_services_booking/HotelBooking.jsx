@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -8,9 +8,47 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 const HotelBooking = () => {
     const location = useLocation();
-    const hotel = location.state?.hotel;
+    const [hotel, setHotel] = useState(location.state?.hotel || null);
+    const [loading, setLoading] = useState(!location.state?.hotel);
+    const [error, setError] = useState(null);
 
-    // Fallback if no hotel was passed via state
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const roomId = params.get('roomId');
+
+        if (!hotel && roomId) {
+            const fetchRoom = async () => {
+                setLoading(true);
+                try {
+                    const response = await fetch(`/api/hotels/rooms/${roomId}`);
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Unable to load hotel room');
+                    }
+                    if (result.success && result.data) {
+                        const room = result.data;
+                        setHotel({
+                            ...room,
+                            name: room.hotel?.hotelName || room.roomName,
+                            location: room.hotel?.hotelAddress || room.locationAndPricing?.[0]?.aboutLocation || 'Sri Lanka',
+                            reviews: room.bookingDates?.length || 0,
+                            userRating: 4.5,
+                            image: room.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+                            description: room.description || 'A wonderful place to stay with great amenities.',
+                            price: room.locationAndPricing?.[0]?.basePrice?.toLocaleString() || '30,000'
+                        });
+                    }
+                } catch (fetchError) {
+                    console.error('Error loading hotel booking details:', fetchError);
+                    setError(fetchError.message || 'Unable to load hotel booking details');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchRoom();
+        }
+    }, [hotel, location.search]);
+
     const displayHotel = hotel || {
         image: "https://images.unsplash.com/photo-1566073771259-6a8506099945",
         name: "Cinnamon Grand Colombo",
