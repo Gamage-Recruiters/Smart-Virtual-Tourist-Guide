@@ -30,7 +30,11 @@ import { DriverSignupProvider } from './context/DriverSignupContext';
 import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
-import DummyPageGuide from './pages/Guide/dummyPage';
+import GuideDashboard from './pages/Guide/GuideDashboard';
+import ProfileSettings from './pages/Guide/ProfileSettings';
+import AddNewTourPackage from './pages/Guide/AddNewTourPackage';
+import Earnings from './pages/Guide/Earnings';
+import BookingRequests from './pages/Guide/BookingRequests';
 import DummyPageRenter from './pages/Renter/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
@@ -95,7 +99,12 @@ function App() {
         <Route path="/dashboard-Tourist" element={<DummyPageTourist/>}/>
         <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner/>}/>
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant/>}/>
-        <Route path="/dashboard-Guide" element={<DummyPageGuide/>}/>
+        <Route path="/dashboard-Guide" element={<GuideDashboard/>}/>
+        <Route path="/guide-settings" element={<ProfileSettings/>}/>
+        <Route path="/guide-packages" element={<AddNewTourPackage/>}/>
+        <Route path="/guide-add-package" element={<AddNewTourPackage/>}/>
+        <Route path="/guide-earnings" element={<Earnings/>}/>
+        <Route path="/guide-bookings" element={<BookingRequests/>}/>
         <Route path="/dashboard-Renter" element={<DummyPageRenter/>}/>
         <Route path="/dashboard-Government" element={<DummyPageGovernment/>}/>
         <Route path="/dashboard-Driver" element={<DummyPageDriver/>}/>
