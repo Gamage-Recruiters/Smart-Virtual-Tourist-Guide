@@ -90,17 +90,21 @@ export const getMedicalInfo = async (req, res) => {
 
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const v = user.healthInfo;
-        const allVaccinated = (v.covid19?.status === 'Vaccinated' && 
-                               v.hepatitisA?.status === 'Vaccinated' && 
-                               v.typhoid?.status === 'Vaccinated');
+        const healthData = user.healthInfo?.toObject ? user.healthInfo.toObject() : (user.healthInfo || {});
+
+        const vaccineKeys = Object.keys(healthData).filter(key => 
+            !['bloodType', 'medicalCondition', '_id'].includes(key)
+        );
+
+        const allVaccinated = vaccineKeys.length > 0 && vaccineKeys.every(key => 
+            healthData[key]?.status === 'Vaccinated' || healthData[key]?.status === 'Exempt'
+        );
 
         const incidentCount = await Incident.countDocuments({ touristId: touristId });
 
-
         const medicalData = {
             preTripCheckup: true, 
-            bloodType: user.healthInfo?.bloodType || "Not provided",
+            bloodType: healthData.bloodType || "Not provided",
             allVaccinationsUpToDate: allVaccinated,
             incidentCount: incidentCount
         };
