@@ -1,6 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multerStorageCloudinary from 'multer-storage-cloudinary';
 import multer from 'multer';
+
+const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage || multerStorageCloudinary;
 
 // Configure Cloudinary with user-provided credentials
 cloudinary.config({
