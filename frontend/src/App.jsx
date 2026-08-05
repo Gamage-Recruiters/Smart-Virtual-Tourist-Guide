@@ -1,8 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import SignupForm1 from './pages/Tourist/SignupForm1.jsx'
-import SignupForm2 from './pages/Tourist/SignupForm2.jsx'
-import SignIn from './pages/Tourist/SignIn.jsx'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { TouristProfilePage } from './pages/touristProfile/touristProfilePage.jsx'
 import MainPage from './pages/touristMainPage/mainPage.jsx'
 import TripPlanMainPage from './pages/tripPlanMainPage/tripPlanMainPage.jsx'
@@ -12,25 +9,16 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* Sign In Route */}
-          <Route path="/sign-in" element={<SignIn />} />
+          {/* Redirect root URL to /tour-dashboard */}
+          <Route path="/" element={<Navigate to="/tour-dashboard" replace />} />
 
-          {/* Signup 1 loaded first as main route */}
-          <Route path="/" element={<SignupForm1 />} />
-          <Route path="/signup" element={<SignupForm1 />} />
-          <Route path="/signup-1" element={<SignupForm1 />} />
-
-          {/* Signup 2 / Travel Safety */}
-          <Route path="/travel-safety" element={<SignupForm2 />} />
-          <Route path="/signup-2" element={<SignupForm2 />} />
+          {/* Main Tourist Dashboard */}
+          <Route path="/tour-dashboard" element={<MainPage />} />
 
           {/* Tourist Profile */}
-          <Route path="/profile" element={<TouristProfilePage />} />
           <Route path="/touristProfile" element={<TouristProfilePage />} />
 
-          {/* Main App Routes */}
-          <Route path="/main" element={<MainPage />} />
-          <Route path="/dashboard" element={<MainPage />} />
+          {/* Trip Plan */}
           <Route path="/trip-plan" element={<TripPlanMainPage />} />
         </Routes>
       </div>

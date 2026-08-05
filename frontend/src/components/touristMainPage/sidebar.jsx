@@ -20,9 +20,9 @@ function Sidebar() {
           <NavItem
             icon={<LayoutDashboard size={20} />}
             label="Dashboard"
-            navigate="/dashboard"
+            navigate="/tour-dashboard"
             //if navigate to dashboard, show active class
-            active={location === "/dashboard"}
+            active={location === "/tour-dashboard" || location === "/dashboard" || location === "/"}
           />
           <NavItem
             icon={<MapPin size={20} />}
