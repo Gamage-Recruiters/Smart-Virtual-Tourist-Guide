@@ -4,7 +4,7 @@ import { socialAuthAPI } from '../services/api';
 
 const getDashboardRoute = (role) => {
   switch (role) {
-    case 'tourist_user':     return '/dashboard';
+    case 'tourist_user':     return '/tour-dashboard';
     case 'guide_user':       return '/dashboard-Guide';
     case 'hotelowner_user':  return '/dashboard-HotelOwner';
     case 'restaurant_user':  return '/dashboard-Restaurant';

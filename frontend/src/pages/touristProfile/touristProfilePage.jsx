@@ -201,7 +201,7 @@ export const TouristProfilePage = () => {
       }
 
       alert("Tourist Profile saved successfully!");
-      navigate("/main");
+      navigate("/tour-dashboard");
     } catch (error) {
       console.error("Profile submission error:", error);
       alert(error.message || "Failed to save profile.");
