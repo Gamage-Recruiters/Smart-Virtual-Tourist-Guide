@@ -52,7 +52,13 @@ const apiClient = {
           : privateHeaders(),
       });
 
-      return await response.json();
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw { message: json.message || 'Request failed', status: response.status };
+      }
+
+      return json;
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
@@ -159,6 +165,52 @@ export const hotelOwnerAPI = {
 export const guideAPI = {
   register(userData) {
     return apiClient.post('/auth/register/guide', userData);
+  },
+};
+
+/**
+ * GUIDE PROFILE APIs
+ */
+export const guideProfileAPI = {
+  /** Fetch the logged-in guide's profile */
+  getMyProfile() {
+    return apiClient.get('/guides/current/profile');
+  },
+
+  /** Update profile text fields */
+  updateProfile(payload) {
+    return apiClient.put('/guides/current/profile', payload);
+  },
+
+  /** Upload a new profile photo (File object) */
+  uploadPhoto(file) {
+    const form = new FormData();
+    form.append('profilePhoto', file);
+    return apiClient.post('/guides/current/profile/photo', form);
+  },
+
+  /** Remove the profile photo */
+  removePhoto() {
+    return apiClient.delete('/guides/current/profile/photo');
+  },
+
+  /** Upload NIC / identity proof document (File object) */
+  uploadIdentityProof(file) {
+    const form = new FormData();
+    form.append('identityProof', file);
+    return apiClient.post('/guides/current/profile/documents/identity', form);
+  },
+
+  /** Upload one or more certification files (File[] array) */
+  uploadCertifications(files) {
+    const form = new FormData();
+    Array.from(files).forEach((f) => form.append('certifications', f));
+    return apiClient.post('/guides/current/profile/documents/certifications', form);
+  },
+
+  /** Delete a single certification by its MongoDB sub-document ID */
+  removeCertification(fileId) {
+    return apiClient.delete(`/guides/current/profile/documents/certifications/${fileId}`);
   },
 };
 

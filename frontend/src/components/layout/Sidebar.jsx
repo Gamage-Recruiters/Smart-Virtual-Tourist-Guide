@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Ticket, Map, Wallet, Settings, CheckCircle2 } from 'lucide-react';
+import { LayoutGrid, Ticket, Map, Wallet, Settings, LogOut, CheckCircle2 } from 'lucide-react';
 
 /**
  * Reusable Sidebar Layout Component
@@ -10,6 +10,15 @@ import { LayoutGrid, Ticket, Map, Wallet, Settings, CheckCircle2 } from 'lucide-
  * @param {Function} setMobileOpen - Mobile drawer toggle handler
  */
 export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobileOpen }) => {
+  const handleLogout = () => {
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('guideProfileData');
+    localStorage.removeItem('guideProfilePhoto');
+    window.location.href = '/';
+  };
+
   const navItems = [
     {
       id: 'dashboard',
@@ -109,23 +118,52 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
                 </button>
               );
             })}
+
+            {/* Dedicated Logout Nav Button */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-200 mt-2"
+            >
+              <LogOut className="w-5 h-5 text-rose-400 group-hover:text-rose-600 transition-colors" />
+              <span>Log Out</span>
+            </button>
           </nav>
         </div>
 
-        {/* User Mini Profile Footer */}
-        <div className="pt-4 border-t border-slate-100 px-2 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-300 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-            {profile?.avatarInitials || 'RP'}
-          </div>
-          <div className="overflow-hidden">
-            <h4 className="text-xs font-bold text-slate-800 truncate">
-              {profile?.name || 'Rohan Perera'}
-            </h4>
-            <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-              <CheckCircle2 className="w-2.5 h-2.5 text-slate-400" />
-              <span>VERIFIED GUIDE</span>
+        {/* User Mini Profile Footer with Quick Logout */}
+        <div className="pt-4 border-t border-slate-100 px-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden shadow-sm">
+              {profile?.profilePhoto ? (
+                <img
+                  src={typeof profile.profilePhoto === 'string' ? profile.profilePhoto : profile.profilePhoto.url}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile?.avatarInitials || 'RP'
+              )}
+            </div>
+            <div className="overflow-hidden">
+              <h4 className="text-xs font-bold text-slate-800 truncate">
+                {profile?.name || 'Rohan Perera'}
+              </h4>
+              <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                <CheckCircle2 className="w-2.5 h-2.5 text-slate-400" />
+                <span>VERIFIED GUIDE</span>
+              </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex-shrink-0"
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
     </>

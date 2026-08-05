@@ -47,13 +47,34 @@ export const Header = ({ profile, setMobileOpen, showSearch = true }) => {
 
         {profile && (
           <div className="flex items-center gap-3 pl-2 border-l border-slate-200">
-            <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-              {profile.avatarInitials || 'GP'}
+            <div className="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm overflow-hidden flex-shrink-0">
+              {profile.profilePhoto ? (
+                <img
+                  src={typeof profile.profilePhoto === 'string' ? profile.profilePhoto : profile.profilePhoto.url}
+                  alt={profile.name || 'User'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile.avatarInitials || 'GP'
+              )}
             </div>
             <div className="hidden sm:block">
               <h4 className="text-xs font-bold text-slate-800">{profile.name}</h4>
               <p className="text-[11px] text-slate-400">{profile.role}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = '/';
+              }}
+              className="p-1.5 ml-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+              title="Log Out"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         )}
       </div>
