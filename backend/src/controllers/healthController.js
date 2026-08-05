@@ -34,7 +34,7 @@ export const getVaccinations = async (req, res, next) => {
 
         const vaccineObj = healthData[key];
 
-        if (vaccineObj && typeof vaccineObj === 'object' && vaccineObj.status) {
+        if (vaccineObj && typeof vaccineObj === 'object' && vaccineObj.status === 'Vaccinated' || vaccineObj.status === 'Exempt') {
 
           let readableName = key
             .replace(/([A-Z])/g, ' $1') 
@@ -80,4 +80,33 @@ export const getIncidentCount = async (req, res, next) => {
     logger.error('Error fetching incident count:', error);
     next(error);
   }
+};
+
+// get medical info for a final trip report PDF
+export const getMedicalInfo = async (req, res) => {
+    try {
+        const { touristId } = req.params;
+        const user = await User.findById(touristId, 'healthInfo');
+
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const v = user.healthInfo;
+        const allVaccinated = (v.covid19?.status === 'Vaccinated' && 
+                               v.hepatitisA?.status === 'Vaccinated' && 
+                               v.typhoid?.status === 'Vaccinated');
+
+        const incidentCount = await Incident.countDocuments({ touristId: touristId });
+
+
+        const medicalData = {
+            preTripCheckup: true, 
+            bloodType: user.healthInfo?.bloodType || "Not provided",
+            allVaccinationsUpToDate: allVaccinated,
+            incidentCount: incidentCount
+        };
+
+        res.status(200).json({ success: true, data: medicalData });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 };

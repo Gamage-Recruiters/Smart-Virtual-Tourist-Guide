@@ -43,7 +43,6 @@ export const getTouristArrivalStats = async (req, res) => {
     try {
 
         const tourists = await User.find({ role: 'tourist_user' });
-        console.log(tourists)
 
         const regionsList = [
             "Asia",
@@ -75,6 +74,9 @@ export const getTouristArrivalStats = async (req, res) => {
 
         tourists.forEach(tourist => {
             const region = getRegion(tourist.country);
+
+            console.log(tourist.fullName, "   ", tourist.country, "   ", region, " ", tourist.gender, " ", tourist.createdAt);
+
             if (chartCounts[region] !== undefined) {
                 chartCounts[region] += 1;
             }

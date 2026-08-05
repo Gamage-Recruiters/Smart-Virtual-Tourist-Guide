@@ -17,6 +17,7 @@ function App() {
         <Routes>
 
           <Route path="/" element={<FinalTripReport />} />
+          {/* <Route path="/trip/:touristId/:tripId/pdf" element={<FinalTripReportPDF />} /> */}
           {/* <Route path="/" element={<TouristArrivalReport />} /> */}
           {/* <Route path="/" element={<RevenueReport />} /> */}
           {/* <Route path="/" element={<BehaviorStatReport />} /> */}

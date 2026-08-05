@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { fetchIncidentCount } from '../services/healthService';
+import { fetchIncidentCount, fetchVaccinations } from '../services/healthService';
 
 const HealthSafetyLog = ({ touristId }) => {
 
     const [incidentCount, setIncidentCount] = useState(0);
+    const [vaccines, setVaccines] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,6 +24,12 @@ const HealthSafetyLog = ({ touristId }) => {
             }
         };
 
+        const loadVaccines = async () => {
+            const result = await fetchVaccinations(touristId);
+            if (result.success) setVaccines(result.vaccinations);
+        };
+
+        loadVaccines();
         getCount();
     }, [touristId]);
 
@@ -31,11 +38,11 @@ const HealthSafetyLog = ({ touristId }) => {
         "Travel clinic consultation - March 10"
     ];
 
-    const vaccinations = [
-        "COVID-19 - Updated March 1",
-        "Hepatitis A - February 15",
-        "Typhoid - February 15"
-    ];
+    // const vaccinations = [
+    //     "COVID-19 - Updated March 1",
+    //     "Hepatitis A - February 15",
+    //     "Typhoid - February 15"
+    // ];
 
     const emergencyContacts = [
         "Heavy rain warning - March 19",
@@ -80,12 +87,16 @@ const HealthSafetyLog = ({ touristId }) => {
                         Vaccinations verified
                     </h4>
                     <ul className="space-y-3">
-                        {vaccinations.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base md:text-lg text-gray-700 font-medium">
-                                <span className="flex-shrink-0 mt-0.5">✅</span>
-                                <span>{item}</span>
-                            </li>
-                        ))}
+                        {vaccines.length > 0 ? (
+                            vaccines.map((v, idx) => (
+                                <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base md:text-lg text-gray-700 font-medium">
+                                    <span className="flex-shrink-0 mt-0.5">✅</span>
+                                    <span>{v.name}</span>
+                                </li>
+                            ))
+                        ) : (
+                            <li className="text-gray-500 italic">No vaccinations verified.</li>
+                        )}
                     </ul>
                 </div>
 

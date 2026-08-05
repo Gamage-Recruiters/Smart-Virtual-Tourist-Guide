@@ -1,13 +1,18 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
+import { fetchMedicalInfo } from '../services/healthService';
 
-const HealthSafetyLogPDF = () => {
+const HealthSafetyLogPDF = ({ touristId, tripId }) => {
 
-  const medicalInfo = [
-    "Pre-trip health checkup completed",
-    "Blood Type: O+",
-    "All vaccinations up to date",
-    "No medical incidents reported during the trip"
-  ];
+  const [healthData, setHealthData] = useState(null);
+
+  useEffect(() => {
+    const loadMedical = async () => {
+      const result = await fetchMedicalInfo(touristId);
+      if (result.success) setHealthData(result.data);
+    };
+    if (touristId) loadMedical();
+  }, [touristId]);
 
   const safetyAlerts = [
     {
@@ -25,7 +30,7 @@ const HealthSafetyLogPDF = () => {
   return (
 
     <section className="bg-white w-full max-w-[794px] mx-auto p-10 md:p-14 border-x border-gray-100 rounded-none break-after-page">
-      
+
       {/* ────────────────────────────────────────────────────────
             1. TOP HEADER (Final Trip Report | Page 5 of 6)
          ──────────────────────────────────────────────────────── */}
@@ -50,18 +55,33 @@ const HealthSafetyLogPDF = () => {
         <h3 className="text-base sm:text-lg font-extrabold text-gray-800 mb-5 pl-4">
           Medical Information
         </h3>
-        
+
         <div className="space-y-3">
-          {medicalInfo.map((item, idx) => (
-            <div 
-              key={idx} 
-              className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
-            >
-              <span className="text-xs sm:text-sm font-bold text-gray-700">
-                {item}
-              </span>
-            </div>
-          ))}
+          {healthData ? (
+            <>
+              <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
+                <span className="text-sm font-bold text-gray-700">Pre-trip health checkup completed</span>
+              </div>
+
+              <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
+                <span className="text-sm font-bold text-gray-700">Blood Type: {healthData.bloodType}</span>
+              </div>
+
+              <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
+                <span className="text-sm font-bold text-gray-700">
+                  {healthData.allVaccinationsUpToDate ? "All vaccinations up to date" : "Vaccinations pending"}
+                </span>
+              </div>
+
+              <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
+                <span className="text-sm font-bold text-gray-700">
+                  {healthData.incidentCount > 0 ? `${healthData.incidentCount} medical incidents reported` : "No medical incidents reported during the trip"}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-gray-500 italic px-12">Loading medical info...</div>
+          )}
         </div>
       </div>
 
@@ -72,16 +92,16 @@ const HealthSafetyLogPDF = () => {
         <h3 className="text-base sm:text-lg font-extrabold text-gray-800 mb-6 pl-4">
           Safety Alerts Timeline
         </h3>
-        
+
         <div className="space-y-8 pl-4">
           {safetyAlerts.map((alert, idx) => (
             <div key={idx} className="flex items-start gap-4">
-              
+
               {/* Red Warning Icon (No entry/minus circular symbol) */}
               <span className="text-xl flex-shrink-0 mt-0.5 select-none">
                 ⛔
               </span>
-              
+
               {/* Alert Details */}
               <div className="flex flex-col gap-1.5">
                 {/* Title */}

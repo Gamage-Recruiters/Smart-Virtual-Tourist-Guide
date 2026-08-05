@@ -31,7 +31,7 @@ const FinalTripReportPDF = ({ touristId: propTouristId, tripId: propTripId }) =>
       <ServiceProvidersPDF />
 
       {/* Section 05 */}
-      <HealthSafetyLogPDF />
+      <HealthSafetyLogPDF touristId={tId} tripId={trId} />
 
       {/* Section 06 */}
       <RateExperiencePDF touristId={tId} tripId={trId} />

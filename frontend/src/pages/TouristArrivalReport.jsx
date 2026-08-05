@@ -125,7 +125,23 @@ const TouristArrivalReport = () => {
                         print-color-adjust: exact;
                         background-color: #EAF4FC !important; 
                     }
-    
+
+                    .print-container {
+                        display: block !important;
+                        visibility: visible !important;
+                        position: static !important;
+                        width: 100% !important;
+                    }
+
+                    .recharts-legend-wrapper, .recharts-cartesian-axis-tick-line, .recharts-default-tooltip {
+                        display: none !important;
+                    }
+                        
+                    .recharts-wrapper {
+                        display: block !important;
+                        position: relative !important;
+                    }
+                    
                     table {
                         min-width: 100% !important;
                         font-size: 10px !important;
@@ -133,6 +149,7 @@ const TouristArrivalReport = () => {
                     th, td {
                         padding: 5px 3px !important;
                     }
+
                 }
             `}</style>
 
@@ -140,7 +157,7 @@ const TouristArrivalReport = () => {
                 <Header />
             </div>
 
-            <main className="w-full px-4 sm:px-6 md:px-10 lg:px-16 py-10 flex flex-col items-center">
+            <main className="print-container chart-container w-full px-4 sm:px-6 md:px-10 lg:px-16 py-10 flex flex-col items-center">
 
                 <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight text-center mb-10 w-full">
                     Total tourist arrival
@@ -154,7 +171,7 @@ const TouristArrivalReport = () => {
                     </h4>
 
                     {/* Legend/Key Box */}
-                    <div className="absolute top-6 right-6 sm:right-10 bg-[#B9E3FB]/60 rounded-xl p-3 text-[10px] sm:text-xs font-semibold text-gray-700 leading-relaxed max-w-[190px] border border-[#A2D5FF]/30 shadow-sm hidden sm:block print:hidden">
+                    <div className="absolute top-6 right-6 sm:right-10 hidden bg-[#B9E3FB]/60 rounded-xl p-3 text-[10px] sm:text-xs font-semibold text-gray-700 leading-relaxed max-w-[190px] border border-[#A2D5FF]/30 shadow-sm sm:block print:hidden">
                         <p>X - Region categories</p>
                         <p>Y - Total Tourist Arrivals</p>
                     </div>

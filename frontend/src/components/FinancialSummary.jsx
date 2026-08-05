@@ -5,12 +5,10 @@ const FinancialSummary = ({ touristId, tripId }) => {
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const tourID = "6a68447d23999395cc4cb11f";
-
     useEffect(() => {
         const loadBudget = async () => {
-            const result = await fetchBudgetAllocation(tourID);
-            setBudgetData(result.success ? result.data : null);
+            const result = await fetchBudgetAllocation(touristId);
+            setBudgetData(result.success ? result.data : null); 
             setLoading(false);
         };
         if (touristId) loadBudget();

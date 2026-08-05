@@ -21,3 +21,14 @@ export const fetchIncidentCount = async (touristId) => {
         return { success: false, message: "Server connection failed." };
     }
 };
+
+export const fetchMedicalInfo = async (touristId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/medical-info/${touristId}`);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error in fetchMedicalInfo service:", error);
+        return { success: false, message: "Server connection failed." };
+    }
+};

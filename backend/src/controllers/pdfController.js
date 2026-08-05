@@ -19,6 +19,7 @@ export const generatePDFBuffer = async (targetUrl) => {
     return pdfBuffer;
 }
 
+
 export const downloadPDF = async (req, res) => {
     try {
         const { targetUrl } = req.query;
