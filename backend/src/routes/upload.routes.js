@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const upload = require('../middleware/uploadMiddleware');
-const { protect } = require('../middleware/authMiddleware');
+import upload from '../middleware/uploadMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 // Standardized single file upload endpoint under '/api/upload'
 router.post('/', protect, (req, res, next) => {
@@ -24,5 +24,5 @@ router.post('/', protect, (req, res, next) => {
   });
 });
 
-module.exports = router;
+export default router;
 

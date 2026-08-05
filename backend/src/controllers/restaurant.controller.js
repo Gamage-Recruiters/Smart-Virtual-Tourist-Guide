@@ -1,4 +1,4 @@
-const Restaurant = require("../models/restaurant.model");
+import Restaurant from "../models/restaurant.model.js";
 
 const REQUIRED_FIELDS = [
   "restaurantName",
@@ -150,7 +150,7 @@ const updateBannerImage = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   createRestaurantProfile,
   getRestaurantProfileById,
   getAllRestaurants,

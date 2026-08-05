@@ -1,6 +1,6 @@
-const express = require("express");
-const offerController = require("../controllers/offer.controller");
-const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+import express from "express";
+import * as offerController from "../controllers/offer.controller.js";
+import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -36,4 +36,4 @@ router.patch(
   offerController.toggleOfferStatus
 );
 
-module.exports = router;
+export default router;

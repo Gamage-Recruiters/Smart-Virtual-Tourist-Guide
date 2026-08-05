@@ -1,5 +1,5 @@
-const { initializeApp, cert, getApps } = require('firebase-admin/app');
-const { getAuth } = require('firebase-admin/auth');
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
 let auth = null;
 let firebaseInitialized = false;
@@ -36,4 +36,4 @@ try {
   console.warn("Google Auth will be unavailable until environment variables are corrected.");
 }
 
-module.exports = { auth, firebaseInitialized };
+export { auth, firebaseInitialized };

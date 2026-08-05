@@ -1,7 +1,7 @@
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const sendEmail = require('../utils/sendEmail');
-const { auth, firebaseInitialized } = require('../configs/firebase');
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+import sendEmail from '../utils/sendEmail.js';
+import { auth, firebaseInitialized } from '../configs/firebase.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -581,7 +581,7 @@ const googleAuth = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   loginUser,
   registerTourist,
   registerHotelOwner,

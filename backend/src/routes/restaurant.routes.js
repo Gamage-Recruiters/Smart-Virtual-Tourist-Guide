@@ -1,6 +1,6 @@
-const express = require("express");
-const restaurantController = require("../controllers/restaurant.controller");
-const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+import express from "express";
+import * as restaurantController from "../controllers/restaurant.controller.js";
+import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -40,4 +40,4 @@ router.put(
   restaurantController.updateOperatingHours
 );
 
-module.exports = router;
+export default router;

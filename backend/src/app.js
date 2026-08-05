@@ -1,14 +1,14 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
 
-const authRoutes = require('./routes/authRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const restaurantRoutes = require('./routes/restaurant.routes');
-const menuItemRoutes = require('./routes/menuItem.routes');
-const offerRoutes = require('./routes/offer.routes');
-const uploadRoutes = require('./routes/upload.routes');
-const reservationRoutes = require('./routes/reservation.routes');
-const errorHandler = require('./middleware/errorHandler');
+import authRoutes from './routes/authRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import restaurantRoutes from './routes/restaurant.routes.js';
+import menuItemRoutes from './routes/menuItem.routes.js';
+import offerRoutes from './routes/offer.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
+import reservationRoutes from './routes/reservation.routes.js';
+import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -39,4 +39,4 @@ app.use('/api/reservations', reservationRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

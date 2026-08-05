@@ -1,6 +1,6 @@
-const express = require("express");
-const menuItemController = require("../controllers/menuItem.controller");
-const { protect, authorizeRoles } = require("../middleware/authMiddleware");
+import express from "express";
+import * as menuItemController from "../controllers/menuItem.controller.js";
+import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -35,4 +35,4 @@ router.patch(
   menuItemController.toggleAvailability
 );
 
-module.exports = router;
+export default router;

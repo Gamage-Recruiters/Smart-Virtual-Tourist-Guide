@@ -1,5 +1,5 @@
-const Offer = require("../models/offer.model");
-const Restaurant = require("../models/restaurant.model");
+import Offer from "../models/offer.model.js";
+import Restaurant from "../models/restaurant.model.js";
 
 const REQUIRED_FIELDS = [
   "restaurantId",
@@ -196,7 +196,7 @@ const getActiveOffers = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   createOffer,
   getAllOffers,
   getOffersByRestaurant,

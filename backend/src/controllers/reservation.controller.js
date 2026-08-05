@@ -1,5 +1,5 @@
-const Reservation = require("../models/reservation.model");
-const Restaurant = require("../models/restaurant.model");
+import Reservation from "../models/reservation.model.js";
+import Restaurant from "../models/restaurant.model.js";
 
 const createReservation = async (req, res) => {
   try {
@@ -183,7 +183,7 @@ const getTouristReservations = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   createReservation,
   getAvailability,
   getRestaurantReservations,

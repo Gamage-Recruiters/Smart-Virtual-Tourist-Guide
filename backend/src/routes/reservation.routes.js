@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const reservationController = require("../controllers/reservation.controller");
-const { protect } = require("../middleware/authMiddleware");
+import * as reservationController from "../controllers/reservation.controller.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 // Availability check (Public)
 router.get("/availability", reservationController.getAvailability);
@@ -16,4 +16,4 @@ router.get("/tourist", protect, reservationController.getTouristReservations);
 router.get("/restaurant/:restaurantId", protect, reservationController.getRestaurantReservations);
 router.get("/restaurant/:restaurantId/revenue", protect, reservationController.getRestaurantRevenue);
 
-module.exports = router;
+export default router;

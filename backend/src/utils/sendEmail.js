@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const sendEmail = async ({ to, subject, html }) => {
   // Configure nodemailer transporter using Gmail SMTP
@@ -22,6 +22,6 @@ const sendEmail = async ({ to, subject, html }) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = sendEmail;
+export default sendEmail;
 
 

@@ -1,5 +1,5 @@
-const MenuItem = require("../models/menuItem.model");
-const Restaurant = require("../models/restaurant.model");
+import MenuItem from "../models/menuItem.model.js";
+import Restaurant from "../models/restaurant.model.js";
 
 const REQUIRED_FIELDS = ["restaurantId", "name", "category", "price"];
 
@@ -169,7 +169,7 @@ const searchMenuItems = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   createMenuItem,
   getMenuItemsByRestaurant,
   getMenuItemById,
