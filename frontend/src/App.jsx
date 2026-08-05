@@ -10,11 +10,13 @@ import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage'
 import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage'
 import WeatherAlertsPage from './pages/safety/WeatherAlertsPage'
 import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage'
+import { Toaster } from 'react-hot-toast'
 import './App.css'
 
 function App() {
   return (
     <SafetyProvider>
+      <Toaster />
       <Router>
         <Routes>
           {/* Routes with the sidebar layout */}

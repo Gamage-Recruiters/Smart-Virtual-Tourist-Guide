@@ -13,6 +13,7 @@ import { haversineDistance, policeIcon, nearestPoliceIcon, hospitalIcon, localPo
 export default function EmergencyCallPage() {
   const navigate = useNavigate();
   const [activeEmergency, setActiveEmergency] = useState(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Auto-scroll to top on page load
   useEffect(() => {
@@ -499,6 +500,30 @@ export default function EmergencyCallPage() {
         isLocationShare={activeEmergency === 'location'}
         currentLocation={hasRealLocation ? { lat: location.latitude, lng: location.longitude } : null}
       />
+      
+      {/* Hidden Login Prompt UI - Prepared for future Auth integration */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Authentication Required</h2>
+            <p className="text-slate-600 mb-6 text-sm">You must be logged in to share your live location. Please log in or create an account to continue.</p>
+            <div className="flex gap-3 justify-center">
+              <button 
+                onClick={() => setShowLoginPrompt(false)}
+                className="px-5 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => navigate('/login')}
+                className="px-5 py-2 rounded-lg bg-[#2563EB] text-white font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
