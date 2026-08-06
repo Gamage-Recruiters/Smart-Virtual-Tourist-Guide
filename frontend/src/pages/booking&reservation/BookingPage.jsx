@@ -12,17 +12,15 @@ const BookingPage = () => {
 
     const location = useLocation();
 
-    const service =
-        location.state?.service || {};
+    const service = location.state?.service || {};
+    const serviceType = location.state?.serviceType || service.type || '';
 
-    const bookingDetails =
-        location.state?.bookingDetails || [];
+    const bookingDetails = location.state?.bookingDetails || [];
 
-    const pricing =
-        location.state?.pricing || {
-            currency: "USD",
-            items: [],
-        };
+    const pricing = location.state?.pricing || {
+        currency: "USD",
+        items: [],
+    };
 
     const [formData, setFormData] = useState({
         firstName: "",
@@ -49,6 +47,7 @@ const BookingPage = () => {
         try {
             const bookingPayload = {
                 service,
+                serviceType,
                 bookingDetails,
                 pricing,
                 customer: {

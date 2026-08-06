@@ -17,6 +17,7 @@ const DriverAvailabilityCard = () => {
     navigate("/booking-page", {
       state: {
         service: {
+          type: "driver",
           image:
             "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
           name: "Kasun Perera",
@@ -27,6 +28,7 @@ const DriverAvailabilityCard = () => {
             "Professional tourist driver with 8+ years of experience and fluent English.",
         },
 
+        serviceType: "driver",
         bookingDetails: [
           {
             label: "Travel Date",
