@@ -25,7 +25,11 @@ import Guides_Card from "./components/marketplace/Guides_Card";
 import Hotels_Card from "./components/marketplace/Hotels_Card";
 import Restaurants_Card from "./components/marketplace/Restaurants_Card";
 import Activities_Card from "./components/marketplace/Activities_Card";
-import GuideBidsPage from "./pages/guideBids/GuideBidsPage";
+import GuideBidsAlias from './pages/guides/GuideBidsAlias.jsx'
+import GuideBidsPage from './pages/guides/GuideBidsPage.jsx'
+import GuideBookingConfirmationPage from './pages/guides/GuideBookingConfirmationPage.jsx'
+import GuideProfilePage from './pages/guides/GuideProfilePage.jsx'
+import RequestGuidePage from './pages/guides/RequestGuidePage.jsx'
 
 export default function App() {
   return (
@@ -56,7 +60,11 @@ export default function App() {
         <Route path="/other-drivers" element={<Submit_Bids />} />
         <Route path="/ride-details" element={<Ride_Details />} />
         <Route path="/submit-bids" element={<Driver_Bids />} />
-        <Route path="/guide-bids" element={<GuideBidsPage />} />
+        <Route path="/guide-bids" element={<GuideBidsAlias />} />
+        <Route path="/guides/request" element={<RequestGuidePage />} />
+        <Route path="/guides/requests/:requestId/bids" element={<GuideBidsPage />} />
+        <Route path="/guides/:guideId" element={<GuideProfilePage />} />
+        <Route path="/guides/requests/:requestId/confirm/:bidId" element={<GuideBookingConfirmationPage />} />
 
       </Routes>
     </Router>

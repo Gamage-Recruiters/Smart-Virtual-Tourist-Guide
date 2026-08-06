@@ -9,11 +9,11 @@ import {
   ShoppingBag,
   UserRound,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 const primaryItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/guide-bids', active: true },
-  { label: 'Plan Trip', icon: Map, to: '/booking-page' },
+  { label: 'Dashboard', icon: LayoutDashboard, to: '/guide-bids' },
+  { label: 'Plan Trip', icon: Map, to: '/guides/request' },
   { label: 'Marketplace', icon: ShoppingBag, to: '/guides' },
   { label: 'Navigation', icon: Navigation, to: '/guide-bids' },
   { label: 'Safety', icon: ShieldCheck, to: '/guide-bids' },
@@ -25,16 +25,16 @@ const utilityItems = [
   { label: 'Logout', icon: LogOut, to: '/guide-bids' },
 ]
 
-function SidebarLink({ item, onNavigate }) {
+function SidebarLink({ item, onNavigate, active }) {
   const Icon = item.icon
 
   return (
     <Link
       to={item.to}
       onClick={onNavigate}
-      aria-current={item.active ? 'page' : undefined}
+      aria-current={active ? 'page' : undefined}
       className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#087bd3] ${
-        item.active
+        active
           ? 'bg-[#edf7ff] text-[#176eae]'
           : 'text-[#263d4e] hover:bg-[#f4f8fb] hover:text-[#176eae]'
       }`}
@@ -46,6 +46,7 @@ function SidebarLink({ item, onNavigate }) {
 }
 
 export default function TouristSidebar({ mobile = false, open = false, onClose }) {
+  const location = useLocation()
   const navigation = (
     <nav
       id="tourist-navigation"
@@ -58,12 +59,12 @@ export default function TouristSidebar({ mobile = false, open = false, onClose }
       </div>
       <div className="space-y-1">
         {primaryItems.map((item) => (
-          <SidebarLink key={item.label} item={item} onNavigate={onClose} />
+          <SidebarLink key={item.label} item={item} onNavigate={onClose} active={item.label === 'Plan Trip' ? location.pathname.startsWith('/guides/') : location.pathname === item.to} />
         ))}
       </div>
       <div className="mt-auto space-y-1 border-t border-[#edf2f6] pt-4">
         {utilityItems.map((item) => (
-          <SidebarLink key={item.label} item={item} onNavigate={onClose} />
+          <SidebarLink key={item.label} item={item} onNavigate={onClose} active={location.pathname === item.to} />
         ))}
       </div>
     </nav>
