@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, Ticket, Map, Wallet, Settings, LogOut, CheckCircle2 } from 'lucide-react';
 
 /**
@@ -10,6 +11,13 @@ import { LayoutGrid, Ticket, Map, Wallet, Settings, LogOut, CheckCircle2 } from 
  * @param {Function} setMobileOpen - Mobile drawer toggle handler
  */
 export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobileOpen }) => {
+  let navigate;
+  try {
+    navigate = useNavigate();
+  } catch {
+    navigate = null;
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('token');
@@ -98,12 +106,16 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
                   onClick={() => {
                     if (setActiveTab) setActiveTab(item.id);
                     if (setMobileOpen) setMobileOpen(false);
-                    if (item.path && window.location.pathname !== item.path) {
-                      window.location.href = item.path;
+                    if (item.path) {
+                      if (navigate) {
+                        navigate(item.path);
+                      } else {
+                        window.location.href = item.path;
+                      }
                     }
                   }}
                   className={`
-                    group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200
+                    group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer
                     ${
                       isActive
                         ? 'bg-blue-50/80 text-blue-600'
@@ -123,7 +135,7 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
             <button
               type="button"
               onClick={handleLogout}
-              className="group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-200 mt-2"
+              className="group w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-rose-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-200 mt-2 cursor-pointer"
             >
               <LogOut className="w-5 h-5 text-rose-400 group-hover:text-rose-600 transition-colors" />
               <span>Log Out</span>
@@ -159,7 +171,7 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
           <button
             type="button"
             onClick={handleLogout}
-            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex-shrink-0"
+            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex-shrink-0 cursor-pointer"
             title="Log Out"
           >
             <LogOut className="w-4 h-4" />
@@ -171,4 +183,3 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
 };
 
 export default Sidebar;
-

@@ -286,8 +286,8 @@ const ProfileSettings = () => {
                   message.type === 'success'
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     : message.type === 'error'
-                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
                 }`}
               >
                 <span>{message.text}</span>
