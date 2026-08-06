@@ -5,6 +5,7 @@ import path from 'path';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import guideProfileRoutes from './routes/guideProfileRoutes.js';
+import tourPackageRoutes from './routes/tourPackageRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/guides', guideProfileRoutes);
+app.use('/api/tour-packages', tourPackageRoutes);
 
 // basic routes
 app.get('/', (req, res) => {

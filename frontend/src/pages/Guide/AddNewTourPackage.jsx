@@ -12,11 +12,15 @@ import PhotoDropzone from '../../components/tour-package/PhotoDropzone';
 import FormFooterActions from '../../components/common/FormFooterActions';
 import { GuideBidList } from '../../components/tour-package/GuideBidCard';
 import Pagination from '../../components/common/Pagination';
+import { tourPackageAPI } from '../../services/api';
 
 const AddNewTourPackage = () => {
   const [activeTab, setActiveTab] = useState('packages');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('form'); // 'form' or 'list'
+  const [viewMode, setViewMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('mode') === 'form' ? 'form' : 'list';
+  });
 
   // User Profile
   const [profile, setProfile] = useState({
@@ -45,8 +49,50 @@ const AddNewTourPackage = () => {
   // Guide Bids / Packages List State
   const [guides, setGuides] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(3);
+  const [totalPages, setTotalPages] = useState(1);
   const [loadingBids, setLoadingBids] = useState(false);
+
+  const sampleGuides = [
+    {
+      id: 'bid-1',
+      packageName: 'Ancient Wonders of Sigiriya & Dambulla Caves',
+      name: 'Rohan Perera',
+      avatarInitials: 'RP',
+      rating: '4.9/5',
+      reviewCount: 120,
+      yearsExperience: '8+ Years',
+      specialties: ['HISTORICAL TOURS', 'PHOTOGRAPHY', 'FLUENT IN ENGLISH'],
+      pitch: 'Specialized in cultural heritage & photography tours. Includes private transport and custom timing for attractions.',
+      totalBid: 15000,
+      verified: true,
+    },
+    {
+      id: 'bid-2',
+      packageName: 'Kandy Cultural & Tea Plantation Expedition',
+      name: 'Rohan Perera',
+      avatarInitials: 'RP',
+      rating: '4.5',
+      reviewCount: 100,
+      yearsExperience: '6 Years',
+      specialties: ['CULTURAL TOURS', 'HISTORICAL LOCATIONS', 'STORYTELLING'],
+      pitch: 'Experienced driver-guide focused on historical locations around Kandy and Dambulla with detailed storytelling.',
+      totalBid: 25000,
+      verified: true,
+    },
+    {
+      id: 'bid-3',
+      packageName: 'Yala & Udawalawe Wildlife Safari Adventure',
+      name: 'Rohan Perera',
+      avatarInitials: 'RP',
+      rating: '4.8/5',
+      reviewCount: 95,
+      yearsExperience: '7 Years',
+      specialties: ['WILDLIFE SAFARI', 'NATURE TREKS', 'ENGLISH & GERMAN'],
+      pitch: 'Expert wildlife tracker and expedition guide for Yala & Udawalawe national parks. Includes binoculars & camera gear assistance.',
+      totalBid: 32000,
+      verified: true,
+    },
+  ];
 
   useEffect(() => {
     try {
@@ -70,66 +116,56 @@ const AddNewTourPackage = () => {
     }
   }, []);
 
-  // Fetch sample guide bids list
+  const fetchPackages = async () => {
+    setLoadingBids(true);
+    try {
+      const res = await tourPackageAPI.listPackages({ page: currentPage, limit: 10 });
+      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        const mapped = res.data.map((pkg) => ({
+          id: pkg._id,
+          packageName: pkg.packageName,
+          name: pkg.guide?.fullName || profile.name || 'Rohan Perera',
+          avatarInitials: (pkg.guide?.fullName || profile.name || 'RP')
+            .trim()
+            .split(/\s+/)
+            .map((n) => n[0])
+            .join('')
+            .substring(0, 2)
+            .toUpperCase(),
+          rating: '4.9/5',
+          reviewCount: 120,
+          yearsExperience: '8+ Years',
+          specialties: [
+            pkg.category ? pkg.category.toUpperCase() : 'TOUR',
+            pkg.primaryDestination ? pkg.primaryDestination.toUpperCase() : '',
+            `${pkg.durationValue || 1} ${(pkg.durationUnit || 'Days').toUpperCase()}`,
+          ].filter(Boolean),
+          pitch: pkg.shortDescription || `${pkg.packageName} - ${pkg.primaryDestination}`,
+          totalBid: pkg.pricePerPerson || 0,
+          status: pkg.status,
+          verified: true,
+        }));
+        setGuides(mapped);
+        if (res.pagination) {
+          setTotalPages(res.pagination.totalPages || 1);
+        }
+      } else {
+        setGuides(sampleGuides);
+        setTotalPages(1);
+      }
+    } catch (err) {
+      console.error('Failed to fetch packages from server, using fallback list:', err);
+      setGuides(sampleGuides);
+    } finally {
+      setLoadingBids(false);
+    }
+  };
+
   useEffect(() => {
     if (viewMode === 'list') {
-      setLoadingBids(true);
-      setTimeout(() => {
-        setGuides([
-          {
-            id: 'bid-1',
-            name: 'Rohan Perera',
-            avatarInitials: 'RP',
-            rating: '4.9/5',
-            reviewCount: 120,
-            yearsExperience: '8+ Years',
-            specialties: ['HISTORICAL TOURS', 'PHOTOGRAPHY', 'FLUENT IN ENGLISH'],
-            pitch: 'Specialized in cultural heritage & photography tours. Includes private transport and custom timing for attractions.',
-            totalBid: 15000,
-            verified: true,
-          },
-          {
-            id: 'bid-2',
-            name: 'Rohan Perera',
-            avatarInitials: 'RP',
-            rating: '4.5',
-            reviewCount: 100,
-            yearsExperience: '6 Years',
-            specialties: ['CULTURAL TOURS', 'HISTORICAL LOCATIONS', 'STORYTELLING'],
-            pitch: 'Experienced driver-guide focused on historical locations around Kandy and Dambulla with detailed storytelling.',
-            totalBid: 25000,
-            verified: true,
-          },
-          {
-            id: 'bid-3',
-            name: 'Rohan Perera',
-            avatarInitials: 'RP',
-            rating: '4.8/5',
-            reviewCount: 95,
-            yearsExperience: '7 Years',
-            specialties: ['WILDLIFE SAFARI', 'NATURE TREKS', 'ENGLISH & GERMAN'],
-            pitch: 'Expert wildlife tracker and expedition guide for Yala & Udawalawe national parks. Includes binoculars & camera gear assistance.',
-            totalBid: 32000,
-            verified: true,
-          },
-          {
-            id: 'bid-4',
-            name: 'Rohan Perera',
-            avatarInitials: 'RP',
-            rating: '4.7/5',
-            reviewCount: 84,
-            yearsExperience: '5 Years',
-            specialties: ['BEACH & SURF', 'SOUTHERN COAST', 'CULINARY TOURS'],
-            pitch: 'Southern coast specialist covering Mirissa whale watching, Galle Fort heritage walks, and authentic local food tasting.',
-            totalBid: 28000,
-            verified: true,
-          },
-        ]);
-        setTotalPages(3);
-        setLoadingBids(false);
-      }, 300);
+      fetchPackages();
     }
-  }, [viewMode, currentPage]);
+  }, [viewMode, currentPage, profile.name]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -182,12 +218,52 @@ const AddNewTourPackage = () => {
 
     setSubmitting(true);
     try {
-      // Endpoint call simulation: POST /api/tour-packages
-      const payload = { ...formData, status };
-      console.log(`Submitting package to /api/tour-packages (${status}):`, payload);
+      const payload = {
+        packageName: formData.name,
+        category: formData.category,
+        shortDescription: formData.description,
+        primaryDestination: formData.destination,
+        routeStops: formData.stops.filter((s) => s && s.trim() !== ''),
+        pricePerPerson: Number(formData.pricePerItinerary) || 0,
+        durationValue: Number(formData.durationValue) || 1,
+        durationUnit: formData.durationUnit || 'Days',
+        status,
+      };
 
-      // Simulate network request delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const res = await tourPackageAPI.createPackage(payload);
+
+      // Upload photos if any exist and package creation succeeded
+      if (res.success && res.data?._id && formData.photos && formData.photos.length > 0) {
+        const imageFiles = formData.photos.filter((p) => p instanceof File);
+        if (imageFiles.length > 0) {
+          try {
+            await tourPackageAPI.uploadPhotos(res.data._id, imageFiles);
+          } catch (photoErr) {
+            console.error('Failed uploading tour photos:', photoErr);
+          }
+        }
+      }
+
+      const newPkgItem = {
+        id: res.data?._id || `pkg-${Date.now()}`,
+        packageName: formData.name,
+        name: profile.name || 'Rohan Perera',
+        avatarInitials: profile.avatarInitials || 'RP',
+        rating: '5.0/5',
+        reviewCount: 1,
+        yearsExperience: 'New Tour',
+        specialties: [
+          formData.category.toUpperCase(),
+          formData.destination.toUpperCase(),
+          `${formData.durationValue} ${formData.durationUnit.toUpperCase()}`,
+        ],
+        pitch: formData.description || `${formData.name} - ${formData.destination}`,
+        totalBid: Number(formData.pricePerItinerary) || 0,
+        status: status,
+        verified: true,
+      };
+
+      setGuides((prev) => [newPkgItem, ...prev]);
 
       setFeedback({
         type: 'success',
@@ -197,11 +273,13 @@ const AddNewTourPackage = () => {
             : 'Tour package saved as draft.',
       });
 
-      if (status === 'published') {
-        setFormData(initialFormState);
-      }
+      setFormData(initialFormState);
+      // Switch back to list view to show added packages
+      setViewMode('list');
     } catch (err) {
-      setFeedback({ type: 'error', text: 'Failed to save tour package. Please try again.' });
+      console.error('Submit package error:', err);
+      const errMsg = err?.message || err?.errors?.[0]?.message || 'Failed to save tour package. Please try again.';
+      setFeedback({ type: 'error', text: errMsg });
     } finally {
       setSubmitting(false);
     }

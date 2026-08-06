@@ -268,4 +268,46 @@ export const socialAuthAPI = {
   },
 };
 
+/**
+ * TOUR PACKAGE APIs
+ */
+export const tourPackageAPI = {
+  createPackage(payload) {
+    return apiClient.post('/tour-packages', payload);
+  },
+  listPackages(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return apiClient.get(`/tour-packages${query ? `?${query}` : ''}`);
+  },
+  getPackageById(id) {
+    return apiClient.get(`/tour-packages/${id}`);
+  },
+  updatePackage(id, payload) {
+    return apiClient.put(`/tour-packages/${id}`, payload);
+  },
+  updateStatus(id, status) {
+    return apiClient.patch(`/tour-packages/${id}/status`, { status });
+  },
+  deletePackage(id) {
+    return apiClient.delete(`/tour-packages/${id}`);
+  },
+  addRouteStop(id, name) {
+    return apiClient.post(`/tour-packages/${id}/route-stops`, { name });
+  },
+  updateRouteStop(id, stopId, name) {
+    return apiClient.put(`/tour-packages/${id}/route-stops/${stopId}`, { name });
+  },
+  removeRouteStop(id, stopId) {
+    return apiClient.delete(`/tour-packages/${id}/route-stops/${stopId}`);
+  },
+  uploadPhotos(id, files) {
+    const form = new FormData();
+    Array.from(files).forEach((f) => form.append('photos', f));
+    return apiClient.post(`/tour-packages/${id}/photos`, form);
+  },
+  removePhoto(id, photoId) {
+    return apiClient.delete(`/tour-packages/${id}/photos/${photoId}`);
+  },
+};
+
 export default apiClient;
