@@ -50,3 +50,4 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
 };
 
 export default useGoogleAuth;
+
