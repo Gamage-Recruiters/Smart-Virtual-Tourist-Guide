@@ -12,7 +12,8 @@ import {
   uploadPhotos,
   removePhoto,
 } from '../controllers/tourPackageController.js';
-import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
+import { protect, authorizeRoles, optionalProtect } from '../middleware/authMiddleware.js';
+
 import { uploadTourPhotos } from '../middleware/tourPackageUpload.js';
 import { validateDraftPackage } from '../validators/tourPackageValidator.js';
 
@@ -21,8 +22,9 @@ const router = express.Router();
 // Root package collection routes
 router
   .route('/')
-  .get(listPackages)
+  .get(optionalProtect, listPackages)
   .post(protect, authorizeRoles('guide_user', 'guide', 'admin'), validateDraftPackage, createPackage);
+
 
 // Individual package CRUD routes
 router

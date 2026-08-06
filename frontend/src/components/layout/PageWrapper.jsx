@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from '../Guide/Footer';
+import { guideProfileAPI } from '../../services/api';
 
 /**
  * Reusable PageWrapper Layout Shell
- * Supports activeTab or activeNavItem, auto-manages mobile drawer and profile fallback
+ * Fetches the logged-in guide's real profile (name + photo) from the API
+ * and passes it to both Sidebar and Header.
  */
 export const PageWrapper = ({
   activeTab,
@@ -23,36 +25,62 @@ export const PageWrapper = ({
   const mobileOpen = propMobileOpen !== undefined ? propMobileOpen : localMobileOpen;
   const setMobileOpen = propSetMobileOpen || setLocalMobileOpen;
 
-  // Profile fallback state from localStorage
-  const [localProfile, setLocalProfile] = useState({
-    name: 'Rohan Perera',
-    role: 'Senior Tour Guide',
-    avatarInitials: 'RP',
-  });
-
-  useEffect(() => {
+  // Profile state — starts with localStorage fallback, upgraded by API
+  const [localProfile, setLocalProfile] = useState(() => {
     try {
       const rawUser = localStorage.getItem('userData');
       if (rawUser) {
         const user = JSON.parse(rawUser);
-        const name = user.fullName || user.name || 'Rohan Perera';
+        const name = user.fullName || user.name || '';
         const parts = name.trim().split(/\s+/);
         const initials =
           parts.length > 1
             ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
             : name.substring(0, 2).toUpperCase();
-
-        setLocalProfile({
+        return {
           name,
-          role: user.role ? user.role.replace(/_/g, ' ') : 'Senior Tour Guide',
-          avatarInitials: initials,
-        });
+          role: user.role ? user.role.replace(/_/g, ' ') : 'Tour Guide',
+          avatarInitials: initials || 'GD',
+          profilePhoto: null,
+        };
       }
-    } catch (e) {
-      console.error('Failed to parse user session data', e);
+    } catch {
+      // ignore
     }
+    return { name: '', role: 'Tour Guide', avatarInitials: 'GD', profilePhoto: null };
+  });
+
+  // Fetch real profile data from API (only if a token exists)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || token === 'null') return;
+
+    guideProfileAPI
+      .getMyProfile()
+      .then((json) => {
+        if (json.success && json.data) {
+          const d = json.data;
+          const name = d.fullName || '';
+          const parts = name.trim().split(/\s+/);
+          const initials =
+            parts.length > 1
+              ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+              : name.substring(0, 2).toUpperCase();
+
+          setLocalProfile({
+            name,
+            role: 'Tour Guide',
+            avatarInitials: initials || 'GD',
+            profilePhoto: d.profilePhoto?.url || null,
+          });
+        }
+      })
+      .catch(() => {
+        // API failed — keep localStorage fallback; no crash
+      });
   }, []);
 
+  // Prop profile takes precedence (allows pages like ProfileSettings to push live updates)
   const profile = propProfile || localProfile;
 
   // Map activeNavItem string (e.g. "Booking Requests") to tab ID if activeTab not explicitly set

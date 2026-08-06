@@ -154,12 +154,12 @@ export const Sidebar = ({ activeTab, setActiveTab, profile, mobileOpen, setMobil
                   className="w-full h-full object-cover"
                 />
               ) : (
-                profile?.avatarInitials || 'RP'
+                profile?.avatarInitials || 'GD'
               )}
             </div>
             <div className="overflow-hidden">
               <h4 className="text-xs font-bold text-slate-800 truncate">
-                {profile?.name || 'Rohan Perera'}
+                {profile?.name || 'Guide User'}
               </h4>
               <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-tight">
                 <CheckCircle2 className="w-2.5 h-2.5 text-slate-400" />

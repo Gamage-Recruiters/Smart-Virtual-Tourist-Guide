@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Package, MapPin, Image, Tag } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Package, MapPin, Image, Tag, Trash2, Pencil, Loader2 } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
-import PageHeader from '../../components/tour-package/PageHeader';
 import SectionHeader from '../../components/common/SectionHeader';
 import FormInput from '../../components/common/FormInput';
 import FormSelect from '../../components/common/FormSelect';
@@ -9,209 +8,181 @@ import FormTextarea from '../../components/common/FormTextarea';
 import MapPreview from '../../components/tour-package/MapPreview';
 import RouteStopsList from '../../components/tour-package/RouteStopsList';
 import PhotoDropzone from '../../components/tour-package/PhotoDropzone';
-import FormFooterActions from '../../components/common/FormFooterActions';
-import { GuideBidList } from '../../components/tour-package/GuideBidCard';
-import Pagination from '../../components/common/Pagination';
 import { tourPackageAPI } from '../../services/api';
 
-const AddNewTourPackage = () => {
-  const [activeTab, setActiveTab] = useState('packages');
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [viewMode, setViewMode] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('mode') === 'form' ? 'form' : 'list';
-  });
+/* ────────────────────────────────────────────────────────────────────────────
+   Empty form shape
+──────────────────────────────────────────────────────────────────────────── */
+const EMPTY_FORM = {
+  name: '',
+  category: 'Cultural',
+  description: '',
+  destination: 'Sigiriya',
+  stops: [],
+  photos: [],
+  pricePerItinerary: '',
+  durationValue: '1',
+  durationUnit: 'Days',
+};
 
-  // User Profile
-  const [profile, setProfile] = useState({
-    name: 'Rohan Perera',
-    role: 'Senior Tour Guide',
-    avatarInitials: 'RP',
-  });
+/* ────────────────────────────────────────────────────────────────────────────
+   Status badge helper
+──────────────────────────────────────────────────────────────────────────── */
+const StatusBadge = ({ status }) => {
+  const map = {
+    published: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    draft: 'bg-amber-50 text-amber-700 border-amber-200',
+    archived: 'bg-slate-100 text-slate-500 border-slate-200',
+  };
+  return (
+    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${map[status] || map.draft}`}>
+      {status?.toUpperCase() || 'DRAFT'}
+    </span>
+  );
+};
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Package Card (list view)
+──────────────────────────────────────────────────────────────────────────── */
+const PackageCard = ({ pkg, onEdit, onDelete }) => (
+  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-blue-200 transition-all">
+    <div className="flex-1 min-w-0 space-y-1.5">
+      <div className="flex items-center gap-2 flex-wrap">
+        <h3 className="text-sm font-bold text-slate-900 truncate">{pkg.packageName}</h3>
+        <StatusBadge status={pkg.status} />
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 font-medium">
+        <span>📍 {pkg.primaryDestination}</span>
+        <span>🏷️ {pkg.category}</span>
+        <span>⏱ {pkg.durationValue} {pkg.durationUnit}</span>
+        <span className="font-bold text-slate-700">LKR {Number(pkg.pricePerPerson || 0).toLocaleString()}</span>
+      </div>
+      {pkg.shortDescription && (
+        <p className="text-xs text-slate-400 line-clamp-1">{pkg.shortDescription}</p>
+      )}
+    </div>
+    <div className="flex items-center gap-2 flex-shrink-0">
+      <button
+        onClick={() => onEdit(pkg)}
+        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl hover:bg-blue-50 transition-all"
+      >
+        <Pencil className="w-3.5 h-3.5" /> Edit
+      </button>
+      <button
+        onClick={() => onDelete(pkg._id)}
+        className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-rose-500 border border-rose-200 rounded-xl hover:bg-rose-50 transition-all"
+      >
+        <Trash2 className="w-3.5 h-3.5" /> Delete
+      </button>
+    </div>
+  </div>
+);
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Main Page
+──────────────────────────────────────────────────────────────────────────── */
+const AddNewTourPackage = () => {
+  const [activeTab] = useState('packages');
+  const [viewMode, setViewMode] = useState('list');
+  const [editingId, setEditingId] = useState(null); // null = create, string = edit
 
   // Form State
-  const initialFormState = {
-    name: '',
-    category: 'Cultural',
-    description: '',
-    destination: 'Sigiriya',
-    stops: ['Colombo Fort', 'Sigiriya Lion Rock', 'Dambulla Cave Temple'],
-    photos: [],
-    pricePerItinerary: '',
-    durationValue: '3',
-    durationUnit: 'Days',
-  };
-
-  const [formData, setFormData] = useState(initialFormState);
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // Guide Bids / Packages List State
-  const [guides, setGuides] = useState([]);
+  // Packages List State
+  const [packages, setPackages] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [loadingBids, setLoadingBids] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
 
-  const sampleGuides = [
-    {
-      id: 'bid-1',
-      packageName: 'Ancient Wonders of Sigiriya & Dambulla Caves',
-      name: 'Rohan Perera',
-      avatarInitials: 'RP',
-      rating: '4.9/5',
-      reviewCount: 120,
-      yearsExperience: '8+ Years',
-      specialties: ['HISTORICAL TOURS', 'PHOTOGRAPHY', 'FLUENT IN ENGLISH'],
-      pitch: 'Specialized in cultural heritage & photography tours. Includes private transport and custom timing for attractions.',
-      totalBid: 15000,
-      verified: true,
-    },
-    {
-      id: 'bid-2',
-      packageName: 'Kandy Cultural & Tea Plantation Expedition',
-      name: 'Rohan Perera',
-      avatarInitials: 'RP',
-      rating: '4.5',
-      reviewCount: 100,
-      yearsExperience: '6 Years',
-      specialties: ['CULTURAL TOURS', 'HISTORICAL LOCATIONS', 'STORYTELLING'],
-      pitch: 'Experienced driver-guide focused on historical locations around Kandy and Dambulla with detailed storytelling.',
-      totalBid: 25000,
-      verified: true,
-    },
-    {
-      id: 'bid-3',
-      packageName: 'Yala & Udawalawe Wildlife Safari Adventure',
-      name: 'Rohan Perera',
-      avatarInitials: 'RP',
-      rating: '4.8/5',
-      reviewCount: 95,
-      yearsExperience: '7 Years',
-      specialties: ['WILDLIFE SAFARI', 'NATURE TREKS', 'ENGLISH & GERMAN'],
-      pitch: 'Expert wildlife tracker and expedition guide for Yala & Udawalawe national parks. Includes binoculars & camera gear assistance.',
-      totalBid: 32000,
-      verified: true,
-    },
-  ];
-
-  useEffect(() => {
+  /* ── Fetch current guide's packages ─── */
+  const fetchPackages = useCallback(async () => {
+    setLoadingList(true);
     try {
-      const rawUser = localStorage.getItem('userData');
-      if (rawUser) {
-        const user = JSON.parse(rawUser);
-        setProfile({
-          name: user.fullName || user.name || 'Rohan Perera',
-          role: 'Senior Tour Guide',
-          avatarInitials: (user.fullName || user.name || 'RP')
-            .trim()
-            .split(/\s+/)
-            .map((n) => n[0])
-            .join('')
-            .substring(0, 2)
-            .toUpperCase(),
-        });
-      }
-    } catch (e) {
-      console.error('Failed to parse user profile', e);
-    }
-  }, []);
-
-  const fetchPackages = async () => {
-    setLoadingBids(true);
-    try {
-      const res = await tourPackageAPI.listPackages({ page: currentPage, limit: 10 });
-      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
-        const mapped = res.data.map((pkg) => ({
-          id: pkg._id,
-          packageName: pkg.packageName,
-          name: pkg.guide?.fullName || profile.name || 'Rohan Perera',
-          avatarInitials: (pkg.guide?.fullName || profile.name || 'RP')
-            .trim()
-            .split(/\s+/)
-            .map((n) => n[0])
-            .join('')
-            .substring(0, 2)
-            .toUpperCase(),
-          rating: '4.9/5',
-          reviewCount: 120,
-          yearsExperience: '8+ Years',
-          specialties: [
-            pkg.category ? pkg.category.toUpperCase() : 'TOUR',
-            pkg.primaryDestination ? pkg.primaryDestination.toUpperCase() : '',
-            `${pkg.durationValue || 1} ${(pkg.durationUnit || 'Days').toUpperCase()}`,
-          ].filter(Boolean),
-          pitch: pkg.shortDescription || `${pkg.packageName} - ${pkg.primaryDestination}`,
-          totalBid: pkg.pricePerPerson || 0,
-          status: pkg.status,
-          verified: true,
-        }));
-        setGuides(mapped);
-        if (res.pagination) {
-          setTotalPages(res.pagination.totalPages || 1);
-        }
-      } else {
-        setGuides(sampleGuides);
-        setTotalPages(1);
+      const res = await tourPackageAPI.listPackages({ guide: 'current', page: currentPage, limit: 10 });
+      if (res?.success && Array.isArray(res.data)) {
+        setPackages(res.data);
+        setTotalPages(res.pagination?.totalPages || 1);
       }
     } catch (err) {
-      console.error('Failed to fetch packages from server, using fallback list:', err);
-      setGuides(sampleGuides);
+      console.error('Failed to fetch packages:', err);
+      setFeedback({ type: 'error', text: 'Could not load your packages. Please refresh.' });
     } finally {
-      setLoadingBids(false);
+      setLoadingList(false);
     }
-  };
+  }, [currentPage]);
 
   useEffect(() => {
-    if (viewMode === 'list') {
-      fetchPackages();
-    }
-  }, [viewMode, currentPage, profile.name]);
+    if (viewMode === 'list') fetchPackages();
+  }, [viewMode, fetchPackages]);
 
-  const handleChange = (field, value) => {
+  /* ── Form handlers ─── */
+  const handleChange = (field, value) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
-  const handleAddStop = () => {
+  const handleAddStop = () =>
     setFormData((prev) => ({ ...prev, stops: [...prev.stops, ''] }));
-  };
 
-  const handleRemoveStop = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      stops: prev.stops.filter((_, idx) => idx !== index),
-    }));
-  };
+  const handleRemoveStop = (index) =>
+    setFormData((prev) => ({ ...prev, stops: prev.stops.filter((_, i) => i !== index) }));
 
-  const handleChangeStop = (index, value) => {
+  const handleChangeStop = (index, value) =>
     setFormData((prev) => {
       const updated = [...prev.stops];
       updated[index] = value;
       return { ...prev, stops: updated };
     });
-  };
 
-  const handleUploadPhotos = (newFiles) => {
+  const handleUploadPhotos = (newFiles) =>
     setFormData((prev) => ({ ...prev, photos: [...prev.photos, ...newFiles] }));
+
+  const handleRemovePhoto = (index) =>
+    setFormData((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
+
+  /* ── Open edit form pre-filled ─── */
+  const handleEdit = (pkg) => {
+    setEditingId(pkg._id);
+    setFormData({
+      name: pkg.packageName || '',
+      category: pkg.category || 'Cultural',
+      description: pkg.shortDescription || '',
+      destination: pkg.primaryDestination || 'Sigiriya',
+      stops: (pkg.routeStops || []).map((s) => (typeof s === 'string' ? s : s.name)),
+      photos: [],
+      pricePerItinerary: String(pkg.pricePerPerson || ''),
+      durationValue: String(pkg.durationValue || '1'),
+      durationUnit: pkg.durationUnit || 'Days',
+    });
+    setFeedback(null);
+    setViewMode('form');
   };
 
-  const handleRemovePhoto = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      photos: prev.photos.filter((_, idx) => idx !== index),
-    }));
+  /* ── Delete package ─── */
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this tour package? This cannot be undone.')) return;
+    try {
+      await tourPackageAPI.deletePackage(id);
+      setPackages((prev) => prev.filter((p) => p._id !== id));
+      setFeedback({ type: 'success', text: 'Package deleted successfully.' });
+    } catch (err) {
+      console.error('Delete error:', err);
+      setFeedback({ type: 'error', text: 'Failed to delete package. Please try again.' });
+    }
   };
 
+  /* ── Submit (create or update) ─── */
   const submitPackage = async (status) => {
     setFeedback(null);
 
-    // Validation for published status
     if (status === 'published') {
       if (!formData.name.trim()) {
         setFeedback({ type: 'error', text: 'Package Name is required.' });
         return;
       }
       if (!formData.pricePerItinerary) {
-        setFeedback({ type: 'error', text: 'Price per Itinerary is required.' });
+        setFeedback({ type: 'error', text: 'Price per Person is required.' });
         return;
       }
     }
@@ -230,86 +201,91 @@ const AddNewTourPackage = () => {
         status,
       };
 
-      const res = await tourPackageAPI.createPackage(payload);
+      let pkgId;
+      if (editingId) {
+        // Update existing
+        const res = await tourPackageAPI.updatePackage(editingId, payload);
+        pkgId = editingId;
+        setFeedback({ type: 'success', text: 'Tour package updated successfully!' });
+      } else {
+        // Create new
+        const res = await tourPackageAPI.createPackage(payload);
+        pkgId = res.data?._id;
+        setFeedback({
+          type: 'success',
+          text: status === 'published' ? 'Tour package published successfully!' : 'Tour package saved as draft.',
+        });
+      }
 
-      // Upload photos if any exist and package creation succeeded
-      if (res.success && res.data?._id && formData.photos && formData.photos.length > 0) {
+      // Upload photos if any new files selected
+      if (pkgId && formData.photos.length > 0) {
         const imageFiles = formData.photos.filter((p) => p instanceof File);
         if (imageFiles.length > 0) {
           try {
-            await tourPackageAPI.uploadPhotos(res.data._id, imageFiles);
+            await tourPackageAPI.uploadPhotos(pkgId, imageFiles);
           } catch (photoErr) {
-            console.error('Failed uploading tour photos:', photoErr);
+            console.error('Photo upload failed:', photoErr);
           }
         }
       }
 
-      const newPkgItem = {
-        id: res.data?._id || `pkg-${Date.now()}`,
-        packageName: formData.name,
-        name: profile.name || 'Rohan Perera',
-        avatarInitials: profile.avatarInitials || 'RP',
-        rating: '5.0/5',
-        reviewCount: 1,
-        yearsExperience: 'New Tour',
-        specialties: [
-          formData.category.toUpperCase(),
-          formData.destination.toUpperCase(),
-          `${formData.durationValue} ${formData.durationUnit.toUpperCase()}`,
-        ],
-        pitch: formData.description || `${formData.name} - ${formData.destination}`,
-        totalBid: Number(formData.pricePerItinerary) || 0,
-        status: status,
-        verified: true,
-      };
-
-      setGuides((prev) => [newPkgItem, ...prev]);
-
-      setFeedback({
-        type: 'success',
-        text:
-          status === 'published'
-            ? 'Tour package published successfully!'
-            : 'Tour package saved as draft.',
-      });
-
-      setFormData(initialFormState);
-      // Switch back to list view to show added packages
+      setFormData(EMPTY_FORM);
+      setEditingId(null);
       setViewMode('list');
     } catch (err) {
-      console.error('Submit package error:', err);
-      const errMsg = err?.message || err?.errors?.[0]?.message || 'Failed to save tour package. Please try again.';
+      console.error('Submit error:', err);
+      const errMsg =
+        err?.message ||
+        err?.errors?.[0]?.message ||
+        'Failed to save tour package. Please try again.';
       setFeedback({ type: 'error', text: errMsg });
     } finally {
       setSubmitting(false);
     }
   };
 
+  /* ── Cancel form ─── */
+  const handleCancelForm = () => {
+    setFormData(EMPTY_FORM);
+    setEditingId(null);
+    setFeedback(null);
+    setViewMode('list');
+  };
+
+  /* ────────────────────────────────────────────────────────────────────────
+     Render
+  ──────────────────────────────────────────────────────────────────────── */
   return (
     <PageWrapper
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      profile={profile}
-      mobileOpen={mobileOpen}
-      setMobileOpen={setMobileOpen}
-      showSearch={true}
       containerClassName={viewMode === 'form' ? 'max-w-3xl' : 'max-w-5xl'}
     >
-      {/* View Toggle Bar */}
+      {/* Page Header with toggle */}
       <div className="flex items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">
-            {viewMode === 'form' ? 'Add New Tour Package' : 'My Tour Packages & Bids'}
+            {viewMode === 'form'
+              ? editingId ? 'Edit Tour Package' : 'Add New Tour Package'
+              : 'My Tour Packages'}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             {viewMode === 'form'
-              ? 'Fill in the details below and create the best experience for your travelers.'
-              : 'Manage your active tour packages, bids, and listings.'}
+              ? 'Fill in the details below to create the best experience for your travelers.'
+              : 'Manage your active tour packages and listings.'}
           </p>
         </div>
         <button
-          onClick={() => setViewMode(viewMode === 'form' ? 'list' : 'form')}
-          className="px-4 py-2 text-xs font-bold rounded-lg border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+          onClick={() => {
+            if (viewMode === 'form') {
+              handleCancelForm();
+            } else {
+              setEditingId(null);
+              setFormData(EMPTY_FORM);
+              setFeedback(null);
+              setViewMode('form');
+            }
+          }}
+          className="px-4 py-2 text-xs font-bold rounded-xl border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-1.5 cursor-pointer flex-shrink-0"
         >
           {viewMode === 'form' ? '📋 View Listings' : '➕ Add Tour Package'}
         </button>
@@ -325,19 +301,14 @@ const AddNewTourPackage = () => {
           }`}
         >
           <span>{feedback.text}</span>
-          <button onClick={() => setFeedback(null)} className="font-bold ml-2">
-            ✕
-          </button>
+          <button onClick={() => setFeedback(null)} className="font-bold ml-2">✕</button>
         </div>
       )}
 
-      {/* Form Mode */}
+      {/* ── Form View ── */}
       {viewMode === 'form' ? (
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitPackage('published');
-          }}
+          onSubmit={(e) => { e.preventDefault(); submitPackage('published'); }}
           className="bg-white rounded-3xl border border-slate-100/80 shadow-sm p-6 sm:p-8 space-y-8"
         >
           {/* Section 1: Package Basics */}
@@ -351,23 +322,13 @@ const AddNewTourPackage = () => {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
               />
-
               <FormSelect
                 label="Category"
                 required
                 value={formData.category}
                 onChange={(e) => handleChange('category', e.target.value)}
-                options={[
-                  'Cultural',
-                  'Adventure',
-                  'Wildlife',
-                  'Culinary',
-                  'Beach & Relax',
-                  'Historical',
-                  'Nature & Trekking',
-                ]}
+                options={['Cultural', 'Adventure', 'Wildlife', 'Culinary', 'Beach & Relax', 'Historical', 'Nature & Trekking']}
               />
-
               <FormTextarea
                 label="Short Description"
                 rows={3}
@@ -388,23 +349,10 @@ const AddNewTourPackage = () => {
                   required
                   value={formData.destination}
                   onChange={(e) => handleChange('destination', e.target.value)}
-                  options={[
-                    'Sigiriya',
-                    'Ella',
-                    'Kandy',
-                    'Galle',
-                    'Nuwara Eliya',
-                    'Yala',
-                    'Colombo',
-                    'Mirissa',
-                    'Polonnaruwa',
-                    'Dambulla',
-                  ]}
+                  options={['Sigiriya', 'Ella', 'Kandy', 'Galle', 'Nuwara Eliya', 'Yala', 'Colombo', 'Mirissa', 'Polonnaruwa', 'Dambulla']}
                 />
-
                 <MapPreview destination={formData.destination} />
               </div>
-
               <RouteStopsList
                 stops={formData.stops}
                 onAddStop={handleAddStop}
@@ -429,13 +377,9 @@ const AddNewTourPackage = () => {
             <SectionHeader icon={<Tag className="w-4 h-4" />} title="PRICING & DETAILS" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  Price per Person (LKR)
-                </label>
+                <label className="block text-xs font-bold text-slate-700">Price per Person (LKR)</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-xs font-medium text-slate-400">
-                    Rs.
-                  </span>
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-xs font-medium text-slate-400">Rs.</span>
                   <input
                     type="number"
                     placeholder="15000"
@@ -445,11 +389,8 @@ const AddNewTourPackage = () => {
                   />
                 </div>
               </div>
-
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  Duration
-                </label>
+                <label className="block text-xs font-bold text-slate-700">Duration</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -468,42 +409,96 @@ const AddNewTourPackage = () => {
             </div>
           </div>
 
-          {/* Footer Action Bar */}
-          <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+          {/* Footer */}
+          <div className="pt-6 border-t border-slate-100 flex items-center justify-between gap-3">
             <button
               type="button"
-              onClick={() => submitPackage('draft')}
-              disabled={submitting}
-              className="px-5 py-2.5 text-xs font-bold text-slate-600 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all"
+              onClick={handleCancelForm}
+              className="text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
             >
-              Save as Draft
+              Cancel
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm transition-all active:scale-95 disabled:opacity-50"
-            >
-              {submitting ? 'Publishing...' : 'Publish Package'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => submitPackage('draft')}
+                disabled={submitting}
+                className="px-5 py-2.5 text-xs font-bold text-slate-600 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all disabled:opacity-50"
+              >
+                Save as Draft
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-sm transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+              >
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {submitting ? 'Saving...' : editingId ? 'Update Package' : 'Publish Package'}
+              </button>
+            </div>
           </div>
         </form>
       ) : (
-        /* Listings Mode */
+        /* ── List View ── */
         <div className="space-y-4">
-          {loadingBids ? (
-            <div className="py-12 text-center text-slate-400 text-sm">Loading guide bids...</div>
+          {loadingList ? (
+            <div className="py-16 flex flex-col items-center gap-3 text-slate-400">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <span className="text-xs font-semibold">Loading your packages…</span>
+            </div>
+          ) : packages.length === 0 ? (
+            <div className="py-16 flex flex-col items-center gap-4 text-center text-slate-400">
+              <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Package className="w-8 h-8 text-slate-300" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-700">No tour packages yet</p>
+                <p className="text-xs text-slate-400 mt-1">Click "Add Tour Package" to create your first one.</p>
+              </div>
+              <button
+                onClick={() => { setEditingId(null); setFormData(EMPTY_FORM); setViewMode('form'); }}
+                className="px-5 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-all"
+              >
+                ➕ Add Tour Package
+              </button>
+            </div>
           ) : (
-            <GuideBidList
-              guides={guides}
-              onEditInfo={(guide) => alert(`Editing bid for ${guide.name}`)}
-            />
-          )}
+            <>
+              <div className="space-y-3">
+                {packages.map((pkg) => (
+                  <PackageCard
+                    key={pkg._id}
+                    pkg={pkg}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <button
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    ← Prev
+                  </button>
+                  <span className="text-xs font-semibold text-slate-500">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </PageWrapper>

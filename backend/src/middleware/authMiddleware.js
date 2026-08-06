@@ -52,7 +52,25 @@ const authorizeRoles = (...roles) => {
   };
 };
 
+// Optional protect — attaches req.user if a valid token is present, but does NOT block if missing
+const optionalProtect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer')) {
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select('-password');
+    } catch {
+      // Invalid token — ignore, req.user stays undefined
+    }
+  }
+  next();
+};
+
 export {
+
   protect,
   authorizeRoles,
+  optionalProtect,
 };
+
