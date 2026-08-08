@@ -1,75 +1,225 @@
-import { ChevronDown } from "lucide-react"; // Replaced Search, Globe, Bell with ChevronDown
-import logo from "../assets/headerAssets/Lanka.png";
-import textImage from "../assets/headerAssets/main-test-2.png";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+// IMPORT YOUR FLAG IMAGE HERE
+import sriLankaFlag from '../assets/SLFH.jpg'; 
+// IMPORT YOUR LOGO IMAGE HERE
+import logoImage from '../assets/logo.png'; 
+// IMPORT YOUR BACKGROUND IMAGE HERE
+import bg4Image from '../assets/bg4.png'; 
 
-function Header() {
-  const navLinks = [
-    "Home",
-    "Menu",
-    "Offers",
-    "Reservation",
-    "Revenue",
-    "Profile",
-  ];
+const Header = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    closeSidebar();
+  };
 
   return (
-    <header className="w-full h-20 bg-white flex items-center justify-between  fixed top-0 left-0 z-50">
-      {/* Left Section: Logo & Brand Text */}
-      <div className="absolute top-0 left-0 h-full">
-        <div className="relative w-32 h-20 shrink-0">
-          <div className="absolute top-20 left-0 w-24 h-12 bg-white rounded-b-full shadow-sm z-10"></div>
-
-          <div className="absolute top-0 left-0 w-24 h-32 flex items-center justify-center z-10">
-            <img
-              className="w-24 h-24 object-contain drop-shadow-md"
-              src={logo}
-              alt="Sri Lanka Logo"
-            />
-          </div>
+    <>
+      <header className="w-full bg-white border-b border-gray-100 py-2 relative z-50">
+        <div className="max-w-350 mx-auto px-4 md:px-8 flex items-center justify-between">
           
-        </div>
-      </div>
-      <div className="flex items-center justify-between w-full h-20 shadow-sm pl-20 pr-8">
-        <div className="flex items-center">
-          {/* Main Text Image */}
-          <img
-            className="w-56 object-contain ml-1"
-            src={textImage}
-            alt="Smart Virtual Tourism Guide Sri Lanka"
-          />
-        </div>
+          {/* --- Background Image on Right Side --- */}
+          <div 
+            className="absolute right-0 top-0 bottom-0 w-1/3 lg:w-1/4 pointer-events-none hidden lg:block"
+            style={{
+              backgroundImage: `url(${bg4Image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'right center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 1, // Set to 100% opacity
+            }}
+          ></div>
 
-        {/* Right Section: Nav Links, Button, Language */}
-        <div className="flex items-center gap-8">
-          {/* Navigation Links (Hidden on small screens, visible on large) */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8 ">
-            {navLinks.map((item) => (
-              <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
-                className="text-slate-800 font-bold hover:text-blue-600 transition-colors text-xl"
-              >
-                {item}
-              </Link>
-            ))}
+          {/* --- Left: Logo & Title --- */}
+          <div className="flex items-center gap-3 relative z-10">
+            {/* Logo Image - Imported from assets (No round shape) */}
+            <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
+              <img 
+                src={logoImage} 
+                alt="Sri Lanka Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Text Area */}
+            <div className="flex flex-col items-start">
+              {/* Small Tagline */}
+              <span className="text-[8px] md:text-xs font-bold text-gray-700 tracking-wide mb-0.5">
+                Smart Virtual Tourism Guide
+              </span>
+              
+              {/* Main Title with Sri Lankan Flag Mask */}
+              <div className="relative">
+                <h1 
+                  className="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-[0.15em] leading-none text-transparent bg-clip-text"
+                  style={{
+                    backgroundImage: `url(${sriLankaFlag})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  Sri Lanka
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          {/* --- Center: Navigation Links (Desktop) --- */}
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 relative z-10">
+            <Link to="/" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
+              Home
+            </Link>
+            <Link to="/about" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
+              About Us
+            </Link>
+            <Link to="/destinations" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
+              Destinations
+            </Link>
+            <Link to="/how-it-works" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
+              How it Works
+            </Link>
+            <Link to="/contact" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
+              Contact
+            </Link>
           </nav>
 
-          {/* Call to Action & Language Selector */}
-          <div className="flex items-center gap-6 ml-4 border-l border-slate-100 pl-6">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-transform active:scale-95">
+          {/* --- Right: Actions --- */}
+          <div className="flex items-center gap-3 relative z-10">
+            {/* Sign In Button */}
+            <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
               Sign in
             </button>
 
-            <div className="flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900 transition-colors">
-              <span className="font-bold uppercase tracking-wide">EN</span>
-              <ChevronDown size={14} strokeWidth={3} />
+            {/* Language Selector */}
+            <div className="items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
+              <span>EN</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-3 w-3" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={toggleSidebar}
+              className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#3CB4FF] hover:bg-gray-100 transition-colors"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      {/* --- Mobile Sidebar --- */}
+      <div 
+        className={`fixed inset-0 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:hidden`}
+      >
+        {/* Overlay */}
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-50"
+          onClick={closeSidebar}
+        ></div>
+
+        {/* Sidebar Content */}
+        <div className="relative w-64 max-w-[80%] h-full bg-white shadow-xl overflow-y-auto">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <img 
+                src={logoImage} 
+                alt="Sri Lanka Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="font-bold text-gray-800 text-sm">Sri Lanka</span>
+            </div>
+            <button 
+              onClick={closeSidebar}
+              className="p-1 rounded-md text-gray-700 hover:text-red-600 hover:bg-gray-100 transition-colors"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Sidebar Navigation Links */}
+          <nav className="flex flex-col py-2">
+            <Link to="/" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              Home
+            </Link>
+            <Link to="/about" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              About Us
+            </Link>
+            <Link to="/destinations" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              Destinations
+            </Link>
+            <Link to="/how-it-works" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              How it Works
+            </Link>
+            <Link to="/contact" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              Contact
+            </Link>
+          </nav>
+
+          {/* Sidebar Actions */}
+          <div className="p-4 border-t border-gray-200">
+            <button onClick={() => handleNavigation('/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
+              Sign in
+            </button>
+            <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">
+              <span>EN</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-3 w-3" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
         </div>
       </div>
-    </header>
+    </>
   );
-}
+};
 
 export default Header;
