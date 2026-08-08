@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // IMPORT YOUR FLAG IMAGE HERE
 import sriLankaFlag from '../assets/SLFH.jpg'; 
@@ -27,7 +27,7 @@ const Header = () => {
   return (
     <>
       <header className="w-full bg-white border-b border-gray-100 py-2 relative z-50">
-        <div className="max-w-350 mx-auto px-4 md:px-8 flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 flex items-center justify-between">
           
           {/* --- Background Image on Right Side --- */}
           <div 
@@ -44,7 +44,7 @@ const Header = () => {
           {/* --- Left: Logo & Title --- */}
           <div className="flex items-center gap-3 relative z-10">
             {/* Logo Image - Imported from assets (No round shape) */}
-            <div className="relative w-12 h-12 md:w-16 md:h-16 shrink-0">
+            <div className="relative w-12 h-12 md:w-16 md:h-16 flex-shrink-0">
               <img 
                 src={logoImage} 
                 alt="Sri Lanka Logo" 
@@ -104,7 +104,7 @@ const Header = () => {
             </button>
 
             {/* Language Selector */}
-            <div className="items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
+            <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
               <span>EN</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
