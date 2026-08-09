@@ -5,93 +5,58 @@ import {
   FaCoffee, FaParking, FaSnowflake 
 } from 'react-icons/fa';
 
-// Default Hotels Dummy Data
-const defaultHotelsData = [
-  {
-    name: 'Grand Hyatt Regency',
-    location: 'Colombo 03',
-    starRating: 5,
-    price: '28,500',
-    priceUnit: 'night',
-    userRating: 4.8,
-    reviews: 1240,
-    isFeatured: true,
-    amenities: ['wifi', 'pool', 'ac', 'parking'],
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Cinnamon Lakeside',
-    location: 'Kandy Central',
-    starRating: 4,
-    price: '18,200',
-    priceUnit: 'night',
-    userRating: 4.6,
-    reviews: 850,
-    isFeatured: false,
-    amenities: ['wifi', 'pool', 'coffee', 'ac'],
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Heritance Ahungalla',
-    location: 'Galle Coastal',
-    starRating: 5,
-    price: '32,000',
-    priceUnit: 'night',
-    userRating: 4.9,
-    reviews: 2100,
-    isFeatured: true,
-    amenities: ['wifi', 'pool', 'ac', 'parking', 'coffee'],
-    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'The Sigiriya Boutique',
-    location: 'Sigiriya',
-    starRating: 4,
-    price: '14,500',
-    priceUnit: 'night',
-    userRating: 4.5,
-    reviews: 560,
-    isFeatured: false,
-    amenities: ['wifi', 'ac', 'parking'],
-    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: '98 Acres Resort',
-    location: 'Ella Rock Area',
-    starRating: 5,
-    price: '45,000',
-    priceUnit: 'night',
-    userRating: 5.0,
-    reviews: 3200,
-    isFeatured: true,
-    amenities: ['wifi', 'coffee', 'parking'],
-    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Jetwing Blue',
-    location: 'Negombo Beach',
-    starRating: 4,
-    price: '16,800',
-    priceUnit: 'night',
-    userRating: 4.4,
-    reviews: 980,
-    isFeatured: false,
-    amenities: ['wifi', 'pool', 'ac'],
-    image: 'https://images.unsplash.com/photo-1517840901100-8179e982acb7?auto=format&fit=crop&q=80&w=600'
-  }
-];
 
 const Hotels_Card = () => {
   const navigate = useNavigate();
-  const [hotelsData, setHotelsData] = useState(defaultHotelsData);
+  const [allHotels, setAllHotels] = useState([]); // Store all fetched hotels
+  const [hotelsData, setHotelsData] = useState([]); // Filtered hotels
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStars, setSelectedStars] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [budget, setBudget] = useState(100000);
   const itemsPerPage = 6;
 
+  // Fetch real hotels from backend
   React.useEffect(() => {
-    let filtered = defaultHotelsData;
+    const fetchHotels = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/hotels');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Map backend schema to frontend UI schema, providing defaults for missing UI fields
+          const mappedHotels = data.data.map(dbHotel => ({
+            _id: dbHotel._id,
+            name: dbHotel.hotelName || 'Unnamed Hotel',
+            location: dbHotel.hotelAddress || 'Unknown Location',
+            starRating: 4, // Default placeholder
+            price: '20,000', // Default placeholder
+            priceUnit: 'night',
+            userRating: 4.5,
+            reviews: 120,
+            isFeatured: false,
+            amenities: ['wifi', 'ac'], // Default placeholder
+            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600', // Default image
+            ...dbHotel // Spread original data so it can be passed to HotelBooking view
+          }));
+          
+          setAllHotels(mappedHotels);
+          setHotelsData(mappedHotels);
+        }
+      } catch (error) {
+        console.error("Error fetching hotels:", error);
+        // Fallback removed so we know if it fails
+        setAllHotels([]);
+        setHotelsData([]);
+      }
+    };
+    
+    fetchHotels();
+  }, []);
+
+  // Filter logic
+  React.useEffect(() => {
+    let filtered = allHotels;
     
     if (selectedStars.length > 0) {
       filtered = filtered.filter(hotel => selectedStars.includes(hotel.starRating));
@@ -112,7 +77,7 @@ const Hotels_Card = () => {
     
     setHotelsData(filtered);
     setCurrentPage(1);
-  }, [selectedStars, selectedAmenities, budget]);
+  }, [selectedStars, selectedAmenities, budget, allHotels]);
 
   const handleStarToggle = (star) => {
     setSelectedStars(prev => 

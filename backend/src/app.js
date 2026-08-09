@@ -36,13 +36,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running' });
 });
 
-// API routes
+import restaurantRoutes from './routes/restaurantRoutes.js';
+
+// Error handling middleware (must be last)
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/bids', bidRouter);
 app.use('/api/drivers', driverRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/hotels', hotelRoutes);
+app.use('/api/restaurants', restaurantRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

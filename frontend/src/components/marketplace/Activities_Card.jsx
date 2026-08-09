@@ -5,99 +5,19 @@ import {
   FaCalendarAlt, FaCheckCircle, FaUserFriends 
 } from 'react-icons/fa';
 
-// Default Activities Dummy Data
-const defaultActivitiesData = [
-  {
-    title: 'Kitulgala White Water Rafting',
-    location: 'Kitulgala, Sri Lanka',
-    category: 'Adventure, Water Sports',
-    duration: '3 Hours',
-    groupSize: 'Max 8 People',
-    rating: 4.8,
-    reviews: 950,
-    price: 4500, // LKR per person
-    hasFreeCancellation: true,
-    isInstantBooking: true,
-    image: 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    title: 'Sigiriya Rock Fortress Guided Tour',
-    location: 'Sigiriya, Matale',
-    category: 'History, Cultural',
-    duration: '4 Hours',
-    groupSize: 'Private Tour',
-    rating: 4.9,
-    reviews: 2410,
-    price: 3500,
-    hasFreeCancellation: true,
-    isInstantBooking: false,
-    image: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    title: 'Ella Rock Sunrise Trekking',
-    location: 'Ella, Badulla',
-    category: 'Hiking, Nature',
-    duration: '5 Hours',
-    groupSize: 'Max 12 People',
-    rating: 4.7,
-    reviews: 680,
-    price: 2800,
-    hasFreeCancellation: false,
-    isInstantBooking: true,
-    image: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    title: 'Mirissa Whale Watching Cruise',
-    location: 'Mirissa, Matara',
-    category: 'Wildlife, Boat Tour',
-    duration: '4-6 Hours',
-    groupSize: 'Shared Boat',
-    rating: 4.6,
-    reviews: 1820,
-    price: 8500,
-    hasFreeCancellation: true,
-    isInstantBooking: true,
-    image: 'https://images.unsplash.com/photo-1568444438385-ecef1a33b544?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    title: 'Udawalawe National Park Safari',
-    location: 'Udawalawe',
-    category: 'Wildlife, 4x4 Safari',
-    duration: '3 Hours',
-    groupSize: 'Max 6 Per Jeep',
-    rating: 4.8,
-    reviews: 1430,
-    price: 6000,
-    hasFreeCancellation: true,
-    isInstantBooking: true,
-    image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    title: 'Surf Lessons in Weligama Bay',
-    location: 'Weligama, Matara',
-    category: 'Water Sports, Lessons',
-    duration: '2 Hours',
-    groupSize: '1-on-1 or Groups',
-    rating: 4.5,
-    reviews: 390,
-    price: 3000,
-    hasFreeCancellation: true,
-    isInstantBooking: false,
-    image: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&q=80&w=600'
-  }
-];
-
 const Activities_Card = () => {
   const navigate = useNavigate();
-  const [fullActivitiesData, setFullActivitiesData] = useState([]);
+  const [allActivities, setAllActivities] = useState([]);
   const [activitiesData, setActivitiesData] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  const [budget, setBudget] = useState(25000);
+
+  // Filter States
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [freeCancellation, setFreeCancellation] = useState(false);
   const [instantConfirmation, setInstantConfirmation] = useState(false);
+  const [budget, setBudget] = useState(30000);
 
+  // Fetch real activities from backend
   useEffect(() => {
     const fetchActivities = async () => {
       try {
@@ -107,24 +27,26 @@ const Activities_Card = () => {
         if (result.success && result.data && result.data.length > 0) {
           // Map backend data to frontend structure
           const formattedData = result.data.map((act) => ({
-            title: act.title,
-            location: act.location,
-            category: act.category,
-            duration: act.duration,
-            groupSize: `Max ${act.maxParticipants} People`,
-            rating: act.averageRating || 0,
-            reviews: act.totalReviews || 0,
-            price: act.pricePerPerson,
+            _id: act._id,
+            title: act.title || 'Unnamed Activity',
+            location: act.location || 'Unknown Location',
+            category: act.category || 'Adventure',
+            duration: act.duration || 'Half Day',
+            groupSize: act.maxParticipants ? `Max ${act.maxParticipants} People` : 'Small Group',
+            rating: act.averageRating || 4.5,
+            reviews: act.totalReviews || 120,
+            price: act.pricePerPerson || 5000,
             hasFreeCancellation: true, // Mock value
             isInstantBooking: true, // Mock value
             image: (act.images && act.images.length > 0) 
               ? act.images[0] 
               : 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600'
           }));
-          setFullActivitiesData(formattedData);
+          setAllActivities(formattedData);
           setActivitiesData(formattedData);
         } else {
-          setFullActivitiesData(defaultActivitiesData);
+          setAllActivities([]);
+          setActivitiesData([]);
         }
       } catch (error) {
         console.error("Error fetching activities:", error);
@@ -137,7 +59,7 @@ const Activities_Card = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = fullActivitiesData.length > 0 ? fullActivitiesData : defaultActivitiesData;
+    let filtered = allActivities;
     
     if (budget > 0) {
       filtered = filtered.filter(act => act.price <= budget);
@@ -156,7 +78,7 @@ const Activities_Card = () => {
     }
     
     setActivitiesData(filtered);
-  }, [fullActivitiesData, budget, selectedTypes, freeCancellation, instantConfirmation]);
+  }, [allActivities, budget, selectedTypes, freeCancellation, instantConfirmation]);
 
   const handleTypeToggle = (type) => {
     setSelectedTypes(prev => 

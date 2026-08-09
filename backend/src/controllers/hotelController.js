@@ -1,5 +1,24 @@
 import Room from '../models/Room.js';
 import SpecialPackage from '../models/SpecialPackage.js';
+import User from '../models/User.js';
+
+// --- Global Hotel Controllers ---
+
+export const getAllHotels = async (req, res, next) => {
+    try {
+        const hotelOwners = await User.find({ role: 'hotelowner_user', 'hotels.0': { $exists: true } });
+        const allHotels = hotelOwners.reduce((acc, user) => {
+            return acc.concat(user.hotels.map(h => ({
+                ...h.toObject(),
+                ownerId: user._id,
+                ownerName: user.fullName
+            })));
+        }, []);
+        res.status(200).json({ success: true, count: allHotels.length, data: allHotels });
+    } catch (error) {
+        next(error);
+    }
+};
 
 // --- Room Controllers ---
 

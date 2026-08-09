@@ -5,128 +5,94 @@ import {
   FaBiking, FaShoppingBag, FaStore 
 } from 'react-icons/fa';
 
-// Default Restaurants Dummy Data
-const defaultRestaurantsData = [
-  {
-    name: 'The Lagoon',
-    location: 'Cinnamon Grand, Colombo',
-    cuisine: 'Seafood, Fine Dining',
-    priceLevel: '$$$$',
-    userRating: 4.9,
-    reviews: 1840,
-    isOpen: true,
-    features: ['dinein', 'takeaway'],
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Ministry of Crab',
-    location: 'Dutch Hospital, Colombo',
-    cuisine: 'Sri Lankan Seafood',
-    priceLevel: '$$$$$',
-    userRating: 4.8,
-    reviews: 3200,
-    isOpen: true,
-    features: ['dinein'],
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Baila Fuego & Cafe',
-    location: 'Kandy Lake Round',
-    cuisine: 'Italian, Fusion, Coffee',
-    priceLevel: '$$$',
-    userRating: 4.5,
-    reviews: 420,
-    isOpen: false,
-    features: ['dinein', 'takeaway', 'delivery'],
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Upali’s by Nawaloka',
-    location: 'Colombo 07',
-    cuisine: 'Authentic Sri Lankan',
-    priceLevel: '$$',
-    userRating: 4.6,
-    reviews: 1450,
-    isOpen: true,
-    features: ['dinein', 'takeaway', 'delivery'],
-    image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Cafe Chill',
-    location: 'Ella Central',
-    cuisine: 'Western, Asian, Bar',
-    priceLevel: '$$$',
-    userRating: 4.7,
-    reviews: 2890,
-    isOpen: true,
-    features: ['dinein', 'takeaway'],
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=600'
-  },
-  {
-    name: 'Pedlar’s Inn Cafe',
-    location: 'Galle Fort',
-    cuisine: 'Continental, Desserts',
-    priceLevel: '$$$',
-    userRating: 4.4,
-    reviews: 810,
-    isOpen: true,
-    features: ['dinein', 'takeaway'],
-    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=600'
-  }
-];
-
 const Restaurants_Card = () => {
   const navigate = useNavigate();
-  const [restaurantsData, setRestaurantsData] = useState(defaultRestaurantsData);
+  const [allRestaurants, setAllRestaurants] = useState([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-  
-  // Filters state
-  const [budget, setBudget] = useState(100000);
   const [selectedPriceLevels, setSelectedPriceLevels] = useState([]);
   const [selectedCuisines, setSelectedCuisines] = useState([]);
   const [dineInAvailable, setDineInAvailable] = useState(false);
   const [deliveryOffered, setDeliveryOffered] = useState(false);
+  const [budget, setBudget] = useState(100000);
+  const itemsPerPage = 6;
 
-  // Filter logic
-  const filteredRestaurants = restaurantsData.filter(rest => {
-    // Budget Filter (Map price levels to approximate maximum cost)
-    const priceLevelMap = {
-      '$': 5000,
-      '$$': 15000,
-      '$$$': 30000,
-      '$$$$': 50000,
-      '$$$$$': 100000
+  // Fetch real restaurants from backend
+  React.useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/restaurants');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Map backend schema to frontend UI schema
+          const mappedRestaurants = data.data.map(dbRest => ({
+            _id: dbRest._id,
+            name: dbRest.restaurantName || 'Unnamed Restaurant',
+            location: dbRest.restaurantAddress || 'Unknown Location',
+            cuisine: 'Varied', // Fallback
+            starRating: 4.5,
+            reviews: 120,
+            priceLevel: '$$', // Fallback
+            isOpen: true,
+            features: ['dinein', 'takeaway', 'delivery'],
+            image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600',
+            ...dbRest
+          }));
+          
+          setAllRestaurants(mappedRestaurants);
+          setFilteredRestaurants(mappedRestaurants);
+        }
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+      }
     };
-    if (priceLevelMap[rest.priceLevel] > budget) return false;
 
-    // Price Level Filter
-    if (selectedPriceLevels.length > 0 && !selectedPriceLevels.includes(rest.priceLevel.substring(0, selectedPriceLevels[0].length))) {
-       // Just doing exact match for simplicity or let's do exact match
-       if (!selectedPriceLevels.includes(rest.priceLevel)) {
-         return false;
-       }
-    }
-    
-    // Cuisine Filter (basic keyword check)
-    if (selectedCuisines.length > 0) {
-      const match = selectedCuisines.some(cuisine => {
-        const lowerRestCuisine = rest.cuisine.toLowerCase();
-        if (cuisine === 'Sri Lankan' && lowerRestCuisine.includes('sri lankan')) return true;
-        if (cuisine === 'Seafood' && lowerRestCuisine.includes('seafood')) return true;
-        if (cuisine === 'Italian / Western' && (lowerRestCuisine.includes('italian') || lowerRestCuisine.includes('western') || lowerRestCuisine.includes('continental'))) return true;
-        if (cuisine === 'Cafes & Desserts' && (lowerRestCuisine.includes('cafe') || lowerRestCuisine.includes('coffee') || lowerRestCuisine.includes('dessert'))) return true;
-        return false;
-      });
-      if (!match) return false;
-    }
+    fetchRestaurants();
+  }, []);
 
-    // Dining Options Filter
-    if (dineInAvailable && !rest.features.includes('dinein')) return false;
-    if (deliveryOffered && !rest.features.includes('delivery')) return false;
+  // Filter effect
+  React.useEffect(() => {
+    const filteredList = allRestaurants.filter(rest => {
+      // Budget Filter (approximating max cost)
+      const priceLevelMap = {
+        '$': 5000,
+        '$$': 15000,
+        '$$$': 30000,
+        '$$$$': 50000,
+        '$$$$$': 100000
+      };
+      if (priceLevelMap[rest.priceLevel] > budget) return false;
 
-    return true;
-  });
+      // Price Level Filter
+      if (selectedPriceLevels.length > 0) {
+         if (!selectedPriceLevels.includes(rest.priceLevel)) {
+           return false;
+         }
+      }
+      
+      // Cuisine Filter (basic keyword check)
+      if (selectedCuisines.length > 0) {
+        const match = selectedCuisines.some(cuisine => {
+          const lowerRestCuisine = rest.cuisine.toLowerCase();
+          if (cuisine === 'Sri Lankan' && lowerRestCuisine.includes('sri lankan')) return true;
+          if (cuisine === 'Seafood' && lowerRestCuisine.includes('seafood')) return true;
+          if (cuisine === 'Italian / Western' && (lowerRestCuisine.includes('italian') || lowerRestCuisine.includes('western') || lowerRestCuisine.includes('continental'))) return true;
+          if (cuisine === 'Cafes & Desserts' && (lowerRestCuisine.includes('cafe') || lowerRestCuisine.includes('coffee') || lowerRestCuisine.includes('dessert'))) return true;
+          return false;
+        });
+        if (!match) return false;
+      }
+
+      // Dining Options Filter
+      if (dineInAvailable && !rest.features.includes('dinein')) return false;
+      if (deliveryOffered && !rest.features.includes('delivery')) return false;
+
+      return true;
+    });
+
+    setFilteredRestaurants(filteredList);
+  }, [allRestaurants, budget, selectedPriceLevels, selectedCuisines, dineInAvailable, deliveryOffered]);
 
   const togglePriceLevel = (level) => {
     setSelectedPriceLevels(prev => prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]);

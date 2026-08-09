@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { FaStar, FaCalendarAlt } from 'react-icons/fa';
 
-const HotelAvailabilityCard = ({ hotel }) => {
+const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
   const navigate = useNavigate();
 
   const [hotelData, setHotelData] = useState({
     checkIn: "",
     checkOut: "",
-    guests: "",
-    rooms: "",
+    guests: "1 Guest",
   });
 
-  // Parse price which might be a string with commas e.g. "28,500"
-  const rawPrice = hotel?.price ? String(hotel.price).replace(/,/g, '') : "15000";
-  const basePricePerNight = Number(rawPrice) || 15000;
+  // Default fallback values based on the mockup
+  const basePricePerNight = selectedRoom ? selectedRoom.price : 150;
+  const rating = hotel?.rating || 4.8;
+  const reviews = hotel?.reviews || 234;
 
   const calculateNights = () => {
     if (hotelData.checkIn && hotelData.checkOut) {
@@ -22,20 +23,21 @@ const HotelAvailabilityCard = ({ hotel }) => {
       const end = new Date(hotelData.checkOut);
       const diffTime = end - start;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 0 ? diffDays : 1;
+      return diffDays > 0 ? diffDays : 2; // Defaulting to 2 to match mockup calculation
     }
-    return 1;
+    return 2;
   };
 
   const nights = calculateNights();
-  const roomsCount = Number(hotelData.rooms) || 1;
   
-  const roomPrice = nights * basePricePerNight * roomsCount;
-  const taxesAndFees = Math.round(roomPrice * 0.15); // 15% tax
+  const roomPrice = nights * basePricePerNight;
+  const serviceFee = 25;
+  const taxes = 15;
+  const total = roomPrice + serviceFee + taxes;
 
   const handleAvailabilityCheck = () => {
-    if (!hotelData.checkIn || !hotelData.checkOut || !hotelData.guests || !hotelData.rooms) {
-      toast.error("Please fill in all booking details.");
+    if (!hotelData.checkIn || !hotelData.checkOut) {
+      toast.error("Please fill in booking dates.");
       return;
     }
 
@@ -43,134 +45,118 @@ const HotelAvailabilityCard = ({ hotel }) => {
       state: {
         service: {
           image: hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
-          name: hotel?.name || "Cinnamon Grand Colombo",
-          location: hotel?.location || "Colombo, Sri Lanka",
-          rating: hotel?.rating || hotel?.userRating || 4.8,
-          reviews: hotel?.reviews || 230,
-          description: hotel?.description || "Luxury hotel with ocean view.",
+          name: hotel?.name || "Ocean Breeze Resort",
+          location: hotel?.location || "Bentota, Sri Lanka",
+          rating: rating,
+          reviews: reviews,
+          description: hotel?.description || "Experience luxury at Ocean Breeze Resort.",
         },
-
         bookingDetails: [
-          {
-            label: "Check-in",
-            value: hotelData.checkIn,
-          },
-          {
-            label: "Check-out",
-            value: hotelData.checkOut,
-          },
-          {
-            label: "Guests",
-            value: `${hotelData.guests} Guest(s)`,
-          },
-          {
-            label: "Rooms",
-            value: `${hotelData.rooms} Room(s)`,
-          },
+          { label: "Room", value: selectedRoom ? selectedRoom.name : "Standard Room" },
+          { label: "Check-in", value: hotelData.checkIn },
+          { label: "Check-out", value: hotelData.checkOut },
+          { label: "Guests", value: hotelData.guests },
         ],
-
         pricing: {
-          currency: "LKR",
+          currency: "USD",
           items: [
-            {
-              label: `Room Price (${roomsCount} Room(s) x ${nights} Night(s) x ${basePricePerNight.toLocaleString()} LKR)`,
-              amount: roomPrice,
-            },
-            {
-              label: "Taxes & Fees (15%)",
-              amount: taxesAndFees,
-            },
+            { label: `$${basePricePerNight} x ${nights} nights`, amount: roomPrice },
+            { label: "Service fee", amount: serviceFee },
+            { label: "Taxes", amount: taxes },
           ],
         },
-
         serviceType: "hotel",
       },
     });
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
-      <h2 className="font-bold text-lg mb-6 text-gray-800">
-        Check Availability
-      </h2>
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      
+      {/* Header (Price & Rating) */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <span className="text-3xl font-extrabold text-gray-900">${basePricePerNight}</span>
+          <span className="text-xs text-gray-500 font-medium ml-1">per night</span>
+        </div>
+        <div className="flex items-center mt-2 text-xs font-semibold text-gray-700">
+          <FaStar className="text-yellow-400 mr-1 w-3 h-3" />
+          {rating} <span className="text-gray-400 ml-1 font-normal underline cursor-pointer">({reviews} reviews)</span>
+        </div>
+      </div>
 
       <div className="space-y-4">
+        {/* Date Pickers */}
         <div>
-          <label className="block text-sm font-bold text-gray-600 mb-1">Check-in Date</label>
-          <input
-            type="date"
-            value={hotelData.checkIn}
-            onChange={(e) =>
-              setHotelData({ ...hotelData, checkIn: e.target.value })
-            }
-            className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-bold text-gray-600 mb-1">Check-out Date</label>
-          <input
-            type="date"
-            value={hotelData.checkOut}
-            onChange={(e) =>
-              setHotelData({ ...hotelData, checkOut: e.target.value })
-            }
-            className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-600 mb-1">Guests</label>
+          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Check-in</label>
+          <div className="relative">
             <input
-              type="number"
-              min="1"
-              value={hotelData.guests}
-              onChange={(e) =>
-                setHotelData({ ...hotelData, guests: e.target.value })
-              }
-              className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-600 mb-1">Rooms</label>
-            <input
-              type="number"
-              min="1"
-              value={hotelData.rooms}
-              onChange={(e) =>
-                setHotelData({ ...hotelData, rooms: e.target.value })
-              }
-              className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="date"
+              value={hotelData.checkIn}
+              onChange={(e) => setHotelData({ ...hotelData, checkIn: e.target.value })}
+              className="w-full border border-gray-200 p-3 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              placeholder="mm/dd/yyyy"
             />
           </div>
         </div>
 
-        {/* Total Price Display */}
-        <div className="pt-4 border-t border-gray-100 mt-4 mb-2">
-            <div className="flex justify-between items-center text-sm mb-1">
-                <span className="text-gray-500">Room Price ({nights} Night(s))</span>
-                <span className="font-semibold text-gray-700">LKR {roomPrice.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm mb-1">
-                <span className="text-gray-500">Taxes & Fees</span>
-                <span className="font-semibold text-gray-700">LKR {taxesAndFees.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                <span className="text-gray-800 font-bold">Total Price</span>
-                <span className="text-xl font-black text-blue-600">
-                    LKR {(roomPrice + taxesAndFees).toLocaleString()}
-                </span>
-            </div>
+        <div>
+          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Check-out</label>
+          <div className="relative">
+            <input
+              type="date"
+              value={hotelData.checkOut}
+              onChange={(e) => setHotelData({ ...hotelData, checkOut: e.target.value })}
+              className="w-full border border-gray-200 p-3 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+              placeholder="mm/dd/yyyy"
+            />
+          </div>
+        </div>
+
+        {/* Guests Dropdown */}
+        <div>
+          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Guests</label>
+          <select
+            value={hotelData.guests}
+            onChange={(e) => setHotelData({ ...hotelData, guests: e.target.value })}
+            className="w-full border border-gray-200 p-3 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="1 Guest">1 Guest</option>
+            <option value="2 Guests">2 Guests</option>
+            <option value="3 Guests">3 Guests</option>
+            <option value="4 Guests">4 Guests</option>
+          </select>
         </div>
 
         <button
           onClick={handleAvailabilityCheck}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold uppercase tracking-wider transition-colors shadow-md mt-4"
+          className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm mt-2"
         >
-          Proceed to Booking
+          Check availability
         </button>
+
+        {/* Total Price Display */}
+        <div className="pt-4 mt-4 space-y-2">
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">${basePricePerNight} x {nights} nights</span>
+                <span className="font-semibold text-gray-700">${roomPrice}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Service fee</span>
+                <span className="font-semibold text-gray-700">${serviceFee}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Taxes</span>
+                <span className="font-semibold text-gray-700">${taxes}</span>
+            </div>
+            
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                <span className="text-gray-900 font-extrabold text-base">Total</span>
+                <span className="text-base font-extrabold text-gray-900">
+                    ${total}
+                </span>
+            </div>
+        </div>
       </div>
     </div>
   );

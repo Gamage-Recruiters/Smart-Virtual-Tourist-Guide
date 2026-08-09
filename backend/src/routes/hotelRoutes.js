@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+    getAllHotels,
     createRoom,
     getRooms,
     getRoomById,
@@ -13,6 +14,9 @@ import {
 } from '../controllers/hotelController.js';
 
 const router = express.Router();
+
+// --- Global Hotel Routes ---
+router.get('/', getAllHotels);
 
 // --- Room Routes ---
 router.post('/rooms', createRoom);

@@ -5,78 +5,77 @@ import {
 } from 'react-icons/fa';
 import tuk from '../../assets/vehiclecard/tuk.png';
 
-const vehiclesData = [
-  {
-    name: 'Honda Dio',
-    type: 'scooter',
-    seats: '2 Seats',
-    price: '2,500',
-    badge: 'SUV',
-    image: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=400'
-  },
-  {
-    name: 'TVS NTORQ 125',
-    type: 'scooter',
-    seats: '2 Seats',
-    price: '2,700',
-    badge: 'SUV',
-    image: 'https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?auto=format&fit=crop&q=80&w=400'
-  },
-  {
-    name: 'Bajaj Tuk Tuk',
-    type: 'Manual',
-    seats: '3 Seats',
-    price: '3,800',
-    badge: '4 stroke',
-    image: 'https://images.unsplash.com/photo-1566008889980-343be3855b7c?auto=format&fit=crop&q=80&w=400'
-  },
-  {
-    name: 'Honda Vezel',
-    type: 'Automatic',
-    seats: '5 Seats',
-    price: '12,500',
-    badge: 'SUV',
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400'
-  },
-  {
-    name: 'Mitsubishi Montero',
-    type: 'Automatic',
-    seats: '7 Seats',
-    price: '25,000',
-    badge: 'Luxury SUV',
-    image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=400'
-  },
-  {
-    name: 'Toyota Dolphin',
-    type: 'Automatic',
-    seats: '12 Seats',
-    price: '30,000',
-    badge: 'Hybrid',
-    image: 'https://images.unsplash.com/photo-1516576426665-2bc8d9bf1841?auto=format&fit=crop&q=80&w=400'
-  }
-];
+
 
 const Vehicles_Card = () => {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [budget, setBudget] = useState(50000);
-  const [selectedType, setSelectedType] = useState('All');
-  const [ratingFilter, setRatingFilter] = useState({ 5: true, 4: false });
-  const itemsPerPage = 6;
+  const [allVehicles, setAllVehicles] = useState([]);
+  const [vehiclesData, setVehiclesData] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  const filteredVehicles = vehiclesData.filter(vehicle => {
-    // Check Budget
-    const priceNum = Number(vehicle.price.replace(/,/g, ''));
-    if (priceNum > budget) return false;
+  // Filter and Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const [budget, setBudget] = useState(25000);
+  const [selectedType, setSelectedType] = useState('All');
+
+  // Fetch real drivers/vehicles from backend
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/drivers');
+        const result = await response.json();
+        
+        // Since we are fetching from Drivers, we map driver details to a vehicle view
+        if (result && result.length > 0) {
+          const formattedData = result.map(driver => ({
+            _id: driver._id,
+            name: driver.vehicleName || 'Unnamed Vehicle',
+            type: 'SUV', // Default placeholder
+            seats: '4 Seats', // Default placeholder
+            price: 5000, // Default placeholder
+            badge: driver.availability ? 'Available' : 'Booked',
+            driverName: driver.driverName,
+            image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600' // Default placeholder
+          }));
+          setAllVehicles(formattedData);
+          setVehiclesData(formattedData);
+        } else {
+          setAllVehicles([]);
+          setVehiclesData([]);
+        }
+      } catch (error) {
+        console.error("Error fetching vehicles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // Check Type
-    if (selectedType !== 'All') {
-      if (selectedType === 'Luxury SUV' && !vehicle.badge.includes('Luxury')) return false;
-      if (selectedType === 'Budget' && priceNum > 5000) return false;
+    fetchVehicles();
+  }, []);
+
+  // Filter Logic
+  useEffect(() => {
+    let filtered = allVehicles;
+    
+    // Filter by max budget per day
+    if (budget > 0) {
+      filtered = filtered.filter(v => v.price <= budget);
     }
     
-    return true;
-  });
+    // Simple category type filter
+    if (selectedType !== 'All') {
+      if (selectedType === 'Luxury SUV') {
+        filtered = filtered.filter(v => v.type.toLowerCase().includes('suv'));
+      } else if (selectedType === 'Budget') {
+        filtered = filtered.filter(v => v.price <= 6000);
+      }
+    }
+
+    setVehiclesData(filtered);
+    setCurrentPage(1); // reset pagination when filters change
+  }, [budget, selectedType, allVehicles]);
+
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6"> 
