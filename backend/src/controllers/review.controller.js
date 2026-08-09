@@ -1,18 +1,27 @@
 // BACKEND/src/controllers/review.controller.js
 import { createReviewService, getReviewsByProviderService, deleteReviewService } from '../services/review.service.js';
-import { calculateRatingStats } from '../utils/rating.util.js';
+import { calculateRatingStats , calculateBatchRatings } from '../utils/rating.util.js';
 import Review from '../models/Review.model.js'; 
 
 /**
  * @desc    Create a new review
  * @route   POST /api/reviews
- * @access  Private
+ * @access  Private (Authenticated users only)
  */
 export const createReview = async (req, res) => {
     try {
-        const reviewData = req.body;
+        // Retrieve the authenticated user's ID securely from the request object.
+        // This is populated by the authentication middleware (e.g., Aysha's 'protect' guard).
+        const touristId = req.user._id;
+
+        // Construct the final review payload by combining the authenticated ID with the request body.
+        // This prevents malicious users from spoofing the 'touristId' in the frontend payload.
+        const reviewData = {
+            ...req.body,
+            touristId: touristId
+        };
         
-        // Delegate the review creation logic to the service layer
+        // Delegate the database save operation to the service layer
         const savedReview = await createReviewService(reviewData);
 
         res.status(201).json({
@@ -26,26 +35,23 @@ export const createReview = async (req, res) => {
 };
 
 /**
- * @desc    Get reviews and stats for a specific provider
+ * @desc    Get reviews and statistical data for a specific service provider
  * @route   GET /api/reviews/provider/:targetType/:targetProviderId
  * @access  Public
  */
 export const getProviderReviews = async (req, res) => {
     try {
         const { targetType, targetProviderId } = req.params;
-
-        // Fetch all reviews for the specified provider via the service layer
+        
+        // Fetch raw review documents via the service layer
         const reviews = await getReviewsByProviderService(targetType, targetProviderId);
-
-        // Calculate overall rating and star distribution statistics
+        
+        // Compute the overall average rating and star distribution percentages
         const stats = calculateRatingStats(reviews);
 
         res.status(200).json({
             success: true,
-            data: {
-                reviews,
-                stats
-            }
+            data: { reviews, stats }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
@@ -53,7 +59,7 @@ export const getProviderReviews = async (req, res) => {
 };
 
 /**
- * @desc    Report a review (from the 'Report Review' modal in UI)
+ * @desc    Report a review for spam or inappropriate content
  * @route   PATCH /api/reviews/:id/report
  * @access  Private
  */
@@ -62,7 +68,7 @@ export const reportReview = async (req, res) => {
         const { id } = req.params;
         const { reportReason } = req.body;
 
-        // Update the review status to reported and append the reason
+        // Update the document to flag it for admin review
         const updatedReview = await Review.findByIdAndUpdate(
             id,
             { isReported: true, reportReason: reportReason },
@@ -73,10 +79,10 @@ export const reportReview = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Review not found' });
         }
 
-        res.status(200).json({
-            success: true,
-            message: 'Review reported successfully.',
-            data: updatedReview
+        res.status(200).json({ 
+            success: true, 
+            message: 'Review reported successfully. Admins will verify it.', 
+            data: updatedReview 
         });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
@@ -84,20 +90,20 @@ export const reportReview = async (req, res) => {
 };
 
 /**
- * @desc    Increment the helpful/unhelpful count (Was this helpful? 👍 👎)
+ * @desc    Increment the helpful or unhelpful counter of a review (👍 / 👎)
  * @route   PATCH /api/reviews/:id/helpful
  * @access  Private
  */
 export const markHelpful = async (req, res) => {
     try {
         const { id } = req.params;
-        const { isHelpful } = req.body; // Boolean: true for helpful, false for unhelpful
+        const { isHelpful } = req.body; 
 
-        // Determine whether to increment the helpful or unhelpful counter
+        // Dynamically choose which counter to increment based on the boolean flag
         const updateQuery = isHelpful 
             ? { $inc: { helpfulCount: 1 } } 
             : { $inc: { unhelpfulCount: 1 } };
-
+            
         const updatedReview = await Review.findByIdAndUpdate(id, updateQuery, { new: true });
 
         res.status(200).json({ success: true, data: updatedReview });
@@ -107,21 +113,53 @@ export const markHelpful = async (req, res) => {
 };
 
 /**
- * @desc    Delete a review (By User or Admin)
+ * @desc    Delete a specific review 
  * @route   DELETE /api/reviews/:id
- * @access  Private
+ * @access  Private (Currently accessible to the author; should be restricted to Admins eventually)
  */
 export const deleteReview = async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Handle the deletion via the service layer
         const deletedReview = await deleteReviewService(id);
         
         if (!deletedReview) {
             return res.status(404).json({ success: false, message: 'Review not found' });
         }
         res.status(200).json({ success: true, message: 'Review deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+
+
+/**
+ * @desc    Get average ratings for multiple providers at once (Batch)
+ * @route   POST /api/reviews/batch-ratings
+ * @access  Public
+ */
+export const getBatchProviderRatings = async (req, res) => {
+    try {
+        const { targetType, providerIds } = req.body;
+
+        if (!targetType || !providerIds || !Array.isArray(providerIds)) {
+            return res.status(400).json({ success: false, message: 'targetType and providerIds (array) are required' });
+        }
+
+        // Database eken e IDs okkotama adala reviews eka paara gannawa (Performance optimized!)
+        const allReviews = await Review.find({ 
+            targetType: targetType, 
+            targetProviderId: { $in: providerIds } 
+        });
+
+        // Util eka haraha eka eka guide ta adala average rating eka calculate karanawa
+        const batchResults = calculateBatchRatings(allReviews, providerIds);
+
+        res.status(200).json({
+            success: true,
+            data: batchResults
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
     }

@@ -23,3 +23,27 @@ export const calculateRatingStats = (reviews) => {
         starCounts
     };
 };
+
+
+export const calculateBatchRatings = (reviewsArray, providerIds) => {
+    const results = {};
+    
+    // Mulinma okkoma IDs walata 0 set karanawa (Review nathi ayata 0 yanna ooni nisa)
+    providerIds.forEach(id => {
+        results[id] = { averageRating: 0, totalReviews: 0 };
+    });
+
+    // Hama provider ID ekatama adala reviews tika wen karagena calculate karanawa
+    providerIds.forEach(id => {
+        const providerReviews = reviewsArray.filter(review => review.targetProviderId.toString() === id);
+        if (providerReviews.length > 0) {
+            const stats = calculateRatingStats(providerReviews);
+            results[id] = {
+                averageRating: stats.averageRating,
+                totalReviews: stats.totalReviews
+            };
+        }
+    });
+
+    return results;
+};

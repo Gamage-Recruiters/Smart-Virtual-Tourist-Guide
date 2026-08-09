@@ -7,7 +7,8 @@ import {
     getProviderReviews, 
     reportReview, 
     markHelpful, 
-    deleteReview 
+    deleteReview,
+    getBatchProviderRatings
 } from '../controllers/review.controller.js';
 
 // Import our Joi Validator
@@ -15,7 +16,7 @@ import { validateReview } from '../validators/review.validator.js';
 
 // Import the authentication middleware 
 // Ensure the path and file name perfectly match the actual auth middleware file
-import { protect } from '../middleware/auth.middleware.js'; 
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -33,6 +34,15 @@ router.post('/', protect, validateReview, createReview);
  * @access  Public
  */
 router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
+
+
+/**
+ * @route   POST /api/reviews/batch-ratings
+ * @desc    Get ratings for multiple providers
+ * @access  Public
+ */
+router.post('/batch-ratings', getBatchProviderRatings);
+
 
 /**
  * @route   PATCH /api/reviews/:id/report
