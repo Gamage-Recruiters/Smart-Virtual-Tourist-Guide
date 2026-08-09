@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaStar, FaMapMarkerAlt, FaWifi, FaSwimmingPool, 
@@ -8,72 +8,55 @@ import {
 
 const Hotels_Card = () => {
   const navigate = useNavigate();
-  const [hotelsData, setHotelsData] = useState([]);
-  const [fullHotelsData, setFullHotelsData] = useState([]);
+  const [allHotels, setAllHotels] = useState([]); // Store all fetched hotels
+  const [hotelsData, setHotelsData] = useState([]); // Filtered hotels
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStars, setSelectedStars] = useState([]);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [budget, setBudget] = useState(100000);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const itemsPerPage = 6;
 
-  useEffect(() => {
-    const fetchRooms = async () => {
+  // Fetch real hotels from backend
+  React.useEffect(() => {
+    const fetchHotels = async () => {
       try {
-        const response = await fetch('/api/hotels/rooms');
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to load hotel rooms');
+        const response = await fetch('http://localhost:5000/api/hotels');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Map backend schema to frontend UI schema, providing defaults for missing UI fields
+          const mappedHotels = data.data.map(dbHotel => ({
+            _id: dbHotel._id,
+            name: dbHotel.hotelName || 'Unnamed Hotel',
+            location: dbHotel.hotelAddress || 'Unknown Location',
+            starRating: 4, // Default placeholder
+            price: '20,000', // Default placeholder
+            priceUnit: 'night',
+            userRating: 4.5,
+            reviews: 120,
+            isFeatured: false,
+            amenities: ['wifi', 'ac'], // Default placeholder
+            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600', // Default image
+            ...dbHotel // Spread original data so it can be passed to HotelBooking view
+          }));
+          
+          setAllHotels(mappedHotels);
+          setHotelsData(mappedHotels);
         }
-
-        if (result.success && Array.isArray(result.data)) {
-          const formatted = result.data.map((room) => {
-            const hotelName = room.hotel?.hotelName || room.roomName || 'Hotel Room';
-            const location = room.hotel?.hotelAddress || room.locationAndPricing?.[0]?.aboutLocation || 'Sri Lanka';
-            const priceValue = Number(room.locationAndPricing?.[0]?.basePrice || 15000);
-            return {
-              id: room._id,
-              name: hotelName,
-              location,
-              starRating: 4,
-              price: priceValue.toLocaleString(),
-              priceValue,
-              priceUnit: 'night',
-              userRating: 4.5,
-              reviews: room.bookingDates?.length || 0,
-              isFeatured: !!room.hotel?.hotelName,
-              amenities: room.amenities || [],
-              image: room.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600',
-              description: room.description,
-              roomType: room.roomType,
-              capacity: room.capacity,
-              hotelData: room.hotel,
-              rawRoom: room
-            };
-          });
-          setFullHotelsData(formatted);
-          setHotelsData(formatted);
-        } else {
-          setFullHotelsData([]);
-          setHotelsData([]);
-        }
-      } catch (fetchError) {
-        console.error('Error loading hotel rooms:', fetchError);
-        setError(fetchError.message || 'Unable to load hotel rooms');
-        setFullHotelsData([]);
+      } catch (error) {
+        console.error("Error fetching hotels:", error);
+        // Fallback removed so we know if it fails
+        setAllHotels([]);
         setHotelsData([]);
-      } finally {
-        setLoading(false);
       }
     };
-
-    fetchRooms();
+    
+    fetchHotels();
   }, []);
 
-  useEffect(() => {
-    let filtered = fullHotelsData;
+  // Filter logic
+  React.useEffect(() => {
+    let filtered = allHotels;
     
     if (selectedStars.length > 0) {
       filtered = filtered.filter(hotel => selectedStars.includes(hotel.starRating));
@@ -87,14 +70,14 @@ const Hotels_Card = () => {
     
     if (budget > 0) {
       filtered = filtered.filter(hotel => {
-        const priceNum = Number(String(hotel.price).replace(/,/g, ''));
+        const priceNum = Number(hotel.price.replace(/,/g, ''));
         return priceNum <= budget;
       });
     }
     
     setHotelsData(filtered);
     setCurrentPage(1);
-  }, [selectedStars, selectedAmenities, budget, fullHotelsData]);
+  }, [selectedStars, selectedAmenities, budget, allHotels]);
 
   const handleStarToggle = (star) => {
     setSelectedStars(prev => 
