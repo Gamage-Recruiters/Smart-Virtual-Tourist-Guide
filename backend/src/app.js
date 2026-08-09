@@ -10,6 +10,7 @@ import driverRouter from './routes/driverRouter.js';
 import activityRouter from './routes/activityRouter.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import hotelRoutes from './routes/hotelRoutes.js';
+import vehicleRoutes from './routes/vehicleRoutes.js';
 
 // Middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -45,6 +46,7 @@ app.use('/api/drivers', driverRouter);
 app.use('/api/activities', activityRouter);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/hotels', hotelRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 
 // Error handling middleware (must be last)

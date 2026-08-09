@@ -215,38 +215,39 @@ const Activities_Card = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {activitiesData.map((act, index) => (
-                <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all">
-                
-                {/* Image & Badges */}
-                <div className="relative h-48 bg-gray-100">
-                  <img src={act.image} alt={act.title} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300" />
+              {activitiesData.length > 0 ? (
+                activitiesData.map((act, index) => (
+                  <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all">
                   
-                  {/* Free Cancellation Badge */}
-                  {act.hasFreeCancellation && (
-                    <div className="absolute top-3 left-3">
-                      <span className="bg-green-500 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-xs">
-                        Free Cancellation
-                      </span>
+                  {/* Image & Badges */}
+                  <div className="relative h-48 bg-gray-100">
+                    <img src={act.image} alt={act.title} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300" />
+                    
+                    {/* Free Cancellation Badge */}
+                    {act.hasFreeCancellation && (
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-green-500 text-white text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-xs">
+                          Free Cancellation
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Rating */}
+                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center space-x-1 shadow-xs">
+                      <FaStar className="text-amber-400 text-[11px]" />
+                      <span className="text-xs font-black text-gray-800">{act.rating}</span>
                     </div>
-                  )}
-
-                  {/* Rating */}
-                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center space-x-1 shadow-xs">
-                    <FaStar className="text-amber-400 text-[11px]" />
-                    <span className="text-xs font-black text-gray-800">{act.rating}</span>
                   </div>
-                </div>
 
-                {/* Card Body */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div className="mb-4">
-                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block mb-1">
-                      {act.category}
-                    </span>
-                    <h4 className="font-bold text-gray-900 text-base leading-tight mb-2 group-hover:text-blue-600 transition-colors truncate">
-                      {act.title}
-                    </h4>
+                  {/* Card Body */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div className="mb-4">
+                      <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block mb-1">
+                        {act.category}
+                      </span>
+                      <h4 className="font-bold text-gray-900 text-base leading-tight mb-2 group-hover:text-blue-600 transition-colors truncate">
+                        {act.title}
+                      </h4>
                     
                     <p className="text-gray-400 text-[11px] font-bold flex items-center mb-3">
                       <FaMapMarkerAlt className="mr-1 text-gray-400 shrink-0" /> {act.location}
@@ -297,8 +298,19 @@ const Activities_Card = () => {
                   </div>
 
                 </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                  <FaRunning className="text-blue-500 text-3xl" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">No Activities Found</h3>
+                <p className="text-gray-500 text-sm max-w-md">
+                  There are currently no activities available from the database. Please add some activity packages in the system to see them here!
+                </p>
               </div>
-            ))}
+            )}
           </div>
           )}
 

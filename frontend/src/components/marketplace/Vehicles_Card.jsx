@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaCogs, FaUsers
@@ -23,20 +23,19 @@ const Vehicles_Card = () => {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/drivers');
+        const response = await fetch('http://localhost:5000/api/vehicles');
         const result = await response.json();
         
-        // Since we are fetching from Drivers, we map driver details to a vehicle view
-        if (result && result.length > 0) {
-          const formattedData = result.map(driver => ({
-            _id: driver._id,
-            name: driver.vehicleName || 'Unnamed Vehicle',
-            type: 'SUV', // Default placeholder
-            seats: '4 Seats', // Default placeholder
-            price: 5000, // Default placeholder
-            badge: driver.availability ? 'Available' : 'Booked',
-            driverName: driver.driverName,
-            image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600' // Default placeholder
+        if (result.success && result.data && result.data.length > 0) {
+          const formattedData = result.data.map(vehicle => ({
+            _id: vehicle._id,
+            name: vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : 'Unnamed Vehicle',
+            type: vehicle.brand || 'SUV',
+            seats: vehicle.passengers ? `${vehicle.passengers} Seats` : '4 Seats',
+            price: vehicle.dailyRentalPrice || 5000,
+            badge: vehicle.status === 'Available' ? 'Available' : 'Booked',
+            driverName: vehicle.ownerId,
+            image: vehicle.photos?.exterior || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600'
           }));
           setAllVehicles(formattedData);
           setVehiclesData(formattedData);
@@ -190,63 +189,75 @@ const Vehicles_Card = () => {
 
           {/* Vehicles Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle, index) => (
-              <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
-                
-                {/* Vehicle Image section */}
-                <div className="relative h-48 bg-gray-50">
-                  <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
+            {vehiclesData.length > 0 ? (
+              vehiclesData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((vehicle, index) => (
+                <div key={index} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
                   
-                  {/* Badge top right (e.g. SUV, Hybrid) */}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[10px] font-bold text-gray-800 shadow-xs uppercase">
-                    {vehicle.badge}
-                  </div>
-                </div>
-
-                {/* Vehicle Details Body */}
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div className="mb-4">
-                    <h4 className="font-bold text-gray-900 text-base mb-2">{vehicle.name}</h4>
+                  {/* Vehicle Image section */}
+                  <div className="relative h-48 bg-gray-50">
+                    <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
                     
-                    {/* Specs Row (Type & Seats) */}
-                    <div className="flex items-center space-x-4 text-xs text-gray-400 font-medium mb-4">
-                      <div className="flex items-center space-x-1">
-                        <FaCogs className="text-gray-400" />
-                        <span className="capitalize">{vehicle.type}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <FaUsers className="text-gray-400" />
-                        <span>{vehicle.seats}</span>
-                      </div>
+                    {/* Badge top right (e.g. SUV, Hybrid) */}
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[10px] font-bold text-gray-800 shadow-xs uppercase">
+                      {vehicle.badge}
                     </div>
+                  </div>
 
-                    {/* Price & Rent Button Row */}
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-50">
-                      <div>
-                        <span className="text-[9px] font-bold text-gray-400 block uppercase tracking-wider">PER DAY</span>
-                        <div className="flex items-baseline space-x-0.5">
-                          <span className="text-base font-black text-blue-600">{vehicle.price}</span>
-                          <span className="text-xs font-bold text-blue-600"> LKR</span>
+                  {/* Vehicle Details Body */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div className="mb-4">
+                      <h4 className="font-bold text-gray-900 text-base mb-2">{vehicle.name}</h4>
+                      
+                      {/* Specs Row (Type & Seats) */}
+                      <div className="flex items-center space-x-4 text-xs text-gray-400 font-medium mb-4">
+                        <div className="flex items-center space-x-1">
+                          <FaCogs className="text-gray-400" />
+                          <span className="capitalize">{vehicle.type}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaUsers className="text-gray-400" />
+                          <span>{vehicle.seats}</span>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => navigate('/vehicle-booking', { state: { vehicle } })}
-                        className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
-                      >
-                        Rent Vehicle
-                      </button>
+
+                      {/* Price & Rent Button Row */}
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                        <div>
+                          <span className="text-[9px] font-bold text-gray-400 block uppercase tracking-wider">PER DAY</span>
+                          <div className="flex items-baseline space-x-0.5">
+                            <span className="text-base font-black text-blue-600">{vehicle.price}</span>
+                            <span className="text-xs font-bold text-blue-600"> LKR</span>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => navigate('/vehicle-booking', { state: { vehicle } })}
+                          className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
+                        >
+                          Rent Vehicle
+                        </button>
+                      </div>
+
                     </div>
-
                   </div>
-                </div>
 
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                  <FaCogs className="text-blue-500 text-3xl" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">No Vehicles Found</h3>
+                <p className="text-gray-500 text-sm max-w-md">
+                  There are currently no vehicles available from the database. Please add some driver profiles in the system to see them here!
+                </p>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Pagination Footer */}
           {(() => {
-            const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
+            const totalPages = Math.ceil(vehiclesData.length / itemsPerPage);
             return totalPages > 1 && (
               <div className="flex justify-center items-center space-x-2 pt-4">
                 <button 
