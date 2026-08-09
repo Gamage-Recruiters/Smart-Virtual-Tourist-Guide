@@ -25,6 +25,7 @@ const ActivityAvailabilityCard = ({ activity }) => {
     navigate("/booking-page", {
       state: {
         service: {
+          type: "activity",
           image: activity?.image || "https://images.unsplash.com/photo-1549366021-9f761d040a94",
           name: activity?.name || "Yala Safari Adventure",
           location: activity?.location || "Yala National Park",
@@ -33,6 +34,7 @@ const ActivityAvailabilityCard = ({ activity }) => {
           description: activity?.description || "Full-day safari experience with experienced guides and luxury jeep transport.",
         },
 
+        serviceType: "activity",
         bookingDetails: [
           {
             label: "Activity Date",

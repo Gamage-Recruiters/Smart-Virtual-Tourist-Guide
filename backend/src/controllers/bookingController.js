@@ -6,6 +6,9 @@ import RestaurantBooking from '../models/RestaurantBooking.js';
 import VehicleBooking from '../models/VehicleBooking.js';
 import { buildBookingData } from '../services/bookingService.js';
 
+const normalizeServiceType = (serviceType) =>
+  typeof serviceType === 'string' ? serviceType.trim().toLowerCase() : '';
+
 const modelsMap = {
   activity: ActivityBooking,
   driver: DriverBooking,
@@ -17,12 +20,17 @@ const modelsMap = {
 };
 
 export const getBookingModel = (serviceType) => {
-  if (!serviceType) return ActivityBooking;
-  return modelsMap[serviceType.toLowerCase()] || ActivityBooking;
+  const normalizedType = normalizeServiceType(serviceType);
+  return modelsMap[normalizedType] || null;
 };
 
 const validateBookingPayload = (payload) => {
   const errors = [];
+  const serviceType = payload.serviceType || payload.service?.type;
+
+  if (!serviceType) {
+    errors.push('Service type is required.');
+  }
 
   if (!payload.service || !payload.service.name) {
     errors.push('Service information is required.');
@@ -57,8 +65,10 @@ const validateBookingPayload = (payload) => {
 
 export const createBooking = async (req, res, next) => {
   try {
-    const serviceType = req.params.serviceType || req.body.serviceType || req.body.service?.type;
-    
+    const serviceType = normalizeServiceType(
+      req.params.serviceType || req.body.serviceType || req.body.service?.type
+    );
+
     const {
       service,
       bookingDetails,
@@ -69,6 +79,7 @@ export const createBooking = async (req, res, next) => {
     } = req.body;
 
     const validationErrors = validateBookingPayload({
+      serviceType,
       service,
       bookingDetails,
       pricing,
@@ -79,6 +90,11 @@ export const createBooking = async (req, res, next) => {
 
     if (validationErrors.length > 0) {
       return res.status(400).json({ success: false, errors: validationErrors });
+    }
+
+    const Model = getBookingModel(serviceType);
+    if (!Model) {
+      return res.status(400).json({ success: false, errors: ['Invalid service type.'] });
     }
 
     const bookingData = buildBookingData({
@@ -92,10 +108,9 @@ export const createBooking = async (req, res, next) => {
       ...req.body,
     });
 
-    const Model = getBookingModel(serviceType);
     const booking = await Model.create(bookingData);
 
-    res.status(201).json({ success: true, booking, serviceType: serviceType || 'activity' });
+    res.status(201).json({ success: true, booking, serviceType });
   } catch (error) {
     next(error);
   }
@@ -103,10 +118,13 @@ export const createBooking = async (req, res, next) => {
 
 export const getBookings = async (req, res, next) => {
   try {
-    const serviceType = req.params.serviceType || req.query.serviceType;
+    const serviceType = normalizeServiceType(req.params.serviceType || req.query.serviceType);
 
     if (serviceType) {
       const Model = getBookingModel(serviceType);
+      if (!Model) {
+        return res.status(400).json({ success: false, errors: ['Invalid service type.'] });
+      }
       const bookings = await Model.find().sort({ createdAt: -1 });
       return res.json({ success: true, bookings, serviceType });
     }
@@ -137,10 +155,13 @@ export const getBookings = async (req, res, next) => {
 
 export const getBookingById = async (req, res, next) => {
   try {
-    const serviceType = req.query.serviceType || req.params.serviceType;
+    const serviceType = normalizeServiceType(req.query.serviceType || req.params.serviceType);
 
     if (serviceType) {
       const Model = getBookingModel(serviceType);
+      if (!Model) {
+        return res.status(400).json({ success: false, errors: ['Invalid service type.'] });
+      }
       const booking = await Model.findById(req.params.id);
       if (!booking) {
         return res.status(404).json({ success: false, message: 'Booking not found.' });

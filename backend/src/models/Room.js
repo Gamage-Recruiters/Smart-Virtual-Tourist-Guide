@@ -20,6 +20,7 @@ const bookingDateSchema = new mongoose.Schema(
 const roomSchema = new mongoose.Schema({
     hotelId: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: true,
     },
     roomNumber: {

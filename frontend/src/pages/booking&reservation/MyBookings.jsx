@@ -70,7 +70,7 @@ const MyBookings = () => {
                 <div className="text-sm text-gray-500">{b.customer?.email}</div>
               </div>
 
-                <div>
+              <div>
                 <div className="text-sm text-gray-500">Total</div>
                 <div className="font-medium">
                   {b.pricing?.currency} {
