@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop';
 
 //Booking and reservation----------------------------------
 
@@ -29,6 +30,7 @@ import Activities_Card from "./components/marketplace/Activities_Card";
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
 
         <Route path="/booking-page" element={<BookingPage />} />
