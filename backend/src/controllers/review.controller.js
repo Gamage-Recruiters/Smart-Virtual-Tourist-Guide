@@ -164,3 +164,44 @@ export const getBatchProviderRatings = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
     }
 };
+
+
+
+/**
+ * @desc    Add a reply to a review (By Service Provider)
+ * @route   PATCH /api/reviews/:id/reply
+ * @access  Private (Provider only)
+ */
+export const replyToReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { replyText } = req.body;
+
+        if (!replyText) {
+            return res.status(400).json({ success: false, message: 'Reply text is required' });
+        }
+
+        const updatedReview = await Review.findByIdAndUpdate(
+            id,
+            { 
+                providerReply: {
+                    text: replyText,
+                    repliedAt: new Date()
+                } 
+            },
+            { new: true }
+        );
+
+        if (!updatedReview) {
+            return res.status(404).json({ success: false, message: 'Review not found' });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Replied to review successfully.', 
+            data: updatedReview 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};

@@ -54,6 +54,10 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     enum: ['Spam', 'Inappropriate Language', 'False Information', 'Other', null],
     default: null
+  },
+  providerReply: {
+    text: { type: String, trim: true, default: null },
+    repliedAt: { type: Date, default: null }
   }
 }, {
   timestamps: true 

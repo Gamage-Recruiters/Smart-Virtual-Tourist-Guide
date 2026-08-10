@@ -8,7 +8,8 @@ import {
     reportReview, 
     markHelpful, 
     deleteReview,
-    getBatchProviderRatings
+    getBatchProviderRatings,
+    replyToReview
 } from '../controllers/review.controller.js';
 
 // Import our Joi Validator
@@ -42,6 +43,16 @@ router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
  * @access  Public
  */
 router.post('/batch-ratings', getBatchProviderRatings);
+
+
+/**
+ * @route   PATCH /api/reviews/:id/reply
+ * @desc    Add a reply to a review
+ * @access  Private 
+ */
+// TODO: Add authorizeRoles() to ensure only the specific owner can reply
+router.patch('/:id/reply', protect, replyToReview);
+
 
 
 /**

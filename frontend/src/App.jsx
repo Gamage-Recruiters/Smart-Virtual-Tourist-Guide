@@ -97,7 +97,6 @@ function App() {
         />
 
 
-
         <Route path="/dashboard-Tourist" element={<DummyPageTourist/>}/>
         <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner/>}/>
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant/>}/>
@@ -110,36 +109,11 @@ function App() {
 
 
 
-
-
-
-        
-
       </Routes>
     </BrowserRouter>
   );
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            Review Component Test Environment
-          </h1>
-        </div>
-
-        {/* Oyage Component eka methanin load wenawa */}
-        <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-          <ReviewSection 
-            targetType={testProviderType} 
-            targetProviderId={testProviderId} 
-          />
-        </div>
-
-      </div>
-    </div>
-  );
 }
 
-export default App;
+
 
 export default App;
