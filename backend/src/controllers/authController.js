@@ -1,151 +1,140 @@
-const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
-const logger = require('../utils/logger'); // Assuming you have your logger here
-const User = require('../models/User');
+const Admin = require('../models/Admin');
+const logger = require('../utils/logger'); 
 
-// Generate JWT Token
+const { SESSION_COOKIE_NAME } = require('../middleware/authMiddleware');
+
+const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
+
+const ALLOWED_ADMIN_ROLES = ['Administrator', 'Moderator', 'Editor'];
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
+
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: SESSION_MAX_AGE_MS,
+  path: '/',
+});
+
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d', // Token will be valid for 30 days
-  });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
-// @desc    Register a new admin
-// @route   POST /api/admin/auth/register
-// @access  Public (or you can restrict this later to only existing SuperAdmins)
 const registerAdmin = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, location, username, password, role } = req.body;
+    const { fullName, email, phoneNumber, location = '', username, password, role = 'Administrator' } = req.body;
 
-    // Check if admin already exists by email or username
-    const adminExists = await Admin.findOne({ $or: [{ email }, { username }] });
-
-    if (adminExists) {
-      return res.status(400).json({ message: 'Admin with this email or username already exists' });
+    if (!fullName || !email || !phoneNumber || !username || !password) {
+      return res.status(400).json({ success: false, message: 'All required fields must be provided.' });
     }
 
-    // Create new admin
-    const admin = await Admin.create({
-      fullName,
-      email,
-      phoneNumber,
-      location,
-      username,
-      password,
-      role
+    if (!ALLOWED_ADMIN_ROLES.includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid administrator role.' });
+    }
+
+    if (!PASSWORD_PATTERN.test(password)) {
+      return res.status(400).json({ success: false, message: 'Password must be 8-128 characters and contain at least one letter and one number.' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedUsername = username.trim();
+
+    const adminExists = await Admin.findOne({
+      $or: [{ email: normalizedEmail }, { username: normalizedUsername }],
     });
 
-    if (admin) {
-      logger.info(`New admin registered: ${admin.email}`);
-      res.status(201).json({
-        _id: admin.id,
+    if (adminExists) {
+      return res.status(409).json({ success: false, message: 'An administrator with this email or username already exists.' });
+    }
+
+    const admin = await Admin.create({
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      phoneNumber: phoneNumber.trim(),
+      location: location.trim(),
+      username: normalizedUsername,
+      password,
+      role,
+      status: 'Active',
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Administrator created successfully.',
+      data: {
+        _id: admin._id,
         fullName: admin.fullName,
         email: admin.email,
+        username: admin.username,
         role: admin.role,
-        token: generateToken(admin._id),
-      });
-    } else {
-      res.status(400).json({ message: 'Invalid admin data' });
-    }
+        status: admin.status,
+      },
+    });
   } catch (error) {
-    logger.error('Error in registerAdmin: ', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    if (error.code === 11000) {
+      return res.status(409).json({ success: false, message: 'An administrator with this email or username already exists.' });
+    }
+    return res.status(500).json({ success: false, message: 'Server error during administrator creation.' });
   }
 };
 
-// @desc    Authenticate admin & get token (Login)
-// @route   POST /api/admin/auth/login
-// @access  Public
 const loginAdmin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Find admin by username (and explicitly select the password field)
-    const admin = await Admin.findOne({ username }).select('+password');
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Username and password are required.' });
+    }
 
-    // Check if admin exists and password matches
-    if (admin && (await admin.matchPassword(password))) {
-      //  Security Check  (Login Block)
-      if (admin.status === 'Suspended' || admin.isActive === false) {
-        logger.warn(`Suspended account attempted login: ${admin.username}`);
-        return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact the administrator.' });
-      }
+    const admin = await Admin.findOne({ username: username.trim() }).select('+password');
 
-      logger.info(`Admin logged in: ${admin.username}`);
-      res.json({
-        _id: admin.id,
+    if (!admin || !(await admin.matchPassword(password))) {
+      return res.status(401).json({ success: false, message: 'Invalid username or password.' });
+    }
+
+    if (admin.status !== 'Active') {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact an administrator.' });
+    }
+
+    const token = generateToken(admin._id);
+
+    res.cookie(SESSION_COOKIE_NAME, token, getCookieOptions());
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        _id: admin._id,
         fullName: admin.fullName,
         email: admin.email,
+        username: admin.username,
         role: admin.role,
-        token: generateToken(admin._id),
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid username or password' });
-    }
+        status: admin.status,
+      },
+    });
   } catch (error) {
-    logger.error('Error in loginAdmin: ', error);
-    res.status(500).json({ message: 'Server error during login' });
+    return res.status(500).json({ success: false, message: 'Server error during login.' });
   }
- };
-// // @desc    Get all users and admins combined for the management table
-// // @route   GET /api/admin/auth/users
-// // @access  Public
-// const getAllUsers = async (req, res) => {
-//   try {
-//     // 1. Fetch from User collection
-//     const users = await User.find({}).select('-password').lean();
-    
-//     // 2. Fetch from Admin collection
-//     const admins = await Admin.find({}).select('-password').lean();
+};
 
-//     // 3. Combine both arrays into one
-//     const combinedData = [...users, ...admins];
+const logoutAdmin = async (req, res) => {
+  res.clearCookie(SESSION_COOKIE_NAME, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
 
-//     // 4. Sort by date (Newest first)
-//     combinedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return res.status(200).json({ success: true, message: 'Logged out successfully.' });
+};
 
-//     res.json(combinedData);
-//   } catch (error) {
-//     console.error('Error fetching combined users: ', error);
-//     res.status(500).json({ message: 'Server error while fetching users' });
-//   }
-// };
-// // @desc    Toggle user/admin active status (Active <-> Suspended)
-// // @route   PUT /api/admin/auth/users/:id/status
-// // @access  Public
-// const toggleUserStatus = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-    
-//    
-//     let account = await User.findById(userId);
-    
-//     
-//     if (!account) {
-//       account = await Admin.findById(userId);
-//     }
-
-//     if (account) {
-//       
-//       account.isActive = !account.isActive;
-//       await account.save();
-
-//       res.json({ 
-//         message: `Status updated successfully`, 
-//         isActive: account.isActive 
-//       });
-//     } else {
-//       res.status(404).json({ message: 'Account not found' });
-//     }
-//   } catch (error) {
-//     console.error('Error toggling status:', error);
-//     res.status(500).json({ message: 'Server error while updating status' });
-//   }
-// };
+const getAdminProfile = async (req, res) => {
+  return res.status(200).json({ success: true, data: req.admin });
+};
 
 module.exports = {
   registerAdmin,
   loginAdmin,
-  // getAllUsers,
-  // toggleUserStatus,
+  logoutAdmin,
+  getAdminProfile,
 };
