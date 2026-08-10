@@ -12,7 +12,11 @@ const {
     updateAdvertisement, 
     getDashboardAnalytics,
     getRecentActivities,
-    deleteUser 
+    deleteUser,
+    getAdminPackages,
+    approvePackage,
+    rejectPackage,
+    getPackageById
 } = require('../controllers/adminController');
 
 // 1
@@ -43,4 +47,10 @@ router.delete('/ads/:id', authorizeRoles('Admin', 'Administrator'), deleteAdvert
 // 4
 router.delete('/users/:id', authorizeRoles('Admin', 'Administrator'), deleteUser);
 router.get("/recent-activities", authorizeRoles("Admin", "Administrator"), getRecentActivities);
+
+//
+router.get('/packages', getAdminPackages);
+router.patch('/packages/:id/approve', approvePackage);
+router.patch('/packages/:id/reject', rejectPackage);
+router.get('/packages/:id', getPackageById);
 module.exports = router;

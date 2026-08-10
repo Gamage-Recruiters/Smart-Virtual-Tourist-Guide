@@ -37,6 +37,14 @@ const PackageSchema = new mongoose.Schema({
     enum: ['publish', 'draft'],
     default: 'draft',
   },
+  approvalStatus: {
+    type: String,
+    enum: ['Pending', 'Approved', 'Rejected'],
+    default: 'Pending',
+  },
+  approvedAt: Date,
+  rejectedAt: Date,
+  rejectionReason: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('Package', PackageSchema);

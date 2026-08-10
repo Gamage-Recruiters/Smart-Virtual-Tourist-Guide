@@ -16,7 +16,7 @@ const ViewFullDetails = () => {
     const fetchListingDetails = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get(`/admin/listings/${id}`);
+        const response = await apiClient.get(`/admin/packages/${id}`);
         if (response && response.success) {
           setListing(response.data);
         } else {
@@ -42,7 +42,7 @@ const ViewFullDetails = () => {
     
     if (window.confirm(`Are you sure you want to approve ${listing.providerName}?`)) {
       try {
-        const response = await apiClient.patch(`/admin/listings/${id}/approve`, {});
+        const response = await apiClient.patch(`/admin/packages/${id}/approve`, {});
         if (response.success) {
           alert('Listing Approved Successfully!');
           navigate('/approve-listings'); // Go back to listings table
@@ -63,7 +63,7 @@ const ViewFullDetails = () => {
     const reason = window.prompt(`Please enter the reason for rejecting ${listing.providerName}:`);
     if (reason && reason.trim() !== '') {
       try {
-        const response = await apiClient.patch(`/admin/listings/${id}/reject`, { reason });
+        const response = await apiClient.patch(`/admin/packages/${id}/reject`, { reason });
         if (response.success) {
           alert('Listing Rejected Successfully!');
           navigate('/approve-listings');

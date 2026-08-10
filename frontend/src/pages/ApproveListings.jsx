@@ -8,7 +8,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const ApproveListings = () => {
   const [listingsData, setListingsData] = useState([]);
-  const [stats, setStats] = useState({ pendingCount: 0, approvedCount: 0, rejectedCount: 0 });
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -22,10 +22,11 @@ const ApproveListings = () => {
   const fetchListings = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/admin/listings/all');
+      
+      const response = await apiClient.get('/admin/packages');
       if (response.success) {
-        setListingsData(response.data.listings);
-        setStats(response.data.stats);
+        setListingsData(response.data || []);
+        setStats(response.stats || { pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
       } else {
         setError('Failed to load listings data.');
       }
@@ -44,7 +45,8 @@ const ApproveListings = () => {
     if (!window.confirm(`Are you sure you want to approve the listing from ${providerName}?`)) return;
     const toastId = toast.loading('Approving listing...');
     try {
-      const response = await apiClient.patch(`/admin/listings/${listingId}/approve`, {});
+      
+      const response = await apiClient.patch(`/admin/packages/${listingId}/approve`, {});
       if (response.success) {
         fetchListings(); 
         toast.success('Listing approved successfully!', { id: toastId });
@@ -68,7 +70,8 @@ const handleRejectSubmit = async (reason) => {
     }
     const toastId = toast.loading('Rejecting listing...');
     try {
-      const response = await apiClient.patch(`/admin/listings/${selectedListing.id}/reject`, { reason });
+      
+      const response = await apiClient.patch(`/admin/packages/${selectedListing.id}/reject`, { reason });
       if (response.success) {
         setIsRejectModalOpen(false); 
         fetchListings(); 
@@ -99,10 +102,10 @@ const handleRejectSubmit = async (reason) => {
   }, [searchTerm]);
 
   const statCards = [
-    { id: 1, title: 'Pending Review', value: stats.pendingCount, subText: 'High priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
-    { id: 2, title: 'Rejected', value: stats.rejectedCount, subText: 'Needs revision', subTextColor: 'text-red-500', icon: <FiXCircle size={20} className="text-red-500" /> },
-    { id: 3, title: 'Approved', value: stats.approvedCount, subText: 'Live on app', subTextColor: 'text-green-600', icon: <FiCheckCircle size={20} className="text-green-500" /> },
-    { id: 4, title: 'Avg Verification', value: '90%', subText: 'Quality score', subTextColor: 'text-blue-500', icon: <FiShield size={20} className="text-blue-500" /> },
+    { id: 1, title: 'Pending Review', value: stats.pending, subText: 'High priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
+    { id: 2, title: 'Rejected', value: stats.rejected, subText: 'Needs revision', subTextColor: 'text-red-500', icon: <FiXCircle size={20} className="text-red-500" /> },
+    { id: 3, title: 'Approved', value: stats.approved, subText: 'Live on app', subTextColor: 'text-green-600', icon: <FiCheckCircle size={20} className="text-green-500" /> },
+    { id: 4, title: 'Avg Verification', value: stats.avgVerification, subText: 'Quality score', subTextColor: 'text-blue-500', icon: <FiShield size={20} className="text-blue-500" /> },
   ];
 
   return (

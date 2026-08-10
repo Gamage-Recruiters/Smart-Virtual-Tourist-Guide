@@ -382,6 +382,115 @@ const getRecentActivities = async (req, res) => {
     }
 };
 
+//  Get Packages & Stats
+const getAdminPackages = async (req, res) => {
+    try {
+        const { status = 'all' } = req.query;
+
+        // Stats අරගැනීම (Aggregation)
+        const statsData = await Package.aggregate([
+            { $group: { _id: "$approvalStatus", count: { $sum: 1 } } }
+        ]);
+
+        let pending = 0, approved = 0, rejected = 0;
+        statsData.forEach(stat => {
+            if (stat._id === 'Pending') pending = stat.count;
+            if (stat._id === 'Approved') approved = stat.count;
+            if (stat._id === 'Rejected') rejected = stat.count;
+        });
+
+        let total = pending + approved + rejected;
+        let avgVerification = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+        // Data අරගැනීම
+        let query = {};
+        if (status !== 'all') query.approvalStatus = status;
+        
+        const packages = await Package.find(query).sort({ createdAt: -1 });
+
+        // Option A: Frontend එකට ඕනේ විදිහට Data Flatten කිරීම
+        const formattedPackages = packages.map(pkg => ({
+            _id: pkg._id,
+            title: pkg.BasicInformation?.title || "Untitled Package",
+            providerName: pkg.AgencyContactInformation?.agencyName || "Unknown",
+            location: pkg.LocationAndHighlights?.destination || "N/A",
+            price: pkg.BasicInformation?.price || 0,
+            status: pkg.approvalStatus,
+            images: pkg.LocationAndHighlights?.images || []
+        }));
+
+        res.json({
+            success: true,
+            stats: { pending, approved, rejected, avgVerification: `${avgVerification}%` },
+            data: formattedPackages
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// 2. Approve Package
+const approvePackage = async (req, res) => {
+    try {
+        await Package.findByIdAndUpdate(req.params.id, { 
+            approvalStatus: 'Approved', 
+            approvedAt: new Date() 
+        });
+        res.json({ success: true, message: "Package approved" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error approving" });
+    }
+};
+
+// 3. Reject Package
+const rejectPackage = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        await Package.findByIdAndUpdate(req.params.id, { 
+            approvalStatus: 'Rejected', 
+            rejectionReason: reason, 
+            rejectedAt: new Date() 
+        });
+        res.json({ success: true, message: "Package rejected" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error rejecting" });
+    }
+};
+// 4. Get Single Package Details by ID
+const getPackageById = async (req, res) => {
+    try {
+        const pkg = await Package.findById(req.params.id);
+        
+        if (!pkg) {
+            return res.status(404).json({ success: false, message: "Package not found" });
+        }
+
+        const formattedPackage = {
+            _id: pkg._id,
+            title: pkg.BasicInformation?.title || "Untitled Package",
+            providerName: pkg.AgencyContactInformation?.agencyName || "Unknown Agency",
+            rating: 4.5, 
+            verificationScore: "95% Verified", 
+            imageUrl: (pkg.LocationAndHighlights?.images && pkg.LocationAndHighlights.images.length > 0) 
+                        ? pkg.LocationAndHighlights.images[0] 
+                        : 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=1200&q=80',
+            description: pkg.BasicInformation?.description || "No description provided.",
+            location: pkg.LocationAndHighlights?.destination || "N/A",
+            type: pkg.BasicInformation?.categories?.[0] || "General Tour",
+            price: `$${pkg.BasicInformation?.price || 0}`,
+            since: "2026",
+            tags: pkg.BasicInformation?.categories || ["Travel", "Sri Lanka"],
+            status: pkg.approvalStatus || 'Pending'
+        };
+
+        res.json({ success: true, data: formattedPackage });
+    } catch (err) {
+        console.error("Get Package by ID Error:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
 module.exports = { 
     getDashboardStats, 
     getAllUsers, 
@@ -394,5 +503,9 @@ module.exports = {
     deleteAdvertisement,
     getDashboardAnalytics,
     getRecentActivities,
-    deleteUser
+    deleteUser,
+    getAdminPackages,
+    approvePackage,
+    rejectPackage,
+    getPackageById
 };
