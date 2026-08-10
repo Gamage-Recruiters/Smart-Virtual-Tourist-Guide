@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/layout/AdminLayout';
 import HeroBg from '../assets/airplane-bg.jpg';
+import apiClient from '../services/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,39 +21,20 @@ const Login = () => {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(
-        'http://localhost:5000/api/admin/auth/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      await apiClient.post('/admin/auth/login', {
+        username: formData.username.trim(), 
+        password: formData.password,
+      });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Save the secure token and user details to browser storage
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminInfo', JSON.stringify(data));
-
-        // Redirect to Dashboard or User Management page
-        navigate('/');
-      } else {
-        setError(data.message || 'Invalid username or password');
-      }
+      navigate('/', { replace: true });
     } catch (err) {
-      setError(
-        'Cannot connect to the server. Please check if backend is running.'
-      );
+      setError(err.message || 'Unable to log in.');
     } finally {
       setLoading(false);
     }
@@ -100,7 +82,7 @@ const Login = () => {
                     htmlFor="username"
                     className="mb-1.5 block text-[9px] font-semibold uppercase tracking-[0.08em] text-[#555c66]"
                   >
-                    Email
+                    Email or Username
                   </label>
 
                   <input
@@ -111,7 +93,7 @@ const Login = () => {
                     onChange={handleChange}
                     required
                     autoComplete="username"
-                    placeholder="admin@svtg.lk"
+                    placeholder="admin@svtg.lk or admin"
                     className="
                       h-[38px]
                       w-full

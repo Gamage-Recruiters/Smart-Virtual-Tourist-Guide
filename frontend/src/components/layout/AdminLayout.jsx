@@ -1,9 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiFacebook, FiInstagram, FiTwitter } from 'react-icons/fi';
 import Logo from "../../assets/logo.png";
+import apiClient from '../../services/api';
 
-const AdminLayout = ({ children }) => {
+// මෙතනට isAuthenticated සහ admin කියන props දෙක අලුතින් එකතු කරලා තියෙනවා
+const AdminLayout = ({ children, isAuthenticated = false, admin = null }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/admin/auth/logout', {});
+    } finally {
+      navigate('/login', { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F9FF] font-inter flex flex-col">
       <header className="bg-white px-8 py-4 flex justify-between items-center shadow-sm relative z-50">
@@ -26,9 +38,25 @@ const AdminLayout = ({ children }) => {
         </nav>
 
         <div className="flex items-center gap-4">
-          <button className="bg-[#1877F2] text-white px-6 py-2 rounded-md text-[14px] font-medium hover:bg-blue-600 transition-colors">
-            Sign in
-          </button>
+          {/* මෙතනින් තමයි ලොග් වෙලාද නැද්ද කියලා බලලා අදාළ බොත්තම පෙන්නන්නේ */}
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              title={admin ? `Signed in as ${admin.username}` : 'Signed in'}
+              className="bg-red-500 text-white px-6 py-2 rounded-md text-[14px] font-medium hover:bg-red-600 transition-colors"
+            >
+              Log out
+            </button>
+          ) : (
+            <Link 
+              to="/login"
+              className="bg-[#1877F2] text-white px-6 py-2 rounded-md text-[14px] font-medium hover:bg-blue-600 transition-colors flex items-center justify-center"
+            >
+              Sign in
+            </Link>
+          )}
+          
           <select className="bg-transparent text-[14px] font-medium text-gray-700 outline-none border-none cursor-pointer">
             <option value="en">EN</option>
             <option value="si">SI</option>
