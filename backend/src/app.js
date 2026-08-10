@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import {connectDB} from './configs/database.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import cors from 'cors';
 import authRouter from './routes/authRoutes.js';

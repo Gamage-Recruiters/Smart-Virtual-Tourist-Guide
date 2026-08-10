@@ -1,6 +1,6 @@
 import "dotenv/config";
 import app from "./src/app.js";
-import { connectDB } from "./src/configs/database.js";
+import connectDB from "./src/configs/database.js";
 import { configureCloudinary } from "./src/configs/ActivityProvider/cloudinary.js";
 import activityRoutes from "./src/routes/ActivityProvider/activity.routes.js";
 import activityCalenderRoutes from "./src/routes/ActivityProvider/activityCalender.routes.js";
