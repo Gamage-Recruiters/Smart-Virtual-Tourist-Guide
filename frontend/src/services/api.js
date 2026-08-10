@@ -27,14 +27,26 @@ const resolvePlaceImageUrl = (place) => {
   }
 };
 
+const ALLOWED_ENDPOINTS = [
+  '/recent-places',
+  '/favorite-places',
+  '/security-alerts',
+  '/security-alerts/weather',
+  '/security-alerts/crime',
+  '/incidents/public',
+  '/hotels',
+];
+
+const isSafeEndpoint = (endpoint) =>
+  ALLOWED_ENDPOINTS.some((allowed) => endpoint === allowed || endpoint.startsWith(`${allowed}?`) || endpoint.startsWith(`${allowed}/`));
+
 const apiClient = {
   async get(endpoint) {
+    if (!isSafeEndpoint(endpoint)) throw new Error(`Blocked unsafe endpoint: ${endpoint}`);
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
       return await response.json();
     } catch (error) {
@@ -44,12 +56,11 @@ const apiClient = {
   },
 
   async post(endpoint, data) {
+    if (!isSafeEndpoint(endpoint)) throw new Error(`Blocked unsafe endpoint: ${endpoint}`);
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       return await response.json();
@@ -60,12 +71,11 @@ const apiClient = {
   },
 
   async put(endpoint, data) {
+    if (!isSafeEndpoint(endpoint)) throw new Error(`Blocked unsafe endpoint: ${endpoint}`);
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       return await response.json();
@@ -76,12 +86,11 @@ const apiClient = {
   },
 
   async delete(endpoint) {
+    if (!isSafeEndpoint(endpoint)) throw new Error(`Blocked unsafe endpoint: ${endpoint}`);
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
       return await response.json();
     } catch (error) {
@@ -155,6 +164,35 @@ export const fetchFavoritePlaces = async (userId, category) => {
 
 export const deleteFavoritePlace = async (id) => {
   return apiClient.delete(`/favorite-places/${id}`);
+};
+
+export const fetchRoadBlockages = async () => {
+  return apiClient.get('/incidents/public?status=reported');
+};
+
+const ALLOWED_LOCATION_RE = /^[a-zA-Z0-9\s,\-.]{1,100}$/;
+
+export const fetchWeatherAlerts = async (location) => {
+  if (!location) return apiClient.get('/security-alerts/weather');
+  const sanitized = location.replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
+  if (!sanitized || !ALLOWED_LOCATION_RE.test(sanitized)) return { data: [] };
+  return apiClient.get(`/security-alerts/weather?location=${encodeURIComponent(sanitized)}`);
+};
+
+export const fetchCrimeAlerts = async () => {
+  return apiClient.get('/security-alerts/crime');
+};
+
+export const fetchHotels = async (location, lat, lng) => {
+  const sanitized = (location || '').replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
+  const params = new URLSearchParams();
+  if (sanitized) params.set('location', sanitized);
+  if (lat != null && lng != null) {
+    params.set('lat', String(lat));
+    params.set('lng', String(lng));
+  }
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/hotels${suffix}`);
 };
 
 export default apiClient;

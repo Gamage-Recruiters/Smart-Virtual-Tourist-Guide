@@ -1,24 +1,8 @@
-/**
- * floodService.js
- * Real-time flood/heavy-rain detection for route waypoints.
- * Uses OpenWeatherMap Current Weather API (free tier).
- *
- * Weather condition codes that indicate flooding risk:
- *  502 – Heavy intensity rain
- *  503 – Very heavy rain
- *  504 – Extreme rain
- *  511 – Freezing rain
- *  522 – Heavy intensity shower rain
- *  531 – Ragged shower rain
- *  200-232 – Thunderstorm with rain
- *  Rain volume > 10 mm/h in last 1 h also flags as flood risk.
- */
+import { fetchWeatherAlerts } from '../services/api';
 
-const OWM_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY || '';
-
-const FLOOD_RAIN_IDS = new Set([502, 503, 504, 511, 522, 531]);
-const FLOOD_RAIN_MM_THRESHOLD = 10; // mm in last 1 hour
-const FOG_WEATHER_IDS = new Set([701, 741, 751, 761, 762, 771, 781]);
+const FLOOD_TEXT_RE = /(flood|heavy rain|extreme rain|thunderstorm|storm|downpour|landslide|cyclone|weather alert|unsafe)/i;
+const FOG_TEXT_RE = /(fog|mist|haze|smoke|dust|sand|ash|squall|tornado)/i;
+const WEATHER_ALERT_RADIUS_METERS = 5000;
 
 /**
  * Sample up to `maxSamples` evenly-spaced points from a Google Maps
@@ -31,66 +15,115 @@ function samplePath(path, maxSamples = 5) {
   return Array.from({ length: maxSamples }, (_, i) => path[i * step]);
 }
 
-/**
- * Fetch current weather for a single lat/lng.
- * Returns { isFlood, conditionId, rainMm, description } or null on error.
- */
-async function fetchWeatherAt(lat, lng) {
-  if (!OWM_API_KEY) return null;
-  try {
-    const url =
-      `https://api.openweathermap.org/data/2.5/weather` +
-      `?lat=${lat}&lon=${lng}&appid=${OWM_API_KEY}&units=metric`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
+const toCoord = (value) => (typeof value === 'function' ? value() : value);
 
-    const conditionId = data.weather?.[0]?.id ?? 0;
-    const description = data.weather?.[0]?.description ?? '';
-    const rainMm = data.rain?.['1h'] ?? data.rain?.['3h'] ?? 0;
+const haversineDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
-    // Condition-code-based flood detection
-    const isFloodByCode = FLOOD_RAIN_IDS.has(conditionId)
-      || (conditionId >= 200 && conditionId <= 232); // Thunderstorm with rain
+const getSeverityText = (alert) => [
+  alert?.weatherCondition,
+  alert?.title,
+  alert?.description,
+].filter(Boolean).join(' ');
 
-    // Rain-volume-based flood detection
-    const isFloodByRain = rainMm >= FLOOD_RAIN_MM_THRESHOLD;
-    const isFog = FOG_WEATHER_IDS.has(conditionId);
+const isNearRoute = (alert, sampledPath) => {
+  const alertLat = alert?.latitude ?? alert?.lat;
+  const alertLng = alert?.longitude ?? alert?.lng ?? alert?.lon;
+  if (alertLat == null || alertLng == null) return true;
+  if (!sampledPath.length) return true;
 
-    return {
-      isFlood: isFloodByCode || isFloodByRain,
-      isFog,
-      conditionId,
-      rainMm,
-      description,
-    };
-  } catch {
-    return null;
-  }
-}
+  return sampledPath.some((point) => {
+    const pointLat = toCoord(point.lat);
+    const pointLng = toCoord(point.lng);
+    return haversineDistance(alertLat, alertLng, pointLat, pointLng) <= WEATHER_ALERT_RADIUS_METERS;
+  });
+};
+
+const readAlertsFromResponse = (res) => (Array.isArray(res) ? res : (res?.data || []));
+
+const normalizeText = (value = '') => String(value).toLowerCase().trim();
+
+const doesLocationMatchDestination = (alert, destination) => {
+  const dest = normalizeText(destination);
+  if (!dest) return false;
+
+  const alertLocation = normalizeText(alert?.location);
+  if (!alertLocation) return false;
+
+  return alertLocation.includes(dest) || dest.includes(alertLocation);
+};
+
+const findNearestSamplePoint = (alert, sampledPath) => {
+  const alertLat = alert?.latitude ?? alert?.lat;
+  const alertLng = alert?.longitude ?? alert?.lng ?? alert?.lon;
+  if (alertLat == null || alertLng == null || !sampledPath.length) return null;
+
+  let nearest = null;
+  let minDistance = Infinity;
+  sampledPath.forEach((point) => {
+    const pointLat = toCoord(point.lat);
+    const pointLng = toCoord(point.lng);
+    const distance = haversineDistance(alertLat, alertLng, pointLat, pointLng);
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearest = point;
+    }
+  });
+
+  if (minDistance > WEATHER_ALERT_RADIUS_METERS) return null;
+  return { point: nearest, distance: minDistance };
+};
 
 /**
  * Check all sampled waypoints along a Google Maps route.
  * Returns { isFlood: boolean, floodPoint: LatLng|null }
  */
-export async function checkRouteForFlood(overviewPath) {
-  if (!OWM_API_KEY) {
-    console.warn('[floodService] VITE_OPENWEATHER_API_KEY is not set.');
-    return { isFlood: false, floodPoint: null };
+export async function checkRouteForFlood(overviewPath, destination = '') {
+  try {
+    const weatherResponse = await fetchWeatherAlerts();
+    const alerts = readAlertsFromResponse(weatherResponse);
+    if (!alerts.length) return { isFlood: false, floodPoint: null, alert: null };
+
+    const sampledPath = samplePath(overviewPath, 6);
+    const candidateAlerts = alerts
+      .filter((alert) => FLOOD_TEXT_RE.test(getSeverityText(alert)))
+      .map((alert) => {
+        const nearest = findNearestSamplePoint(alert, sampledPath);
+        const locationMatched = doesLocationMatchDestination(alert, destination);
+        return {
+          alert,
+          nearest,
+          locationMatched,
+        };
+      })
+      .filter((candidate) => Boolean(candidate.nearest) || candidate.locationMatched)
+      .sort((a, b) => {
+        if (a.nearest && b.nearest) return a.nearest.distance - b.nearest.distance;
+        if (a.nearest) return -1;
+        if (b.nearest) return 1;
+        return 0;
+      });
+
+    const selected = candidateAlerts[0];
+    if (!selected) return { isFlood: false, floodPoint: null, alert: null };
+
+    return {
+      isFlood: true,
+      floodPoint: selected.nearest?.point || sampledPath[0] || null,
+      alert: selected.alert,
+    };
+  } catch {
+    return { isFlood: false, floodPoint: null, alert: null };
   }
-
-  const samples = samplePath(overviewPath, 5);
-
-  for (const point of samples) {
-    const lat = typeof point.lat === 'function' ? point.lat() : point.lat;
-    const lng = typeof point.lng === 'function' ? point.lng() : point.lng;
-    const result = await fetchWeatherAt(lat, lng);
-    if (result?.isFlood) {
-      return { isFlood: true, floodPoint: point };
-    }
-  }
-
-  return { isFlood: false, floodPoint: null };
 }
 
 /**
@@ -98,21 +131,19 @@ export async function checkRouteForFlood(overviewPath) {
  * Returns { isFog: boolean, fogPoint: LatLng|null }
  */
 export async function checkRouteForFog(overviewPath) {
-  if (!OWM_API_KEY) {
-    console.warn('[floodService] VITE_OPENWEATHER_API_KEY is not set.');
+  try {
+    const weatherResponse = await fetchWeatherAlerts();
+    const alerts = readAlertsFromResponse(weatherResponse);
+    if (!alerts.length) return { isFog: false, fogPoint: null };
+
+    const sampledPath = samplePath(overviewPath, 6);
+    const fogAlert = alerts.find((alert) => {
+      const text = getSeverityText(alert);
+      return FOG_TEXT_RE.test(text) && isNearRoute(alert, sampledPath);
+    });
+
+    return { isFog: Boolean(fogAlert), fogPoint: sampledPath[0] || null };
+  } catch {
     return { isFog: false, fogPoint: null };
   }
-
-  const samples = samplePath(overviewPath, 5);
-
-  for (const point of samples) {
-    const lat = typeof point.lat === 'function' ? point.lat() : point.lat;
-    const lng = typeof point.lng === 'function' ? point.lng() : point.lng;
-    const result = await fetchWeatherAt(lat, lng);
-    if (result?.isFog) {
-      return { isFog: true, fogPoint: point };
-    }
-  }
-
-  return { isFog: false, fogPoint: null };
 }

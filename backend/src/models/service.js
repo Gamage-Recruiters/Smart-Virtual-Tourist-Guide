@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const recentPlaceSchema = new mongoose.Schema(
 	{
@@ -40,4 +40,4 @@ const recentPlaceSchema = new mongoose.Schema(
 	}
 );
 
-module.exports = mongoose.model('RecentPlace', recentPlaceSchema);
+export default mongoose.model('RecentPlace', recentPlaceSchema);

@@ -63,6 +63,7 @@ const EtaPage = () => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
+  const [alternativeRoutes, setAlternativeRoutes] = useState([]);
 
   const distance = etaData?.distance || '--';
   const duration = etaData?.duration || '--';
@@ -82,13 +83,19 @@ const EtaPage = () => {
   useEffect(() => {
     ensureMapsScript(() => {
       const destLoc = searchedPlace?.geometry?.location;
-      const initialCenter = destLoc
-        ? { lat: destLoc.lat(), lng: destLoc.lng() }
-        : userLocation || { lat: 7.8731, lng: 80.7718 };
+      const originLat = userLocation?.lat != null ? (typeof userLocation.lat === 'function' ? userLocation.lat() : userLocation.lat) : null;
+      const originLng = userLocation?.lng != null ? (typeof userLocation.lng === 'function' ? userLocation.lng() : userLocation.lng) : null;
+      const hasOrigin = originLat != null && originLng != null;
+
+      const initialCenter = hasOrigin
+        ? { lat: originLat, lng: originLng }
+        : destLoc
+          ? { lat: destLoc.lat(), lng: destLoc.lng() }
+          : { lat: 7.8731, lng: 80.7718 };
 
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         center: initialCenter,
-        zoom: destLoc ? 10 : 7,
+        zoom: hasOrigin || destLoc ? 10 : 7,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -105,26 +112,56 @@ const EtaPage = () => {
       setMapReady(true);
 
       // Request directions if origin + destination available
-      if (userLocation && destLoc) {
+      if (hasOrigin && destLoc) {
         const directionsService = new window.google.maps.DirectionsService();
         const modeMap = { drive: 'DRIVING', bike: 'BICYCLING', transit: 'TRANSIT', walk: 'WALKING' };
+        const travelMode = modeMap[mode] || 'DRIVING';
+        const originLatLng = new window.google.maps.LatLng(originLat, originLng);
 
         directionsService.route(
           {
-            origin: userLocation,
+            origin: originLatLng,
             destination: destLoc,
-            travelMode: window.google.maps.TravelMode[modeMap[mode] || 'DRIVING'],
-            drivingOptions: (modeMap[mode] || 'DRIVING') === 'DRIVING' ? {
+            travelMode: window.google.maps.TravelMode[travelMode],
+            provideRouteAlternatives: true,
+            drivingOptions: travelMode === 'DRIVING' ? {
               departureTime: new Date(),
               trafficModel: window.google.maps.TrafficModel.BEST_GUESS,
             } : undefined,
           },
           (result, status) => {
             if (status === window.google.maps.DirectionsStatus.OK) {
+              // Parse all routes for the alternative routes card
+              const allRoutes = result.routes.map((route, idx) => {
+                const leg = route.legs[0];
+                const freeMins = leg.duration?.value ? Math.round(leg.duration.value / 60) : 0;
+                const trafficMins = leg.duration_in_traffic?.value
+                  ? Math.round(leg.duration_in_traffic.value / 60)
+                  : freeMins;
+                const ratio = freeMins > 0 ? trafficMins / freeMins : 1;
+                const routeTraffic =
+                  ratio >= 1.4 ? 'Heavy traffic'
+                  : ratio >= 1.15 ? 'Moderate traffic'
+                  : 'Light traffic';
+                return {
+                  index: idx,
+                  duration: leg.duration_in_traffic?.text || leg.duration?.text || '--',
+                  durationMinutes: trafficMins || freeMins,
+                  distance: leg.distance?.text || '--',
+                  summary: route.summary || '',
+                  traffic: routeTraffic,
+                };
+              });
+              // Sort by duration so fastest is first
+              allRoutes.sort((a, b) => a.durationMinutes - b.durationMinutes);
+              setAlternativeRoutes(allRoutes);
+
+              const preferredIndex = etaData?.selectedRouteIndex ?? 0;
+              const safeIndex = preferredIndex < result.routes.length ? preferredIndex : 0;
               const renderer = new window.google.maps.DirectionsRenderer({
                 map: mapInstanceRef.current,
                 directions: result,
-                routeIndex: 0,
+                routeIndex: safeIndex,
                 suppressInfoWindows: true,
                 suppressMarkers: false,
                 polylineOptions: {
@@ -134,8 +171,19 @@ const EtaPage = () => {
                 },
               });
 
+              // Fit map to show full route
+              const bounds = new window.google.maps.LatLngBounds();
+              const leg = result.routes[safeIndex]?.legs?.[0];
+              if (leg) {
+                bounds.extend(leg.start_location);
+                bounds.extend(leg.end_location);
+                const overviewPath = result.routes[safeIndex]?.overview_path || [];
+                overviewPath.forEach(pt => bounds.extend(pt));
+                mapInstanceRef.current.fitBounds(bounds, { top: 60, bottom: 60, left: 30, right: 30 });
+              }
+
               // Add "You" label at origin
-              const originLoc = result.routes[0]?.legs?.[0]?.start_location;
+              const originLoc = result.routes[safeIndex]?.legs?.[0]?.start_location;
               if (originLoc) {
                 new window.google.maps.Marker({
                   position: originLoc,
@@ -159,7 +207,7 @@ const EtaPage = () => {
               }
 
               // Add "Full Overview" label at midpoint
-              const path = result.routes[0]?.overview_path || [];
+              const path = result.routes[safeIndex]?.overview_path || [];
               if (path.length > 0) {
                 const mid = path[Math.floor(path.length / 2)];
                 const OverlayClass = class extends window.google.maps.OverlayView {
@@ -301,6 +349,60 @@ const EtaPage = () => {
             <img src={MODE_ICONS[mode] || carIcon} alt="transport" style={{ width: '28px', height: '28px', objectFit: 'contain', margin: '4px auto 0' }} />
           </div>
         </div>
+
+        {/* ── Alternative Routes Card ── */}
+        {alternativeRoutes.length > 0 && (
+          <div style={{
+            background: 'linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%)',
+            borderRadius: '14px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            padding: '20px 28px',
+            width: '100%',
+          }}>
+            <div style={{
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 700,
+              fontSize: '18px',
+              color: '#111827',
+              marginBottom: '16px',
+            }}>
+              Alternative Routes
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginLeft: '12px' }}>
+              {alternativeRoutes.map((route, idx) => {
+                const isFastest = idx === 0;
+                const isCurrent = route.durationMinutes === durationMinutes;
+                const trafficTag = route.traffic === 'Light traffic' ? 'less traffic'
+                  : route.traffic === 'Moderate traffic' ? 'moderate traffic'
+                  : 'heavy traffic';
+
+                // Build the tag string
+                const tags = [];
+                if (isFastest) tags.push('fastest');
+                if (isCurrent) tags.push('Current');
+                if (!isFastest) tags.push(trafficTag);
+                const tagStr = tags.length > 0 ? ` (${tags.join(', ')})` : '';
+
+                return (
+                  <div key={idx} style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '14px',
+                    color: '#111827',
+                    fontWeight: isCurrent ? 700 : 400,
+                    lineHeight: '1.6',
+                  }}>
+                    <span style={{ fontWeight: 700 }}>Route {idx + 1}:</span>
+                    <span>{route.duration}</span>
+                    <span style={{
+                      fontWeight: 600,
+                      color: isCurrent ? '#1A73E8' : '#6B7280',
+                    }}>{tagStr}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Action Buttons ── */}
         <div style={{

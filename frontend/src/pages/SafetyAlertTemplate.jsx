@@ -1,12 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Megaphone, Wind, Phone } from 'lucide-react';
+import { AlertTriangle, Phone } from 'lucide-react';
 import bottomLogo from '../assets/bottomLogo.png';
-import Logo from '../assets/Logo.png';
-import Lotus from '../assets/Lotus.png';
 import middle from '../assets/middle.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { checkRouteForFlood, checkRouteForFog } from '../utils/floodService';
-import { ensureMapsScript } from '../utils/helpers';
+import { fetchRoadBlockages, fetchWeatherAlerts, fetchCrimeAlerts } from '../services/api';
+import { checkRouteForFlood } from '../utils/floodService';
+
+/* Calculate distance between two coordinates in metres (Haversine) */
+const haversineDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const formatDistance = (metres) => {
+  if (metres < 1000) return `${Math.round(metres)}m`;
+  return `${(metres / 1000).toFixed(1)}km`;
+};
 
 export default function SafetyAlertTemplate() {
   const { setTitle, setActivePage, safetyData } = usePageTitle();
@@ -16,9 +32,77 @@ export default function SafetyAlertTemplate() {
   }, [setTitle]);
 
   const routePath = safetyData?.routePath || [];
+  const safeDestination = (safetyData?.destination || '').replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userPos, setUserPos] = useState(null);
+  const [roadblocks, setRoadblocks] = useState([]);
+  const [roadblocksLoading, setRoadblocksLoading] = useState(true);
+  const [crimeAlerts, setCrimeAlerts] = useState([]);
+  const [crimeLoading, setCrimeLoading] = useState(true);
+  const [currentCrimeIndex, setCurrentCrimeIndex] = useState(0);
+  const [currentRoadblockIndex, setCurrentRoadblockIndex] = useState(0);
 
+  // ── Watch user's real-time GPS position ──
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true }
+    );
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => console.warn('[SafetyAlert] Geolocation error:', err.message),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // ── Fetch road blockages from the incidents API ──
+  useEffect(() => {
+    let cancelled = false;
+    const loadRoadblocks = async () => {
+      setRoadblocksLoading(true);
+      try {
+        const data = await fetchRoadBlockages();
+        if (!cancelled) {
+          // The API may return { incidents: [...] } or an array directly
+          const incidents = Array.isArray(data) ? data : (data?.incidents || data?.data || []);
+          setRoadblocks(incidents);
+        }
+      } catch (err) {
+        console.warn('[SafetyAlert] Failed to fetch road blockages:', err.message);
+        if (!cancelled) setRoadblocks([]);
+      } finally {
+        if (!cancelled) setRoadblocksLoading(false);
+      }
+    };
+    loadRoadblocks();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Fetch crime alerts from the database ──
+  useEffect(() => {
+    let cancelled = false;
+    const loadCrimeAlerts = async () => {
+      setCrimeLoading(true);
+      try {
+        const res = await fetchCrimeAlerts();
+        if (!cancelled) {
+          const data = Array.isArray(res) ? res : (res?.data || []);
+          setCrimeAlerts(data);
+        }
+      } catch (err) {
+        console.warn('[SafetyAlert] Failed to fetch crime alerts:', err.message);
+        if (!cancelled) setCrimeAlerts([]);
+      } finally {
+        if (!cancelled) setCrimeLoading(false);
+      }
+    };
+    loadCrimeAlerts();
+    return () => { cancelled = true; };
+  }, []);
 
   const [emergencyContacts] = useState([
     { name: 'Police', number: '119' },
@@ -28,235 +112,160 @@ export default function SafetyAlertTemplate() {
 
   const routeSummary = useMemo(() => {
     if (!safetyData) return '';
-    return `${safetyData.origin ? 'From your current location' : 'Route'} to ${safetyData.destination || 'destination'}`;
+    return `${safetyData.origin ? 'From your current location' : 'Route'} to ${safeDestination || 'destination'}`;
   }, [safetyData]);
 
   useEffect(() => {
     let cancelled = false;
 
-    const samplePoints = (path, maxSamples = 5) => {
-      if (!path.length) return [];
-      if (path.length <= maxSamples) return path;
-      const step = Math.max(1, Math.floor(path.length / maxSamples));
-      return Array.from({ length: maxSamples }, (_, index) => path[index * step]).filter(Boolean);
-    };
+    const buildAlert = (alert, hasFlood) => {
+      const condition = alert.weatherCondition || '';
+      const temp = alert.temperature != null ? `${Math.round(alert.temperature)}\u00b0C` : '';
+      const cityName = alert.location || safeDestination;
 
-    const fetchAirQuality = async (lat, lng) => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || '';
-      if (!apiKey || apiKey === 'your_openweathermap_api_key_here') {
-        console.warn('[SafetyAlert] OpenWeather API key not set. Skipping air quality check.');
-        return null;
-      }
-      try {
-        const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${apiKey}`;
-        console.log('[SafetyAlert] Fetching air quality:', url);
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error('[SafetyAlert] Air quality API error:', response.status, response.statusText);
-          return null;
-        }
-        const data = await response.json();
-        const item = data.list?.[0];
-        if (!item) return null;
-        console.log('[SafetyAlert] Air quality result:', item);
-        return {
-          aqi: item.main?.aqi ?? 0,
-          pm2_5: item.components?.pm2_5 ?? 0,
-        };
-      } catch (err) {
-        console.error('[SafetyAlert] Air quality fetch error:', err);
-        return null;
-      }
-    };
+      const badConditions = ['Thunderstorm', 'Drizzle', 'Rain', 'Heavy Rain', 'Snow', 'Squall', 'Tornado', 'Mist', 'Fog', 'Haze', 'Dust', 'Sand', 'Ash', 'Clouds'];
+      const isBadWeather = badConditions.some((c) => condition.toLowerCase().includes(c.toLowerCase())) || hasFlood;
 
-    const fetchWeather = async (lat, lng) => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY || '';
-      if (!apiKey || apiKey === 'your_openweathermap_api_key_here') {
-        console.warn('[SafetyAlert] OpenWeather API key not set. Skipping weather check.');
-        return null;
-      }
-      try {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`;
-        console.log('[SafetyAlert] Fetching weather:', url);
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error('[SafetyAlert] Weather API error:', response.status, response.statusText);
-          return null;
-        }
-        const data = await response.json();
-        console.log('[SafetyAlert] Weather result:', data);
-        return data;
-      } catch (err) {
-        console.error('[SafetyAlert] Weather fetch error:', err);
-        return null;
-      }
-    };
+      const summary = [cityName, condition, temp].filter(Boolean).join(' · ');
+      const floodWarning = hasFlood ? 'Flood/Landslide alert on route.' : '';
 
-    const fetchClosedTouristAreas = async (path) => {
-      return new Promise((resolve) => {
-        if (!window.google?.maps?.places || !path.length) {
-          resolve([]);
-          return;
-        }
+      const descriptionLines = [summary, alert.description, floodWarning].filter(Boolean).join('\n');
 
-        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-        const points = samplePoints(path, 4);
-        const collected = [];
-        let remaining = points.length;
-
-        if (remaining === 0) {
-          resolve([]);
-          return;
-        }
-
-        points.forEach((point) => {
-          const location = new window.google.maps.LatLng(point.lat, point.lng);
-          service.nearbySearch(
-            { location, radius: 2000, type: 'tourist_attraction' },
-            (results, status) => {
-              if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-                results.slice(0, 5).forEach((place) => {
-                  if (!place.place_id) return;
-                  service.getDetails({ placeId: place.place_id, fields: ['name', 'business_status', 'geometry'] }, (detail, detailStatus) => {
-                    if (detailStatus === window.google.maps.places.PlacesServiceStatus.OK && detail?.business_status && detail.business_status !== 'OPERATIONAL') {
-                      collected.push({
-                        name: detail.name,
-                        status: detail.business_status,
-                      });
-                    }
-                  });
-                });
-              }
-
-              remaining -= 1;
-              if (remaining === 0) {
-                setTimeout(() => resolve(collected.slice(0, 3)), 250);
-              }
-            }
-          );
-        });
-      });
+      return {
+        id: 'weather-live',
+        type: 'weather',
+        alertStyle: 'square-card',
+        title: isBadWeather ? 'Weather alert' : 'Good weather',
+        description: descriptionLines,
+        isBadWeather,
+      };
     };
 
     const runChecks = async () => {
       setLoading(true);
-      const issues = [];
-      let currentWeatherInfo = '';
+      const destination = safeDestination;
 
-      if (routePath.length > 0) {
-        const destinationPoint = routePath[routePath.length - 1] || routePath[0];
-        if (destinationPoint) {
-          const lat = typeof destinationPoint.lat === 'function' ? destinationPoint.lat() : destinationPoint.lat;
-          const lng = typeof destinationPoint.lng === 'function' ? destinationPoint.lng() : destinationPoint.lng;
+      try {
+        const floodRes = await checkRouteForFlood(routePath, destination);
+        const hasFlood = floodRes.isFlood;
 
-
-          try {
-            const weather = await fetchWeather(lat, lng);
-            if (weather) {
-
-              if (weather.weather && weather.weather.length > 0) {
-                const desc = weather.weather[0].description;
-                currentWeatherInfo = desc.charAt(0).toUpperCase() + desc.slice(1);
-              }
-
-              if (weather.main && weather.main.temp != null) {
-                const temp = weather.main.temp;
-                if (currentWeatherInfo) {
-                  currentWeatherInfo += ` (${Math.round(temp)}°C)`;
-                }
-                if (temp >= 30) {
-                  issues.push(`Extreme heat (${Math.round(temp)}°C): Stay hydrated and avoid prolonged sun exposure`);
-                }
-                if (temp <= 20) {
-                  issues.push(`Extreme cold (${Math.round(temp)}°C): Risk of hypothermia or icy roads`);
-                }
-              }
-
-              if (weather.weather && weather.weather.length > 0) {
-                const weatherId = weather.weather[0].id;
-                if (weatherId >= 200 && weatherId < 300) {
-                  issues.push('Thunderstorm expected in this area');
-                }
-                if (weatherId >= 300 && weatherId < 400) {
-                  issues.push('Drizzle / light rain in this area');
-                }
-                if (weatherId >= 500 && weatherId < 600) {
-                  issues.push('Heavy rain expected in this area');
-                  const rainMm = weather.rain?.['1h'] ?? weather.rain?.['3h'] ?? 0;
-                  if (rainMm >= 10 || weatherId >= 502) {
-                    issues.push('Risk of flooding');
-                  }
-                }
-                if (weatherId >= 600 && weatherId < 700) {
-                  issues.push('Snow expected in this area');
-                }
-                if (weatherId >= 700 && weatherId < 800) {
-                  issues.push('Fog / low visibility on route');
-                }
-              }
-
-              if (weather.wind && weather.wind.speed > 15) {
-                issues.push(`Strong winds (${Math.round(weather.wind.speed)} m/s)`);
-              }
-            } else {
-            }
-          } catch (err) {
+        const res = await fetchWeatherAlerts(destination);
+        const data = res?.data || [];
+        if (!cancelled) {
+          if (data.length > 0) {
+            setAlerts([buildAlert(data[0], hasFlood)]);
+          } else if (hasFlood) {
+            setAlerts([{ 
+              id: 'flood', 
+              type: 'weather', 
+              alertStyle: 'square-card', 
+              title: 'Weather alert', 
+              description: 'Flood/Landslide alert on route.',
+              isBadWeather: true
+            }]);
+          } else {
+            // No active weather alert for this location — conditions are clear
+            setAlerts([{ 
+              id: 'clear', 
+              type: 'weather', 
+              alertStyle: 'square-card', 
+              title: 'Good weather', 
+              description: `${safeDestination ? safeDestination + ' · ' : ''}No active weather alerts.`,
+              isBadWeather: false
+            }]);
           }
-
-          try {
-            const air = await fetchAirQuality(lat, lng);
-            if (air) {
-              if (air.aqi >= 4) {
-                issues.push(`Poor air quality (${air.aqi}/5) near the route`);
-              }
-            } else {
-            }
-          } catch (err) {
-          }
-        } else {
         }
-
-        try {
-        } catch (err) {
+      } catch {
+        if (!cancelled) {
+          setAlerts([{ id: 'no-data', type: 'weather', alertStyle: 'square-card', title: 'Weather conditions', description: 'Unable to fetch weather data.', isBadWeather: false }]);
         }
-      }
-
-
-
-      const nextAlerts = [];
-      if (issues.length > 0) {
-        nextAlerts.push({
-          id: 'combined-alert',
-          type: 'weather',
-          alertStyle: 'square-card',
-          title: 'Weather alert',
-          description: issues.join('\n'),
-        });
-      } else {
-        const weatherText = currentWeatherInfo ? `${currentWeatherInfo}` : 'Clear skies';
-        nextAlerts.push({
-          id: 'clear',
-          type: 'weather',
-          alertStyle: 'square-card',
-          title: 'Weather alert',
-          description: `Good weather — ${weatherText}\nSafe to travel.`,
-        });
-      }
-
-      if (!cancelled) {
-        setAlerts(nextAlerts);
-        setLoading(false);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    ensureMapsScript(() => {
-      runChecks();
+    runChecks();
+    return () => { cancelled = true; };
+  }, [safetyData?.destination, routePath]);
+
+  // ── Filter crime alerts near the user's route (within 5km), sorted by distance ──
+  const nearbyRoadblocks = useMemo(() => {
+    if (roadblocksLoading) return [];
+    const filtered = roadblocks.filter((incident) => {
+      const incLat = incident.location?.lat ?? incident.latitude ?? incident.lat;
+      const incLng = incident.location?.lng ?? incident.longitude ?? incident.lng;
+
+      if (incLat != null && incLng != null) {
+        if (routePath.length > 0) {
+          return routePath.some((pt) => haversineDistance(incLat, incLng, pt.lat, pt.lng) <= 5000);
+        }
+        if (userPos) {
+          return haversineDistance(incLat, incLng, userPos.lat, userPos.lng) <= 5000;
+        }
+      }
+
+      // No coords — fall back to district name matching destination
+      const incDistrict = (incident.district || '').toLowerCase();
+      if (incDistrict && safeDestination) {
+        return safeDestination.toLowerCase().includes(incDistrict) || incDistrict.includes(safeDestination.toLowerCase());
+      }
+
+      return false;
     });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [routePath]);
+    if (userPos) {
+      filtered.sort((a, b) => {
+        const aLat = a.location?.lat ?? a.latitude ?? a.lat;
+        const aLng = a.location?.lng ?? a.longitude ?? a.lng;
+        const bLat = b.location?.lat ?? b.latitude ?? b.lat;
+        const bLng = b.location?.lng ?? b.longitude ?? b.lng;
+        const dA = (aLat != null && aLng != null) ? haversineDistance(userPos.lat, userPos.lng, aLat, aLng) : Infinity;
+        const dB = (bLat != null && bLng != null) ? haversineDistance(userPos.lat, userPos.lng, bLat, bLng) : Infinity;
+        return dA - dB;
+      });
+    }
+
+    return filtered;
+  }, [roadblocks, roadblocksLoading, routePath, userPos, safeDestination]);
+
+  const nearbyCrimeAlerts = useMemo(() => {
+    if (crimeLoading) return [];
+    const filtered = crimeAlerts.filter((crime) => {
+      const crimeLat = crime.location?.coordinates?.[1] ?? crime.latitude ?? crime.lat;
+      const crimeLng = crime.location?.coordinates?.[0] ?? crime.longitude ?? crime.lng;
+
+      if (crimeLat != null && crimeLng != null) {
+        if (routePath.length > 0) {
+          return routePath.some((pt) => haversineDistance(crimeLat, crimeLng, pt.lat, pt.lng) <= 5000);
+        }
+        if (userPos) {
+          return haversineDistance(crimeLat, crimeLng, userPos.lat, userPos.lng) <= 5000;
+        }
+      }
+
+      // No coords — fall back to district name matching destination
+      const incDistrict = (crime.district || crime.region || '').toLowerCase();
+      if (incDistrict && safeDestination) {
+        return safeDestination.toLowerCase().includes(incDistrict) || incDistrict.includes(safeDestination.toLowerCase());
+      }
+
+      return false;
+    });
+
+    if (userPos) {
+      filtered.sort((a, b) => {
+        const aLat = a.location?.coordinates?.[1] ?? a.latitude ?? a.lat;
+        const aLng = a.location?.coordinates?.[0] ?? a.longitude ?? a.lng;
+        const bLat = b.location?.coordinates?.[1] ?? b.latitude ?? b.lat;
+        const bLng = b.location?.coordinates?.[0] ?? b.longitude ?? b.lng;
+        const dA = (aLat != null && aLng != null) ? haversineDistance(userPos.lat, userPos.lng, aLat, aLng) : Infinity;
+        const dB = (bLat != null && bLng != null) ? haversineDistance(userPos.lat, userPos.lng, bLat, bLng) : Infinity;
+        return dA - dB;
+      });
+    }
+
+    return filtered;
+  }, [crimeAlerts, crimeLoading, routePath, userPos, safeDestination]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 relative overflow-hidden font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -276,10 +285,18 @@ export default function SafetyAlertTemplate() {
 
           {!loading && alerts.map((alert) => {
             if (alert.alertStyle === 'square-card') {
+              const isGoodWeather = !alert.isBadWeather;
               return (
-                <div key={alert.id} className="bg-[#FAF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#FDE047]/20" style={{ minHeight: '110px' }}>
-                  <div className="w-[110px] bg-[#FDD94A] flex items-center justify-center flex-shrink-0">
-                    <AlertTriangle className="w-14 h-14 text-black" strokeWidth={1.5} />
+                <div key={alert.id} className={`${isGoodWeather ? 'bg-[#CCF0CC] border border-[#81C784]/20' : 'bg-[#FAF0CC] border border-[#FDE047]/20'} rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02]`} style={{ minHeight: '110px' }}>
+                  <div className={`w-[110px] ${isGoodWeather ? 'bg-[#66BB6A]' : 'bg-[#FDD94A]'} flex items-center justify-center flex-shrink-0`}>
+                    {isGoodWeather ? (
+                      <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="24" fill="white" fillOpacity="0.3" />
+                        <path d="M20 33L28 41L44 23" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <AlertTriangle className="w-14 h-14 text-black" strokeWidth={1.5} />
+                    )}
                   </div>
                   <div className="flex-1 p-6 flex flex-col justify-center">
                     <h3 className="font-bold text-black text-[19px] mb-3">{alert.title}</h3>
@@ -303,6 +320,205 @@ export default function SafetyAlertTemplate() {
               </div>
             );
           })}
+
+          {/* ── Route Incidents (from database) ── */}
+          {!loading && !roadblocksLoading && (() => {
+            const hasRoadblocks = nearbyRoadblocks.length > 0;
+            const safeIndex = Math.min(currentRoadblockIndex, nearbyRoadblocks.length - 1);
+            const incident = hasRoadblocks ? nearbyRoadblocks[safeIndex] : null;
+
+            if (hasRoadblocks) {
+              const incLat = incident.location?.lat ?? incident.latitude ?? incident.lat;
+              const incLng = incident.location?.lng ?? incident.longitude ?? incident.lng;
+              let blockDistance = '';
+              if (userPos && incLat != null && incLng != null) {
+                blockDistance = formatDistance(
+                  haversineDistance(userPos.lat, userPos.lng, incLat, incLng)
+                );
+              }
+              const locationName = incident.district || '';
+              const description = incident.description || '';
+              const title = incident.incidentCategory || 'Incident';
+
+              return (
+                <div className="space-y-2">
+                  {safeIndex > 0 && (
+                    <div className="flex flex-col gap-1">
+                      {nearbyRoadblocks.slice(0, safeIndex).map((passed, idx) => (
+                        <div
+                          key={passed._id || passed.id || `roadblock-passed-${idx}`}
+                          className="rounded-lg flex items-center gap-3 px-4 py-2 bg-gray-100 border border-gray-200 opacity-70"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="32" cy="32" r="24" fill="#9CA3AF" fillOpacity="0.4" />
+                            <path d="M20 33L28 41L44 23" stroke="#6B7280" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span className="text-gray-500 text-[13px]">
+                          ✓ You passed: <span className="font-medium">{passed.incidentCategory || 'Incident'}</span>{passed.district ? ` — ${passed.district}` : ''}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="bg-[#FAF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#FDE047]/20" style={{ minHeight: '110px' }}>
+                    <div className="w-[110px] bg-[#FDD94A] flex items-center justify-center flex-shrink-0">
+                      <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="50" width="40" height="7" rx="2" fill="#444"/>
+                        <rect x="8" y="50" width="36" height="4" rx="1.5" fill="#555"/>
+                        <path d="M18 52L24 8H28L34 52H18Z" fill="#FF6D00"/>
+                        <path d="M18.5 52L24.5 8H26L20.5 52H18.5Z" fill="#E65100" opacity="0.35"/>
+                        <rect x="21" y="19" width="10" height="5" rx="1" fill="white" opacity="0.95"/>
+                        <rect x="20" y="32" width="12" height="5" rx="1" fill="white" opacity="0.95"/>
+                        <ellipse cx="26" cy="7" rx="3" ry="1.8" fill="#FF8F00"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 p-6 flex flex-col justify-center">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-black text-[19px]">
+                          {title}{blockDistance ? ` — ${blockDistance} away` : ''}
+                        </h3>
+                        {nearbyRoadblocks.length > 1 && (
+                          <span className="text-[12px] text-gray-500 ml-2 whitespace-nowrap">{safeIndex + 1} / {nearbyRoadblocks.length}</span>
+                        )}
+                      </div>
+                      <div className="text-black text-[15px] leading-snug">
+                        {locationName && <div>{locationName}</div>}
+                        <div>{description}</div>
+                      </div>
+                      {safeIndex < nearbyRoadblocks.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setCurrentRoadblockIndex(safeIndex + 1)}
+                          className="self-start mt-3 text-[13px] bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-3 py-1 rounded-lg transition-colors"
+                        >
+                          I passed this location →
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {/* ── Road is clear (no blockages from database) ── */}
+                {!hasRoadblocks && (
+                  <div className="bg-[#CCF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#81C784]/20" style={{ minHeight: '110px' }}>
+                    <div className="w-[110px] bg-[#66BB6A] flex items-center justify-center flex-shrink-0">
+                      <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="24" fill="white" fillOpacity="0.3" />
+                        <path d="M20 33L28 41L44 23" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 p-6 flex flex-col justify-center">
+                      <h3 className="font-bold text-black text-[19px] mb-3">No incidents on route</h3>
+                      <div className="text-black text-[15px] leading-snug">
+                        <div>No incidents reported near your route.</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* ── Crime Alerts (from database via /security-alerts/crime) ── */}
+          {!loading && !crimeLoading && (() => {
+            const hasCrimeAlerts = nearbyCrimeAlerts.length > 0;
+            const safeIndex = Math.min(currentCrimeIndex, nearbyCrimeAlerts.length - 1);
+            const crime = hasCrimeAlerts ? nearbyCrimeAlerts[safeIndex] : null;
+
+            if (!hasCrimeAlerts) {
+              return (
+                <div className="bg-[#CCF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#81C784]/20" style={{ minHeight: '110px' }}>
+                  <div className="w-[110px] bg-[#66BB6A] flex items-center justify-center flex-shrink-0">
+                    <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="32" cy="32" r="24" fill="white" fillOpacity="0.3" />
+                      <path d="M20 33L28 41L44 23" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 p-6 flex flex-col justify-center">
+                    <h3 className="font-bold text-black text-[19px] mb-3">No crime alerts</h3>
+                    <div className="text-black text-[15px] leading-snug">
+                      <div>No crime incidents reported near your route.</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            const crimeLat = crime.location?.coordinates?.[1] ?? crime.latitude ?? crime.lat;
+            const crimeLng = crime.location?.coordinates?.[0] ?? crime.longitude ?? crime.lng;
+            let crimeDistance = '';
+            if (userPos && crimeLat != null && crimeLng != null) {
+              crimeDistance = formatDistance(
+                haversineDistance(userPos.lat, userPos.lng, crimeLat, crimeLng)
+              );
+            }
+            const locationName = crime.district || crime.region || '';
+            const description = crime.description || 'Crime reported in this area. Stay alert.';
+            const crimeTitle = crime.title || 'High crime alert';
+
+            return (
+              <div className="space-y-2">
+                {/* Passed locations */}
+                {safeIndex > 0 && (
+                  <div className="flex flex-col gap-1">
+                    {nearbyCrimeAlerts.slice(0, safeIndex).map((passed, idx) => (
+                      <div
+                        key={passed._id || passed.id || `passed-${idx}`}
+                        className="rounded-lg flex items-center gap-3 px-4 py-2 bg-gray-100 border border-gray-200 opacity-70"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="32" cy="32" r="24" fill="#9CA3AF" fillOpacity="0.4" />
+                          <path d="M20 33L28 41L44 23" stroke="#6B7280" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="text-gray-500 text-[13px]">
+                          ✓ You passed: <span className="font-medium">{passed.title || 'Crime alert'}</span>{(passed.district || passed.region) ? ` — ${passed.district || passed.region}` : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Current crime card */}
+                <div
+                  key={crime._id || crime.id || `crime-${safeIndex}`}
+                  className="bg-[#FAF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#FDE047]/20"
+                  style={{ minHeight: '110px' }}
+                >
+                  <div className="w-[110px] bg-[#FDD94A] flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-14 h-14 text-black" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1 p-6 flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold text-black text-[19px]">
+                        {crimeTitle}{crimeDistance ? ` — ${crimeDistance} away` : ''}
+                      </h3>
+                      {nearbyCrimeAlerts.length > 1 && (
+                        <span className="text-[12px] text-gray-500 ml-2 whitespace-nowrap">{safeIndex + 1} / {nearbyCrimeAlerts.length}</span>
+                      )}
+                    </div>
+                    <div className="text-black text-[15px] leading-snug">
+                      {locationName && <div>{locationName}</div>}
+                      <div>{description}</div>
+                    </div>
+                    {safeIndex < nearbyCrimeAlerts.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setCurrentCrimeIndex(safeIndex + 1)}
+                        className="self-start mt-3 text-[13px] bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-3 py-1 rounded-lg transition-colors"
+                      >
+                        I passed this location →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8 relative z-10">

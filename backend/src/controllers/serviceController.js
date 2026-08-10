@@ -1,4 +1,4 @@
-const RecentPlace = require('../models/service');
+import RecentPlace from '../models/service.js';
 
 const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';
 
@@ -206,8 +206,4 @@ const deleteRecentPlace = async (req, res) => {
 	}
 };
 
-module.exports = {
-	getRecentPlaces,
-	createRecentPlace,
-	deleteRecentPlace,
-};
+export { getRecentPlaces, createRecentPlace, deleteRecentPlace };

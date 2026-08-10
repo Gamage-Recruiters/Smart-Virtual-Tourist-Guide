@@ -17,7 +17,7 @@ import closeIcon from '../assets/closeIcon.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import { ensureMapsScript } from '../utils/helpers';
 import { checkRouteForFlood } from '../utils/floodService';
-import { saveFavoritePlace } from '../services/api';
+import { saveFavoritePlace, fetchCrimeAlerts, fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import LocationInput from '../components/LocationInput';
 
 const MODE_CONFIGS = [
@@ -26,6 +26,9 @@ const MODE_CONFIGS = [
   { key: 'transit', label: 'Transit', icon: busIcon, travelMode: 'TRANSIT', multiplier: 1.85 },
   { key: 'walk', label: 'Walk', icon: manIcon, travelMode: 'WALKING', multiplier: 8.5 },
 ];
+
+const SHOW_CRIME_LABELS_ON_START_MAP = false;
+const SHOW_ROADBLOCK_LABELS_ON_START_MAP = false;
 
 const SRI_LANKA_BOUNDS = {
   north: 10.0,
@@ -434,9 +437,16 @@ const Direction = ({ showDetailsPanel = true }) => {
   const routeLabelsRef = useRef([]);
   const floodLabelsRef = useRef([]);
   const floodPollRef = useRef(null);
+  const crimeLabelsRef = useRef([]);
+  const crimeAlertsCacheRef = useRef([]);
+  const crimeRoutePathRef = useRef([]);
+  const roadblockLabelsRef = useRef([]);
+  const roadblocksCacheRef = useRef([]);
+  const roadblockRoutePathRef = useRef([]);
   const RouteLabelClassRef = useRef(null);
   const poiMarkersRef = useRef([]);
   const pathClickLabelRef = useRef(null);
+  const nearestHospitalOverlayRef = useRef(null);
 
   const [floodDetected, setFloodDetected] = useState(false);
 
@@ -586,11 +596,23 @@ const Direction = ({ showDetailsPanel = true }) => {
     floodLabelsRef.current = [];
   };
 
+  const clearCrimeOverlays = () => {
+    crimeLabelsRef.current.forEach((label) => label.setMap(null));
+    crimeLabelsRef.current = [];
+  };
+
+  const clearRoadblockOverlays = () => {
+    roadblockLabelsRef.current.forEach((label) => label.setMap(null));
+    roadblockLabelsRef.current = [];
+  };
+
   const clearRouteOverlays = () => {
     renderersRef.current.forEach((renderer) => renderer.setMap(null));
     clickPathsRef.current.forEach((path) => path.setMap(null));
     routeLabelsRef.current.forEach((label) => label.setMap(null));
     clearFloodOverlays();
+    clearCrimeOverlays();
+    clearRoadblockOverlays();
     clearPathClickLabel();
     renderersRef.current = [];
     clickPathsRef.current = [];
@@ -724,6 +746,7 @@ const Direction = ({ showDetailsPanel = true }) => {
               durationMinutes: trafficMins || freeMins,
               traffic,
               mode: selectedMode,
+              selectedRouteIndex: i,
             });
           }
         };
@@ -733,21 +756,29 @@ const Direction = ({ showDetailsPanel = true }) => {
 
       if (!showDetailsPanel && isSelected) {
 
-
-        // Hospital Label at 40% of the route
-        const hospitalPoint = path[Math.floor(path.length * 0.4)];
-        if (hospitalPoint) {
-          const hospitalLabelHtml = `
-            <div style="width:140px;height:38px;border-radius:8px;background:#EAB308;display:flex;align-items:center;justify-content:center;box-shadow:0px 2px 4px rgba(0,0,0,0.3);">
-              <span style="font-weight:700;font-size:15px;color:#000;">Hospital</span>
-            </div>`;
-          const hospitalOverlay = createRouteLabel(mapInstanceRef.current, hospitalPoint, hospitalLabelHtml);
-          routeLabelsRef.current.push(hospitalOverlay);
+        // ── Traffic label: find the actual worst-congested step on the route ──
+        const steps = result.routes[i]?.legs?.[0]?.steps || [];
+        let worstStepLocation = null;
+        let worstRatio = 1;
+        steps.forEach((step) => {
+          const stepFree = step.duration?.value || 0;
+          const stepTraffic = step.duration_in_traffic?.value || stepFree;
+          const stepRatio = stepFree > 0 ? stepTraffic / stepFree : 1;
+          if (stepRatio > worstRatio) {
+            worstRatio = stepRatio;
+            // Use the midpoint of the step's path for the label position
+            const stepPath = step.path || [];
+            worstStepLocation = stepPath.length > 0
+              ? stepPath[Math.floor(stepPath.length / 2)]
+              : step.start_location;
+          }
+        });
+        // Fall back to 75% of overview path if no per-step traffic data
+        if (!worstStepLocation && hasTrafficDelay) {
+          worstStepLocation = path[Math.floor(path.length * 0.75)];
         }
 
-        // Traffic Label at 75% of the route
-        const trafficPoint = path[Math.floor(path.length * 0.75)];
-        if (trafficPoint && hasTrafficDelay) {
+        if (worstStepLocation && hasTrafficDelay) {
           const trafficLabelHtml = `
             <div style="width:140px;height:40px;border-radius:12px;background:#EAB308;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0px 2px 4px rgba(0,0,0,0.3);">
               <svg width="22" height="20" viewBox="0 0 48 44" aria-hidden="true">
@@ -757,9 +788,11 @@ const Direction = ({ showDetailsPanel = true }) => {
               </svg>
               <span style="font-weight:700;font-size:15px;color:#000;">Traffic</span>
             </div>`;
-          const trafficOverlay = createRouteLabel(mapInstanceRef.current, trafficPoint, trafficLabelHtml);
+          const trafficOverlay = createRouteLabel(mapInstanceRef.current, worstStepLocation, trafficLabelHtml);
           routeLabelsRef.current.push(trafficOverlay);
         }
+
+
       }
 
       // ── Flood label (shown separately at 1/3 point of the route) ──
@@ -928,6 +961,8 @@ const Direction = ({ showDetailsPanel = true }) => {
             const selectedGoogleRoute = result.routes[0];
             const overviewPath = selectedGoogleRoute?.overview_path || [];
             checkAndDrawFloodLabel(overviewPath);
+            checkAndDrawCrimeLabels(overviewPath);
+            checkAndDrawRoadblockLabels(overviewPath);
             // Poll every 5 minutes
             if (floodPollRef.current) clearInterval(floodPollRef.current);
             floodPollRef.current = setInterval(() => {
@@ -955,18 +990,33 @@ const Direction = ({ showDetailsPanel = true }) => {
   const checkAndDrawFloodLabel = async (overviewPath) => {
     if (!mapInstanceRef.current || !overviewPath?.length || showDetailsPanel) return;
     clearFloodOverlays();
-    const { isFlood } = await checkRouteForFlood(overviewPath);
+
+    const { isFlood, floodPoint, alert } = await checkRouteForFlood(overviewPath, destination);
     setFloodDetected(isFlood);
     if (!isFlood) return;
 
-    // Place label at 1/3 of the path (away from the ETA label at midpoint)
-    const thirdPoint = overviewPath[Math.floor(overviewPath.length / 3)];
-    if (!thirdPoint) return;
+    // Place label at flood point or 1/3 of the path
+    const fallbackPoint = overviewPath[Math.floor(overviewPath.length / 3)];
+    const labelPoint = floodPoint || fallbackPoint;
+    if (!labelPoint) return;
+
+    const condition = (alert?.weatherCondition || '').toLowerCase();
+    const alertLocation = (alert?.location || '').trim();
+    const isSpecificallyLandslide = condition.includes('landslide');
+    const isSpecificallyFlood = condition.includes('flood');
+    
+    let titlePrefix = 'Weather warning';
+    if (isSpecificallyLandslide) titlePrefix = 'Landslide warning';
+    else if (isSpecificallyFlood) titlePrefix = 'Flood warning';
+    else titlePrefix = 'Landslide or flood warning';
+
+    const labelMessage = alertLocation ? `${titlePrefix} - ${alertLocation}` : titlePrefix;
 
     const floodLabel = `
       <div style="
         transform: translateY(-60px);
-        width: 220px;
+        min-width: 220px;
+        max-width: 300px;
         height: 44px;
         border-radius: 12px;
         background: #E8CC1C;
@@ -983,23 +1033,342 @@ const Direction = ({ showDetailsPanel = true }) => {
           <line x1="12" y1="9" x2="12" y2="13" stroke="#E53935" stroke-width="1.8" stroke-linecap="round"/>
           <circle cx="12" cy="17" r="1" fill="#E53935"/>
         </svg>
-        <span style="font-weight:700;font-size:11px;color:#000;white-space:nowrap;">Caution : Flooded area ahead</span>
+        <span style="font-weight:700;font-size:11px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${labelMessage}</span>
       </div>`;
 
-    const overlay = createRouteLabel(mapInstanceRef.current, thirdPoint, floodLabel);
+    const overlay = createRouteLabel(mapInstanceRef.current, labelPoint, floodLabel);
     floodLabelsRef.current.push(overlay);
   };
 
-  const placeOriginMarker = (loc) => {
+  // Haversine distance helper (metres)
+  const haversineDist = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  /**
+   * Show only the single nearest AHEAD crime alert on the map.
+   * "Ahead" = the crime's closest route-point index is >= the user's closest
+   * route-point index, so alerts behind the user are hidden.
+   * Called on every GPS update for real-time progression.
+   */
+  const updateNearestCrimeLabel = (userLoc) => {
+    if (!SHOW_CRIME_LABELS_ON_START_MAP) return;
+    if (!mapInstanceRef.current || showDetailsPanel) return;
+    clearCrimeOverlays();
+
+    const cachedAlerts = crimeAlertsCacheRef.current;
+    const overviewPath = crimeRoutePathRef.current;
+    if (!cachedAlerts.length || !overviewPath.length) return;
+
+    const userLat = userLoc?.lat;
+    const userLng = userLoc?.lng;
+    if (userLat == null || userLng == null) return;
+
+    // Find the user's nearest point index on the route
+    let userRouteIdx = 0;
+    let userMinDist = Infinity;
+    overviewPath.forEach((pt, idx) => {
+      const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
+      const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
+      const d = haversineDist(userLat, userLng, ptLat, ptLng);
+      if (d < userMinDist) {
+        userMinDist = d;
+        userRouteIdx = idx;
+      }
+    });
+
+    // For each crime alert near the route, compute its route-index and
+    // distance to the user. Keep only those AHEAD of the user.
+    let bestCrime = null;
+    let bestDistToUser = Infinity;
+
+    cachedAlerts.forEach((crime) => {
+      const crimeLat = crime.latitude ?? crime.lat;
+      const crimeLng = crime.longitude ?? crime.lng ?? crime.lon;
+      if (crimeLat == null || crimeLng == null) return;
+
+      // Find the crime's nearest route-point
+      let crimeRouteIdx = 0;
+      let crimeRouteDist = Infinity;
+      overviewPath.forEach((pt, idx) => {
+        const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
+        const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
+        const d = haversineDist(crimeLat, crimeLng, ptLat, ptLng);
+        if (d < crimeRouteDist) {
+          crimeRouteDist = d;
+          crimeRouteIdx = idx;
+        }
+      });
+
+      // Must be within 5km of the route AND ahead of the user
+      if (crimeRouteDist > 5000) return;
+      if (crimeRouteIdx < userRouteIdx) return; // already passed
+
+      const distToUser = haversineDist(userLat, userLng, crimeLat, crimeLng);
+      if (distToUser < bestDistToUser) {
+        bestDistToUser = distToUser;
+        bestCrime = crime;
+      }
+    });
+
+    if (!bestCrime) return;
+
+    const crimeLat = bestCrime.latitude ?? bestCrime.lat;
+    const crimeLng = bestCrime.longitude ?? bestCrime.lng ?? bestCrime.lon;
+    const crimeTitle = bestCrime.title || 'Crime alert';
+    const crimeLocation = bestCrime.location || '';
+    const distText = bestDistToUser < 1000
+      ? `${Math.round(bestDistToUser)}m away`
+      : `${(bestDistToUser / 1000).toFixed(1)}km away`;
+    const labelText = crimeLocation
+      ? `${crimeTitle} · ${crimeLocation} · ${distText}`
+      : `${crimeTitle} · ${distText}`;
+
+    const crimeLabelHtml = `
+      <div style="
+        transform: translateY(-60px);
+        min-width: 200px;
+        max-width: 300px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0px 3px 8px rgba(211,47,47,0.45);
+        padding: 0 14px;
+      ">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+            fill="none" stroke="#FFF" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="12" y1="9" x2="12" y2="13" stroke="#FFF" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="17" r="1" fill="#FFF"/>
+        </svg>
+        <span style="font-weight:700;font-size:11px;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${labelText}</span>
+      </div>`;
+
+    const crimePos = new window.google.maps.LatLng(crimeLat, crimeLng);
+    const overlay = createRouteLabel(mapInstanceRef.current, crimePos, crimeLabelHtml);
+    crimeLabelsRef.current.push(overlay);
+  };
+
+  /* ── Fetch crime alerts and show nearest on the route ── */
+  const checkAndDrawCrimeLabels = async (overviewPath) => {
+    if (!SHOW_CRIME_LABELS_ON_START_MAP) return;
+    if (!mapInstanceRef.current || !overviewPath?.length || showDetailsPanel) return;
+    clearCrimeOverlays();
+
+    // Store the route path for GPS-driven updates
+    crimeRoutePathRef.current = overviewPath;
+
+    try {
+      const res = await fetchCrimeAlerts();
+      const alerts = Array.isArray(res) ? res : (res?.data || []);
+      crimeAlertsCacheRef.current = alerts;
+
+      // Show the nearest one based on current user position
+      const userLoc = userLocationRef.current;
+      if (userLoc) {
+        updateNearestCrimeLabel(userLoc);
+      }
+    } catch (err) {
+      console.warn('[Direction] Failed to fetch crime alerts for map:', err.message);
+    }
+  };
+
+  /**
+   * Show only the single nearest AHEAD roadblock on the map.
+   * "Ahead" uses route-point index progression so passed items disappear.
+   */
+  const updateNearestRoadblockLabel = (userLoc) => {
+    if (!SHOW_ROADBLOCK_LABELS_ON_START_MAP) return;
+    if (!mapInstanceRef.current || showDetailsPanel) return;
+    clearRoadblockOverlays();
+
+    const cachedRoadblocks = roadblocksCacheRef.current;
+    const overviewPath = roadblockRoutePathRef.current;
+    if (!cachedRoadblocks.length || !overviewPath.length) return;
+
+    const originPos = originMarkerRef.current?.getPosition?.();
+    const fallbackPoint = overviewPath[0];
+    const fallbackLat = fallbackPoint ? (typeof fallbackPoint.lat === 'function' ? fallbackPoint.lat() : fallbackPoint.lat) : null;
+    const fallbackLng = fallbackPoint ? (typeof fallbackPoint.lng === 'function' ? fallbackPoint.lng() : fallbackPoint.lng) : null;
+    const refLat = userLoc?.lat ?? originPos?.lat?.() ?? fallbackLat;
+    const refLng = userLoc?.lng ?? originPos?.lng?.() ?? fallbackLng;
+    if (refLat == null || refLng == null) return;
+
+    let userRouteIdx = 0;
+    let userMinDist = Infinity;
+    overviewPath.forEach((pt, idx) => {
+      const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
+      const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
+      const d = haversineDist(refLat, refLng, ptLat, ptLng);
+      if (d < userMinDist) {
+        userMinDist = d;
+        userRouteIdx = idx;
+      }
+    });
+
+    let bestRoadblock = null;
+    let bestDistToUser = Infinity;
+
+    cachedRoadblocks.forEach((incident) => {
+      const incLat = incident.latitude ?? incident.lat;
+      const incLng = incident.longitude ?? incident.lng ?? incident.lon;
+      if (incLat == null || incLng == null) return;
+
+      let incidentRouteIdx = 0;
+      let incidentRouteDist = Infinity;
+      overviewPath.forEach((pt, idx) => {
+        const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
+        const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
+        const d = haversineDist(incLat, incLng, ptLat, ptLng);
+        if (d < incidentRouteDist) {
+          incidentRouteDist = d;
+          incidentRouteIdx = idx;
+        }
+      });
+
+      if (incidentRouteDist > 5000) return;
+      if (incidentRouteIdx < userRouteIdx) return;
+
+      const distToUser = haversineDist(refLat, refLng, incLat, incLng);
+      if (distToUser < bestDistToUser) {
+        bestDistToUser = distToUser;
+        bestRoadblock = incident;
+      }
+    });
+
+    if (!bestRoadblock) return;
+
+    const roadblockLat = bestRoadblock.latitude ?? bestRoadblock.lat;
+    const roadblockLng = bestRoadblock.longitude ?? bestRoadblock.lng ?? bestRoadblock.lon;
+    const roadblockTitle = bestRoadblock.title || bestRoadblock.incidentCategory || 'Road blockage';
+    const roadblockLocation = bestRoadblock.location || bestRoadblock.locationName || bestRoadblock.address || '';
+    const distText = bestDistToUser < 1000
+      ? `${Math.round(bestDistToUser)}m away`
+      : `${(bestDistToUser / 1000).toFixed(1)}km away`;
+    const labelText = roadblockLocation
+      ? `${roadblockTitle} · ${roadblockLocation} · ${distText}`
+      : `${roadblockTitle} · ${distText}`;
+
+    const roadblockLabelHtml = `
+      <div style="
+        transform: translateY(-60px);
+        min-width: 200px;
+        max-width: 310px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0px 3px 8px rgba(161,98,7,0.35);
+        padding: 0 14px;
+      ">
+        <svg width="22" height="24" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="6" y="50" width="40" height="7" rx="2" fill="#444"/>
+          <rect x="8" y="50" width="36" height="4" rx="1.5" fill="#555"/>
+          <path d="M18 52L24 8H28L34 52H18Z" fill="#FF6D00"/>
+          <rect x="21" y="19" width="10" height="5" rx="1" fill="white" opacity="0.95"/>
+          <rect x="20" y="32" width="12" height="5" rx="1" fill="white" opacity="0.95"/>
+          <ellipse cx="26" cy="7" rx="3" ry="1.8" fill="#FF8F00"/>
+        </svg>
+        <span style="font-weight:700;font-size:11px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${labelText}</span>
+      </div>`;
+
+    const roadblockPos = new window.google.maps.LatLng(roadblockLat, roadblockLng);
+    const overlay = createRouteLabel(mapInstanceRef.current, roadblockPos, roadblockLabelHtml);
+    roadblockLabelsRef.current.push(overlay);
+  };
+
+  const checkAndDrawRoadblockLabels = async (overviewPath) => {
+    if (!SHOW_ROADBLOCK_LABELS_ON_START_MAP) return;
+    if (!mapInstanceRef.current || !overviewPath?.length || showDetailsPanel) return;
+    clearRoadblockOverlays();
+
+    roadblockRoutePathRef.current = overviewPath;
+
+    try {
+      const res = await fetchRoadBlockages();
+      const incidents = Array.isArray(res) ? res : (res?.incidents || res?.data || []);
+      roadblocksCacheRef.current = incidents;
+
+      updateNearestRoadblockLabel(userLocationRef.current || null);
+    } catch (err) {
+      console.warn('[Direction] Failed to fetch roadblock alerts for map:', err.message);
+    }
+  };
+
+  const findNearestHospital = useCallback((loc) => {
+    if (!mapInstanceRef.current || showDetailsPanel) return;
+    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
+    const userLatLng = new window.google.maps.LatLng(loc.lat, loc.lng);
+    const HOSPITAL_NAV_RADIUS = 2000;
+    service.nearbySearch(
+      { location: userLatLng, radius: HOSPITAL_NAV_RADIUS, type: 'hospital' },
+      (results, status) => {
+        if (nearestHospitalOverlayRef.current) {
+          nearestHospitalOverlayRef.current.setMap(null);
+          nearestHospitalOverlayRef.current = null;
+        }
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !results?.length) return;
+        const EXCLUDE_KEYWORDS = /medical cent(er|re)|medi cent(er|re)/i;
+        const hospital = results
+          .filter(p => !EXCLUDE_KEYWORDS.test(p.name || ''))
+          .sort((a, b) => {
+            const dA = getDistanceMeters(loc, a.geometry.location) ?? Infinity;
+            const dB = getDistanceMeters(loc, b.geometry.location) ?? Infinity;
+            return dA - dB;
+          })
+          .find(p => (getDistanceMeters(loc, p.geometry.location) ?? Infinity) <= HOSPITAL_NAV_RADIUS);
+        if (!hospital) return;
+        const name = hospital.name || 'Hospital';
+        const shortName = name.length > 18 ? name.slice(0, 16) + '…' : name;
+        const html = `
+          <div style="max-width:160px;min-width:120px;height:38px;border-radius:8px;background:#EAB308;display:flex;align-items:center;justify-content:center;padding:0 10px;box-shadow:0px 2px 4px rgba(0,0,0,0.3);gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c00" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v20M2 12h20"/></svg>
+            <span style="font-weight:700;font-size:13px;color:#000;white-space:nowrap;">${shortName}</span>
+          </div>`;
+        nearestHospitalOverlayRef.current = createRouteLabel(mapInstanceRef.current, hospital.geometry.location, html);
+      }
+    );
+  }, [showDetailsPanel]);
+
+  const placeOriginMarker = (loc, isDetailsPage = false) => {
     if (originMarkerRef.current) {
       originMarkerRef.current.setPosition(loc);
-      originMarkerRef.current.setIcon(getNavigationMarkerIcon());
+      originMarkerRef.current.setIcon(
+        isDetailsPage
+          ? {
+              url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+              scaledSize: new window.google.maps.Size(32, 32),
+              anchor: new window.google.maps.Point(16, 16),
+            }
+          : getNavigationMarkerIcon()
+      );
       originMarkerRef.current.setMap(mapInstanceRef.current);
     } else {
       originMarkerRef.current = new window.google.maps.Marker({
         position: loc,
         map: mapInstanceRef.current,
-        icon: getNavigationMarkerIcon(),
+        icon: isDetailsPage
+          ? {
+              url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+              scaledSize: new window.google.maps.Size(32, 32),
+              anchor: new window.google.maps.Point(16, 16),
+            }
+          : getNavigationMarkerIcon(),
         zIndex: 999,
       });
     }
@@ -1009,9 +1378,22 @@ const Direction = ({ showDetailsPanel = true }) => {
     userLocationRef.current = loc;
     setOriginLabel(label);
     if (!showDetailsPanel) {
-      placeOriginMarker(loc);
-    } else if (originMarkerRef.current) {
-      originMarkerRef.current.setMap(null);
+      placeOriginMarker(loc, false);
+    } else {
+      // On the Direction details page, show a blue dot at the user's location
+      placeOriginMarker(loc, true);
+      // Fit map to show both user location and destination
+      const dest = destPlace || searchedPlace;
+      const destLoc = dest?.geometry?.location;
+      if (destLoc && mapInstanceRef.current) {
+        const bounds = new window.google.maps.LatLngBounds();
+        bounds.extend(new window.google.maps.LatLng(loc.lat, loc.lng));
+        bounds.extend(destLoc);
+        mapInstanceRef.current.fitBounds(bounds, { top: 80, bottom: 80, left: 40, right: 40 });
+      } else if (mapInstanceRef.current) {
+        mapInstanceRef.current.panTo(new window.google.maps.LatLng(loc.lat, loc.lng));
+        mapInstanceRef.current.setZoom(14);
+      }
     }
     if (fireRoute) {
       originChosenRef.current = true;
@@ -1172,6 +1554,11 @@ const Direction = ({ showDetailsPanel = true }) => {
         }
         
         updateNavigation(loc);
+        findNearestHospital(loc);
+        // Update crime label to show only the nearest ahead one
+        updateNearestCrimeLabel(loc);
+        // Update roadblock label to show only the nearest ahead one
+        updateNearestRoadblockLabel(loc);
         if (!directionsResultRef.current) {
           const dest = destPlace || searchedPlace;
           const destLoc = dest?.geometry?.location;
@@ -1345,20 +1732,8 @@ const Direction = ({ showDetailsPanel = true }) => {
   };
 
   const handleStart = () => {
-    if (directionsResultRef.current?.routes?.length > 1) {
-      let minDistance = Infinity;
-      let shortestIdx = 0;
-      directionsResultRef.current.routes.forEach((route, i) => {
-        const dist = route.legs?.[0]?.distance?.value || Infinity;
-        if (dist < minDistance) {
-          minDistance = dist;
-          shortestIdx = i;
-        }
-      });
-      if (shortestIdx !== selectedIdx) {
-        selectRouteRef.current(shortestIdx);
-      }
-    }
+    // Keep the user's currently selected route (selectedIdx) —
+    // do NOT override it with the shortest-distance route.
 
     setShowSearchBar(true);
     if (setActivePage) {
@@ -1400,6 +1775,15 @@ const Direction = ({ showDetailsPanel = true }) => {
 
   const handleSafetyAlert = () => {
     const routePath = directionsResultRef.current?.routes?.[selectedIdx]?.overview_path || [];
+    const selectedLeg = directionsResultRef.current?.routes?.[selectedIdx]?.legs?.[0];
+    const freeMins = selectedLeg?.duration?.value ? Math.round(selectedLeg.duration.value / 60) : 0;
+    const trafficMins = selectedLeg?.duration_in_traffic?.value
+      ? Math.round(selectedLeg.duration_in_traffic.value / 60)
+      : freeMins;
+    const ratio = freeMins > 0 ? trafficMins / freeMins : 1;
+    const trafficLevel = ratio >= 1.4 ? 'Heavy traffic' : ratio >= 1.15 ? 'Moderate traffic' : 'Light traffic';
+    const delayMinutes = trafficMins > freeMins ? trafficMins - freeMins : 0;
+
     if (typeof setSafetyData === 'function') {
       setSafetyData({
         origin: originLabel || userLocationRef.current || null,
@@ -1409,6 +1793,14 @@ const Direction = ({ showDetailsPanel = true }) => {
           lat: typeof point.lat === 'function' ? point.lat() : point.lat,
           lng: typeof point.lng === 'function' ? point.lng() : point.lng,
         })),
+        trafficInfo: {
+          traffic: routes[selectedIdx]?.traffic || trafficLevel,
+          durationMinutes: trafficMins,
+          freeDurationMinutes: freeMins,
+          delayMinutes,
+          distance: routes[selectedIdx]?.distance || selectedLeg?.distance?.text || '--',
+          summary: routes[selectedIdx]?.summary || directionsResultRef.current?.routes?.[selectedIdx]?.summary || '',
+        },
       });
     }
     setActivePage && setActivePage('safety');
@@ -1618,7 +2010,6 @@ const Direction = ({ showDetailsPanel = true }) => {
             <button
               type="button"
               onClick={() => {
-                setHasSearched(true);
                 setActivePage && setActivePage('explore');
               }}
               className="rounded-xl bg-[#e53e3e] px-12 py-4 text-lg font-semibold text-white hover:bg-[#c53030]"
@@ -1649,28 +2040,47 @@ const Direction = ({ showDetailsPanel = true }) => {
             maxHeight: stopPanelCollapsed ? '56px' : '2000px',
             transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1)',
           }}>
-            {/* Slide handle icon */}
-            <div
-              onClick={() => setStopPanelCollapsed(c => !c)}
-              style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px', marginBottom: '4px', cursor: 'pointer' }}
-            >
-              <svg
-                width="36" height="36" viewBox="0 0 24 24" fill="none"
-                stroke="#1A73E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            {/* Header row: back button + title + collapse handle */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px', gap: '8px' }}>
+              {/* Back button */}
+              <button
+                onClick={() => { setAddStopOpen(false); setPoiResults([]); setActiveCategory(null); }}
+                aria-label="Back to direction"
                 style={{
-                  transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1)',
-                  transform: stopPanelCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-                  filter: 'drop-shadow(0 1px 2px rgba(26,115,232,0.18))',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  background: '#fff', border: 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.14)',
+                  cursor: 'pointer', flexShrink: 0,
                 }}
               >
-                <circle cx="12" cy="12" r="10" stroke="#1A73E8" strokeWidth="1.5" fill="#EFF6FF" />
-                <polyline points="8 11 12 15 16 11" />
-              </svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '20px', color: '#122E63', flex: 1 }}>
+                Add stop to your route
+              </span>
+              {/* Collapse handle */}
+              <div
+                onClick={() => setStopPanelCollapsed(c => !c)}
+                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+              >
+                <svg
+                  width="36" height="36" viewBox="0 0 24 24" fill="none"
+                  stroke="#1A73E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{
+                    transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1)',
+                    transform: stopPanelCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                    filter: 'drop-shadow(0 1px 2px rgba(26,115,232,0.18))',
+                  }}
+                >
+                  <circle cx="12" cy="12" r="10" stroke="#1A73E8" strokeWidth="1.5" fill="#EFF6FF" />
+                  <polyline points="8 11 12 15 16 11" />
+                </svg>
+              </div>
             </div>
             <div style={{ padding: '0 32px 24px' }}>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '20px', color: '#122E63', marginLeft: '4%' }}>
-              Add stop to your route
-            </span>
 
             {/* Search bar */}
             <div ref={stopContainerRef} style={{ position: 'relative', marginTop: '50px', marginLeft: '4%', marginBottom: '35px' }}>
@@ -1821,13 +2231,63 @@ const Direction = ({ showDetailsPanel = true }) => {
             )}
 
             </div>
-            <button
-              onClick={() => { setAddStopOpen(false); setPoiResults([]); setActiveCategory(null); }}
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              <img src={closeIcon} alt="Close" style={{ width: '28px', height: '28px' }} />
-            </button>
           </div>
+        )}
+
+        {!showDetailsPanel && (
+          <button
+            type="button"
+            onClick={() => setActivePage && setActivePage('direction')}
+            aria-label="Back to direction"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              zIndex: 50,
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#fff',
+              border: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        {showDetailsPanel && !addStopOpen && (
+          <button
+            type="button"
+            onClick={() => setActivePage && setActivePage('explore')}
+            aria-label="Back to explore"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              zIndex: 50,
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#fff',
+              border: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
         )}
 
         {showDetailsPanel && !addStopOpen && (

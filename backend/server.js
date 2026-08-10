@@ -1,8 +1,11 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./src/config/database');
-const serviceRouter = require('./src/routes/serviceRouter');
-const favoriteRouter = require('./src/routes/favoriteRouter');
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDB from './src/config/database.js';
+import serviceRouter from './src/routes/serviceRouter.js';
+import favoriteRouter from './src/routes/favoriteRouter.js';
+import securityAlertRouter from './src/routes/securityAlertRouter.js';
+import incidentRouter from './src/routes/incidentRouter.js';
+import hotelRouter from './src/routes/hotelRouter.js';
 
 dotenv.config(); // use values from .env before reading environment variables
 
@@ -33,6 +36,9 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/recent-places', serviceRouter);
 app.use('/api/favorite-places', favoriteRouter);
+app.use('/api/security-alerts', securityAlertRouter);
+app.use('/api/incidents', incidentRouter);
+app.use('/api/hotels', hotelRouter);
 
 // Start server after MongoDB connects
 const startServer = async () => {

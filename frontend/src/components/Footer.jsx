@@ -88,23 +88,23 @@ const Footer = () => {
           >
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Home</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Home</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Features</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Features</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Destinations</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Destinations</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>How it Works</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>How it Works</a>
             </li>
             <li style={{ display: "flex", alignItems: "center" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Safety</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Safety</a>
             </li>
           </ul>
         </div>
@@ -141,23 +141,23 @@ const Footer = () => {
           >
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Sigiriya</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Sigiriya</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Ella</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Ella</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Galle</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Galle</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>Yala National Park</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>Yala National Park</a>
             </li>
             <li style={{ display: "flex", alignItems: "center" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span>Colombo</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none" }}>Colombo</a>
             </li>
           </ul>
         </div>
@@ -200,23 +200,23 @@ const Footer = () => {
           >
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>Help Center</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>Help Center</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>Privacy Policy</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>Privacy Policy</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>Terms & Condition</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>Terms & Condition</a>
             </li>
             <li style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>FAQ</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>FAQ</a>
             </li>
             <li style={{ display: "flex", alignItems: "center" }}>
               <span style={{ color: "#122E63", fontSize: "1em", marginRight: "10px" }}>&#9679;</span>
-              <span style={{ whiteSpace: "nowrap" }}>Travel Safety Guidelines</span>
+              <a href="#" style={{ color: "#22223b", textDecoration: "none", whiteSpace: "nowrap" }}>Travel Safety Guidelines</a>
             </li>
           </ul>
         </div>

@@ -1,4 +1,4 @@
-const FavoritePlace = require('../models/favoritePlace');
+import FavoritePlace from '../models/favoritePlace.js';
 
 const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';
 
@@ -186,8 +186,4 @@ const deleteFavoritePlace = async (req, res) => {
 	}
 };
 
-module.exports = {
-	getFavoritePlaces,
-	createFavoritePlace,
-	deleteFavoritePlace,
-};
+export { getFavoritePlaces, createFavoritePlace, deleteFavoritePlace };

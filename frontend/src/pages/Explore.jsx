@@ -8,7 +8,7 @@ import directionIcon from '../assets/directionIcon.png';
 import directionImg from '../assets/direction.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import { ensureMapsScript, formatViewedAgo } from '../utils/helpers';
-import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace } from '../services/api';
+import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace, fetchHotels } from '../services/api';
 
 const USER_LOCATION = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
 
@@ -24,6 +24,7 @@ const Explore = () => {
   const searched = hasSearched || localSearched;
   const [placePhotos, setPlacePhotos] = useState([]);
   const [nearbyHotels, setNearbyHotels] = useState([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
   const [selectedSavedPlaceTab, setSelectedSavedPlaceTab] = useState('home');
   const [hoveredSavedPlaceTab, setHoveredSavedPlaceTab] = useState(null);
@@ -35,6 +36,18 @@ const Explore = () => {
   const [actionMessage, setActionMessage] = useState(null);
   const userDisplayName = (typeof window !== 'undefined' && (window.localStorage.getItem('userName') || window.localStorage.getItem('displayName'))) || 'nethmi';
 
+  const [expandedHotels, setExpandedHotels] = useState({});
+
+  // Group hotels by name, sort rooms by price ascending
+  const groupedHotels = nearbyHotels.reduce((acc, hotel) => {
+    const key = hotel.name;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(hotel);
+    return acc;
+  }, {});
+  const hotelGroups = Object.values(groupedHotels).map((rooms) =>
+    rooms.slice().sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0))
+  );
   const getPlaceKey = useCallback((place) => {
     const placeId = place?.place_id || place?.placeId || '';
     const name = place?.displayName || place?.name || place?.formatted_address?.split(',')[0] || '';
@@ -53,8 +66,7 @@ const Explore = () => {
 
     void saveRecentPlace(place, null);
 
-    if (!mapInstanceRef.current || !place.geometry?.location) return;
-    mapInstanceRef.current.panTo(place.geometry.location);
+    if (!mapInstanceRef.current || !place.geometry?.location) return;    mapInstanceRef.current.panTo(place.geometry.location);
     mapInstanceRef.current.setZoom(13);
     if (markerRef.current) markerRef.current.setMap(null);
     markerRef.current = new window.google.maps.Marker({
@@ -67,121 +79,71 @@ const Explore = () => {
 
     const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
 
-    const isBroadArea = place.types && place.types.some(t => 
-      ['locality', 'administrative_area_level_1', 'administrative_area_level_2', 'administrative_area_level_3', 'country', 'sublocality', 'neighborhood', 'postal_code', 'political'].includes(t)
-    );
-
-    if (!isBroadArea && place.photos && place.photos.length > 0) {
-      // Exact location: Show its own photos
-      const sorted = [...place.photos].sort((a, b) => {
-        const aRatio = a.width / a.height;
-        const bRatio = b.width / b.height;
-        return Math.abs(aRatio - 1.5) - Math.abs(bRatio - 1.5);
-      });
-      const urls = sorted.slice(0, 3).map(p => p.getUrl({ maxWidth: 1600, maxHeight: 1200 }));
-      setPlacePhotos(urls);
-      void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
-    } else {
-      // Broad area (or exact location with no photos): Search for top beautiful places
-      let locationQueryName = place.name;
-      if (place.address_components) {
-        const districtComp = place.address_components.find(c => c.types.includes('administrative_area_level_2'));
-        if (districtComp) locationQueryName = districtComp.long_name;
-      }
-
-      // Fetch photos strictly for nature and ancient places in the location's district
-      service.textSearch({
-        query: `top beautiful natural features and historical ancient landmarks in ${locationQueryName}`,
-      }, (results, status) => {
-        let urls = [];
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-          // Aggressively filter out commercial places
-          const excludedTypes = ['store', 'restaurant', 'cafe', 'shopping_mall', 'clothing_store', 'supermarket', 'lodging', 'food', 'spa', 'gym', 'bar', 'hair_care', 'health', 'laundry'];
-          
-          const filteredResults = results.filter(r => {
-            if (!r.photos || r.photos.length === 0 || !r.rating) return false;
-            if (r.types && r.types.some(t => excludedTypes.includes(t))) return false;
-            
-            // Must be a nature or historical place, or at least a strict tourist attraction
-            const isNatureOrHistorical = r.types && r.types.some(t => ['natural_feature', 'park', 'historical_landmark', 'place_of_worship', 'tourist_attraction'].includes(t));
-            return isNatureOrHistorical;
-          });
-
-          if (filteredResults.length > 0) {
-            const sorted = filteredResults.sort((a, b) => (b.rating * (b.user_ratings_total || 0)) - (a.rating * (a.user_ratings_total || 0)));
-            // Take the cover photo (photo 0) of the top 3 DIFFERENT places. Cover photos are rarely selfies/shops.
-            urls = sorted.slice(0, 3).map(r => r.photos[0].getUrl({ maxWidth: 1600, maxHeight: 1200 }));
-          }
-        } 
-        
-        setPlacePhotos(urls);
-        if (urls.length > 0) {
-          void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
-        }
-      });
-    }
-
-    // Fetch nearby hotels
-    service.nearbySearch({
+    // Fetch photos for the most tourist attractive places within a 5km radius
+    service.textSearch({
       location: place.geometry.location,
       radius: 5000,
-      keyword: 'hotel',
-      type: 'lodging',
+      query: 'top tourist attractions',
     }, (results, status) => {
-      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-        const filtered = results
-          .filter(r => r.rating && r.name.toLowerCase().includes('hotel'))
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 10);
+      let urls = [];
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+        // Filter to only places with photos
+        const withPhotos = results.filter(r => r.photos && r.photos.length > 0);
+        
+        // Filter to natural places and top tourist attractions, excluding commercial businesses
+        const targetTypes = ['natural_feature', 'park', 'tourist_attraction', 'historical_landmark', 'place_of_worship'];
+        const excludedTypes = ['store', 'restaurant', 'cafe', 'shopping_mall', 'supermarket', 'food', 'spa', 'gym', 'bar', 'lodging'];
+        
+        let filteredResults = withPhotos.filter(r => {
+          if (r.types && r.types.some(t => excludedTypes.includes(t))) return false;
+          return r.types && r.types.some(t => targetTypes.includes(t));
+        });
 
-        const hotelPromises = filtered.map(r => new Promise(resolve => {
-          service.getDetails({ placeId: r.place_id, fields: ['name', 'rating', 'user_ratings_total', 'photos', 'geometry', 'price_level'] }, (detail, s) => {
-            if (s === window.google.maps.places.PlacesServiceStatus.OK && detail) {
-              const hotelLoc = detail.geometry?.location;
-              const searchLoc = place.geometry.location;
-              let distanceMiles = null;
-              if (hotelLoc && searchLoc) {
-                const R = 3958.8;
-                const lat1 = searchLoc.lat() * Math.PI / 180;
-                const lat2 = hotelLoc.lat() * Math.PI / 180;
-                const dLat = (hotelLoc.lat() - searchLoc.lat()) * Math.PI / 180;
-                const dLng = (hotelLoc.lng() - searchLoc.lng()) * Math.PI / 180;
-                const a = Math.sin(dLat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng/2)**2;
-                distanceMiles = (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
-              }
-              const priceLKR = { 0: 'LKR 1,000+', 1: 'LKR 2,000+', 2: 'LKR 5,000+', 3: 'LKR 10,000+', 4: 'LKR 20,000+' };
-              resolve({
-                name: detail.name,
-                rating: detail.rating || r.rating,
-                totalRatings: detail.user_ratings_total || 0,
-                photo: detail.photos && detail.photos.length > 0 ? detail.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 }) : null,
-                distanceMiles,
-                price: detail.price_level != null ? priceLKR[detail.price_level] : 'LKR 5,000+',
-              });
-            } else {
-              resolve({
-                name: r.name,
-                rating: r.rating,
-                totalRatings: r.user_ratings_total || 0,
-                photo: r.photos ? r.photos[0].getUrl({ maxWidth: 600, maxHeight: 400 }) : null,
-                distanceMiles: null,
-                price: 'LKR 5,000+',
-              });
-            }
+        // Fallback: If strict filtering yields too few photos, relax to any non-commercial place with photos
+        if (filteredResults.length < 5) {
+          filteredResults = withPhotos.filter(r => {
+            return !(r.types && r.types.some(t => excludedTypes.includes(t)));
           });
-        }));
+        }
+        
+        // Sort by popularity/rating
+        const sorted = filteredResults.sort((a, b) => ((b.rating || 0) * (b.user_ratings_total || 0)) - ((a.rating || 0) * (a.user_ratings_total || 0)));
+        
+        // Take 1 photo per place
+        urls = sorted.slice(0, 7).map(r => r.photos[0].getUrl({ maxWidth: 1600, maxHeight: 1200 }));
+      }
+      
+      // If we don't get enough photos from nearby search, include the place's own photos if available
+      if (urls.length < 5 && place.photos && place.photos.length > 0) {
+         const ownUrls = place.photos.map(p => p.getUrl({ maxWidth: 1600, maxHeight: 1200 }));
+         urls = [...new Set([...urls, ...ownUrls])].slice(0, 7);
+      }
 
-        Promise.all(hotelPromises).then(hotels => setNearbyHotels(hotels.filter(h => h.photo)));
-      } else {
-        setNearbyHotels([]);
+      setPlacePhotos(urls);
+      if (urls.length > 0) {
+        void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
       }
     });
+
+    // Fetch hotels from database within 30km radius
+    setHotelsLoading(true);
+    const locationName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
+    const loc = place.geometry.location;
+    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+    fetchHotels(locationName, lat, lng)
+      .then(res => {
+        const data = Array.isArray(res?.data) ? res.data : [];
+        setNearbyHotels(data);
+      })
+      .catch(() => setNearbyHotels([]))
+      .finally(() => setHotelsLoading(false));
   }, [getPlaceKey, setHasSearched]);
 
-  const handleExploreAction = useCallback(() => {
+  const handleExploreAction = useCallback((targetPage = 'direction') => {
     if (!searchedPlace) return;
     void saveRecentPlace(searchedPlace, 'Got Direction');
-    setActivePage('direction');
+    setActivePage(targetPage);
   }, [searchedPlace, setActivePage]);
 
   const handleSavePlace = useCallback(async () => {
@@ -205,8 +167,56 @@ const Explore = () => {
           placeToSave = results[0];
         }
       }
+
+      // Fetch photos for the home location using PlacesService
+      let photoUrls = [];
+      if (mapInstanceRef.current && window.google?.maps?.places?.PlacesService) {
+        const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
+
+        // If the geocoded place has a place_id, try getDetails for photos first
+        if (placeToSave.place_id) {
+          photoUrls = await new Promise((resolve) => {
+            service.getDetails(
+              { placeId: placeToSave.place_id, fields: ['photos'] },
+              (detail, status) => {
+                if (status === window.google.maps.places.PlacesServiceStatus.OK && detail?.photos?.length > 0) {
+                  const urls = detail.photos.slice(0, 2).map((p) => {
+                    try { return p.getUrl({ maxWidth: 400, maxHeight: 400 }); } catch { return ''; }
+                  }).filter(Boolean);
+                  resolve(urls);
+                } else {
+                  resolve([]);
+                }
+              }
+            );
+          });
+        }
+
+        // Fallback: search for nearby scenic photos if getDetails yielded nothing
+        if (photoUrls.length === 0) {
+          const locationName = placeToSave.formatted_address
+            ? placeToSave.formatted_address.split(',').slice(0, 2).join(',')
+            : 'Your Location';
+          photoUrls = await new Promise((resolve) => {
+            service.textSearch(
+              { query: `scenic places near ${locationName}`, location: userLocation, radius: 5000 },
+              (results, status) => {
+                if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length > 0) {
+                  const withPhotos = results.filter((r) => r.photos && r.photos.length > 0);
+                  const urls = withPhotos.slice(0, 2).map((r) => {
+                    try { return r.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 }); } catch { return ''; }
+                  }).filter(Boolean);
+                  resolve(urls);
+                } else {
+                  resolve([]);
+                }
+              }
+            );
+          });
+        }
+      }
       
-      await saveFavoritePlace(placeToSave, category, null, []);
+      await saveFavoritePlace(placeToSave, category, null, photoUrls);
       setActionMessage({ text: 'Saved to home!', type: 'success' });
     } catch (error) {
       console.error('Error saving place:', error);
@@ -411,6 +421,7 @@ const Explore = () => {
   useEffect(() => {
     setShowSearchBar(true);
     setOnNavigate(handleNavigate);
+    setHasSearched(false);
 
 const initMap = (center, zoom) => {
   mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
@@ -504,6 +515,35 @@ ensureMapsScript(() => {
       setOnNavigate(null);
     };
   }, []);
+
+  // Sync userLocation from context to the map whenever it changes
+  // This ensures the map shows the user's current location even if
+  // it was resolved after mount (e.g. by geolocation or another page)
+  useEffect(() => {
+    if (!userLocation || !mapInstanceRef.current) return;
+
+    // Only re-center when the user hasn't searched for a place yet
+    if (!searched) {
+      mapInstanceRef.current.setCenter(userLocation);
+      mapInstanceRef.current.setZoom(14);
+    }
+
+    // Always keep the blue user-location marker up to date
+    if (userMarkerRef.current) userMarkerRef.current.setMap(null);
+    userMarkerRef.current = new window.google.maps.Marker({
+      position: userLocation,
+      map: mapInstanceRef.current,
+      title: 'Your Location',
+      icon: {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 2,
+      },
+    });
+  }, [userLocation, searched]);
 
   useEffect(() => {
     if (!searchedPlace?.geometry?.location || !mapInstanceRef.current) return;
@@ -604,11 +644,7 @@ ensureMapsScript(() => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
               </button>
-              <button onClick={() => { setSearchedPlace(null); setHasSearched(false); }} style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }} aria-label="Close">
-                <svg className="h-6 w-6 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+
             </div>
           )}
           <button
@@ -714,8 +750,10 @@ ensureMapsScript(() => {
                     <button
                       key={label}
                       onClick={() => {
-                        if (label === 'Direction' || label === 'Start') {
-                          handleExploreAction();
+                        if (label === 'Direction') {
+                          handleExploreAction('direction');
+                        } else if (label === 'Start') {
+                          handleExploreAction('start');
                         } else if (label === 'Save') {
                           handleSavePlace();
                         } else if (label === 'Share') {
@@ -744,8 +782,8 @@ ensureMapsScript(() => {
                     </button>
                   ))}
                 </div>
-                {/* 3 photos layout */}
-                {placePhotos.length > 0 && (
+                {/* Dynamic photos layout */}
+                {placePhotos.length > 0 && placePhotos.length < 5 && (
                   <div style={{ display: 'flex', gap: '8px', marginTop: '130px', height: '620px', width: '100%' }}>
                     {/* Large photo on the left */}
                     <img
@@ -772,7 +810,41 @@ ensureMapsScript(() => {
                     </div>
                   </div>
                 )}
-                {/* Hotel Nearby text */}
+                {placePhotos.length >= 5 && (
+                  <div style={{ display: 'flex', gap: '20px', marginTop: '130px', height: '620px', width: '100%' }}>
+                    {/* Left 5-photo block */}
+                    <div style={{ 
+                      flex: placePhotos.length > 5 ? '0 0 55%' : '1', 
+                      display: 'grid', 
+                      gridTemplateColumns: '2fr 1fr', 
+                      gridTemplateRows: 'repeat(3, 1fr)', 
+                      gap: '8px', 
+                      borderRadius: '16px', 
+                      overflow: 'hidden',
+                      height: '100%'
+                    }}>
+                      <img src={placePhotos[0]} alt="Place 1" style={{ width: '100%', height: '100%', objectFit: 'cover', gridColumn: '1', gridRow: '1 / 3' }} />
+                      <img src={placePhotos[1]} alt="Place 2" style={{ width: '100%', height: '100%', objectFit: 'cover', gridColumn: '1', gridRow: '3 / 4' }} />
+                      <img src={placePhotos[2]} alt="Place 3" style={{ width: '100%', height: '100%', objectFit: 'cover', gridColumn: '2', gridRow: '1 / 2' }} />
+                      <img src={placePhotos[3]} alt="Place 4" style={{ width: '100%', height: '100%', objectFit: 'cover', gridColumn: '2', gridRow: '2 / 3' }} />
+                      <img src={placePhotos[4]} alt="Place 5" style={{ width: '100%', height: '100%', objectFit: 'cover', gridColumn: '2', gridRow: '3 / 4' }} />
+                    </div>
+                    
+                    {/* Right photos block */}
+                    {placePhotos.length > 5 && (
+                      <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '20px', height: '100%', overflow: 'hidden' }}>
+                        <div style={{ flex: '4', overflow: 'hidden', borderRadius: '16px' }}>
+                          <img src={placePhotos[5]} alt="Place 6" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        {placePhotos[6] && (
+                          <div style={{ flex: '6', overflow: 'hidden', borderRadius: '16px' }}>
+                            <img src={placePhotos[6]} alt="Place 7" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {nearbyHotels.length > 0 && (
                   <div style={{ marginTop: '60px', textAlign: 'left' }}>
                     <span style={{
@@ -789,63 +861,63 @@ ensureMapsScript(() => {
                     {/* Hotels horizontal list */}
                     {nearbyHotels.length > 0 && (
                       <div className="hide-scrollbar" style={{ display: 'flex', gap: '16px', marginTop: '20px', overflowX: 'auto', paddingBottom: '12px', scrollbarWidth: 'none', msOverflowStyle: 'none', width: '100%' }}>
-                        {nearbyHotels.map((hotel, idx) => (
-                          <div key={idx} style={{
-                            minWidth: '300px',
-                            background: '#fff',
-                            borderRadius: '10px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-                            overflow: 'hidden',
-                            flexShrink: 0,
-                          }}>
-                            {hotel.photo && (
-                              <div style={{ position: 'relative' }}>
-                                <img
-                                  src={hotel.photo}
-                                  alt={hotel.name}
-                                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
-                                />
-                                <a
-                                  href={`https://www.booking.com/search.html?ss=${encodeURIComponent(hotel.name)}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  style={{
-                                    position: 'absolute',
-                                    bottom: '10px',
-                                    right: '10px',
-                                    background: '#fff',
-                                    color: '#000',
-                                    fontFamily: 'Inter, sans-serif',
-                                    fontWeight: 600,
-                                    fontSize: '12px',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-                                    textDecoration: 'none',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  {hotel.price}
-                                </a>
+                        {hotelGroups.map((rooms, groupIdx) => {
+                          const base = rooms[0];
+                          const extraRooms = rooms.slice(1);
+                          const isExpanded = !!expandedHotels[base.name];
+                          return (
+                            <div key={groupIdx} style={{ minWidth: '280px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.10)', overflow: 'hidden', flexShrink: 0, display: 'flex', flexDirection: 'row', transition: 'min-width 0.3s ease' }}>
+                              {/* Left: photo + base room info */}
+                              <div style={{ width: '280px', flexShrink: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                                {/* +/- toggle */}
+                                {extraRooms.length > 0 && (
+                                  <button
+                                    onClick={() => setExpandedHotels(prev => ({ ...prev, [base.name]: !prev[base.name] }))}
+                                    style={{ position: 'absolute', top: '10px', right: '10px', width: '28px', height: '28px', borderRadius: '50%', background: '#1A73E8', color: '#fff', border: 'none', fontSize: '20px', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}
+                                    aria-label={isExpanded ? 'Collapse rooms' : 'Expand rooms'}
+                                  >
+                                    {isExpanded ? '−' : '+'}
+                                  </button>
+                                )}
+                                {base.photo && (
+                                  <img src={base.photo} alt={base.name} style={{ width: '100%', height: '160px', objectFit: 'cover' }}
+                                    onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/600x400/1a73e8/ffffff?text=${encodeURIComponent(base.name || 'Hotel')}`; }}
+                                  />
+                                )}
+                                <div style={{ padding: '10px 10px 0' }}>
+                                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{base.name}</div>
+                                </div>
+                                <div style={{ padding: '0 10px 10px' }}>
+                                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#555', marginBottom: '2px' }}>{base.roomName}</div>
+                                  {base.roomType && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#888', marginBottom: '4px' }}>{base.roomType}{base.capacity ? ` · ${base.capacity.adults} adults` : ''}</div>}
+                                  <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#1A73E8' }}>{base.price}</span>
+                                  {base.location && (
+                                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#1A73E8', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {base.location}{base.distanceKm != null ? ` · ${base.distanceKm} km away` : ''}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                            <div style={{ padding: '10px', position: 'relative' }}>
-                              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#000', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {hotel.name}
-                              </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span style={{ color: '#F5A623', fontSize: '14px' }}>{'★'.repeat(Math.round(hotel.rating))}</span>
-                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#555' }}>{hotel.rating.toFixed(1)}</span>
-                                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#999' }}>({hotel.totalRatings})</span>
-                              </div>
-                              {hotel.distanceMiles && (
-                                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#1A73E8', marginTop: '30px' }}>
-                                  {hotel.distanceMiles} miles away
+                              {/* Right: extra rooms panel, shown only when expanded */}
+                              {extraRooms.length > 0 && isExpanded && (
+                                <div style={{ width: '200px', borderLeft: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', background: '#FAFAFA' }}>
+                                  <div style={{ padding: '8px 10px', borderBottom: '1px solid #E5E7EB' }}>
+                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Other Rooms</span>
+                                  </div>
+                                  <div style={{ overflowY: 'auto', flex: 1 }}>
+                                    {extraRooms.map((room, rIdx) => (
+                                      <div key={rIdx} style={{ padding: '8px 10px', borderBottom: rIdx < extraRooms.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                                        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#555', marginBottom: '2px' }}>{room.roomName}</div>
+                                        {room.roomType && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#888', marginBottom: '4px' }}>{room.roomType}{room.capacity ? ` · ${room.capacity.adults} adults` : ''}</div>}
+                                        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '14px', color: '#1A73E8' }}>{room.price}</span>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
