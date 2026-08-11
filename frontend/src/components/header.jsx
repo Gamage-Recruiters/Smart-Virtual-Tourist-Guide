@@ -99,7 +99,7 @@ const Header = () => {
           {/* --- Right: Actions --- */}
           <div className="flex items-center gap-3 relative z-10">
             {/* Sign In Button */}
-            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
+            <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
               Sign in
             </button>
 
@@ -199,7 +199,7 @@ const Header = () => {
 
           {/* Sidebar Actions */}
           <div className="p-4 border-t border-gray-200">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
+            <button onClick={() => handleNavigation('/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
               Sign in
             </button>
             <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">

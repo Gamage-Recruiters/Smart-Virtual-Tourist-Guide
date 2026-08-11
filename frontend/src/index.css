@@ -1,7 +1,65 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
+@import "tailwindcss";
 
-@import 'tailwindcss';
+html, body {
+  overscroll-behavior: none;
+  margin: 0;
+  padding: 0;
+}
 
-/* Responsive adjustments for background images */
+@layer base {
+  body {
+    @apply m-0 p-0 font-sans text-gray-800 bg-[#f8faff];
+    background-image: radial-gradient(circle at top right, rgba(220, 240, 255, 0.4) 0%, rgba(248, 250, 255, 0) 50%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#33a8ff] hover:bg-[#2596be] text-white font-semibold py-3 px-6 rounded-md transition-colors duration-300 w-full flex justify-center items-center;
+  }
+  
+  .btn-outline {
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-md border border-gray-200 shadow-sm transition-colors duration-300 flex justify-center items-center gap-2;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#33a8ff] focus:border-transparent transition-all;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Custom styles for specific elements */
+.sri-lanka-text {
+  font-size: 2rem;
+  letter-spacing: 0.5rem;
+  font-weight: 700;
+  display: flex;
+  gap: 0.2rem;
+}
+.sri-lanka-text span:nth-child(1) { color: #006600; }
+.sri-lanka-text span:nth-child(2) { color: #cc0000; }
+.sri-lanka-text span:nth-child(3) { color: #ffcc00; }
+
+.auth-heading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+.auth-heading span {
+  color: #00ccff;
+}
+
+/* Background graphics common properties */
+.bg-graphic {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
