@@ -90,7 +90,7 @@ router.put('/change-password', async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = newPassword;
     await user.save();
 
     res.json({ message: 'Your password has been changed successfully.' });
