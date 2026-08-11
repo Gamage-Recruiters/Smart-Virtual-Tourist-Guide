@@ -421,7 +421,7 @@ const Explore = () => {
   useEffect(() => {
     setShowSearchBar(true);
     setOnNavigate(handleNavigate);
-    setHasSearched(false);
+    if (!searchedPlace) setHasSearched(false);
 
 const initMap = (center, zoom) => {
   mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
@@ -470,9 +470,32 @@ ensureMapsScript(() => {
     }
   }
 
-  const initialCenter = activeLocation || USER_LOCATION;
-  initMap(initialCenter, activeLocation ? 14 : 8);
+  // If returning with a previously searched place, center map on it
+  const hasRestoredPlace = searchedPlace?.geometry?.location;
+  let initialCenter;
+  let initialZoom;
+  if (hasRestoredPlace) {
+    const loc = searchedPlace.geometry.location;
+    initialCenter = { lat: typeof loc.lat === 'function' ? loc.lat() : loc.lat, lng: typeof loc.lng === 'function' ? loc.lng() : loc.lng };
+    initialZoom = 13;
+  } else {
+    initialCenter = activeLocation || USER_LOCATION;
+    initialZoom = activeLocation ? 14 : 8;
+  }
+  initMap(initialCenter, initialZoom);
   if (activeLocation) placeUserMarker(activeLocation);
+
+  // Restore searched place marker and state
+  if (hasRestoredPlace) {
+    if (markerRef.current) markerRef.current.setMap(null);
+    markerRef.current = new window.google.maps.Marker({
+      position: searchedPlace.geometry.location,
+      map: mapInstanceRef.current,
+      title: searchedPlace.formatted_address || searchedPlace.name || searchedPlace.displayName || '',
+    });
+    setLocalSearched(true);
+    setHasSearched(true);
+  }
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -486,10 +509,6 @@ ensureMapsScript(() => {
           pos = { lat: 6.9271, lng: 79.8612 }; // Default to Colombo
         }
         setUserLocation(pos);
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setCenter(pos);
-          mapInstanceRef.current.setZoom(14);
-        }
         placeUserMarker(pos);
       },
       (error) => {
@@ -497,10 +516,6 @@ ensureMapsScript(() => {
         if (!activeLocation) {
           const fallbackPos = { lat: 6.9271, lng: 79.8612 };
           setUserLocation(fallbackPos);
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.setCenter(fallbackPos);
-            mapInstanceRef.current.setZoom(14);
-          }
           placeUserMarker(fallbackPos);
         }
       },

@@ -3,7 +3,7 @@ import { AlertTriangle, Phone } from 'lucide-react';
 import bottomLogo from '../assets/bottomLogo.png';
 import middle from '../assets/middle.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { fetchRoadBlockages, fetchWeatherAlerts, fetchCrimeAlerts } from '../services/api';
+import { fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { checkRouteForFlood } from '../utils/floodService';
 
 /* Calculate distance between two coordinates in metres (Haversine) */
@@ -38,9 +38,7 @@ export default function SafetyAlertTemplate() {
   const [userPos, setUserPos] = useState(null);
   const [roadblocks, setRoadblocks] = useState([]);
   const [roadblocksLoading, setRoadblocksLoading] = useState(true);
-  const [crimeAlerts, setCrimeAlerts] = useState([]);
-  const [crimeLoading, setCrimeLoading] = useState(true);
-  const [currentCrimeIndex, setCurrentCrimeIndex] = useState(0);
+
   const [currentRoadblockIndex, setCurrentRoadblockIndex] = useState(0);
 
   // ── Watch user's real-time GPS position ──
@@ -82,27 +80,7 @@ export default function SafetyAlertTemplate() {
     return () => { cancelled = true; };
   }, []);
 
-  // ── Fetch crime alerts from the database ──
-  useEffect(() => {
-    let cancelled = false;
-    const loadCrimeAlerts = async () => {
-      setCrimeLoading(true);
-      try {
-        const res = await fetchCrimeAlerts();
-        if (!cancelled) {
-          const data = Array.isArray(res) ? res : (res?.data || []);
-          setCrimeAlerts(data);
-        }
-      } catch (err) {
-        console.warn('[SafetyAlert] Failed to fetch crime alerts:', err.message);
-        if (!cancelled) setCrimeAlerts([]);
-      } finally {
-        if (!cancelled) setCrimeLoading(false);
-      }
-    };
-    loadCrimeAlerts();
-    return () => { cancelled = true; };
-  }, []);
+
 
   const [emergencyContacts] = useState([
     { name: 'Police', number: '119' },
@@ -228,44 +206,7 @@ export default function SafetyAlertTemplate() {
     return filtered;
   }, [roadblocks, roadblocksLoading, routePath, userPos, safeDestination]);
 
-  const nearbyCrimeAlerts = useMemo(() => {
-    if (crimeLoading) return [];
-    const filtered = crimeAlerts.filter((crime) => {
-      const crimeLat = crime.location?.coordinates?.[1] ?? crime.latitude ?? crime.lat;
-      const crimeLng = crime.location?.coordinates?.[0] ?? crime.longitude ?? crime.lng;
 
-      if (crimeLat != null && crimeLng != null) {
-        if (routePath.length > 0) {
-          return routePath.some((pt) => haversineDistance(crimeLat, crimeLng, pt.lat, pt.lng) <= 5000);
-        }
-        if (userPos) {
-          return haversineDistance(crimeLat, crimeLng, userPos.lat, userPos.lng) <= 5000;
-        }
-      }
-
-      // No coords — fall back to district name matching destination
-      const incDistrict = (crime.district || crime.region || '').toLowerCase();
-      if (incDistrict && safeDestination) {
-        return safeDestination.toLowerCase().includes(incDistrict) || incDistrict.includes(safeDestination.toLowerCase());
-      }
-
-      return false;
-    });
-
-    if (userPos) {
-      filtered.sort((a, b) => {
-        const aLat = a.location?.coordinates?.[1] ?? a.latitude ?? a.lat;
-        const aLng = a.location?.coordinates?.[0] ?? a.longitude ?? a.lng;
-        const bLat = b.location?.coordinates?.[1] ?? b.latitude ?? b.lat;
-        const bLng = b.location?.coordinates?.[0] ?? b.longitude ?? b.lng;
-        const dA = (aLat != null && aLng != null) ? haversineDistance(userPos.lat, userPos.lng, aLat, aLng) : Infinity;
-        const dB = (bLat != null && bLng != null) ? haversineDistance(userPos.lat, userPos.lng, bLat, bLng) : Infinity;
-        return dA - dB;
-      });
-    }
-
-    return filtered;
-  }, [crimeAlerts, crimeLoading, routePath, userPos, safeDestination]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 relative overflow-hidden font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -424,101 +365,7 @@ export default function SafetyAlertTemplate() {
             );
           })()}
 
-          {/* ── Crime Alerts (from database via /security-alerts/crime) ── */}
-          {!loading && !crimeLoading && (() => {
-            const hasCrimeAlerts = nearbyCrimeAlerts.length > 0;
-            const safeIndex = Math.min(currentCrimeIndex, nearbyCrimeAlerts.length - 1);
-            const crime = hasCrimeAlerts ? nearbyCrimeAlerts[safeIndex] : null;
 
-            if (!hasCrimeAlerts) {
-              return (
-                <div className="bg-[#CCF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#81C784]/20" style={{ minHeight: '110px' }}>
-                  <div className="w-[110px] bg-[#66BB6A] flex items-center justify-center flex-shrink-0">
-                    <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="24" fill="white" fillOpacity="0.3" />
-                      <path d="M20 33L28 41L44 23" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 p-6 flex flex-col justify-center">
-                    <h3 className="font-bold text-black text-[19px] mb-3">No crime alerts</h3>
-                    <div className="text-black text-[15px] leading-snug">
-                      <div>No crime incidents reported near your route.</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            const crimeLat = crime.location?.coordinates?.[1] ?? crime.latitude ?? crime.lat;
-            const crimeLng = crime.location?.coordinates?.[0] ?? crime.longitude ?? crime.lng;
-            let crimeDistance = '';
-            if (userPos && crimeLat != null && crimeLng != null) {
-              crimeDistance = formatDistance(
-                haversineDistance(userPos.lat, userPos.lng, crimeLat, crimeLng)
-              );
-            }
-            const locationName = crime.district || crime.region || '';
-            const description = crime.description || 'Crime reported in this area. Stay alert.';
-            const crimeTitle = crime.title || 'High crime alert';
-
-            return (
-              <div className="space-y-2">
-                {/* Passed locations */}
-                {safeIndex > 0 && (
-                  <div className="flex flex-col gap-1">
-                    {nearbyCrimeAlerts.slice(0, safeIndex).map((passed, idx) => (
-                      <div
-                        key={passed._id || passed.id || `passed-${idx}`}
-                        className="rounded-lg flex items-center gap-3 px-4 py-2 bg-gray-100 border border-gray-200 opacity-70"
-                      >
-                        <svg width="20" height="20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="32" cy="32" r="24" fill="#9CA3AF" fillOpacity="0.4" />
-                          <path d="M20 33L28 41L44 23" stroke="#6B7280" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="text-gray-500 text-[13px]">
-                          ✓ You passed: <span className="font-medium">{passed.title || 'Crime alert'}</span>{(passed.district || passed.region) ? ` — ${passed.district || passed.region}` : ''}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Current crime card */}
-                <div
-                  key={crime._id || crime.id || `crime-${safeIndex}`}
-                  className="bg-[#FAF0CC] rounded-lg shadow-sm flex overflow-hidden transition-transform hover:scale-[1.02] border border-[#FDE047]/20"
-                  style={{ minHeight: '110px' }}
-                >
-                  <div className="w-[110px] bg-[#FDD94A] flex items-center justify-center flex-shrink-0">
-                    <AlertTriangle className="w-14 h-14 text-black" strokeWidth={1.5} />
-                  </div>
-                  <div className="flex-1 p-6 flex flex-col justify-center">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-black text-[19px]">
-                        {crimeTitle}{crimeDistance ? ` — ${crimeDistance} away` : ''}
-                      </h3>
-                      {nearbyCrimeAlerts.length > 1 && (
-                        <span className="text-[12px] text-gray-500 ml-2 whitespace-nowrap">{safeIndex + 1} / {nearbyCrimeAlerts.length}</span>
-                      )}
-                    </div>
-                    <div className="text-black text-[15px] leading-snug">
-                      {locationName && <div>{locationName}</div>}
-                      <div>{description}</div>
-                    </div>
-                    {safeIndex < nearbyCrimeAlerts.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setCurrentCrimeIndex(safeIndex + 1)}
-                        className="self-start mt-3 text-[13px] bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-3 py-1 rounded-lg transition-colors"
-                      >
-                        I passed this location →
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8 relative z-10">
