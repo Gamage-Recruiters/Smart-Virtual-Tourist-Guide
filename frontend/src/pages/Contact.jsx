@@ -2,13 +2,13 @@ import React from 'react';
 import { Phone, Mail, MapPin, Send, ChevronDown } from 'lucide-react';
 
 // IMPORT HERO BACKGROUND
-import heroBg from '../assets/Contact.png'; 
+import heroBg from './assets/Contact.png'; 
 
 // IMPORT SUPPORT LADY IMAGE
-import supportLady from '../assets/helper.png'; 
+import supportLady from './assets/helper.png'; 
 
 // IMPORT BACKGROUND DECORATION IMAGE
-import bgDecoration from '../assets/Mask.png';
+import bgDecoration from './assets/Mask.png';
 
 const ContactPage = () => {
   return (

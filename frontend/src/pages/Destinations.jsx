@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // --- IMPORT THE IMAGE FROM ASSETS ---
-import heroBg from '../assets/Destination.png'; 
+import heroBg from './assets/Destination.png'; 
 
 // --- SVGs for Icons ---
 const SearchIcon = () => (
