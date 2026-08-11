@@ -15,6 +15,8 @@ const HotelBooking = () => {
     const hotel = location.state?.hotel;
     
     const [selectedRoom, setSelectedRoom] = useState(null);
+    const [rooms, setRooms] = useState([]);
+    const [loadingRooms, setLoadingRooms] = useState(true);
     const availabilityCardRef = useRef(null);
 
     const handleSelectRoom = (room) => {
@@ -23,16 +25,46 @@ const HotelBooking = () => {
         toast(`Selected ${room.name}. Please select your booking dates to continue.`, { icon: '📅' });
     };
 
-    // Fallback if no hotel was passed via state
-    const displayHotel = hotel || {
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945",
-        name: "Ocean Breeze Resort",
-        location: "Bentota, Southern Province, Sri Lanka",
-        rating: 4.8,
-        reviews: 234,
-        description: "Experience luxury at Ocean Breeze Resort, a stunning beachfront property located on the pristine shores of Bentota. Our resort offers world-class amenities, exceptional service, and breathtaking ocean views that will make your Sri Lankan getaway unforgettable.",
-        price: '150' // Changed to dollar figure from screenshot
+    // Hotel details fallback
+    const displayHotel = {
+        _id: hotel?._id || hotel?.ownerId,
+        image: hotel?.image || (hotel?.images && hotel?.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
+        images: hotel?.images && hotel?.images.length > 0 ? hotel.images : ["https://images.unsplash.com/photo-1566073771259-6a8506099945", "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9", "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4"],
+        name: hotel?.name || hotel?.hotelName || "Ocean Breeze Resort",
+        location: hotel?.location || hotel?.hotelAddress || "Bentota, Southern Province, Sri Lanka",
+        rating: hotel?.userRating || hotel?.starRating || 4.8,
+        reviews: hotel?.reviews || 120,
+        description: hotel?.description || "Experience luxury at this premier hotel property, offering top-tier amenities, comfortable rooms, and unforgettable hospitality.",
+        numericPrice: hotel?.numericPrice || 20000,
+        currency: 'LKR'
     };
+
+    // Fetch dynamic rooms from backend using hotelId / ownerId
+    React.useEffect(() => {
+        const fetchHotelRooms = async () => {
+            setLoadingRooms(true);
+            try {
+                const hotelOwnerId = hotel?._id || hotel?.ownerId;
+                const url = hotelOwnerId 
+                    ? `http://localhost:5000/api/hotels/rooms?hotelId=${hotelOwnerId}`
+                    : 'http://localhost:5000/api/hotels/rooms';
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    setRooms(data.data);
+                } else {
+                    setRooms([]);
+                }
+            } catch (err) {
+                console.error("Error fetching rooms for hotel:", err);
+                setRooms([]);
+            } finally {
+                setLoadingRooms(false);
+            }
+        };
+
+        fetchHotelRooms();
+    }, [hotel]);
 
     return (
         <div className="bg-[#EBF1FF] min-h-screen flex flex-col font-sans">
@@ -54,18 +86,14 @@ const HotelBooking = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="h-[200px] rounded-2xl overflow-hidden">
-                                <img src="https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9" alt="Hotel Interior" className="w-full h-full object-cover" />
+                                <img src={displayHotel.images[1] || displayHotel.image} alt="Hotel Interior" className="w-full h-full object-cover" />
                             </div>
                             <div className="h-[200px] rounded-2xl overflow-hidden relative group cursor-pointer">
-                                <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4" alt="Hotel Pool" className="w-full h-full object-cover" />
+                                <img src={displayHotel.images[2] || displayHotel.image} alt="Hotel View" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 </div>
                             </div>
                         </div>
-                        <button className="mt-4 flex items-center text-sm font-semibold text-gray-700 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition">
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            View all 24 photos
-                        </button>
                     </div>
 
                     {/* Main Content Grid */}
@@ -103,7 +131,7 @@ const HotelBooking = () => {
                                         <li className="flex items-center"><FaSwimmingPool className="mr-3 text-gray-400 w-4 h-4"/> Infinity Pool</li>
                                         <li className="flex items-center"><FaDumbbell className="mr-3 text-gray-400 w-4 h-4"/> Fitness Center</li>
                                         <li className="flex items-center"><FaSpa className="mr-3 text-gray-400 w-4 h-4"/> Spa & Wellness</li>
-                                        <li className="flex items-center"><FaUtensils className="mr-3 text-gray-400 w-4 h-4"/> 3 Restaurants</li>
+                                        <li className="flex items-center"><FaUtensils className="mr-3 text-gray-400 w-4 h-4"/> Dining & Restaurant</li>
                                         <li className="flex items-center"><FaParking className="mr-3 text-gray-400 w-4 h-4"/> Free Parking</li>
                                     </ul>
                                 </div>
@@ -118,8 +146,8 @@ const HotelBooking = () => {
                                             </div>
                                         </li>
                                         <li className="flex items-center"><FaCheckCircle className="mr-3 text-blue-500 w-4 h-4"/> Non-smoking rooms available</li>
-                                        <li className="flex items-center"><FaCheckCircle className="mr-3 text-blue-500 w-4 h-4"/> Pet-friendly</li>
-                                        <li className="flex items-center"><FaTimesCircle className="mr-3 text-red-500 w-4 h-4"/> No cancellation fee up to 48 h</li>
+                                        <li className="flex items-center"><FaCheckCircle className="mr-3 text-blue-500 w-4 h-4"/> Pet-friendly options</li>
+                                        <li className="flex items-center"><FaTimesCircle className="mr-3 text-red-500 w-4 h-4"/> Flexible cancellation up to 48h</li>
                                     </ul>
                                 </div>
                             </div>
@@ -127,62 +155,65 @@ const HotelBooking = () => {
                             {/* Available Rooms */}
                             <div className="mb-10">
                                 <h3 className="font-bold text-xl text-gray-900 mb-6">Available Rooms</h3>
-                                <div className="space-y-4">
-                                    {/* Room 1 */}
-                                    <div className={`rounded-2xl p-4 flex flex-col sm:flex-row gap-4 border transition-all ${selectedRoom?.name === 'Ocean View Suite' ? 'bg-blue-50 border-blue-500 shadow-md ring-1 ring-blue-500' : 'bg-[#F8FAFC] border-gray-100'}`}>
-                                        <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427" alt="Ocean View Suite" className="w-full sm:w-40 h-32 object-cover rounded-xl shrink-0" />
-                                        <div className="flex-1 flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <h4 className="font-bold text-gray-900">Ocean View Suite</h4>
-                                                    <div className="text-right">
-                                                        <span className="font-black text-lg text-gray-900">$180</span>
-                                                        <span className="block text-[10px] text-gray-500">per night</span>
+                                {loadingRooms ? (
+                                    <div className="text-sm text-gray-500 py-4 font-medium animate-pulse">Loading rooms...</div>
+                                ) : rooms.length === 0 ? (
+                                    <div className="text-sm text-gray-500 py-4 bg-gray-50 rounded-xl p-4 text-center">
+                                        No rooms currently listed for this hotel.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {rooms.map((room) => {
+                                            const basePrice = room.locationAndPricing?.[0]?.basePrice || 20000;
+                                            const roomImage = (room.images && room.images.length > 0) ? room.images[0] : displayHotel.image;
+                                            const isSelected = selectedRoom?.id === room._id || selectedRoom?.name === room.roomName;
+
+                                            return (
+                                                <div 
+                                                    key={room._id} 
+                                                    className={`rounded-2xl p-4 flex flex-col sm:flex-row gap-4 border transition-all ${isSelected ? 'bg-blue-50 border-blue-500 shadow-md ring-1 ring-blue-500' : 'bg-[#F8FAFC] border-gray-100'}`}
+                                                >
+                                                    <img src={roomImage} alt={room.roomName} className="w-full sm:w-40 h-32 object-cover rounded-xl shrink-0" />
+                                                    <div className="flex-1 flex flex-col justify-between">
+                                                        <div>
+                                                            <div className="flex justify-between items-start mb-1">
+                                                                <div>
+                                                                    <h4 className="font-bold text-gray-900 text-base">{room.roomName}</h4>
+                                                                    <span className="text-xs text-blue-600 font-semibold">{room.roomType}</span>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <span className="font-black text-lg text-gray-900">LKR {basePrice.toLocaleString()}</span>
+                                                                    <span className="block text-[10px] text-gray-500">per night</span>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mb-2">
+                                                                {room.capacity?.adults || 2} Adults{room.capacity?.children ? `, ${room.capacity.children} Children` : ''} • {room.roomSize} {room.measureType || 'sqm'}
+                                                            </p>
+                                                            <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 font-medium">
+                                                                {(room.amenities || []).map((amenity, idx) => (
+                                                                    <span key={idx} className="bg-white px-2 py-1 rounded border border-gray-200 capitalize">
+                                                                        {amenity}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-between items-end mt-4">
+                                                            <span className="text-xs font-bold text-green-600">
+                                                                {room.roomStatus === 'Available' ? 'Available' : room.roomStatus}
+                                                            </span>
+                                                            <button 
+                                                                onClick={() => handleSelectRoom({ id: room._id, name: room.roomName, price: basePrice, ...room })} 
+                                                                className={`${isSelected ? 'bg-green-600 hover:bg-green-700 shadow-sm' : 'bg-blue-600 hover:bg-blue-700'} text-white text-xs font-bold px-6 py-2.5 rounded-lg transition`}
+                                                            >
+                                                                {isSelected ? 'Selected ✓' : 'Select Room'}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <p className="text-xs text-gray-500 mb-2">King bed • Ocean view • 50 m²</p>
-                                                <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 font-medium">
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Free Wi-Fi</span>
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Balcony</span>
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Mini Bar</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-end mt-4">
-                                                <span className="text-xs font-bold text-green-600">Only 2 rooms left</span>
-                                                <button onClick={() => handleSelectRoom({ name: 'Ocean View Suite', price: 180 })} className={`${selectedRoom?.name === 'Ocean View Suite' ? 'bg-green-600 hover:bg-green-700 shadow-sm' : 'bg-blue-600 hover:bg-blue-700'} text-white text-xs font-bold px-6 py-2.5 rounded-lg transition`}>
-                                                    {selectedRoom?.name === 'Ocean View Suite' ? 'Selected ✓' : 'Select Room'}
-                                                </button>
-                                            </div>
-                                        </div>
+                                            );
+                                        })}
                                     </div>
-                                    {/* Room 2 */}
-                                    <div className={`rounded-2xl p-4 flex flex-col sm:flex-row gap-4 border transition-all ${selectedRoom?.name === 'Deluxe Garden Room' ? 'bg-blue-50 border-blue-500 shadow-md ring-1 ring-blue-500' : 'bg-[#F8FAFC] border-gray-100'}`}>
-                                        <img src="https://images.unsplash.com/photo-1598928506311-c55dd1b67272" alt="Deluxe Garden Room" className="w-full sm:w-40 h-32 object-cover rounded-xl shrink-0" />
-                                        <div className="flex-1 flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <h4 className="font-bold text-gray-900">Deluxe Garden Room</h4>
-                                                    <div className="text-right">
-                                                        <span className="font-black text-lg text-gray-900">$120</span>
-                                                        <span className="block text-[10px] text-gray-500">per night</span>
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs text-gray-500 mb-2">Twin beds • Garden view • 35 m²</p>
-                                                <div className="flex flex-wrap gap-2 text-[10px] text-gray-500 font-medium">
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Free Wi-Fi</span>
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Air Conditioning</span>
-                                                    <span className="bg-white px-2 py-1 rounded border border-gray-200">Safe</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-between items-end mt-4">
-                                                <span className="text-xs font-bold text-green-600">5 rooms available</span>
-                                                <button onClick={() => handleSelectRoom({ name: 'Deluxe Garden Room', price: 120 })} className={`${selectedRoom?.name === 'Deluxe Garden Room' ? 'bg-green-600 hover:bg-green-700 shadow-sm' : 'bg-blue-600 hover:bg-blue-700'} text-white text-xs font-bold px-6 py-2.5 rounded-lg transition`}>
-                                                    {selectedRoom?.name === 'Deluxe Garden Room' ? 'Selected ✓' : 'Select Room'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
                             {/* Guest Reviews */}

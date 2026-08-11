@@ -12,10 +12,10 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
     guests: "1 Guest",
   });
 
-  // Default fallback values based on the mockup
-  const basePricePerNight = selectedRoom ? selectedRoom.price : 150;
-  const rating = hotel?.rating || 4.8;
-  const reviews = hotel?.reviews || 234;
+  const currency = hotel?.currency || 'LKR';
+  const basePricePerNight = selectedRoom ? selectedRoom.price : (hotel?.numericPrice || 20000);
+  const rating = hotel?.userRating || hotel?.rating || 4.8;
+  const reviews = hotel?.reviews || 120;
 
   const calculateNights = () => {
     if (hotelData.checkIn && hotelData.checkOut) {
@@ -23,7 +23,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
       const end = new Date(hotelData.checkOut);
       const diffTime = end - start;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays > 0 ? diffDays : 2; // Defaulting to 2 to match mockup calculation
+      return diffDays > 0 ? diffDays : 2;
     }
     return 2;
   };
@@ -31,8 +31,8 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
   const nights = calculateNights();
   
   const roomPrice = nights * basePricePerNight;
-  const serviceFee = 25;
-  const taxes = 15;
+  const serviceFee = Math.round(roomPrice * 0.05); // 5% service fee
+  const taxes = Math.round(roomPrice * 0.03); // 3% taxes
   const total = roomPrice + serviceFee + taxes;
 
   const handleAvailabilityCheck = () => {
@@ -49,7 +49,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
           location: hotel?.location || "Bentota, Sri Lanka",
           rating: rating,
           reviews: reviews,
-          description: hotel?.description || "Experience luxury at Ocean Breeze Resort.",
+          description: hotel?.description || "Experience luxury hotel stay.",
         },
         bookingDetails: [
           { label: "Room", value: selectedRoom ? selectedRoom.name : "Standard Room" },
@@ -58,9 +58,9 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
           { label: "Guests", value: hotelData.guests },
         ],
         pricing: {
-          currency: "USD",
+          currency: currency,
           items: [
-            { label: `$${basePricePerNight} x ${nights} nights`, amount: roomPrice },
+            { label: `${currency} ${basePricePerNight.toLocaleString()} x ${nights} nights`, amount: roomPrice },
             { label: "Service fee", amount: serviceFee },
             { label: "Taxes", amount: taxes },
           ],
@@ -76,7 +76,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
       {/* Header (Price & Rating) */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <span className="text-3xl font-extrabold text-gray-900">${basePricePerNight}</span>
+          <span className="text-2xl font-extrabold text-gray-900">{currency} {basePricePerNight.toLocaleString()}</span>
           <span className="text-xs text-gray-500 font-medium ml-1">per night</span>
         </div>
         <div className="flex items-center mt-2 text-xs font-semibold text-gray-700">
@@ -138,22 +138,22 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
         {/* Total Price Display */}
         <div className="pt-4 mt-4 space-y-2">
             <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">${basePricePerNight} x {nights} nights</span>
-                <span className="font-semibold text-gray-700">${roomPrice}</span>
+                <span className="text-gray-600">{currency} {basePricePerNight.toLocaleString()} x {nights} nights</span>
+                <span className="font-semibold text-gray-700">{currency} {roomPrice.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Service fee</span>
-                <span className="font-semibold text-gray-700">${serviceFee}</span>
+                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Service fee (5%)</span>
+                <span className="font-semibold text-gray-700">{currency} {serviceFee.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Taxes</span>
-                <span className="font-semibold text-gray-700">${taxes}</span>
+                <span className="text-gray-600 underline cursor-pointer decoration-gray-300">Taxes (3%)</span>
+                <span className="font-semibold text-gray-700">{currency} {taxes.toLocaleString()}</span>
             </div>
             
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
                 <span className="text-gray-900 font-extrabold text-base">Total</span>
                 <span className="text-base font-extrabold text-gray-900">
-                    ${total}
+                    {currency} {total.toLocaleString()}
                 </span>
             </div>
         </div>

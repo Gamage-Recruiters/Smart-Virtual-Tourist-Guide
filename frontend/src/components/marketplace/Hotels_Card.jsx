@@ -24,28 +24,51 @@ const Hotels_Card = () => {
         const data = await response.json();
         
         if (data.success) {
-          // Map backend schema to frontend UI schema, providing defaults for missing UI fields
-          const mappedHotels = data.data.map(dbHotel => ({
-            _id: dbHotel._id,
-            name: dbHotel.hotelName || 'Unnamed Hotel',
-            location: dbHotel.hotelAddress || 'Unknown Location',
-            starRating: 4, // Default placeholder
-            price: '20,000', // Default placeholder
-            priceUnit: 'night',
-            userRating: 4.5,
-            reviews: 120,
-            isFeatured: false,
-            amenities: ['wifi', 'ac'], // Default placeholder
-            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600', // Default image
-            ...dbHotel // Spread original data so it can be passed to HotelBooking view
-          }));
+          // Map backend schema (User + Room) to frontend UI schema
+          const mappedHotels = data.data.map(dbHotel => {
+            const rawPrice = dbHotel.minPrice !== undefined && dbHotel.minPrice !== null ? dbHotel.minPrice : 20000;
+            const imagesList = Array.isArray(dbHotel.images) && dbHotel.images.length > 0
+              ? dbHotel.images
+              : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600'];
+
+            const mappedAmenities = (dbHotel.amenities || []).map(a => {
+              const lower = String(a).toLowerCase();
+              if (lower.includes('wifi') || lower.includes('wi-fi')) return 'wifi';
+              if (lower.includes('pool')) return 'pool';
+              if (lower.includes('ac') || lower.includes('air')) return 'ac';
+              if (lower.includes('breakfast') || lower.includes('coffee')) return 'coffee';
+              if (lower.includes('parking')) return 'parking';
+              return lower;
+            });
+
+            return {
+              _id: dbHotel._id || dbHotel.ownerId,
+              ownerId: dbHotel.ownerId || dbHotel._id,
+              name: dbHotel.hotelName || dbHotel.name || 'Unnamed Hotel',
+              location: dbHotel.hotelAddress || dbHotel.location || 'Sri Lanka',
+              starRating: dbHotel.starRating || 4,
+              price: rawPrice.toLocaleString(),
+              numericPrice: rawPrice,
+              priceUnit: 'night',
+              userRating: dbHotel.userRating || 4.8,
+              reviews: dbHotel.reviews || 120,
+              isFeatured: dbHotel.isFeatured || false,
+              amenities: mappedAmenities.length > 0 ? mappedAmenities : ['wifi', 'ac'],
+              image: imagesList[0],
+              images: imagesList,
+              description: dbHotel.description,
+              rooms: dbHotel.rooms || [],
+              hotelEmail: dbHotel.hotelEmail,
+              hotelContactNumber: dbHotel.hotelContactNumber,
+              ...dbHotel
+            };
+          });
           
           setAllHotels(mappedHotels);
           setHotelsData(mappedHotels);
         }
       } catch (error) {
         console.error("Error fetching hotels:", error);
-        // Fallback removed so we know if it fails
         setAllHotels([]);
         setHotelsData([]);
       }
@@ -70,8 +93,7 @@ const Hotels_Card = () => {
     
     if (budget > 0) {
       filtered = filtered.filter(hotel => {
-        const priceNum = Number(hotel.price.replace(/,/g, ''));
-        return priceNum <= budget;
+        return hotel.numericPrice <= budget;
       });
     }
     
