@@ -53,7 +53,6 @@ import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
 
 import DummyPageTourist from './pages/Tourist/dummyPage';
-import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
