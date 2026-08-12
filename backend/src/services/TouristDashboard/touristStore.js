@@ -1,0 +1,121 @@
+import crypto from "crypto";
+import User from "../../models/User.js";
+import TouristProfile from "../../models/TouristDashboard/TouristProfile.js";
+
+function publicUser(user) {
+  if (!user) {
+    return null;
+  }
+
+  const plainUser = typeof user.toObject === "function" ? user.toObject() : user;
+  const { password, sessionToken, __v, ...safeUser } = plainUser;
+  return safeUser;
+}
+
+function getUserId(user) {
+  if (!user) {
+    return null;
+  }
+
+  return String(user._id || user.id || "");
+}
+
+async function createUser({ fullName, email, password, gender, country, travelType }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!fullName || !normalizedEmail || !password) {
+    const error = new Error("fullName, email, and password are required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const existingUser = await User.findOne({ email: normalizedEmail });
+  if (existingUser) {
+    const error = new Error("A user with this email already exists.");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const sessionToken = crypto.randomUUID();
+  const createdUser = await User.create({
+    fullName: String(fullName).trim(),
+    email: normalizedEmail,
+    password,
+    gender: gender || "Male",
+    country: country || "Sri Lanka",
+    travelType: travelType || "Solo",
+    sessionToken,
+  });
+
+  return {
+    token: sessionToken,
+    user: publicUser(createdUser),
+  };
+}
+
+async function getUserFromToken(token) {
+  if (!token) {
+    return null;
+  }
+
+  const user = await User.findOne({ sessionToken: token });
+  const safeUser = publicUser(user);
+
+  if (!safeUser) {
+    return null;
+  }
+
+  return {
+    ...safeUser,
+    id: getUserId(user),
+  };
+}
+
+async function saveTouristProfile({ userId, profile }) {
+  const savedProfile = await TouristProfile.findOneAndUpdate(
+    { userId },
+    { $set: { userId, ...profile } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  return savedProfile;
+}
+
+async function getTouristProfile(userId) {
+  const profile = await TouristProfile.findOne({ userId });
+  return profile;
+}
+
+async function loginUser({ email, password }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail || !password) {
+    const error = new Error("email and password are required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user || user.password !== password) {
+    const error = new Error("Invalid email or password.");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // Rotate session token on each login
+  user.sessionToken = crypto.randomUUID();
+  await user.save();
+
+  return {
+    token: user.sessionToken,
+    user: publicUser(user),
+  };
+}
+
+export {
+  createUser,
+  loginUser,
+  getUserFromToken,
+  saveTouristProfile,
+  getTouristProfile,
+};

@@ -39,7 +39,7 @@ import DriverSignUp2 from './pages/Driver/SignUpForm2';
 import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
 
-import DummyPageTourist from './pages/Tourist/dummyPage';
+//import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
@@ -52,6 +52,11 @@ import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage
 import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
 import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
 import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
+
+
+import MainPage from './pages/Tourist/touristMainPage/mainPage.jsx';
+import TouristProfilePage from './pages/Tourist/touristProfile/touristProfilePage.jsx';
+import TripPlanMainPage from './pages/Tourist/tripPlanMainPage/tripPlanMainPage.jsx';
 
 function App() {
   return (
@@ -116,7 +121,10 @@ function App() {
         />
 
         {/* Dashboards */}
-        <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
+        <Route path="/dashboard-Tourist" element={<MainPage />} />
+        <Route path="/touristProfile" element={<TouristProfilePage />} />
+        <Route path="/trip-plan" element={<TripPlanMainPage />} />
+
         <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
         <Route path="/dashboard-Guide" element={<DummyPageGuide />} />

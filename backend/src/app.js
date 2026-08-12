@@ -8,6 +8,13 @@ import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
+import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
+import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
+
+import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
+import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
+import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
+
 export const app = express();
 
 // 2. Configure CORS Middleware
@@ -21,6 +28,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
+
 // basic routes
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
@@ -29,6 +37,14 @@ app.get('/', (req, res) => {
 // Vehicle routes
 app.use('/api/vehicle', vehicleRouter);
 app.use('/api/auth', authRouter);
+
+// Tourist Dashboard routes
+app.use("/api/budget", budgetRoutes);
+app.use("/api/tourist", touristRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/itinerary", itineraryRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

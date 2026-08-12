@@ -69,6 +69,11 @@ const registerTourist = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    // Mongoose CastError (e.g. empty string for a Date field) or
+    // ValidationError should be a 400, not a 500.
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: `Invalid data: ${error.message}` });
+    }
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
