@@ -1,104 +1,94 @@
-// src/services/api.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:5000/api';
 
-// Helper function to get the token securely
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-};
+const parseResponse = async (response) => {
+  const text = await response.text();
 
-// Helper function to handle HTTP responses and Token Expiry (401 Unauthorized)
-const handleResponse = async (response) => {
-  if (response.status === 401) {
-    // Clear local storage if the token is expired or invalid
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminInfo');
-    
-    // Redirect the user back to the login page
-    window.location.href = '/login';
-    
-    throw new Error('Session expired. Please log in again.');
+  let data = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = {
+        message: text,
+      };
+    }
   }
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || `HTTP Error: ${response.status}`);
+    const error = new Error(
+      data.message || `HTTP Error: ${response.status}`
+    );
+
+    error.status = response.status;
+    error.data = data;
+
+    throw error;
   }
 
   return data;
 };
 
+const request = async (endpoint, options = {}) => {
+  const response = await fetch(
+    `${API_BASE_URL}${endpoint}`,
+    {
+      ...options,
+      /*
+       * Required for the HttpOnly session cookie.
+       */
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    }
+  );
+
+  try {
+    return await parseResponse(response);
+  } catch (error) {
+    if (
+      error.status === 401 &&
+      window.location.pathname !== '/login'
+    ) {
+      window.location.assign('/login');
+    }
+
+    throw error;
+  }
+};
+
 const apiClient = {
-  async get(endpoint) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API GET Error:', error);
-      throw error;
-    }
+  get(endpoint) {
+    return request(endpoint, { method: 'GET' });
   },
 
-  async post(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API POST Error:', error);
-      throw error;
-    }
+  post(endpoint, data) {
+    return request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
-  async put(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API PUT Error:', error);
-      throw error;
-    }
+  put(endpoint, data) {
+    return request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   },
 
-  async patch(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(data),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API PATCH Error:', error);
-      throw error;
-    }
+  patch(endpoint, data) {
+    return request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
   },
 
-  async delete(endpoint) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      return await handleResponse(response);
-    } catch (error) {
-      console.error('API DELETE Error:', error);
-      throw error;
-    }
+  delete(endpoint) {
+    return request(endpoint, { method: 'DELETE' });
   },
 };
 
