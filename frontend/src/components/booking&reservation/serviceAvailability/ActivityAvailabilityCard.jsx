@@ -11,7 +11,7 @@ const ActivityAvailabilityCard = ({ activity }) => {
     participants: "1",
   });
 
-  const basePrice = activity?.price || 50;
+  const basePrice = activity?.price;
 
   const handleAvailabilityCheck = () => {
     // Basic validation
@@ -26,19 +26,20 @@ const ActivityAvailabilityCard = ({ activity }) => {
       state: {
         service: {
           type: "activity",
-          image: activity?.image || "https://images.unsplash.com/photo-1549366021-9f761d040a94",
-          name: activity?.name || "Yala Safari Adventure",
-          location: activity?.location || "Yala National Park",
-          rating: activity?.rating || 4.9,
-          reviews: activity?.reviews || 315,
-          description: activity?.description || "Full-day safari experience with experienced guides and luxury jeep transport.",
+          image: activity?.image ,
+          title: activity?.title ,
+          location: activity?.location ,
+          category: activity?.category,
+          rating: activity?.rating ,
+          reviews: activity?.reviews ,
+          duration: activity?.duration
         },
 
         serviceType: "activity",
         bookingDetails: [
           {
             label: "Activity Date",
-            value: activityData.activityDate,
+            value: activityData.activityDate, 
           },
           {
             label: "Time Slot",

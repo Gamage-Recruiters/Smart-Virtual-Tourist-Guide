@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -11,25 +10,18 @@ const ActivityBooking = () => {
     const activity = location.state?.activity;
 
     // Fallback if no activity was passed via state
-    const displayActivity = activity || {
-        image: "https://images.unsplash.com/photo-1549366021-9f761d040a94",
-        name: "Yala Safari Adventure",
-        title: "Yala Safari Adventure", // Map title to name
-        location: "Yala National Park",
-        rating: 4.9,
-        reviews: 315,
-        description: "Full-day safari experience with experienced guides and luxury jeep transport.",
-        price: 50
-    };
+    const displayActivity = activity ;
+    
 
     // ServiceDetailsCard expects 'name', but Activities_Card gives 'title'. Let's normalize it.
     const serviceData = {
         image: displayActivity.image,
-        name: displayActivity.title || displayActivity.name,
+        title: displayActivity.title,
         location: displayActivity.location,
         rating: displayActivity.rating,
         reviews: displayActivity.reviews,
-        description: displayActivity.category ? `Category: ${displayActivity.category}. ${displayActivity.duration} duration.` : displayActivity.description
+        category: displayActivity.category,
+        duration: displayActivity.duration
     };
 
     return (
@@ -61,7 +53,7 @@ const ActivityBooking = () => {
                                 {displayActivity.hasFreeCancellation && (
                                     <li className="text-green-600 font-semibold">Free cancellation available</li>
                                 )}
-                                <li>{displayActivity.duration || 'Flexible duration'}</li>
+                                <li>{displayActivity.duration}</li>
                             </ul>
                         </div>
                     </div>
@@ -70,7 +62,7 @@ const ActivityBooking = () => {
                     <div className="lg:col-span-1">
                         <div className="sticky top-24">
                             <ActivityAvailabilityCard activity={displayActivity} />
-                        </div>
+                        </div> 
                     </div>
                 </div>
             </main>

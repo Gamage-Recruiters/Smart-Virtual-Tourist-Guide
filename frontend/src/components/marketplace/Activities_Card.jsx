@@ -28,14 +28,14 @@ const Activities_Card = () => {
           // Map backend data to frontend structure
           const formattedData = result.data.map((act) => ({
             _id: act._id,
-            title: act.title || 'Unnamed Activity',
-            location: act.location || 'Unknown Location',
-            category: act.category || 'Adventure',
-            duration: act.duration || 'Half Day',
-            groupSize: act.maxParticipants ? `Max ${act.maxParticipants} People` : 'Small Group',
-            rating: act.averageRating || 4.5,
-            reviews: act.totalReviews || 120,
-            price: act.pricePerPerson || 5000,
+            title: act.title ,
+            location: act.location ,
+            category: act.category ,
+            duration: act.duration ,
+            groupSize: act.maxParticipants ,
+            rating: act.averageRating ,
+            reviews: act.totalReviews ,
+            price: act.pricePerPerson ,
             hasFreeCancellation: true, // Mock value
             isInstantBooking: true, // Mock value
             image: (act.images && act.images.length > 0) 
@@ -293,7 +293,7 @@ const Activities_Card = () => {
                       className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-all shadow-xs flex items-center justify-center space-x-2"
                     >
                       <FaCalendarAlt size={11} />
-                      <span>Check Availability</span>
+                      <span>View More</span>
                     </button>
                   </div>
 

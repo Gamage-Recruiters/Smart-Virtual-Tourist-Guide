@@ -9,16 +9,19 @@ const ServiceDetailsCard = ({ service }) => {
 
       <img
         src={service.image}
-        alt={service.name}
+        alt={service.title}
         className="rounded-lg mb-4 h-48 w-full object-cover"
       />
 
       <h3 className="font-semibold text-lg">
-        {service.name}
+        Title: {service.title}
+      </h3>
+      <h3 className="font-semibold text-lg">
+        Category: {service.category}
       </h3>
 
       <p className="text-gray-500">
-        {service.location}
+        Location: {service.location}
       </p>
 
       {service.rating && (
@@ -31,9 +34,9 @@ const ServiceDetailsCard = ({ service }) => {
         </div>
       )}
 
-      {service.description && (
+      {service.duration && (
         <p className="mt-3 text-sm text-gray-600">
-          {service.description}
+         Duration: {service.duration}
         </p>
       )}
     </div>

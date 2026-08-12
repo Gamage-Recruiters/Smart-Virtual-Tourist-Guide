@@ -12,7 +12,12 @@ const BookingPage = () => {
 
     const location = useLocation();
 
-    const service = location.state?.service || {};
+    const rawService = location.state?.service || {};
+    const service = {
+        ...rawService,
+        name: rawService.name || rawService.title || rawService.label || 'Activity',
+    };
+
     const serviceType = location.state?.serviceType || service.type || '';
 
     const bookingDetails = location.state?.bookingDetails || [];
