@@ -11,6 +11,8 @@ import AcceptBookings from './pages/ActivityProvider/AcceptBookings.jsx';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import AboutUs from './pages/AboutUs';
+import Destinations from './pages/Destinations';
+import ContactPage from './pages/Contact';
 import HowItWorks from './pages/HowItWork';
 
 import SignupForm from './pages/Tourist/SignupForm1';
@@ -82,7 +84,9 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
+          <Route path="destinations" element={<Destinations />} />
           <Route path="how-it-works" element={<HowItWorks />} />
+          <Route path="contact" element={<ContactPage />} />
         </Route>
 
         {/* Auth */}
@@ -150,7 +154,6 @@ function App() {
         {/* ===== HOTEL OWNER MANAGEMENT ROUTES (ADDED) ===== */}
         {/* AUTH ROUTES */}
         {/* DEV: swap the element below to test any page directly */}
-        <Route path="/" element={<LoginScreen />} />
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
         <Route path="/create-password" element={<NewPasswordCreate />} />
