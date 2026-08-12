@@ -8,6 +8,7 @@ import menuItemRoutes from './routes/menuItem.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import reservationRoutes from './routes/reservation.routes.js';
+import reviewRoutes from './routes/review.routes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/menu', menuItemRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 
 // Error handling middleware

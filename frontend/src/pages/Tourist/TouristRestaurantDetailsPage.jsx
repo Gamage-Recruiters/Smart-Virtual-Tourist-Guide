@@ -2,10 +2,72 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/Tourist/Header';
 import Footer from '../../components/Tourist/Footer';
+import { reviewAPI } from '../../services/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const CATEGORIES = ["All", "Authentic Sri Lankan", "Appetizer", "Main Course", "Dessert", "Beverage"];
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Star helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+const StarIcon = ({ filled, half, size = 'w-5 h-5', color = 'text-amber-400' }) => (
+  <svg className={`${size} ${filled || half ? color : 'text-slate-200'} shrink-0`} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={filled || half ? 0 : 1.5}>
+    {half ? (
+      <>
+        <defs><clipPath id="half"><rect x="0" y="0" width="12" height="24" /></clipPath></defs>
+        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" fill="currentColor" clipPath="url(#half)" />
+        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      </>
+    ) : (
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+    )}
+  </svg>
+);
+
+const RatingStars = ({ rating, size = 'w-5 h-5' }) => (
+  <div className="flex gap-0.5">
+    {[1, 2, 3, 4, 5].map(i => (
+      <StarIcon key={i} filled={i <= Math.floor(rating)} half={i === Math.ceil(rating) && rating % 1 >= 0.3 && rating % 1 < 0.8} size={size} />
+    ))}
+  </div>
+);
+
+const InteractiveStars = ({ rating, onChange, size = 'w-8 h-8' }) => {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onChange(i)}
+          onMouseEnter={() => setHover(i)}
+          onMouseLeave={() => setHover(0)}
+          className="cursor-pointer p-0.5 transition-transform hover:scale-110"
+        >
+          <StarIcon filled={i <= (hover || rating)} size={size} color={i <= (hover || rating) ? 'text-amber-400' : 'text-slate-200'} />
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
 
 export default function TouristRestaurantDetailsPage() {
   const { id } = useParams();
@@ -32,6 +94,26 @@ export default function TouristRestaurantDetailsPage() {
   const [submittingBooking, setSubmittingBooking] = useState(false);
   const [bookingSuccessMsg, setBookingSuccessMsg] = useState('');
   const [bookingErrorMsg, setBookingErrorMsg] = useState('');
+
+  // â”€â”€ Review State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const [reviewStats, setReviewStats] = useState({ averageRating: 0, totalReviews: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+  const [userReview, setUserReview] = useState(null);
+  const [otherReviews, setOtherReviews] = useState([]);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewTotalPages, setReviewTotalPages] = useState(1);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewError, setReviewError] = useState('');
+
+  // Review form state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isEditingReview, setIsEditingReview] = useState(false);
+  const [formRating, setFormRating] = useState(0);
+  const [formComment, setFormComment] = useState('');
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  const isLoggedIn = !!localStorage.getItem('token');
 
   // Fetch slot availability when date or restaurant changes
   useEffect(() => {
@@ -86,6 +168,37 @@ export default function TouristRestaurantDetailsPage() {
     };
 
     fetchRestaurantData();
+  }, [id]);
+
+  // Fetch reviews
+  const fetchReviews = async (page = 1, append = false) => {
+    if (!id) return;
+    setReviewsLoading(true);
+    setReviewError('');
+    try {
+      const data = await reviewAPI.getRestaurantReviews(id, page);
+      if (data.success) {
+        setReviewStats(data.stats);
+        setUserReview(data.userReview);
+        if (append) {
+          setOtherReviews(prev => [...prev, ...data.reviews]);
+        } else {
+          setOtherReviews(data.reviews);
+        }
+        setReviewPage(data.page);
+        setReviewTotalPages(data.totalPages);
+      } else {
+        setReviewError(data.message || 'Failed to load reviews.');
+      }
+    } catch {
+      setReviewError('Failed to load reviews. Please try again.');
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews(1);
   }, [id]);
 
   const activeOffer = offers.find(o => o.isActive);
@@ -175,6 +288,98 @@ export default function TouristRestaurantDetailsPage() {
 
     return matchesSearch && matchesCategory && matchesAvailability && matchesFoodType;
   });
+
+  // â”€â”€ Review Form Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const openCreateReviewForm = () => {
+    setIsEditingReview(false);
+    setFormRating(0);
+    setFormComment('');
+    setFormError('');
+    setFormSuccess('');
+    setShowReviewForm(true);
+  };
+
+  const openEditReviewForm = () => {
+    if (!userReview) return;
+    setIsEditingReview(true);
+    setFormRating(userReview.rating);
+    setFormComment(userReview.comment);
+    setFormError('');
+    setFormSuccess('');
+    setShowReviewForm(true);
+  };
+
+  const closeReviewForm = () => {
+    setShowReviewForm(false);
+    setFormError('');
+    setFormSuccess('');
+  };
+
+  const handleSubmitReview = async () => {
+    setFormError('');
+    setFormSuccess('');
+
+    if (formRating === 0) {
+      setFormError('Please select a rating.');
+      return;
+    }
+    if (!formComment.trim()) {
+      setFormError('Please write a review comment.');
+      return;
+    }
+    if (formComment.length > 1000) {
+      setFormError('Review comment cannot exceed 1000 characters.');
+      return;
+    }
+
+    setFormSubmitting(true);
+    try {
+      if (isEditingReview && userReview) {
+        await reviewAPI.updateReview(userReview._id, {
+          rating: formRating,
+          comment: formComment.trim(),
+        });
+        setFormSuccess('Review updated successfully!');
+      } else {
+        await reviewAPI.createReview({
+          restaurantId: id,
+          rating: formRating,
+          comment: formComment.trim(),
+        });
+        setFormSuccess('Review submitted successfully!');
+      }
+      setTimeout(() => {
+        closeReviewForm();
+        fetchReviews(1);
+      }, 1200);
+    } catch (err) {
+      setFormError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!userReview || !confirm('Are you sure you want to delete your review?')) return;
+    try {
+      await reviewAPI.deleteReview(userReview._id);
+      fetchReviews(1);
+    } catch (err) {
+      setReviewError(err.message || 'Failed to delete review.');
+    }
+  };
+
+  const handleLoadMoreReviews = () => {
+    if (reviewPage < reviewTotalPages) {
+      fetchReviews(reviewPage + 1, true);
+    }
+  };
+
+  // â”€â”€ Rating distribution bar helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const getBarWidth = (count) => {
+    if (reviewStats.totalReviews === 0) return 0;
+    return (count / reviewStats.totalReviews) * 100;
+  };
 
 
   if (loading) {
@@ -456,6 +661,305 @@ export default function TouristRestaurantDetailsPage() {
           </aside>
 
         </div>
+
+        {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            REVIEWS & RATINGS SECTION
+            â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+        <section id="reviews-section" className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          <div className="max-w-4xl mx-auto space-y-8">
+
+            {/* Section Header */}
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-2xl font-bold text-slate-900">Ratings & Reviews</h2>
+              <p className="text-sm text-slate-500 mt-1">See what others think about this restaurant</p>
+            </div>
+
+            {/* â”€â”€ Overall Rating Summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+              <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                {/* Big Average Number */}
+                <div className="text-center md:text-left shrink-0">
+                  <div className="text-6xl font-black text-slate-900 leading-none">
+                    {reviewStats.averageRating > 0 ? reviewStats.averageRating.toFixed(1) : '0.0'}
+                  </div>
+                  <div className="mt-2">
+                    <RatingStars rating={reviewStats.averageRating} size="w-5 h-5" />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400 font-medium">
+                    {reviewStats.totalReviews.toLocaleString()} {reviewStats.totalReviews === 1 ? 'review' : 'reviews'}
+                  </p>
+                </div>
+
+                {/* Distribution Bars */}
+                <div className="flex-1 w-full space-y-2">
+                  {[5, 4, 3, 2, 1].map(star => (
+                    <div key={star} className="flex items-center gap-3">
+                      <span className="text-xs font-semibold text-slate-500 w-4 text-right">{star}</span>
+                      <StarIcon filled size="w-3.5 h-3.5" />
+                      <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                          style={{ width: `${getBarWidth(reviewStats.distribution[star])}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 font-medium w-8 text-right">
+                        {reviewStats.distribution[star]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* â”€â”€ User's Own Review / Write Review â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {isLoggedIn ? (
+              userReview ? (
+                /* â”€â”€ Show existing user review â”€â”€ */
+                <div className="bg-blue-50/60 border border-blue-200/60 rounded-2xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                        Your Review
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={openEditReviewForm}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        Edit
+                      </button>
+                      <button
+                        onClick={handleDeleteReview}
+                        className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                      {getInitials(userReview.user?.fullName)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="font-semibold text-sm text-slate-900">{userReview.user?.fullName || 'You'}</span>
+                        <span className="text-xs text-slate-400">{formatDate(userReview.createdAt)}</span>
+                      </div>
+                      <div className="mt-1"><RatingStars rating={userReview.rating} size="w-4 h-4" /></div>
+                      <p className="mt-2 text-sm text-slate-700 leading-relaxed">{userReview.comment}</p>
+
+                      {userReview.restaurantReply && (
+                        <div className="mt-4 bg-white border border-slate-200 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            <span className="text-xs font-bold text-blue-700 uppercase tracking-wide">Restaurant Reply</span>
+                            {userReview.restaurantReplyDate && (
+                              <span className="text-[10px] text-slate-400">{formatDate(userReview.restaurantReplyDate)}</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600 leading-relaxed">{userReview.restaurantReply}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* â”€â”€ Prompt to write a review â”€â”€ */
+                !showReviewForm && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-4">
+                    <h3 className="text-base font-bold text-slate-900">Rate this restaurant</h3>
+                    <p className="text-sm text-slate-500">Share your experience to help other visitors</p>
+                    <button
+                      onClick={openCreateReviewForm}
+                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors shadow-sm cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      Write a Review
+                    </button>
+                  </div>
+                )
+              )
+            ) : (
+              /* â”€â”€ Not logged in â”€â”€ */
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center space-y-3">
+                <h3 className="text-base font-bold text-slate-900">Rate this restaurant</h3>
+                <p className="text-sm text-slate-500">Sign in to share your experience</p>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors shadow-sm cursor-pointer"
+                >
+                  Sign In to Review
+                </button>
+              </div>
+            )}
+
+            {/* â”€â”€ Review Form (Create / Edit) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {showReviewForm && (
+              <div className="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm space-y-5 animate-[fadeIn_0.3s_ease-out]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-slate-900">
+                    {isEditingReview ? 'Edit Your Review' : 'Write a Review'}
+                  </h3>
+                  <button onClick={closeReviewForm} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                {/* Rating Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Your Rating</label>
+                  <InteractiveStars rating={formRating} onChange={setFormRating} />
+                  {formRating > 0 && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][formRating]}
+                    </p>
+                  )}
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Your Review</label>
+                  <textarea
+                    value={formComment}
+                    onChange={e => setFormComment(e.target.value)}
+                    placeholder="Share your dining experience..."
+                    rows={4}
+                    maxLength={1000}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:bg-white focus:border-blue-400 resize-none transition-colors"
+                  />
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-[10px] ${formComment.length > 900 ? 'text-amber-600' : 'text-slate-400'}`}>
+                      {formComment.length}/1000
+                    </span>
+                  </div>
+                </div>
+
+                {/* Errors / Success */}
+                {formError && (
+                  <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs text-red-600 font-semibold">
+                    {formError}
+                  </div>
+                )}
+                {formSuccess && (
+                  <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-2.5 text-xs text-green-700 font-bold">
+                    {formSuccess}
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={closeReviewForm}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={formSubmitting}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {formSubmitting
+                      ? 'Submitting...'
+                      : isEditingReview
+                      ? 'Update Review'
+                      : 'Submit Review'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* â”€â”€ Other Users' Reviews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {reviewsLoading && otherReviews.length === 0 ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 animate-pulse">
+                    <div className="flex gap-4">
+                      <div className="w-11 h-11 rounded-full bg-slate-200" />
+                      <div className="flex-1 space-y-3">
+                        <div className="h-3 bg-slate-200 rounded w-32" />
+                        <div className="h-3 bg-slate-200 rounded w-20" />
+                        <div className="h-3 bg-slate-200 rounded w-full" />
+                        <div className="h-3 bg-slate-200 rounded w-3/4" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : reviewError ? (
+              <div className="rounded-2xl bg-red-50 border border-red-200 p-6 text-center">
+                <p className="text-sm text-red-600 font-semibold">{reviewError}</p>
+                <button onClick={() => fetchReviews(1)} className="mt-3 text-xs text-red-700 underline cursor-pointer">Try again</button>
+              </div>
+            ) : otherReviews.length === 0 && !userReview ? (
+              <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center space-y-3">
+                <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
+                  <svg className="h-7 w-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                </div>
+                <h3 className="text-base font-semibold text-slate-900">No reviews yet</h3>
+                <p className="text-sm text-slate-500">Be the first to review this restaurant!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {otherReviews.length > 0 && (
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                    {userReview ? 'Other Reviews' : 'Reviews'}
+                  </h3>
+                )}
+                {otherReviews.map(review => (
+                  <div key={review._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
+                        {getInitials(review.user?.fullName)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-semibold text-sm text-slate-900">{review.user?.fullName || 'Anonymous'}</span>
+                          <span className="text-xs text-slate-400">{formatDate(review.createdAt)}</span>
+                        </div>
+                        <div className="mt-1"><RatingStars rating={review.rating} size="w-3.5 h-3.5" /></div>
+                        <p className="mt-2 text-sm text-slate-700 leading-relaxed">{review.comment}</p>
+
+                        {/* Restaurant Reply */}
+                        {review.restaurantReply && (
+                          <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <svg className="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wide">Restaurant Reply</span>
+                              {review.restaurantReplyDate && (
+                                <span className="text-[10px] text-slate-400">{formatDate(review.restaurantReplyDate)}</span>
+                              )}
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">{review.restaurantReply}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Load More */}
+                {reviewPage < reviewTotalPages && (
+                  <div className="text-center pt-4">
+                    <button
+                      onClick={handleLoadMoreReviews}
+                      disabled={reviewsLoading}
+                      className="inline-flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      {reviewsLoading ? 'Loading...' : 'Load More Reviews'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+        </section>
+
       </div>
 
       {/* Booking Modal */}
@@ -565,7 +1069,7 @@ export default function TouristRestaurantDetailsPage() {
               {/* Calculations Block */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
                 <div className="flex justify-between text-slate-600">
-                  <span>Subtotal ({bookGuestCount} × ${getTablePricePerPerson()})</span>
+                  <span>Subtotal ({bookGuestCount} Ã— ${getTablePricePerPerson()})</span>
                   <span className="font-semibold">${getBookingCostDetails().subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
