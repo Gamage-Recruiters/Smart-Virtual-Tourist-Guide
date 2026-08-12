@@ -37,6 +37,8 @@ const buildBookingData = (payload) => {
       : null,
     expiryDate: paymentDetails?.expiryDate || null,
     paidAt: new Date(),
+    payhereOrderId: paymentDetails?.payhereOrderId || null,
+    payherePaymentId: paymentDetails?.payherePaymentId || null,
   };
 
   const baseData = {

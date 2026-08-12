@@ -51,6 +51,8 @@ const validateBookingPayload = (payload) => {
       if (!payload.paymentDetails.cvv) errors.push('CVV is required.');
     }
   }
+  // PayHere payment — card details handled by PayHere, not us
+  // No card field validation needed for 'payhere' payment method
 
   return errors;
 };
