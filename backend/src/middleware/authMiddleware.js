@@ -1,121 +1,52 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
-const SESSION_COOKIE_NAME = 'adminSession';
+const protectAdmin = async (req, res, next) => {
+  let token;
 
-const getCookie = (req, name) => {
-  const cookieHeader = req.headers.cookie;
+  // Check if the authorization header exists and starts with 'Bearer'
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header (Format: "Bearer <token>")
+      token = req.headers.authorization.split(' ')[1];
 
-  if (!cookieHeader) {
-    return null;
-  }
+      // Verify the token using the secret key
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  const cookies = cookieHeader.split(';');
+      // Find the admin in the database and attach to the request object
+      req.admin = await Admin.findById(decoded.id).select('-password');
 
-  for (const cookie of cookies) {
-    const [rawKey, ...rawValue] =
-      cookie.trim().split('=');
+      if (!req.admin) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
 
-    if (rawKey === name) {
-      return decodeURIComponent(
-        rawValue.join('=')
-      );
+      if (req.admin.status === 'Suspended' || req.admin.isActive === false) {
+        return res.status(403).json({ message: 'Your account is currently suspended. Access denied.' });
+      }
+
+      next(); // Move to the next middleware or controller
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
+  } else {
+    // If no token was found at all
+    return res.status(401).json({ message: 'Not authorized, no token provided' });
   }
-
-  return null;
 };
 
-const protectAdmin =
-  async (req, res, next) => {
-    try {
-      const token = getCookie(
-        req,
-        SESSION_COOKIE_NAME
-      );
-
-      if (!token) {
-        return res.status(401).json({
-          success: false,
-          message:
-            'Not authorized. Please log in.',
-        });
-      }
-
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
-
-      const admin =
-        await Admin.findById(
-          decoded.id
-        ).select('-password');
-
-      if (!admin) {
-        return res.status(401).json({
-          success: false,
-          message:
-            'Administrator account no longer exists.',
-        });
-      }
-
-      /*
-       * IMPORTANT:
-       * We deliberately require Active,
-       * rather than testing a nonexistent
-       * `isActive` property.
-       */
-      if (admin.status !== 'Active') {
-        return res.status(403).json({
-          success: false,
-          message:
-            'Your administrator account is suspended.',
-        });
-      }
-
-      req.admin = admin;
-
-      return next();
-    } catch (error) {
-      if (
-        error.name ===
-        'TokenExpiredError'
-      ) {
-        return res.status(401).json({
-          success: false,
-          message:
-            'Session expired. Please log in again.',
-        });
-      }
-
-      return res.status(401).json({
-        success: false,
-        message:
-          'Invalid session. Please log in again.',
-      });
-    }
-  };
 
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (
-      !req.admin ||
-      !roles.includes(req.admin.role)
-    ) {
+    // Check if the current admin's role is in the allowed roles array
+    if (!req.admin || !roles.includes(req.admin.role)) {
       return res.status(403).json({
         success: false,
-        message:
-          'You do not have permission to perform this action.',
+        message: `Access denied: Your role (${req.admin?.role || 'Unknown'}) is not authorized to perform this action.`
       });
     }
-
-    return next();
+    next();
   };
 };
 
-module.exports = {
-  protectAdmin,
-  authorizeRoles,
-  SESSION_COOKIE_NAME,
-};
+module.exports = { protectAdmin, authorizeRoles };
