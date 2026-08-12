@@ -4,7 +4,7 @@ import BookingProgressBar from "../../components/booking&reservation/bookingSumm
 import ServiceDetailsCard from "../../components/booking&reservation/bookingSummary/ServiceDetailsCard";
 import BookingDetailsCard from "../../components/booking&reservation/bookingSummary/BookingDetailsCard";
 import PriceSummaryCard from "../../components/booking&reservation/bookingSummary/PriceSummaryCard";
-import { submitBooking } from "../../api/bookingApi";
+import { submitBooking, generatePayHereHash } from "../../api/bookingApi";
 
 const BookingPage = () => {
 
@@ -32,11 +32,6 @@ const BookingPage = () => {
         lastName: "",
         email: "",
         phone: "",
-
-        cardHolder: "",
-        cardNumber: "",
-        expiryDate: "",
-        cvv: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -45,37 +40,101 @@ const BookingPage = () => {
     const [bookingResult, setBookingResult] = useState(null);
     const navigate = useNavigate();
 
-    const submitBookingData = async () => {
+    // Calculate total from pricing items
+    const totalAmount = pricing.items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    /**
+     * PayHere Checkout Flow:
+     * 1. Generate hash from backend
+     * 2. Open PayHere popup
+     * 3. On success → create booking in DB → show confirmation
+     */
+    const handlePayHereCheckout = async () => {
         setIsSubmitting(true);
         setSubmitError("");
 
         try {
-            const bookingPayload = {
-                service,
-                serviceType,
-                bookingDetails,
-                pricing,
-                customer: {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    phone: formData.phone,
-                },
-                paymentMethod: "card",
-                paymentDetails: {
-                    cardHolder: formData.cardHolder,
-                    cardNumber: formData.cardNumber,
-                    expiryDate: formData.expiryDate,
-                    cvv: formData.cvv,
-                },
+            // Step A: Generate a unique order ID
+            const orderId = `SVTG-VH-${Date.now()}`;
+
+            // Step B: Get hash from backend
+            const hashData = await generatePayHereHash({
+                orderId,
+                amount: totalAmount,
+                currency: pricing.currency || 'LKR',
+            });
+
+            // Step C: Build PayHere payment object
+            const payment = {
+                sandbox: true,    // ← SANDBOX MODE for testing
+                merchant_id: hashData.merchant_id,
+                return_url: undefined,
+                cancel_url: undefined,
+                notify_url: 'http://localhost:5000/api/payments/notify',
+                order_id: orderId,
+                items: service.name || 'Vehicle Rental',
+                amount: totalAmount.toFixed(2),
+                currency: pricing.currency || 'LKR',
+                hash: hashData.hash,
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                address: 'N/A',
+                city: 'Colombo',
+                country: 'Sri Lanka',
             };
 
-            const response = await submitBooking(bookingPayload);
-            setBookingResult(response.booking || null);
-            setCurrentStep(3);
+            // Step D: Setup PayHere callbacks
+            window.payhere.onCompleted = async function (completedOrderId) {
+                console.log("Payment completed. OrderID:", completedOrderId);
+
+                try {
+                    // Create confirmed booking in DB
+                    const bookingPayload = {
+                        service,
+                        bookingDetails,
+                        pricing,
+                        customer: {
+                            firstName: formData.firstName,
+                            lastName: formData.lastName,
+                            email: formData.email,
+                            phone: formData.phone,
+                        },
+                        paymentMethod: "payhere",
+                        paymentDetails: {
+                            payhereOrderId: completedOrderId,
+                        },
+                        serviceType: location.state?.serviceType || 'vehicle',
+                    };
+
+                    const response = await submitBooking(bookingPayload);
+                    setBookingResult(response.booking || null);
+                    setCurrentStep(3);
+                } catch (err) {
+                    setSubmitError("Payment succeeded but booking creation failed: " + err.message);
+                }
+
+                setIsSubmitting(false);
+            };
+
+            window.payhere.onDismissed = function () {
+                console.log("Payment dismissed by user");
+                setIsSubmitting(false);
+                setSubmitError("Payment was cancelled. Please try again.");
+            };
+
+            window.payhere.onError = function (error) {
+                console.error("PayHere error:", error);
+                setIsSubmitting(false);
+                setSubmitError("Payment error: " + error);
+            };
+
+            // Step E: Open PayHere popup
+            window.payhere.startPayment(payment);
+
         } catch (error) {
-            setSubmitError(error.message || "Booking submission failed.");
-        } finally {
+            setSubmitError(error.message || "Payment initiation failed.");
             setIsSubmitting(false);
         }
     };
@@ -86,12 +145,9 @@ const BookingPage = () => {
             if (!validateStep1()) return;
         }
 
+        // Step 2 → trigger PayHere checkout instead of card form submission
         if (currentStep === 2) {
-            if (!validateStep2()) return;
-        }
-
-        if (currentStep === 2) {
-            submitBookingData();
+            handlePayHereCheckout();
             return;
         }
 
@@ -134,31 +190,6 @@ const BookingPage = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-
-    const validateStep2 = () => {
-        const newErrors = {};
-
-        if (!formData.cardHolder.trim()) {
-            newErrors.cardHolder = "Card holder name is required";
-        }
-
-        if (!formData.cardNumber.trim()) {
-            newErrors.cardNumber = "Card number is required";
-        }
-
-        if (!formData.expiryDate.trim()) {
-            newErrors.expiryDate = "Expiry date is required";
-        }
-
-        if (!formData.cvv.trim()) {
-            newErrors.cvv = "CVV is required";
-        }
-
-        setErrors(newErrors);
-
-        return Object.keys(newErrors).length === 0;
-    };
-
     return (
         <div className="bg-gray-100 min-h-screen p-6">
 
@@ -180,7 +211,7 @@ const BookingPage = () => {
                         currency={pricing.currency}
                         items={pricing.items}
                     />
-                    
+
                 </div>
 
                 {/* Main Content */}
@@ -312,125 +343,79 @@ const BookingPage = () => {
                         </>
                     )}
 
-                    {/* STEP 2 */}
+                    {/* STEP 2 — Review & Pay */}
                     {currentStep === 2 && (
                         <>
                             <h1 className="text-3xl font-bold mb-2">
-                                Payment
+                                Review & Pay
                             </h1>
 
                             <p className="text-gray-500 mb-8">
-                                Review and pay for your booking
+                                Review your booking and proceed to payment
                             </p>
 
-                            <div className="space-y-5">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Card Holder Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.cardHolder}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                cardHolder: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Card Holder Name"
-                                        className="w-full border rounded-lg p-3"
-                                    />
+                            {/* Booking Summary */}
+                            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-6">
+                                <h2 className="font-semibold text-lg mb-3">Booking Summary</h2>
 
-                                    {errors.cardHolder && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.cardHolder}
-                                        </p>
-                                    )}
-
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Card Number *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.cardNumber}
-                                        onChange={(e) =>
-                                            setFormData({
-                                                ...formData,
-                                                cardNumber: e.target.value,
-                                            })
-                                        }
-                                        placeholder="Enter Card Number"
-                                        className="w-full border rounded-lg p-3"
-                                    />
-
-                                    {errors.cardNumber && (
-                                        <p className="text-red-500 text-sm">
-                                            {errors.cardNumber}
-                                        </p>
-                                    )}
-
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-
-                                    {/* Expiry Date */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Expiry Date *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.expiryDate}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    expiryDate: e.target.value,
-                                                })
-                                            }
-                                            placeholder="MM/YY"
-                                            className="border rounded-lg p-3"
-                                        />
-
-                                        {errors.expiryDate && (
-                                            <p className="text-red-500 text-sm">
-                                                {errors.expiryDate}
-                                            </p>
-                                        )}
-
+                                <div className="grid gap-2 mb-4">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Service</span>
+                                        <span className="font-medium">{service.name}</span>
                                     </div>
-
-                                    {/* CVV */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            CVV *
-                                        </label>
-
-                                        <input
-                                            type="text"
-                                            value={formData.cvv}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    cvv: e.target.value,
-                                                })
-                                            }
-                                            placeholder="CVV"
-                                            className="border rounded-lg p-3"
-                                        />
-
-                                        {errors.cvv && (
-                                            <p className="text-red-500 text-sm">
-                                                {errors.cvv}
-                                            </p>
-                                        )}
-
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Customer</span>
+                                        <span className="font-medium">{formData.firstName} {formData.lastName}</span>
                                     </div>
-
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Email</span>
+                                        <span className="font-medium">{formData.email}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Phone</span>
+                                        <span className="font-medium">{formData.phone}</span>
+                                    </div>
                                 </div>
 
+                                {/* Booking Details */}
+                                {bookingDetails.length > 0 && (
+                                    <div className="border-t pt-3 mb-4">
+                                        <h3 className="font-medium text-sm text-gray-600 mb-2">Reservation Details</h3>
+                                        <div className="grid gap-2">
+                                            {bookingDetails.map((item, i) => (
+                                                <div key={i} className="flex justify-between text-sm">
+                                                    <span className="text-gray-500">{item.label}</span>
+                                                    <span className="font-medium">{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Price Breakdown */}
+                                <div className="border-t pt-3 space-y-2">
+                                    {pricing.items.map((item, i) => (
+                                        <div key={i} className="flex justify-between text-sm">
+                                            <span className="text-gray-500">{item.label}</span>
+                                            <span className="font-medium">{pricing.currency} {Number(item.amount).toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                    <div className="flex justify-between font-bold text-lg border-t pt-3 mt-2">
+                                        <span>Total</span>
+                                        <span className="text-blue-600">
+                                            {pricing.currency} {totalAmount.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* PayHere Badge */}
+                            <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                <div className="text-3xl">🔒</div>
+                                <div>
+                                    <p className="font-semibold text-blue-800">Secure Payment via PayHere</p>
+                                    <p className="text-blue-600 text-sm">Your payment is processed securely by PayHere. We never see your card details.</p>
+                                </div>
                             </div>
                         </>
                     )}
@@ -495,7 +480,15 @@ const BookingPage = () => {
                                     </div>
                                     <div className="mt-4 flex justify-between border-t pt-3 font-semibold text-gray-900">
                                         <span>Total</span>
-                                        <span>{pricing.currency} {pricing.items.reduce((sum, item) => sum + Number(item.amount || 0), 0).toFixed(2)}</span>
+                                        <span>{pricing.currency} {totalAmount.toFixed(2)}</span>
+                                    </div>
+                                </div>
+
+                                {/* PayHere Payment Badge */}
+                                <div className="mt-6 pt-4 border-t">
+                                    <div className="flex items-center gap-2 text-sm text-green-700">
+                                        <span>✅</span>
+                                        <span>Paid securely via PayHere</span>
                                     </div>
                                 </div>
                             </div>
@@ -533,7 +526,7 @@ const BookingPage = () => {
                                         : "bg-blue-600 hover:bg-blue-700"
                                         }`}
                                 >
-                                    {currentStep === 2 ? (isSubmitting ? 'Submitting...' : 'Pay & Confirm') : 'Next →'}
+                                    {currentStep === 2 ? (isSubmitting ? 'Processing...' : '💳 Pay with PayHere') : 'Next →'}
                                 </button>
                             ) : (
                                 <button

@@ -45,10 +45,12 @@ const vehicleBookingSchema = new mongoose.Schema(
       last4: { type: String },
       expiryDate: { type: String },
       paidAt: { type: Date },
+      payhereOrderId: { type: String },
+      payherePaymentId: { type: String },
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'cancelled'],
+      enum: ['pending', 'pending_payment', 'confirmed', 'cancelled', 'payment_failed'],
       default: 'pending',
     },
   },

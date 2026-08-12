@@ -45,4 +45,20 @@ const getBookingById = async (id) => {
   return response.json();
 };
 
-export { submitBooking, getBookings, getBookingById };
+// Generate PayHere hash from backend
+const generatePayHereHash = async ({ orderId, amount, currency }) => {
+  const response = await fetch(`${API_BASE_URL}/payments/generate-hash`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId, amount, currency }),
+  });
+
+  if (!response.ok) {
+    const err = await parseJsonResponse(response);
+    throw new Error(err.message || 'Failed to generate payment hash');
+  }
+
+  return response.json();
+};
+
+export { submitBooking, getBookings, getBookingById, generatePayHereHash };

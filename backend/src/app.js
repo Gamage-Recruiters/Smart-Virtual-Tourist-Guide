@@ -11,6 +11,7 @@ import activityRouter from './routes/activityRouter.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import hotelRoutes from './routes/hotelRoutes.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 // Middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -48,6 +49,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/hotels', hotelRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
