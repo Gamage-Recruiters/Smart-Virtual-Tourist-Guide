@@ -51,14 +51,31 @@ const BookingPage = () => {
         setSubmitError("");
 
         try {
-            // Step A: Generate a unique order ID
-            const orderId = `SVTG-VH-${Date.now()}`;
+            // Step A: Create pending booking in DB
+            const bookingPayload = {
+                service,
+                bookingDetails,
+                pricing,
+                customer: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                },
+                paymentMethod: "payhere",
+                serviceType: location.state?.serviceType || 'vehicle',
+            };
 
-            // Step B: Get hash from backend
+            const response = await submitBooking(bookingPayload);
+            const bookingResultData = response.booking;
+            const bookingId = bookingResultData._id || bookingResultData.id;
+            
+            setBookingResult(bookingResultData);
+
+            // Step B: Get hash from backend using the real booking ID
             const hashData = await generatePayHereHash({
-                orderId,
-                amount: totalAmount,
-                currency: pricing.currency || 'LKR',
+                bookingId: bookingId,
+                serviceType: location.state?.serviceType || 'vehicle'
             });
 
             // Step C: Build PayHere payment object
@@ -68,10 +85,10 @@ const BookingPage = () => {
                 return_url: undefined,
                 cancel_url: undefined,
                 notify_url: 'http://localhost:5000/api/payments/notify',
-                order_id: orderId,
+                order_id: hashData.order_id,
                 items: service.name || 'Vehicle Rental',
-                amount: totalAmount.toFixed(2),
-                currency: pricing.currency || 'LKR',
+                amount: Number(hashData.amount).toFixed(2),
+                currency: hashData.currency || 'LKR',
                 hash: hashData.hash,
                 first_name: formData.firstName,
                 last_name: formData.lastName,
@@ -85,33 +102,8 @@ const BookingPage = () => {
             // Step D: Setup PayHere callbacks
             window.payhere.onCompleted = async function (completedOrderId) {
                 console.log("Payment completed. OrderID:", completedOrderId);
-
-                try {
-                    // Create confirmed booking in DB
-                    const bookingPayload = {
-                        service,
-                        bookingDetails,
-                        pricing,
-                        customer: {
-                            firstName: formData.firstName,
-                            lastName: formData.lastName,
-                            email: formData.email,
-                            phone: formData.phone,
-                        },
-                        paymentMethod: "payhere",
-                        paymentDetails: {
-                            payhereOrderId: completedOrderId,
-                        },
-                        serviceType: location.state?.serviceType || 'vehicle',
-                    };
-
-                    const response = await submitBooking(bookingPayload);
-                    setBookingResult(response.booking || null);
-                    setCurrentStep(3);
-                } catch (err) {
-                    setSubmitError("Payment succeeded but booking creation failed: " + err.message);
-                }
-
+                // Booking is confirmed via server webhook!
+                setCurrentStep(3);
                 setIsSubmitting(false);
             };
 
