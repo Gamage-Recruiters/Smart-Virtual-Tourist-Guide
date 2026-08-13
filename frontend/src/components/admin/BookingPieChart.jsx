@@ -1,4 +1,3 @@
-import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // const data = [
@@ -10,7 +9,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 const COLORS = ["#8B5CF6", "#F87171", "#2DD4BF", "#FBBF24", "#60A5FA", "#34D399", "#F97316"];
 
 // Custom function to show text inside pie slices
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }) => {
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -29,8 +28,8 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 const BookingPieChart = ({ data }) => {
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="h-full w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data}
@@ -38,7 +37,7 @@ const BookingPieChart = ({ data }) => {
             cy="50%"
             labelLine={false}
             label={renderCustomizedLabel}
-            outerRadius={130}
+            outerRadius="78%"
             dataKey="value"
           >
             {data.map((entry, index) => (
