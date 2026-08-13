@@ -86,6 +86,12 @@ export const handleNotification = async (req, res) => {
         if (booking) {
           bookingFound = true;
           
+          // ✅ IDEMPOTENCY CHECK: Prevent replay attacks
+          if (booking.status === 'confirmed') {
+            console.log(`PayHere notify: Booking ${booking._id} is already confirmed. Ignoring replay.`);
+            return res.sendStatus(200); // Already processed
+          }
+
           // ✅ SERVER-SIDE VALIDATION: Check if amount paid is sufficient
           if (parseFloat(payhere_amount) < booking.pricing.total) {
             console.error(`PayHere notify: Invalid amount paid for booking ${booking._id}. Expected: ${booking.pricing.total}, Paid: ${payhere_amount}`);
