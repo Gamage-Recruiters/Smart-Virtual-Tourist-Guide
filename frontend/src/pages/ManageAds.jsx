@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEdit, FiTrash2, FiPlus, FiTrendingUp, FiTrendingDown, FiDollarSign, FiMousePointer, FiBarChart2, FiUsers, FiCalendar, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import apiClient from '../services/api';
@@ -7,12 +7,13 @@ import AdvertisementManagementBg from '../assets/travel-ads-scaled 1.png';
 const ManageAds = () => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   // Search & Pagination States
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; 
+  const itemsPerPage = 5;
 
   const totalBudget = ads.reduce((sum, ad) => sum + ad.rawBudget, 0);
   const totalClicks = ads.reduce((sum, ad) => sum + ad.rawClicks, 0);
@@ -30,12 +31,13 @@ const ManageAds = () => {
     const fetchAds = async () => {
       try {
         setLoading(true);
+        setError('');
         const response = await apiClient.get('/admin/ads');
         
         if (response && response.success && response.data.length > 0) {
           const formattedAds = response.data.map(ad => ({
             id: ad._id,
-            image: ad.imageUrl || 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=800&q=80',
+            image: ad.imageUrl || AdvertisementManagementBg,
             title: ad.title,
             badge: ad.status === 'Active' ? '- Active' : '- Paused',
             badgeColor: ad.status === 'Active' ? 'text-green-500' : 'text-red-500',
@@ -54,8 +56,9 @@ const ManageAds = () => {
         } else {
           setAds([]); 
         }
-      } catch (error) {
-        console.error("Error fetching ads:", error);
+      } catch (fetchError) {
+        console.error("Error fetching ads:", fetchError);
+        setError('Unable to load advertisements. Please check your connection and try again.');
         setAds([]);
       } finally {
         setLoading(false);
@@ -74,7 +77,7 @@ const ManageAds = () => {
         if (response && response.success) {
           setAds(ads.filter(ad => ad.id !== id));
         }
-      } catch (error) {
+      } catch {
         alert("Failed to delete advertisement. Please check your connection.");
       }
     }
@@ -93,86 +96,86 @@ const ManageAds = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
   return (
-    <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
+    <div className="min-h-screen w-full bg-white font-inter">
       
       <div 
-        className="relative mb-8 flex h-[320px] w-full items-center bg-cover bg-center sm:h-[360px] lg:h-[400px]"
+        className="relative flex min-h-[360px] w-full items-start bg-cover bg-center pt-24 sm:min-h-[500px] sm:pt-32 lg:h-[min(50.5vw,727px)] lg:min-h-[620px] lg:pt-[10.5vw]"
         style={{ backgroundImage: `url(${AdvertisementManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent"></div>
-        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
-          <h1 className="text-[36px] font-bold mb-2 text-white">Advertisement Management</h1>
-          <p className="text-[16px] font-medium text-white/90">Create and manage promotional campaigns</p>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-transparent" />
+        <div className="relative z-10 w-full px-6 sm:px-8 lg:px-[45px]">
+          <h1 className="mb-3 text-[36px] font-extrabold leading-tight text-black sm:text-[40px]">Advertisement Management</h1>
+          <p className="text-[18px] font-bold text-black sm:text-[21px] lg:text-[24px]">Create and manage promotional campaigns</p>
         </div>
       </div>
 
-      <div className="font-inter px-6 md:px-12 max-w-7xl mx-auto w-full">
+      <section className="bg-gradient-to-b from-[#A0DBFF] via-[#DDF3FF] to-white px-6 pb-16 pt-10 sm:px-8 lg:px-12 lg:pb-20">
+      <div className="mx-auto w-full max-w-[1298px]">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mx-auto mb-10 grid max-w-[1120px] grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-16">
           {statCards.map((stat) => (
-            <div key={stat.id} className="bg-gradient-to-br from-white to-[#F8FAFC] p-6 rounded-[12px] shadow-sm border border-white flex flex-col justify-between">
-               <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-[#EBF4FF] rounded-lg">{stat.icon}</div>
-                  <span className={`text-[12px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${stat.isUp ? 'text-green-600 bg-green-100' : 'text-red-500 bg-red-100'}`}>
+            <div key={stat.id} className="flex min-h-[170px] flex-col justify-between rounded-[10px] border border-white bg-gradient-to-br from-white to-[#CFEFFF] p-5 shadow-[0_8px_24px_rgba(46,92,136,0.12)]">
+               <div className="mb-3 flex items-start justify-between">
+                  <div className="rounded-lg bg-[#F4F9FF] p-2.5">{stat.icon}</div>
+                  <span className={`flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold ${stat.isUp ? 'text-green-600 bg-green-100' : 'text-red-500 bg-red-100'}`}>
                     {stat.isUp ? <FiTrendingUp size={12}/> : <FiTrendingDown size={12}/>} {stat.trend}
                   </span>
                </div>
                <div className="flex flex-col">
-                  <h3 className="text-[13px] font-medium text-gray-500 mb-1">{stat.title}</h3>
-                  <h2 className="text-[28px] font-bold text-[#111111]">{stat.value}</h2>
+                  <h3 className="mb-1 text-[14px] font-medium text-[#111111]">{stat.title}</h3>
+                  <h2 className="text-[21px] font-bold text-[#111111]">{stat.value}</h2>
                </div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-[#D3E8FA] p-6 rounded-[12px]">
+        <div className="mb-8 grid grid-cols-1 gap-3 rounded-[10px] bg-white/75 p-3 shadow-sm md:grid-cols-3 md:gap-8">
            <Link to="/user-management" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+             <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                User Management
              </button>
            </Link>
            <Link to="/approve-listings" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+             <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                Approve Listings
              </button>
            </Link>
            <Link to="/manage-ads" className="block w-full">
-             <button className="bg-[#D1FAE5] border border-green-200 text-[#065F46] font-medium py-3 px-6 rounded-full shadow-sm transition-colors w-full">
+             <button className="w-full rounded-full border border-green-200 bg-[#D7FDE1] px-6 py-2.5 text-[14px] font-semibold text-[#065F46] shadow-sm">
                Manage Ads
              </button>
            </Link>
         </div>
 
-        {/* Working Search and Action Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <div className="relative w-full md:w-1/2 lg:w-1/3">
+        <div className="mx-auto mb-8 flex max-w-[1080px] flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="relative w-full md:max-w-[430px]">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <FiSearch className="text-gray-400" />
             </div>
             <input 
               type="text" 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search advertisements..." 
-              className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2] sm:text-sm transition-colors"
+              className="block h-[42px] w-full rounded-full border border-slate-300 bg-white pl-12 pr-4 text-[13px] leading-5 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
             />
           </div>
           <Link to="/create-ad" className="w-full md:w-auto">
-            <button className="flex items-center justify-center gap-2 bg-[#1877F2] w-full md:w-auto text-white px-6 py-3 rounded-full font-bold hover:bg-blue-600 transition-colors shadow-sm">
-              <FiPlus size={20} /> Create Advertisement
+            <button className="flex min-h-[42px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#0075FF] px-7 py-2.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-blue-600 md:w-auto">
+              <FiPlus size={17} /> Create Advertisement
             </button>
           </Link>
         </div>
 
-        {/* Render Ad Listings */}
-        <div className="flex flex-col gap-6 mb-8">
+        <div className="mb-10 flex flex-col gap-11">
           {loading ? (
              <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 p-12 text-center text-gray-500 font-medium">Loading advertisements...</div>
+          ) : error ? (
+             <div className="rounded-[10px] border border-red-100 bg-white p-12 text-center font-medium text-red-500 shadow-sm">{error}</div>
           ) : currentAds.length === 0 ? (
              <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 p-12 text-center flex flex-col items-center">
                <h3 className="text-[20px] font-bold text-[#111111] mb-2">No Advertisements Found</h3>
@@ -180,43 +183,42 @@ const ManageAds = () => {
              </div>
           ) : (
             currentAds.map((ad) => (
-              <div key={ad.id} className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col md:flex-row overflow-hidden hover:shadow-md transition-shadow">
-                <div className="md:w-1/3 h-56 md:h-auto">
+              <article key={ad.id} className="mx-auto flex w-full max-w-[1080px] flex-col overflow-hidden rounded-[5px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(46,92,136,0.08)] transition-shadow hover:shadow-md md:h-[270px] md:flex-row">
+                <div className="h-56 sm:h-72 md:h-full md:w-[41%]">
                   <img src={ad.image} alt={ad.title} className="w-full h-full object-cover" />
                 </div>
-                <div className="md:w-2/3 p-6 flex flex-col justify-between">
+                <div className="flex flex-1 flex-col justify-between p-5 md:w-[59%] md:p-6">
                   <div>
                     <div className="flex justify-between items-start mb-2">
-                      <h2 className="text-[20px] font-bold text-[#111111]">
-                        {ad.title} <span className={`text-[14px] ${ad.badgeColor}`}>{ad.badge}</span>
+                      <h2 className="text-[18px] font-medium text-[#111111] md:text-[21px]">
+                        {ad.title} <span className={`text-[13px] font-medium ${ad.badgeColor}`}>{ad.badge}</span>
                       </h2>
                       <div className="flex items-center gap-2 text-gray-400">
-                        <button onClick={() => handleView(ad.id)} className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-[#1877F2] transition-colors"><FiEye size={16}/></button>
-                        <button onClick={() => handleEdit(ad.id)} className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-green-600 transition-colors"><FiEdit size={16}/></button>
-                        <button onClick={() => handleDelete(ad.id)} className="p-1.5 border border-gray-200 rounded hover:bg-gray-50 hover:text-red-500 transition-colors"><FiTrash2 size={16}/></button>
+                        <button aria-label={`View ${ad.title}`} onClick={() => handleView(ad.id)} className="rounded border border-slate-200 p-1.5 transition-colors hover:bg-slate-50 hover:text-[#1877F2]"><FiEye size={14}/></button>
+                        <button aria-label={`Edit ${ad.title}`} onClick={() => handleEdit(ad.id)} className="rounded border border-slate-200 p-1.5 transition-colors hover:bg-slate-50 hover:text-green-600"><FiEdit size={14}/></button>
+                        <button aria-label={`Delete ${ad.title}`} onClick={() => handleDelete(ad.id)} className="rounded border border-slate-200 p-1.5 transition-colors hover:bg-slate-50 hover:text-red-500"><FiTrash2 size={14}/></button>
                       </div>
                     </div>
-                    <p className="text-[14px] font-medium text-gray-700 mb-2">{ad.duration}</p>
-                    <p className="text-[13px] text-gray-500 line-clamp-2 mb-4">{ad.description}</p>
-                    <div className="flex items-center gap-4 text-[13px] font-medium text-[#111111] mb-6">
+                    <p className="mb-1 text-[12px] font-medium text-slate-700">{ad.duration}</p>
+                    <p className="mb-3 line-clamp-2 text-[11px] text-slate-600">{ad.description}</p>
+                    <div className="mb-3 flex flex-wrap items-center gap-4 text-[11px] font-medium text-[#111111]">
                       <span className="flex items-center gap-2"><FiCalendar className="text-gray-400"/> {ad.date}</span>
                       <span>{ad.price}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-4 text-center md:text-left">
-                    <div><p className="text-[12px] text-[#1877F2] font-medium mb-1">Clicks</p><p className="text-[14px] font-bold text-[#111111]">{ad.clicks}</p></div>
-                    <div><p className="text-[12px] text-[#1877F2] font-medium mb-1">Impressions</p><p className="text-[14px] font-bold text-[#111111]">{ad.impressions}</p></div>
-                    <div><p className="text-[12px] text-[#1877F2] font-medium mb-1">CTR</p><p className="text-[14px] font-bold text-[#111111]">{ad.ctr}</p></div>
+                  <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-3 text-center md:text-left">
+                    <div><p className="mb-1 text-[11px] font-medium text-[#0075FF]">Clicks</p><p className="text-[11px] font-medium text-[#111111]">{ad.clicks}</p></div>
+                    <div><p className="mb-1 text-[11px] font-medium text-[#0075FF]">Impressions</p><p className="text-[11px] font-medium text-[#111111]">{ad.impressions}</p></div>
+                    <div><p className="mb-1 text-[11px] font-medium text-[#0075FF]">CTR</p><p className="text-[11px] font-medium text-[#111111]">{ad.ctr}</p></div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))
           )}
         </div>
 
-        {/* Working Pagination */}
         {!loading && filteredAds.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 pb-8">
+          <div className="flex flex-wrap items-center justify-end gap-2 pb-8 lg:pr-[109px]">
              <button 
                onClick={() => paginate(currentPage - 1)}
                disabled={currentPage === 1}
@@ -246,6 +248,7 @@ const ManageAds = () => {
         )}
 
       </div>
+      </section>
     </div>
   );
 };
