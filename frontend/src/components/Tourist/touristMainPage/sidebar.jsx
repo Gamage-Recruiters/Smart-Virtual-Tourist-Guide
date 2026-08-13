@@ -30,7 +30,7 @@ function Sidebar() {
             navigate="/trip-plan"
             active={location === "/trip-plan"}
           />
-          <NavItem icon={<Map size={20} />} label="Map" navigate="/" />
+          <NavItem icon={<Map size={20} />} label="Map" navigate="/direction" />
           <NavItem
             icon={<ShieldCheck size={20} />}
             label="Safety"

@@ -229,4 +229,64 @@ export const socialAuthAPI = {
   },
 };
 
+/**
+ * WEATHER ALERTS
+ */
+export const fetchWeatherAlerts = () => {
+  return apiClient.get('/weather/alerts');
+};
+
+/**
+ * CRIME ALERTS
+ */
+export const fetchCrimeAlerts = () => {
+  // Mock endpoint, adjust as needed when backend is implemented
+  return apiClient.get('/crime/alerts').catch(() => []);
+};
+
+/**
+ * ROAD BLOCKAGES
+ */
+export const fetchRoadBlockages = () => {
+  // Mock endpoint, adjust as needed when backend is implemented
+  return apiClient.get('/road/blockages').catch(() => []);
+};
+
+/**
+ * FAVORITE PLACES
+ */
+export const saveFavoritePlace = (placeData) => {
+  return apiClient.post('/places/favorite', placeData);
+};
+
+export const fetchFavoritePlaces = () => {
+  return apiClient.get('/places/favorite').catch(() => []);
+};
+
+export const deleteFavoritePlace = (id) => {
+  return apiClient.delete(`/places/favorite/${id}`).catch(() => {});
+};
+
+/**
+ * RECENT PLACES
+ */
+export const saveRecentPlace = (placeData) => {
+  return apiClient.post('/places/recent', placeData).catch(() => {});
+};
+
+export const fetchRecentPlaces = () => {
+  return apiClient.get('/places/recent').catch(() => []);
+};
+
+export const deleteRecentPlace = (id) => {
+  return apiClient.delete(`/places/recent/${id}`).catch(() => {});
+};
+
+/**
+ * HOTELS
+ */
+export const fetchHotels = () => {
+  return apiClient.get('/hotels').catch(() => []);
+};
+
 export default apiClient;

@@ -36,6 +36,7 @@ import DriverSignUp1 from './pages/Driver/SignUpForm1';
 import DriverSignUp2 from './pages/Driver/SignUpForm2';
 import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
+import { PageTitleProvider } from './context/PageTitleContext';
 
 //import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
@@ -54,6 +55,9 @@ import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
 import MainPage from './pages/Tourist/touristMainPage/mainPage.jsx';
 import TouristProfilePage from './pages/Tourist/touristProfile/touristProfilePage.jsx';
 import TripPlanMainPage from './pages/Tourist/tripPlanMainPage/tripPlanMainPage.jsx';
+
+
+import NavigationMain from './pages/NavigationAndMapping/NavigationMain.jsx';
 
 function App() {
   return (
@@ -130,6 +134,12 @@ function App() {
         <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
         <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
         <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
+
+        <Route path="/direction" element={
+          <PageTitleProvider>
+            <NavigationMain />
+          </PageTitleProvider>
+        } />
 
         <Route path="/vehicle-admin" element={<VehicleAdmin />}>
           <Route index element={<Dashboard />} />

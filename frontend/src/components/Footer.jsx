@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'; // Add this import
 // Import images from your assets folder
 import lotusFlower from '../assets/fbg1.png';
 import mandalaPattern from '../assets/fbg2.png';
-import logoImage from '../assets/logo.png';
+import logoImage from '../assets/NavigationAndMapping/logo.png';
 import sriLankaFlag from '../assets/SLFF.jpg'; // Add your flag image
 
 const Footer = () => {
