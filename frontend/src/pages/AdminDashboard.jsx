@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../components/admin/StatCard';
 import RevenueChart from '../components/admin/RevenueChart';
@@ -78,97 +78,82 @@ useEffect(() => {
 }, []);
 
   return (
-    <div className="w-full pb-12">
-      
-      {/* Dashboard Specific Hero Section */}
-      <div 
-        className="relative mb-8 flex h-[320px] w-full items-center bg-cover bg-center sm:h-[360px] lg:h-[400px]"
+    <div className="w-full bg-white">
+      <div
+        className="relative flex min-h-[360px] w-full items-center bg-cover bg-center sm:min-h-[520px] lg:h-[min(58.4vw,839px)] lg:min-h-[680px]"
         style={{ backgroundImage: `url(${HeroBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-white/65 via-white/20 to-transparent"></div>
-        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
-          <h1 className="text-[40px] md:text-[56px] font-bold text-[#111111] leading-tight mb-4 drop-shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-transparent" />
+        <div className="relative z-10 w-full px-6 sm:px-8 lg:px-[47px]">
+          <h1 className="mb-4 max-w-[600px] text-[40px] font-black leading-[1.15] text-[#111111] sm:text-[46px] lg:text-[49px]">
             Welcome To Your <br /> Admin Dashboard
           </h1>
-          <p className="text-[16px] md:text-[20px] text-[#111111] font-medium max-w-2xl drop-shadow-sm">
+          <p className="max-w-[741px] text-[17px] font-medium leading-snug text-[#111111] sm:text-[20px] lg:text-[24px]">
             Manage your travel platform, track performance, and deliver unforgettable journeys across Sri Lanka.
           </p>
         </div>
       </div>
 
-      {/* Dashboard Content */}
-      <div className="font-inter px-6 md:px-12 max-w-7xl mx-auto w-full">
-        <div className="flex justify-between items-end mb-6">
-          <h2 className="text-[28px] font-bold text-[#111111]">Admin Dashboard</h2>
-          <span className="text-[12px] text-gray-500 mb-2">Last updated: Just now</span>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {dashboardData.map((data) => (
-            <StatCard 
-              key={data.id}
-              title={data.title}
-              count={data.count}
-              percentage={data.percentage}
-              isPositive={data.isPositive}
-              icon={data.icon}
-            />
-          ))}
-        </div>
+      <section className="relative overflow-hidden pb-16 pt-10 font-inter sm:pt-14 lg:pb-20">
+        <div
+          className="pointer-events-none absolute inset-0 bg-cover bg-fixed bg-center opacity-[0.12]"
+          style={{ backgroundImage: `url(${HeroBg})` }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#DDF3FF]/80 via-white/60 to-[#DDF3FF]/70" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-           <Link to="/user-management" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
-               User Management
-             </button>
-           </Link>
-           <Link to="/approve-listings" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
-               Approve Listings
-             </button>
-           </Link>
-           <Link to="/manage-ads" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
-               Manage Ads
-             </button>
-           </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
-             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Revenue Trend</h3>
-             <div className="flex-grow">
-               <RevenueChart data={analytics.revenueChart}/>
-             </div>
+        <div className="relative z-10 mx-auto w-full max-w-[1298px] px-6 sm:px-8 lg:px-0">
+          <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between lg:px-[67px]">
+            <h2 className="text-[30px] font-bold text-[#111111] sm:text-[34px] lg:text-[36px]">Admin Dashboard</h2>
+            <span className="pb-1 text-[13px] text-[#111111] sm:text-[14px]">Last updated: Just now</span>
           </div>
-          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
-             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
-             <div className="flex-grow">
-               <BookingChart data={analytics.bookingChart}/>
-             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">
-          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
-             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Package Performance</h3>
-             <div className="flex-grow">
-               <PackagePerformanceChart data={analytics.packagePerformance}/>
-             </div>
+          <div className="mb-9 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:px-[67px]">
+            {dashboardData.map((data) => (
+              <StatCard
+                key={data.id}
+                title={data.title}
+                count={data.count}
+                percentage={data.percentage}
+                isPositive={data.isPositive}
+                icon={data.icon}
+              />
+            ))}
           </div>
-          <div className="bg-white p-6 rounded-[12px] shadow-sm min-h-[400px] border border-gray-100 flex flex-col">
-             <h3 className="text-[16px] font-semibold text-[#111111] mb-6">Monthly Booking</h3>
-             <div className="flex-grow">
-               <BookingPieChart data={analytics.userDistribution}/>
-             </div>
+
+          <div className="mb-12 grid grid-cols-1 gap-3 rounded-[10px] bg-white/65 p-3 shadow-sm backdrop-blur-sm md:grid-cols-3 md:gap-8">
+            <ManagementLink to="/user-management">User Management</ManagementLink>
+            <ManagementLink to="/approve-listings">Approve Listings</ManagementLink>
+            <ManagementLink to="/manage-ads">Manage Ads</ManagementLink>
           </div>
+
+          <div className="mx-auto mb-8 grid max-w-[1016px] grid-cols-1 gap-8 lg:grid-cols-[470px_436px] lg:justify-between lg:gap-20">
+            <ChartPanel title="Monthly Revenue Trend"><RevenueChart data={analytics.revenueChart} /></ChartPanel>
+            <ChartPanel title="Monthly Booking"><BookingChart data={analytics.bookingChart} /></ChartPanel>
+            <ChartPanel title="Package Performance"><PackagePerformanceChart data={analytics.packagePerformance} /></ChartPanel>
+            <ChartPanel title="Monthly Booking"><BookingPieChart data={analytics.userDistribution} /></ChartPanel>
+          </div>
+
+          <RecentActivity />
         </div>
-
-        <RecentActivity />
-
-      </div>
+      </section>
     </div>
   );
 };
+
+const ManagementLink = ({ to, children }) => (
+  <Link
+    to={to}
+    className="flex min-h-11 w-full items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-2 text-center text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0075FF]"
+  >
+    {children}
+  </Link>
+);
+
+const ChartPanel = ({ title, children }) => (
+  <div className="flex h-[337px] min-w-0 flex-col rounded-[10px] border border-white/90 bg-white p-5 shadow-[0_8px_26px_rgba(46,92,136,0.08)]">
+    <h3 className="mb-4 text-[14px] font-semibold text-[#111111]">{title}</h3>
+    <div className="min-h-0 flex-1">{children}</div>
+  </div>
+);
 
 export default AdminDashboard;

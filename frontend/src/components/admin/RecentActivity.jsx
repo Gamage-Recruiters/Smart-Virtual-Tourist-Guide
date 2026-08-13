@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import apiClient from '../../services/api';
 
@@ -39,10 +39,10 @@ const RecentActivity = () => {
   }, []);
 
   return (
-    <div className="bg-white p-6 rounded-[12px] shadow-sm border border-gray-100 flex flex-col h-full">
-      <div className="mb-6">
-        <h3 className="text-[20px] font-bold text-[#111111]">Recent Activity</h3>
-        <p className="text-[14px] text-gray-500 mt-1">Latest updates across the platform.</p>
+    <div className="mx-auto flex min-h-[620px] w-full max-w-[1210px] flex-col rounded-[10px] border border-white/60 bg-white/40 p-6 shadow-[0_8px_30px_rgba(46,92,136,0.08)] backdrop-blur-[2px] sm:p-10 lg:min-h-[760px] lg:p-14">
+      <div className="mb-8 lg:mb-12">
+        <h3 className="text-[30px] font-bold text-[#111111] sm:text-[34px] lg:text-[36px]">Recent Activity</h3>
+        <p className="mt-2 text-[17px] font-medium text-[#111111] sm:text-[20px] lg:text-[24px]">New listings waiting for review.</p>
       </div>
 
       <div className="flex-grow flex flex-col justify-center">
@@ -53,7 +53,7 @@ const RecentActivity = () => {
         ) : activities.length === 0 ? (
           <div className="text-center text-gray-400 py-8">No recent activities found.</div>
         ) : (
-          <div className="flex flex-col space-y-6">
+          <div className="flex flex-col space-y-7 lg:space-y-9">
             {activities.map((activity) => (
               <div key={activity.id} className="flex items-start justify-between group">
                 <div className="flex items-start gap-4">
@@ -61,13 +61,13 @@ const RecentActivity = () => {
                     <div className={`w-2 h-2 rounded-full ${activityColor[activity.type] || 'bg-gray-400'}`}></div>
                   </div>
                   <div>
-                    <h4 className="text-[14px] font-semibold text-[#111111] group-hover:text-blue-600 transition-colors">
+                    <h4 className="text-[16px] font-medium text-[#111111] transition-colors group-hover:text-blue-600 sm:text-[18px] lg:text-[20px]">
                       {activity.title}
                     </h4>
-                    <p className="text-[13px] text-gray-500 mt-0.5">{activity.subtitle}</p>
+                    <p className="mt-1 text-[12px] font-light text-slate-600 sm:text-[13px]">{activity.subtitle}</p>
                   </div>
                 </div>
-                <span className="text-[12px] text-gray-400 whitespace-nowrap mt-1">
+                <span className="ml-4 mt-1 whitespace-nowrap text-[12px] font-medium text-slate-600 sm:text-[14px]">
                   {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                 </span>
               </div>
@@ -77,7 +77,7 @@ const RecentActivity = () => {
       </div>
 
       {!loading && !error && activities.length > 0 && (
-        <button className="mt-8 w-[100px] self-end bg-[#1877F2] text-white text-[13px] font-medium py-2 px-4 rounded-[6px] hover:bg-blue-600 transition-colors">
+        <button type="button" className="mt-10 w-[110px] self-end rounded-[6px] bg-[#0075FF] px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-blue-600">
           See more
         </button>
       )}

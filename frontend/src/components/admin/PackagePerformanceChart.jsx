@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // const data = [
@@ -11,8 +10,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const PackagePerformanceChart = ({ data }) => {
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="h-full w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart 
           data={data} 
           layout="vertical" 
@@ -26,7 +25,7 @@ const PackagePerformanceChart = ({ data }) => {
             cursor={{ fill: '#F3F4F6' }}
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
           />
-          <Bar dataKey="value" fill="#9F7AEA" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="value" fill="#8979FF" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

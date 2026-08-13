@@ -1,5 +1,5 @@
 import apiClient from '../services/api';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiUsers, FiCheckCircle, FiClock, FiUserX, FiSearch, FiShield, FiMoreVertical, FiMail, FiPhone, FiMapPin, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import toast, { Toaster } from 'react-hot-toast';
@@ -29,7 +29,7 @@ const UserManagement = () => {
         } else {
           setError(result?.message || 'Failed to fetch users');
         }
-      } catch (err) {
+      } catch {
         setError('Cannot connect to the server.');
       } finally {
         setLoading(false);
@@ -52,8 +52,8 @@ const UserManagement = () => {
 
   const renderStatusBadge = (status) => {
     switch(status) {
-      case 'Active': return <span className="bg-[#D1FAE5] text-[#065F46] px-4 py-1 rounded-full text-[12px] font-semibold w-24 text-center inline-block">Active</span>;
-      case 'Pending': return <span className="bg-[#FEF3C7] text-[#D97706] px-4 py-1 rounded-full text-[12px] font-semibold w-24 text-center inline-block">Pending</span>;
+      case 'Active': return <span className="inline-block w-28 rounded-full bg-[#F2D86D] px-4 py-1 text-center text-[13px] font-medium text-white">Active</span>;
+      case 'Pending': return <span className="inline-block w-28 rounded-full bg-[#8979FF] px-4 py-1 text-center text-[13px] font-medium text-white">Pending</span>;
       case 'Suspended': return <span className="bg-[#FCA5A5] text-[#991B1B] px-4 py-1 rounded-full text-[12px] font-semibold w-24 text-center inline-block">Suspended</span>;
       default: return <span className="bg-gray-100 text-gray-600 px-4 py-1 rounded-full text-[12px] font-semibold w-24 text-center inline-block">Unknown</span>;
     }
@@ -87,7 +87,7 @@ const UserManagement = () => {
         } else {
           toast.error(result.message || 'Failed to update status.', { id: toastId }); 
         }
-      } catch (error) {
+      } catch {
         toast.error('Cannot connect to the server.', { id: toastId });
       }
     }
@@ -105,7 +105,7 @@ const UserManagement = () => {
         } else {
           toast.error(result.message || 'Failed to delete user.', { id: toastId });
         }
-      } catch (error) {
+      } catch {
         toast.error('Failed to connect to the server.', { id: toastId });
       }
     }
@@ -129,85 +129,82 @@ const UserManagement = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
-
-
   return (
-    <div className="w-full pb-12 font-inter">
+    <div className="w-full bg-white font-inter">
     <Toaster position="top-right" reverseOrder={false} />
       
       <div 
-        className="relative mb-8 flex h-[300px] w-full items-center bg-cover bg-center sm:h-[330px] lg:h-[350px]"
+        className="relative flex min-h-[360px] w-full items-center bg-cover bg-center sm:min-h-[520px] lg:h-[min(54.5vw,785px)] lg:min-h-[680px]"
         style={{ backgroundImage: `url(${UserManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent"></div>
-        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full text-white drop-shadow-md">
-          <h1 className="text-[40px] font-bold mb-2 text-white">User Management</h1>
-          <p className="text-[16px] font-medium text-white/90">Monitor and manage all user accounts.</p>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-transparent" />
+        <div className="relative z-10 w-full px-6 sm:px-8 lg:px-[42px]">
+          <h1 className="mb-3 text-[38px] font-extrabold leading-tight text-black sm:text-[40px]">User Management</h1>
+          <p className="text-[18px] font-semibold text-black sm:text-[21px] lg:text-[24px]">Monitor and manage all user accounts.</p>
         </div>
       </div>
 
-      <div className="px-6 md:px-12 max-w-7xl mx-auto w-full">
-        
-        <div className="bg-[#D3E8FA] p-8 rounded-[12px] mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="mx-auto w-full max-w-[1440px] bg-gradient-to-b from-[#A0DBFF] to-white px-6 pb-16 pt-12 sm:px-8 lg:px-12 lg:pb-20 lg:pt-16">
+
+        <div className="mb-10">
+          <div className="mx-auto grid max-w-[1190px] grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-24">
             {userStats.map((data) => (
-              <div key={data.id} className="bg-gradient-to-br from-white to-[#F4F9FF] p-6 rounded-[12px] shadow-sm flex flex-col gap-2">
-                 <div className="flex justify-between items-center text-gray-500">
-                    <h3 className="text-[14px] font-medium text-[#111111]">{data.title}</h3>
-                    {data.icon}
+              <div key={data.id} className="flex min-h-[126px] flex-col justify-between rounded-[9px] bg-gradient-to-br from-white to-[#F4F9FF] p-5 shadow-[0_8px_22px_rgba(46,92,136,0.14)]">
+                 <div className="flex items-center justify-between text-[#111111]">
+                    <h3 className="text-[16px] font-medium sm:text-[18px]">{data.title}</h3>
+                    <span className="[&_svg]:h-5 [&_svg]:w-5">{data.icon}</span>
                  </div>
-                 <h2 className={`text-[32px] font-bold ${data.title === 'Total Users' ? 'text-[#1877F2]' : data.title === 'Active' ? 'text-[#065F46]' : data.title === 'Pending' ? 'text-[#D97706]' : 'text-[#EF4444]'}`}>
+                 <h2 className={`text-[24px] font-medium ${data.title === 'Total Users' ? 'text-[#2859C5]' : data.title === 'Active' ? 'text-[#F2D86D]' : data.title === 'Pending' ? 'text-[#8979FF]' : 'text-[#EF4444]'}`}>
                    {loading ? '...' : data.count}
                  </h2>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="mx-auto mt-10 grid max-w-[1298px] grid-cols-1 gap-3 rounded-[10px] bg-white/75 p-3 shadow-sm md:grid-cols-3 md:gap-8">
              <Link to="/user-management" className="block w-full">
-               <button className="bg-[#D1FAE5] border border-green-200 text-[#065F46] font-medium py-3 px-6 rounded-full shadow-sm transition-colors w-full">
+               <button className="w-full rounded-full border border-green-200 bg-[#D7FDE1] px-6 py-2.5 text-[14px] font-semibold text-[#065F46] shadow-sm transition-colors">
                  User Management
                </button>
              </Link>
              <Link to="/approve-listings" className="block w-full">
-               <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+               <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                  Approve Listings
                </button>
              </Link>
              <Link to="/manage-ads" className="block w-full">
-               <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+               <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                  Manage Ads
                </button>
              </Link>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <div className="relative w-full md:w-2/3">
+        <div className="mb-10 flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="relative w-full md:max-w-[1061px] md:flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <FiSearch className="text-gray-400" />
             </div>
             <input 
               type="text" 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, email, or role..." 
-              className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2] sm:text-sm transition-colors"
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search users....."
+              className="block h-[46px] w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-[14px] leading-5 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
             />
           </div>
           <Link to="/add-admin" className="w-full md:w-auto">
-            <button className="flex items-center justify-center gap-2 bg-[#1877F2] text-white px-6 py-3 rounded-full font-bold hover:bg-blue-600 transition-colors w-full shadow-sm">
+             <button className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-[7px] bg-[#0075FF] px-7 py-3 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-blue-600 md:min-w-[216px]">
               <FiShield /> Add New Admin
             </button>
           </Link>
         </div>
 
-        <div className="bg-[#D3E8FA] rounded-[12px] p-8 shadow-sm overflow-x-auto mb-8">
-          <h3 className="text-[24px] font-bold text-[#111111] mb-6">All Users</h3>
+        <div className="mb-10 rounded-[4px] border border-[#2E5C88]/20 bg-[#A0DBFF]/[0.07] p-5 shadow-sm sm:p-9">
+          <h3 className="mb-7 text-[30px] font-medium text-[#111111] sm:text-[36px]">All Users</h3>
           
           {loading ? (
             <div className="text-center py-10 text-gray-500 font-medium bg-white/50 rounded-lg">Loading user data...</div>
@@ -218,15 +215,16 @@ const UserManagement = () => {
               {searchTerm ? "No users match your search criteria." : "No users found in the database."}
             </div>
           ) : (
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <div className="overflow-x-auto pb-2">
+            <table className="min-w-[1080px] w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-blue-200 text-[16px] font-semibold text-[#111111]">
-                  <th className="pb-4 pl-2">User</th>
-                  <th className="pb-4">Role</th>
-                  <th className="pb-4">Status</th>
-                  <th className="pb-4">Joined</th>
-                  <th className="pb-4">Contact</th>
-                  <th className="pb-4 text-center">Actions</th>
+                <tr className="h-[86px] border-b border-[#2E5C88]/30 text-[20px] font-medium text-[#111111]">
+                  <th className="px-4">User</th>
+                  <th className="px-3">Role</th>
+                  <th className="px-3">Status</th>
+                  <th className="px-3">Joined</th>
+                  <th className="px-3">Contact</th>
+                  <th className="px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,25 +235,25 @@ const UserManagement = () => {
                    const isCurrentAdmin = currentAdminId === user._id;
                   
                   return (
-                    <tr key={user._id} className="border-b border-blue-100 hover:bg-blue-50/30 transition-colors bg-white/50">
-                      <td className="py-4 pl-2">
+                    <tr key={user._id} className="h-[150px] border-b border-[#2E5C88]/20 transition-colors hover:bg-white/30">
+                      <td className="px-4 py-7">
                         <div className="flex flex-col">
-                          <span className="font-medium text-[#111111]">{displayName}</span>
-                          <span className="text-[12px] text-gray-500 flex items-center gap-1 mt-1">
+                          <span className="text-[17px] font-normal text-[#111111]">{displayName}</span>
+                          <span className="mt-2 flex items-center gap-1 text-[12px] text-slate-600">
                             <FiMapPin size={10} /> {user.location || 'Location not set'}
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 text-[#111111] font-medium">{formatRole(user.role)}</td>
-                      <td className="py-4">{renderStatusBadge(user.status)}</td>
-                      <td className="py-4 text-[#111111]">{formatDate(user.createdAt || user.joinedDate)}</td>
-                      <td className="py-4">
-                        <div className="flex flex-col text-[12px] text-gray-600 gap-1">
+                      <td className="px-3 py-7 text-[17px] font-normal text-[#111111]">{formatRole(user.role)}</td>
+                      <td className="px-3 py-7">{renderStatusBadge(user.status)}</td>
+                      <td className="px-3 py-7 text-[16px] text-[#111111]">{formatDate(user.createdAt || user.joinedDate)}</td>
+                      <td className="px-3 py-7">
+                        <div className="flex flex-col gap-1 text-[12px] text-slate-700">
                           <span className="flex items-center gap-2"><FiMail /> {user.email}</span>
                           <span className="flex items-center gap-2"><FiPhone /> {displayPhone}</span>
                         </div>
                       </td>
-                      <td className="py-4 text-center relative">
+                      <td className="relative px-3 py-7 text-center">
                         {isCurrentAdmin ? (
                           <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold text-blue-700">
                             Current account
@@ -317,11 +315,12 @@ const UserManagement = () => {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
         {!loading && filteredUsers.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 pb-8">
+          <div className="flex flex-wrap items-center justify-end gap-2 pb-8">
              <button 
                onClick={() => paginate(currentPage - 1)}
                disabled={currentPage === 1}
@@ -350,7 +349,7 @@ const UserManagement = () => {
           </div>
         )}
 
-      </div>
+      </section>
     </div>
   );
 };
