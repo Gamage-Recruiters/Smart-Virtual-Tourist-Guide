@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiUsers, FiCheckCircle, FiClock, FiUserX, FiSearch, FiShield, FiMoreVertical, FiMail, FiPhone, FiMapPin, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import toast, { Toaster } from 'react-hot-toast';
+import UserManagementBg from '../assets/usermanagement.png';
 
 const UserManagement = () => {
   const [usersList, setUsersList] = useState([]);
+  const [currentAdminId, setCurrentAdminId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +25,7 @@ const UserManagement = () => {
         
         if (result && result.success) {
           setUsersList(result.users);
+          setCurrentAdminId(result.currentAdminId);
         } else {
           setError(result?.message || 'Failed to fetch users');
         }
@@ -137,10 +140,10 @@ const UserManagement = () => {
     <Toaster position="top-right" reverseOrder={false} />
       
       <div 
-        className="relative w-full h-[350px] bg-cover bg-center flex items-center mb-8"
-        style={{ backgroundImage: `url('https://th.bing.com/th/id/R.dade39779e7549015f83af8f8782e6e8?rik=IHFleItx%2by2chw&riu=http%3a%2f%2fwww.pearlceylon.com%2fimages%2fdestination%2fsigiriya%2fsigiriya-by-air.jpg&ehk=qBvBwGXJvH%2fks4lehtxalJjDvmSDg8BAUkxTRWpI%2bWo%3d&risl=&pid=ImgRaw&r=0')` }}
+        className="relative mb-8 flex h-[300px] w-full items-center bg-cover bg-center sm:h-[330px] lg:h-[350px]"
+        style={{ backgroundImage: `url(${UserManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent"></div>
         <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full text-white drop-shadow-md">
           <h1 className="text-[40px] font-bold mb-2 text-white">User Management</h1>
           <p className="text-[16px] font-medium text-white/90">Monitor and manage all user accounts.</p>
@@ -229,8 +232,9 @@ const UserManagement = () => {
               <tbody>
                 {currentUsers.map((user) => {
                   const displayName = user.fullName || user.name || user.username || 'Unknown User';
-                  const displayPhone = user.phoneNumber || user.phone || 'N/A';
-                  const isDropdownOpen = openDropdownId === user._id;
+                   const displayPhone = user.phoneNumber || user.phone || 'N/A';
+                   const isDropdownOpen = openDropdownId === user._id;
+                   const isCurrentAdmin = currentAdminId === user._id;
                   
                   return (
                     <tr key={user._id} className="border-b border-blue-100 hover:bg-blue-50/30 transition-colors bg-white/50">
@@ -252,12 +256,19 @@ const UserManagement = () => {
                         </div>
                       </td>
                       <td className="py-4 text-center relative">
-                        <button 
-                          onClick={() => toggleDropdown(user._id)}
-                          className="text-gray-500 hover:text-[#1877F2] p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
-                        >
-                          <FiMoreVertical size={20} />
-                        </button>
+                        {isCurrentAdmin ? (
+                          <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-[12px] font-semibold text-blue-700">
+                            Current account
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => toggleDropdown(user._id)}
+                            className="text-gray-500 hover:text-[#1877F2] p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                            aria-label={`Manage ${displayName}`}
+                          >
+                            <FiMoreVertical size={20} />
+                          </button>
+                        )}
                         
                         {isDropdownOpen && (
                           <div className="absolute right-0 mt-2 w-48 bg-white rounded-[8px] shadow-lg py-2 z-50 border border-gray-100 top-full">

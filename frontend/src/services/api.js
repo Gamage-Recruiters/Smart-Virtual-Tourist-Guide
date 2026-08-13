@@ -32,16 +32,15 @@ const parseResponse = async (response) => {
 };
 
 const request = async (endpoint, options = {}) => {
+  const token = localStorage.getItem('adminToken');
+
   const response = await fetch(
     `${API_BASE_URL}${endpoint}`,
     {
       ...options,
-      /*
-       * Required for the HttpOnly session cookie.
-       */
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     }
@@ -54,6 +53,7 @@ const request = async (endpoint, options = {}) => {
       error.status === 401 &&
       window.location.pathname !== '/login'
     ) {
+      localStorage.removeItem('adminToken');
       window.location.assign('/login');
     }
 

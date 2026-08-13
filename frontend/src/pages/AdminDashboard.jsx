@@ -82,10 +82,10 @@ useEffect(() => {
       
       {/* Dashboard Specific Hero Section */}
       <div 
-        className="relative w-full h-[400px] bg-cover bg-center flex items-center mb-8"
+        className="relative mb-8 flex h-[320px] w-full items-center bg-cover bg-center sm:h-[360px] lg:h-[400px]"
         style={{ backgroundImage: `url(${HeroBg})` }}
       >
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/65 via-white/20 to-transparent"></div>
         <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
           <h1 className="text-[40px] md:text-[56px] font-bold text-[#111111] leading-tight mb-4 drop-shadow-sm">
             Welcome To Your <br /> Admin Dashboard

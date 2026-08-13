@@ -27,12 +27,20 @@ const Login = () => {
     setError('');
 
     try {
-      await apiClient.post('/admin/auth/login', {
+      const response = await apiClient.post('/admin/auth/login', {
         username: formData.username.trim(), 
         password: formData.password,
       });
 
-      navigate('/', { replace: true });
+      localStorage.setItem('adminToken', response.token);
+
+      const roleHome = response.data.role === 'Administrator'
+        ? '/'
+        : response.data.role === 'Moderator'
+          ? '/approve-listings'
+          : '/access-denied';
+
+      navigate(roleHome, { replace: true });
     } catch (err) {
       setError(err.message || 'Unable to log in.');
     } finally {

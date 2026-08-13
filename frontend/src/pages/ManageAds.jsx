@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEdit, FiTrash2, FiPlus, FiTrendingUp, FiTrendingDown, FiDollarSign, FiMousePointer, FiBarChart2, FiUsers, FiCalendar, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import apiClient from '../services/api'; 
+import apiClient from '../services/api';
+import AdvertisementManagementBg from '../assets/travel-ads-scaled 1.png';
 
 const ManageAds = () => {
   const [ads, setAds] = useState([]);
@@ -100,10 +101,10 @@ const ManageAds = () => {
     <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
       
       <div 
-        className="relative w-full h-[400px] bg-cover bg-center flex items-center mb-8"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544085311-11a028465b03?w=1600&q=80')` }}
+        className="relative mb-8 flex h-[320px] w-full items-center bg-cover bg-center sm:h-[360px] lg:h-[400px]"
+        style={{ backgroundImage: `url(${AdvertisementManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-black/10"></div> 
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent"></div>
         <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
           <h1 className="text-[36px] font-bold mb-2 text-white">Advertisement Management</h1>
           <p className="text-[16px] font-medium text-white/90">Create and manage promotional campaigns</p>
