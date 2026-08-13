@@ -1,19 +1,26 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiFileText, FiEye, FiCheck, FiX, FiStar } from 'react-icons/fi';
+import ListingFallbackImage from '../../assets/Listing_Management.png';
 
 const ListingCard = ({ listing, onApprove, onReject }) => {
+  const tags = Array.isArray(listing.tags) ? listing.tags : [];
+  const visibleTags = tags.slice(0, 3);
+  const additionalTagCount = Math.max(tags.length - visibleTags.length, 0);
+  const listingImage = listing.imageUrl || listing.images?.[0] || ListingFallbackImage;
+  const providerInitial = listing.providerInitial || listing.providerName?.charAt(0).toUpperCase() || '?';
+  const formattedPrice = typeof listing.price === 'number' ? `$${listing.price}` : listing.price;
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   return (
-    <div className="bg-white rounded-[12px] shadow-sm border border-gray-100 flex flex-col lg:flex-row overflow-hidden hover:shadow-md transition-shadow relative">
+    <article className="relative mx-auto flex w-full max-w-[1166px] flex-col overflow-hidden rounded-[6px] border border-slate-200 bg-white shadow-[0_8px_24px_rgba(46,92,136,0.08)] transition-shadow hover:shadow-md lg:min-h-[430px] lg:flex-row">
       
       {/* Status Badge overlay */}
-      <div className="absolute top-4 left-4 z-10">
-         <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+      <div className="absolute left-4 top-4 z-10">
+         <span className={`rounded-full px-3 py-1 text-[11px] font-semibold shadow-sm ${
            listing.status === 'Approved' ? 'bg-green-100 text-green-700' :
            listing.status === 'Rejected' ? 'bg-red-100 text-red-700' :
            'bg-yellow-100 text-yellow-700'
@@ -23,71 +30,78 @@ const ListingCard = ({ listing, onApprove, onReject }) => {
       </div>
 
       {/* Image Section */}
-      <div className="lg:w-2/5 h-64 lg:h-auto bg-gray-100">
-        <img 
-          src={listing.imageUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&q=80'} 
+      <div className="h-64 bg-slate-100 sm:h-80 lg:h-auto lg:w-[44%]">
+        <img
+          src={listingImage}
           alt={listing.title} 
           className="w-full h-full object-cover" 
         />
       </div>
 
       {/* Content Section */}
-      <div className="lg:w-3/5 p-6 flex flex-col justify-between">
+      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6 lg:w-[56%] lg:p-6">
         
         <div>
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-[22px] font-bold text-[#111111] leading-tight pr-4">{listing.title}</h2>
-            <div className="flex items-center gap-1 text-[14px] font-medium text-gray-700 bg-gray-50 px-2 py-1 rounded-md shrink-0">
-              <FiStar className="text-yellow-400 fill-current" /> {listing.rating}
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-[14px]">
-                {listing.providerInitial || listing.providerName.charAt(0).toUpperCase()}
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <h2 className="pr-3 text-[19px] font-medium leading-tight text-[#111111] sm:text-[21px]">{listing.title}</h2>
+            {listing.rating != null && (
+              <div className="flex shrink-0 items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-[12px] font-medium text-slate-700">
+                <FiStar className="fill-current text-yellow-400" /> {listing.rating}
               </div>
-              <span className="text-[14px] font-medium text-[#111111]">{listing.providerName}</span>
-            </div>
-            <span className="text-[12px] font-medium text-gray-500">Since {listing.since || '2026'}</span>
+            )}
           </div>
 
-          <p className="text-[14px] text-gray-600 leading-relaxed mb-6 line-clamp-3">
-            {listing.description}
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#A0DBFF] text-[13px] font-semibold text-white">
+                {providerInitial}
+              </div>
+              <span className="text-[13px] font-medium text-[#111111]">{listing.providerName}</span>
+            </div>
+            {listing.since && <span className="text-[11px] font-medium text-slate-600">Since {listing.since}</span>}
+          </div>
+
+          <p className="mb-5 line-clamp-3 text-[12px] leading-relaxed text-slate-700 sm:text-[13px]">
+            {listing.description || 'No description provided.'}
           </p>
         </div>
 
         <div>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+          <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
+              <div className="flex items-center gap-2 text-[12px] font-medium text-[#111111]">
                 <FiMapPin className="text-gray-500" size={16} /> {listing.location}
               </div>
-              <div className="flex items-center gap-2 text-[13px] text-[#111111] font-medium">
+              <div className="flex items-center gap-2 text-[12px] font-medium text-[#111111]">
                 <FiFileText className="text-gray-500" size={16} /> Submitted {formatDate(listing.createdAt)}
               </div>
             </div>
             
             <div className="flex flex-col md:items-end gap-3">
-              <span className="text-[14px] font-bold text-[#111111]">{listing.price}</span>
-              <span className="text-[13px] font-medium text-[#1877F2]">{listing.verificationScore}</span>
+              <span className="text-[12px] font-semibold text-[#111111]">{formattedPrice}</span>
+              {listing.verificationScore && <span className="text-[12px] font-medium text-[#1877F2]">{listing.verificationScore}</span>}
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-t border-gray-100 pt-6">
+          <div className="flex flex-col items-start justify-between gap-5 border-t border-slate-100 pt-4 md:flex-row md:items-center">
             
             <div className="flex flex-wrap gap-2">
-              {listing.tags && listing.tags.map((tag, index) => (
-                <span key={index} className="bg-[#EBF4FF] text-[#1877F2] px-3 py-1.5 rounded-[6px] text-[12px] font-medium">
+              {visibleTags.map((tag, index) => (
+                <span key={`${tag}-${index}`} className="rounded-[5px] bg-[#A0DBFF] px-3 py-1.5 text-[11px] font-medium text-[#2E5C88]">
                   {tag}
                 </span>
               ))}
+              {additionalTagCount > 0 && (
+                <span className="rounded-[5px] border border-slate-300 bg-white px-3 py-1.5 text-[11px] font-medium text-[#111111]">
+                  +{additionalTagCount} more
+                </span>
+              )}
             </div>
 
             <div className="flex flex-wrap md:flex-nowrap gap-3 w-full md:w-auto">
               <Link to={`/view-details/${listing._id}`} className="flex-1 md:flex-none">
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 bg-white text-[#111111] rounded-[6px] text-[13px] font-medium hover:bg-gray-50 transition-colors">
-                  <FiEye size={16} /> View Details
+                <button className="flex w-full items-center justify-center gap-2 rounded-[5px] border border-slate-300 bg-white px-4 py-2 text-[11px] font-medium text-[#111111] transition-colors hover:bg-slate-50">
+                  <FiEye size={14} /> View Full Details
                 </button>
               </Link>
               
@@ -95,9 +109,9 @@ const ListingCard = ({ listing, onApprove, onReject }) => {
               {listing.status !== 'Approved' && (
                 <button 
                   onClick={() => onApprove(listing._id, listing.providerName)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#1877F2] text-white rounded-[6px] text-[13px] font-medium hover:bg-blue-600 transition-colors"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[5px] bg-[#0075FF] px-5 py-2 text-[11px] font-medium text-white transition-colors hover:bg-blue-600 md:flex-none"
                 >
-                  <FiCheck size={16} /> Approve
+                  <FiCheck size={14} /> Approve
                 </button>
               )}
               
@@ -105,9 +119,9 @@ const ListingCard = ({ listing, onApprove, onReject }) => {
               {listing.status !== 'Rejected' && (
                 <button 
                   onClick={() => onReject(listing._id, listing.providerName)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-[#6A994E] text-white rounded-[6px] text-[13px] font-medium hover:bg-[#5a8342] transition-colors"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[5px] bg-[#357107] px-5 py-2 text-[11px] font-medium text-white transition-colors hover:bg-[#2d6206] md:flex-none"
                 >
-                  <FiX size={16} /> Reject
+                  <FiX size={14} /> Reject
                 </button>
               )}
             </div>
@@ -116,7 +130,7 @@ const ListingCard = ({ listing, onApprove, onReject }) => {
         </div>
 
       </div>
-    </div>
+    </article>
   );
 };
 
