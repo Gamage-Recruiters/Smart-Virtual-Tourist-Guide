@@ -1,19 +1,17 @@
-import React from 'react';
-
 const StatCard = ({ title, count, percentage, isPositive, icon }) => {
   return (
-    <div className="bg-white p-6 rounded-[12px] shadow-sm border border-gray-100 flex flex-col gap-4 font-inter min-w-[240px]">
+    <div className="flex min-h-[136px] min-w-0 flex-col justify-between rounded-[10px] border border-white bg-white p-5 font-inter shadow-[0_8px_24px_rgba(46,92,136,0.08)]">
       <div className="flex justify-between items-start">
         <div className="flex flex-col gap-1">
           <h3 className="text-[14px] font-medium text-gray-500">{title}</h3>
-          <h2 className="text-[32px] font-bold text-[#111111]">{count}</h2>
+          <h2 className="text-[23px] font-bold text-[#111111]">{count}</h2>
         </div>
-        <div className="p-3 bg-[#F5F7FA] rounded-[10px] text-gray-500">
+        <div className="rounded-[8px] bg-[#F4F9FF] p-2.5 text-[#2E5C88] [&_svg]:h-5 [&_svg]:w-5">
           {icon}
         </div>
       </div>
       
-      <div className="flex items-center gap-2 mt-1">
+      <div className="mt-2 flex items-center gap-2">
         <span className={`flex items-center gap-1 text-[12px] font-medium px-2 py-1 rounded-[6px] ${
           isPositive ? 'text-[#4CAF50] bg-green-50' : 'text-[#2E5C88] bg-blue-50' 
         }`}>
