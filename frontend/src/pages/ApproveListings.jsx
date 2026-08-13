@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiChevronLeft, FiChevronRight, FiSliders } from 'react-icons/fi';
 import apiClient from '../services/api';
 import ListingCard from '../components/admin/ListingCard';
 import RejectModal from '../components/admin/RejectModal';
@@ -12,35 +12,38 @@ const ApproveListings = () => {
   const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [refreshIndex, setRefreshIndex] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('newest');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; 
+  const itemsPerPage = 3;
 
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState({ id: null, providerName: '' });
 
-  const fetchListings = async () => {
-    try {
-      setLoading(true);
-      
-      const response = await apiClient.get('/admin/packages');
-      if (response.success) {
-        setListingsData(response.data || []);
-        setStats(response.stats || { pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
-      } else {
-        setError('Failed to load listings data.');
-      }
-    } catch (err) {
-      setError('Cannot connect to the server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await apiClient.get('/admin/packages');
+        if (response.success) {
+          setListingsData(response.data || []);
+          setStats(response.stats || { pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
+        } else {
+          setError('Failed to load listings data.');
+        }
+      } catch {
+        setError('Cannot connect to the server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchListings();
-  }, []);
+  }, [refreshIndex]);
 
  const handleApprove = async (listingId, providerName) => {
     if (!window.confirm(`Are you sure you want to approve the listing from ${providerName}?`)) return;
@@ -49,12 +52,12 @@ const ApproveListings = () => {
       
       const response = await apiClient.patch(`/admin/packages/${listingId}/approve`, {});
       if (response.success) {
-        fetchListings(); 
+        setRefreshIndex((index) => index + 1);
         toast.success('Listing approved successfully!', { id: toastId });
       } else {
         toast.error(response.message || 'Failed to approve listing.', { id: toastId });
       }
-    } catch (err) {
+    } catch {
       toast.error('Error connecting to the server.', { id: toastId });
     }
   };
@@ -75,21 +78,39 @@ const handleRejectSubmit = async (reason) => {
       const response = await apiClient.patch(`/admin/packages/${selectedListing.id}/reject`, { reason });
       if (response.success) {
         setIsRejectModalOpen(false); 
-        fetchListings(); 
+        setRefreshIndex((index) => index + 1);
         toast.success('Listing rejected successfully!', { id: toastId });
       } else {
         toast.error(response.message || 'Failed to reject listing.', { id: toastId });
       }
-    } catch (err) {
+    } catch {
       toast.error('Error connecting to the server.', { id: toastId });
     }
   };
 
-  const filteredListings = listingsData.filter(listing => 
-    listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    listing.providerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    listing.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredListings = listingsData
+    .map((listing, originalIndex) => ({ listing, originalIndex }))
+    .filter(({ listing }) => (
+      listing.title?.toLowerCase().includes(normalizedSearchTerm) ||
+      listing.providerName?.toLowerCase().includes(normalizedSearchTerm) ||
+      listing.location?.toLowerCase().includes(normalizedSearchTerm)
+    ))
+    .filter(({ listing }) => priorityFilter === 'all' || listing.status === priorityFilter)
+    .sort((a, b) => {
+      const aDate = Date.parse(a.listing.createdAt || a.listing.submittedAt || a.listing.updatedAt || '');
+      const bDate = Date.parse(b.listing.createdAt || b.listing.submittedAt || b.listing.updatedAt || '');
+
+      if (!Number.isNaN(aDate) && !Number.isNaN(bDate)) {
+        return sortOrder === 'newest' ? bDate - aDate : aDate - bDate;
+      }
+
+      // The API already returns newest first; preserve or reverse that order when timestamps are absent.
+      return sortOrder === 'newest'
+        ? a.originalIndex - b.originalIndex
+        : b.originalIndex - a.originalIndex;
+    })
+    .map(({ listing }) => listing);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -97,10 +118,6 @@ const handleRejectSubmit = async (reason) => {
   const totalPages = Math.ceil(filteredListings.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
 
   const statCards = [
     { id: 1, title: 'Pending Review', value: stats.pending, subText: 'High priority', subTextColor: 'text-yellow-600', icon: <FiClock size={20} className="text-yellow-500" /> },
@@ -110,31 +127,30 @@ const handleRejectSubmit = async (reason) => {
   ];
 
   return (
-    <div className="font-inter w-full bg-[#EBF4FF] min-h-screen pb-12">
+    <div className="min-h-screen w-full bg-white font-inter">
     <Toaster position="top-right" reverseOrder={false} />
       
-      {/* 100% FIXED HERO SECTION - Matches UserManagement */}
-      <div 
-        className="relative mb-8 flex h-[300px] w-full items-center bg-cover bg-center sm:h-[330px] lg:h-[350px]"
+      <div
+        className="relative flex min-h-[360px] w-full items-start bg-cover bg-center pt-28 sm:min-h-[520px] sm:pt-40 lg:h-[min(53.75vw,774px)] lg:min-h-[660px] lg:pt-[14.5vw]"
         style={{ backgroundImage: `url(${ListingManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent"></div>
-        <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
-          <h1 className="text-[40px] font-bold text-white mb-2 drop-shadow-md">Listing Management</h1>
-          <p className="text-[16px] font-medium text-white/90 drop-shadow-md">Review and approve travel package submissions</p>
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-transparent" />
+        <div className="relative z-10 w-full px-6 sm:px-8 lg:px-[47px]">
+          <h1 className="mb-3 text-[38px] font-extrabold leading-tight text-black sm:text-[40px]">Listing Management</h1>
+          <p className="text-[18px] font-semibold text-black sm:text-[21px] lg:text-[24px]">Review and approve travel package submissions</p>
         </div>
       </div>
 
-      {/* Removed the negative margin (-mt-12) to match standard spacing */}
-      <div className="px-6 md:px-12 max-w-7xl mx-auto w-full">
+      <section className="bg-gradient-to-b from-[#D8F0FF] to-white px-6 pb-16 pt-12 sm:px-8 lg:px-12 lg:pb-20 lg:pt-14">
+      <div className="mx-auto w-full max-w-[1298px]">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-24">
           {statCards.map((stat) => (
-            <div key={stat.id} className="bg-gradient-to-br from-white to-[#F8FAFC] p-6 rounded-[12px] shadow-sm border border-white flex flex-col gap-4">
+            <div key={stat.id} className="flex min-h-[150px] flex-col justify-between rounded-[9px] border border-white bg-gradient-to-br from-white to-[#F4F9FF] p-5 shadow-[0_8px_22px_rgba(46,92,136,0.14)]">
                <div className="flex justify-between items-start">
                   <div className="flex flex-col">
                      <h3 className="text-[16px] font-medium text-[#111111]">{stat.title}</h3>
-                     <h2 className="text-[32px] font-bold text-[#111111] mt-1">{loading ? '...' : stat.value}</h2>
+                     <h2 className="mt-2 text-[29px] font-normal text-[#111111]">{loading ? '...' : stat.value}</h2>
                   </div>
                   <div className="p-2 bg-white rounded-full shadow-sm">
                     {stat.icon}
@@ -147,37 +163,72 @@ const handleRejectSubmit = async (reason) => {
           ))}
         </div>
 
-        {/* FIXED TABS CONTAINER - Matches ManageAds/UserManagement */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-[#D3E8FA] p-6 rounded-[12px]">
+        <div className="mb-10 grid grid-cols-1 gap-3 rounded-[10px] bg-white/75 p-3 shadow-sm md:grid-cols-3 md:gap-8">
            <Link to="/user-management" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+             <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                User Management
              </button>
            </Link>
            <Link to="/approve-listings" className="block w-full">
-             <button className="bg-[#D1FAE5] border border-green-200 text-[#065F46] font-medium py-3 px-6 rounded-full shadow-sm transition-colors w-full">
+             <button className="w-full rounded-full border border-green-200 bg-[#D7FDE1] px-6 py-2.5 text-[14px] font-semibold text-[#065F46] shadow-sm">
                Approve Listings
              </button>
            </Link>
            <Link to="/manage-ads" className="block w-full">
-             <button className="bg-white border border-gray-200 text-[#111111] font-medium py-3 px-6 rounded-full shadow-sm hover:bg-gray-50 transition-colors w-full">
+             <button className="w-full rounded-full border border-slate-300 bg-white px-6 py-2.5 text-[14px] font-semibold text-[#111111] shadow-sm transition-colors hover:bg-slate-50">
                Manage Ads
              </button>
            </Link>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <div className="relative w-full md:w-1/2 lg:w-1/3">
+        <div className="mb-12 flex flex-col items-stretch justify-between gap-4 md:flex-row md:items-center">
+          <div className="relative w-full md:max-w-[540px]">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <FiSearch className="text-gray-400" />
             </div>
             <input 
               type="text" 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Search by title, provider, or location" 
-              className="block w-full pl-12 pr-3 py-3 border border-gray-200 rounded-full leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2] sm:text-sm transition-colors"
+              className="block h-[42px] w-full rounded-full border border-slate-300 bg-white pl-12 pr-4 text-[13px] leading-5 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1877F2]"
             />
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
+            <label className="relative">
+              <span className="sr-only">Sort listings by date</span>
+              <FiSliders className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <select
+                value={sortOrder}
+                onChange={(event) => {
+                  setSortOrder(event.target.value);
+                  setCurrentPage(1);
+                }}
+                className="h-[42px] min-w-[166px] appearance-none rounded-full border border-slate-300 bg-white py-2 pl-10 pr-9 text-[13px] font-medium text-[#111111] shadow-sm outline-none focus:ring-2 focus:ring-[#1877F2]"
+              >
+                <option value="newest">Sort: Newest</option>
+                <option value="oldest">Sort: Oldest</option>
+              </select>
+            </label>
+            <label className="relative">
+              <span className="sr-only">Filter listings by review priority</span>
+              <select
+                value={priorityFilter}
+                onChange={(event) => {
+                  setPriorityFilter(event.target.value);
+                  setCurrentPage(1);
+                }}
+                className="h-[42px] min-w-[166px] appearance-none rounded-full border border-slate-300 bg-white px-5 py-2 text-[13px] font-medium text-[#111111] shadow-sm outline-none focus:ring-2 focus:ring-[#1877F2]"
+              >
+                <option value="all">Priority: All</option>
+                <option value="Pending">Pending review</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -190,7 +241,7 @@ const handleRejectSubmit = async (reason) => {
              {searchTerm ? "No results found for your search." : "No listings found in the database."}
            </div>
         ) : (
-          <div className="flex flex-col gap-6 mb-8">
+          <div className="mb-10 flex flex-col gap-12">
             {currentItems.map((listing) => (
               <ListingCard 
                 key={listing._id} 
@@ -203,7 +254,7 @@ const handleRejectSubmit = async (reason) => {
         )}
 
         {!loading && filteredListings.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 pb-8">
+          <div className="flex flex-wrap items-center justify-end gap-2 pb-8">
              <button 
                onClick={() => paginate(currentPage - 1)}
                disabled={currentPage === 1}
@@ -233,6 +284,7 @@ const handleRejectSubmit = async (reason) => {
         )}
 
       </div>
+      </section>
 
       <RejectModal 
         isOpen={isRejectModalOpen}
