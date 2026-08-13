@@ -5,6 +5,7 @@ import apiClient from '../services/api';
 import ListingCard from '../components/admin/ListingCard';
 import RejectModal from '../components/admin/RejectModal';
 import toast, { Toaster } from 'react-hot-toast';
+import ListingManagementBg from '../assets/Listing_Management.png';
 
 const ApproveListings = () => {
   const [listingsData, setListingsData] = useState([]);
@@ -114,10 +115,10 @@ const handleRejectSubmit = async (reason) => {
       
       {/* 100% FIXED HERO SECTION - Matches UserManagement */}
       <div 
-        className="relative w-full h-[350px] bg-cover bg-center flex items-center mb-8"
-        style={{ backgroundImage: `url('https://images.unsplash.com/photo-1544085311-11a028465b03?w=1600&q=80')` }}
+        className="relative mb-8 flex h-[300px] w-full items-center bg-cover bg-center sm:h-[330px] lg:h-[350px]"
+        style={{ backgroundImage: `url(${ListingManagementBg})` }}
       >
-        <div className="absolute inset-0 bg-black/20"></div> 
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent"></div>
         <div className="relative z-10 px-6 md:px-12 max-w-7xl mx-auto w-full">
           <h1 className="text-[40px] font-bold text-white mb-2 drop-shadow-md">Listing Management</h1>
           <p className="text-[16px] font-medium text-white/90 drop-shadow-md">Review and approve travel package submissions</p>

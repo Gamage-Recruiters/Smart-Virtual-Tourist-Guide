@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiShield, FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiCheck } from 'react-icons/fi';
+import apiClient from '../services/api';
 
 const AddNewAdmin = () => {
   const navigate = useNavigate();
@@ -60,38 +61,24 @@ const AddNewAdmin = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          location: formData.location,
-          username: formData.username,
-          password: formData.password,
-          role: formData.role,
-        }),
+      await apiClient.post('/admin/auth/register', {
+        fullName: formData.fullName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        location: formData.location,
+        username: formData.username,
+        password: formData.password,
+        role: formData.role,
       });
 
-      const data = await response.json();
+      setSuccess('Administrator created successfully! Redirecting...');
 
-      if (response.ok) {
-        setSuccess('Administrator created successfully! Redirecting...');
-        // Save the token to localStorage for future authenticated requests
-        localStorage.setItem('adminToken', data.token);
-        
-        // Redirect to User Management page after 2 seconds
-        setTimeout(() => {
-          navigate('/user-management');
-        }, 2000);
-      } else {
-        setError(data.message || 'Failed to create administrator');
-      }
+      // Keep the creator logged in; registration must not replace their token.
+      setTimeout(() => {
+        navigate('/user-management');
+      }, 2000);
     } catch (err) {
-      setError('Cannot connect to the server. Please make sure the backend is running.');
+      setError(err.message || 'Failed to create administrator.');
     } finally {
       setLoading(false);
     }

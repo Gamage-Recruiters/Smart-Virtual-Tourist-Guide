@@ -47,7 +47,11 @@ const getAllUsers = async (req, res) => {
             return dateB - dateA; // Sort by newest first
         });
 
-        res.status(200).json({ success: true, users: combinedData });
+        res.status(200).json({
+            success: true,
+            users: combinedData,
+            currentAdminId: req.admin._id.toString()
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error while fetching users' });
     }
@@ -58,6 +62,13 @@ const updateUserStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+
+        if (req.admin._id.toString() === id) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot change the status of your own administrator account.'
+            });
+        }
 
         const validStatuses = ['Active', 'Suspended', 'Pending'];
         if (!validStatuses.includes(status)) {
@@ -101,6 +112,7 @@ const getAllAds = async (req, res) => {
 const updateAdStatus = async (req, res) => {
     try {
         const { id } = req.params;
+
         const { status } = req.body;
         
         const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { new: true });
@@ -182,6 +194,13 @@ const deleteAdvertisement = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
+
+        if (req.admin._id.toString() === id) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot delete your own administrator account.'
+            });
+        }
 
         // 1. Check and delete from User collection first
         let deletedAccount = await User.findByIdAndDelete(id);

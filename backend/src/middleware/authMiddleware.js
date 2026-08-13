@@ -1,40 +1,13 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
-const SESSION_COOKIE_NAME = 'adminSession';
-
-const getCookie = (req, name) => {
-  const cookieHeader = req.headers.cookie;
-
-  if (!cookieHeader) {
-    return null;
-  }
-
-  const cookies = cookieHeader.split(';');
-
-  for (const cookie of cookies) {
-    const [rawKey, ...rawValue] =
-      cookie.trim().split('=');
-
-    if (rawKey === name) {
-      return decodeURIComponent(
-        rawValue.join('=')
-      );
-    }
-  }
-
-  return null;
-};
-
 const protectAdmin =
   async (req, res, next) => {
     try {
-      const token = getCookie(
-        req,
-        SESSION_COOKIE_NAME
-      );
+      const authorization = req.headers.authorization || '';
+      const [scheme, token] = authorization.split(' ');
 
-      if (!token) {
+      if (scheme !== 'Bearer' || !token) {
         return res.status(401).json({
           success: false,
           message:
@@ -117,5 +90,4 @@ const authorizeRoles = (...roles) => {
 module.exports = {
   protectAdmin,
   authorizeRoles,
-  SESSION_COOKIE_NAME,
 };

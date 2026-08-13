@@ -1,21 +1,8 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
-const logger = require('../utils/logger'); 
-
-const { SESSION_COOKIE_NAME } = require('../middleware/authMiddleware');
-
-const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
 
 const ALLOWED_ADMIN_ROLES = ['Administrator', 'Moderator', 'Editor'];
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
-
-const getCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  maxAge: SESSION_MAX_AGE_MS,
-  path: '/',
-});
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -99,10 +86,9 @@ const loginAdmin = async (req, res) => {
 
     const token = generateToken(admin._id);
 
-    res.cookie(SESSION_COOKIE_NAME, token, getCookieOptions());
-
     return res.status(200).json({
       success: true,
+      token,
       data: {
         _id: admin._id,
         fullName: admin.fullName,
@@ -117,17 +103,6 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-const logoutAdmin = async (req, res) => {
-  res.clearCookie(SESSION_COOKIE_NAME, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  });
-
-  return res.status(200).json({ success: true, message: 'Logged out successfully.' });
-};
-
 const getAdminProfile = async (req, res) => {
   return res.status(200).json({ success: true, data: req.admin });
 };
@@ -135,6 +110,5 @@ const getAdminProfile = async (req, res) => {
 module.exports = {
   registerAdmin,
   loginAdmin,
-  logoutAdmin,
   getAdminProfile,
 };

@@ -11,6 +11,7 @@ import ViewFullDetails from './pages/ViewFullDetails';
 import Login from './pages/Login';
 import EditAdvertisement from './pages/EditAdvertisement';
 import ViewAdvertisement from './pages/ViewAdvertisement';
+import AccessDenied from './pages/AccessDenied';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
@@ -87,6 +88,15 @@ function App() {
         element={
           <ProtectedRoute allowedRoles={['Administrator', 'Moderator']}>
             <ApproveListings />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/access-denied"
+        element={
+          <ProtectedRoute allowedRoles={['Editor']}>
+            <AccessDenied />
           </ProtectedRoute>
         }
       />

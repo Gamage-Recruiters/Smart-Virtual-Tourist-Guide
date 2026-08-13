@@ -2,18 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiFacebook, FiInstagram, FiTwitter } from 'react-icons/fi';
 import Logo from "../../assets/logo.png";
-import apiClient from '../../services/api';
 
 // මෙතනට isAuthenticated සහ admin කියන props දෙක අලුතින් එකතු කරලා තියෙනවා
 const AdminLayout = ({ children, isAuthenticated = false, admin = null }) => {
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await apiClient.post('/admin/auth/logout', {});
-    } finally {
-      navigate('/login', { replace: true });
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    navigate('/login', { replace: true });
   };
 
   return (

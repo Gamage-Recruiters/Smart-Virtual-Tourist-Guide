@@ -3,6 +3,12 @@ import { Navigate } from 'react-router-dom';
 import AdminLayout from '../layout/AdminLayout';
 import apiClient from '../../services/api';
 
+const getRoleHome = (role) => {
+  if (role === 'Administrator') return '/';
+  if (role === 'Moderator') return '/approve-listings';
+  return '/access-denied';
+};
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +59,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(admin.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getRoleHome(admin.role)} replace />;
   }
 
   return (
