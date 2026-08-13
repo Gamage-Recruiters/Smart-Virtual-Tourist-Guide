@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaGlobe, FaAward, FaMapMarkerAlt } from 'react-icons/fa';
 
@@ -74,10 +74,36 @@ const defaultGuidesData = [
 ];
 
 const Guides_Card = () => {
-  const [guidesData, setGuidesData] = useState(defaultGuidesData);
+  const [guidesData, setGuidesData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/guides');
+        const data = await response.json();
+        if (data.success) {
+          setGuidesData(data.data);
+        } else {
+          setGuidesData(defaultGuidesData); // fallback
+        }
+      } catch (error) {
+        console.error('Error fetching guides:', error);
+        setGuidesData(defaultGuidesData); // fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuides();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#EBF1FF] flex items-center justify-center">Loading guides...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -244,14 +270,14 @@ const Guides_Card = () => {
                     {/* Languages Spoken */}
                     <div className="flex items-center text-gray-400 text-[11px] font-medium mb-3">
                       <FaGlobe className="text-gray-400 mr-1.5 shrink-0" />
-                      <span className="truncate">{guide.languages.join(', ')}</span>
+                      <span className="truncate">{guide.languages?.join(', ')}</span>
                     </div>
                     
                     <hr className="border-gray-100 my-2" />
                     
                     {/* Specialties / Tags */}
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {guide.specialties.map((spec, idx) => (
+                      {guide.specialties?.map((spec, idx) => (
                         <span key={idx} className="bg-blue-50 text-blue-600 text-[9px] font-bold uppercase px-2 py-1 rounded-md tracking-wider">
                           {spec}
                         </span>
@@ -260,6 +286,7 @@ const Guides_Card = () => {
                   </div>
 
                   <button 
+                    onClick={() => navigate(`/guide-booking/${guide._id}`, { state: { guide } })}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-colors shadow-xs mt-2"
                   >
                     Hire Guide

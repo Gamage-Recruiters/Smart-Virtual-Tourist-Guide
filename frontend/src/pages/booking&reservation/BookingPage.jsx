@@ -68,8 +68,8 @@ const BookingPage = () => {
             const payment = {
                 sandbox: true,    // ← SANDBOX MODE for testing
                 merchant_id: hashData.merchant_id,
-                return_url: undefined,
-                cancel_url: undefined,
+                return_url: 'http://localhost:5173',
+                cancel_url: 'http://localhost:5173',
                 notify_url: 'http://localhost:5000/api/payments/notify',
                 order_id: orderId,
                 items: service.name || 'Vehicle Rental',

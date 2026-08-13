@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const DriverAvailabilityCard = () => {
+const DriverAvailabilityCard = ({ driver, serviceData }) => {
   const navigate = useNavigate();
 
   const [driverData, setDriverData] = useState({
@@ -18,14 +18,12 @@ const DriverAvailabilityCard = () => {
       state: {
         service: {
           type: "driver",
-          image:
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-          name: "Kasun Perera",
-          location: "Colombo, Sri Lanka",
-          rating: 4.9,
-          reviews: 187,
-          description:
-            "Professional tourist driver with 8+ years of experience and fluent English.",
+          image: serviceData?.image || driver?.image,
+          name: serviceData?.name || driver?.driverName,
+          location: "Sri Lanka",
+          rating: serviceData?.rating || 4.9,
+          reviews: serviceData?.reviews || 187,
+          description: serviceData?.description || driver?.title,
         },
 
         serviceType: "driver",
@@ -58,7 +56,7 @@ const DriverAvailabilityCard = () => {
           items: [
             {
               label: "Driver Service Fee",
-              amount: 80,
+              amount: parseInt(driver?.price) || 80,
             },
             {
               label: "Travel Charge",

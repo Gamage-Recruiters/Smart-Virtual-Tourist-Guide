@@ -12,6 +12,15 @@ const addDriver = async (req, res, next) => {
       contactNumber,
       showCurrentLocation,
       availability,
+      title,
+      price,
+      priceUnit,
+      rating,
+      isVerified,
+      isOnline,
+      badge,
+      tags,
+      image,
     } = req.body;
 
     if (
@@ -37,6 +46,15 @@ const addDriver = async (req, res, next) => {
       contactNumber,
       showCurrentLocation,
       availability,
+      title,
+      price,
+      priceUnit,
+      rating,
+      isVerified,
+      isOnline,
+      badge,
+      tags,
+      image,
     });
 
     await newDriver.save();

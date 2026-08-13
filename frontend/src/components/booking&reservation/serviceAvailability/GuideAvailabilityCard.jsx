@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const GuideAvailabilityCard = () => {
+const GuideAvailabilityCard = ({ guide, serviceData }) => {
   const navigate = useNavigate();
 
   const [guideData, setGuideData] = useState({
@@ -16,14 +16,12 @@ const GuideAvailabilityCard = () => {
     navigate("/booking-page", {
       state: {
         service: {
-          image:
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-          name: "Nadeesha Silva",
-          location: "Kandy, Sri Lanka",
-          rating: 4.8,
-          reviews: 142,
-          description:
-            "Licensed cultural and heritage guide specializing in Kandy and Central Province tours.",
+          image: serviceData?.image || guide?.image,
+          name: serviceData?.name || guide?.name,
+          location: "Sri Lanka",
+          rating: serviceData?.rating || 4.8,
+          reviews: serviceData?.reviews || 142,
+          description: serviceData?.description || guide?.title,
         },
 
         bookingDetails: [
@@ -54,7 +52,7 @@ const GuideAvailabilityCard = () => {
           items: [
             {
               label: "Guide Fee",
-              amount: 120,
+              amount: parseInt(guide?.price) || 120,
             },
             {
               label: "Service Charge",

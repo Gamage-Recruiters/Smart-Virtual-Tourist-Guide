@@ -70,10 +70,37 @@ const defaultDriversData = [
 ];
 
 const Drivers_Card = () => {
-  const [driversData, setDriversData] = useState(defaultDriversData);
+  const [driversData, setDriversData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/drivers');
+        const data = await response.json();
+        if (data.success) {
+          setDriversData(data.data);
+        } else {
+          setDriversData(defaultDriversData); // fallback
+        }
+      } catch (error) {
+        console.error('Error fetching drivers:', error);
+        setDriversData(defaultDriversData); // fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrivers();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#EBF1FF] flex items-center justify-center">Loading drivers...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
       <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6"> 
@@ -209,7 +236,7 @@ const Drivers_Card = () => {
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-bold text-gray-900 text-base">{driver.name}</h4>
+                      <h4 className="font-bold text-gray-900 text-base">{driver.driverName || driver.name}</h4>
                       <div className="text-right flex items-baseline justify-end space-x-0.5">
                         <span className="text-lg font-black text-blue-600">{driver.price}</span>
                       </div>
@@ -227,6 +254,7 @@ const Drivers_Card = () => {
                   </div>
 
                   <button 
+                    onClick={() => navigate(`/driver-booking/${driver._id}`, { state: { driver } })}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
                   >
                     Book Now

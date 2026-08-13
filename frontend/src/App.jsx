@@ -36,9 +36,9 @@ export default function App() {
         <Route path="/booking-page" element={<BookingPage />} />
         <Route path="/activity-booking" element={<ActivityBooking />} />
         <Route path="/hotel-booking" element={<HotelBooking />} />
-        <Route path="/driver-booking" element={<DriverBooking />} />
+        <Route path="/driver-booking/:id" element={<DriverBooking />} />
         <Route path="/vehicle-booking" element={<VehicleBooking />} />
-        <Route path="/guide-booking" element={<GuideBooking />} />
+        <Route path="/guide-booking/:id" element={<GuideBooking />} />
         <Route path="/restaurant-booking" element={<RestaurantBooking />} />
         <Route path="/my-bookings" element={<MyBookings />} /> 
 
