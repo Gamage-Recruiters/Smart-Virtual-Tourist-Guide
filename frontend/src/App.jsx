@@ -21,8 +21,21 @@ import LoginScreen from './pages/Login/LoginScreen';
 import ForgotPasswordScreen from './pages/Login/ForgotPasswordScreen';
 import NewPasswordCreate from './pages/Login/NewPasswordCreate';
 
+
+// ===== FEATURE/ACCOMMODATION-MANAGEMENT ROUTES =====
 import HotelOwnerSignup from './pages/HotelOwner/SignUp';
 import HotelInfo from './pages/HotelOwner/HotelInfo';
+import HotelOwnerDashboard from './pages/HotelOwner/HotelOwnerDashboard.jsx';
+import ViewCurrentRoomsPackages from './pages/HotelOwner/ViewCurrentRoomsPackages.jsx';
+import AddRoomPage from './pages/HotelOwner/AddRoomPage.jsx';
+import AddSpecialPackages from './pages/HotelOwner/AddSpecialPackages.jsx';
+import ManageRoomAvailability from './pages/HotelOwner/ManageRoomAvailability.jsx';
+import ViewRoomAvailabilityCalenderPage from './pages/HotelOwner/ViewRoomAvailabilityCalenderPage.jsx';
+import ViewRoomReservation from './pages/HotelOwner/ViewRoomReservation.jsx';
+import FinancialAnalysisDashboard from './pages/HotelOwner/FinancialAnalysisDashboard.jsx';
+import HotelOwnerProfileSettings from './pages/HotelOwner/HotelOwnerProfileSettings.jsx'
+
+
 
 import RestuarantSignup from './pages/Restuarant/SignupPage';
 
@@ -42,7 +55,6 @@ import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
 
 import DummyPageTourist from './pages/Tourist/dummyPage';
-import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
@@ -59,7 +71,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
         <Route path="/activityprovider/activities" element={<ActivityList />} />
         <Route path="/activityprovider/activities/new" element={<Activity />} />
@@ -67,6 +78,8 @@ function App() {
         <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
         <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
         <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
+
+
         {/* Landing pages */}
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
@@ -121,7 +134,7 @@ function App() {
 
         {/* Dashboards */}
         <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
-        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
+        <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
         <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
         <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
@@ -137,6 +150,36 @@ function App() {
           <Route path="earnings" element={<EarningsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
+
+        {/* ===== HOTEL OWNER MANAGEMENT ROUTES (ADDED) ===== */}
+        {/* AUTH ROUTES */}
+        {/* DEV: swap the element below to test any page directly */}
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+        <Route path="/create-password" element={<NewPasswordCreate />} />
+
+        {/* HOTEL OWNER ROUTES */}
+        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
+        <Route path="/hotel-info" element={<HotelInfo />} />
+
+        {/* DASHBOARD ROUTES */}
+        <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
+
+        {/* ACCOMMODATION MANAGEMENT ROUTES */}
+        <Route path="/view-rooms-packages" element={<ViewCurrentRoomsPackages />} />
+        <Route path="/add-room-package" element={<AddRoomPage />} />
+        <Route path="/edit-room/:id" element={<AddRoomPage />} />
+        <Route path="/add-special-package" element={<AddSpecialPackages />} />
+        <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
+        <Route path="/manage-availability" element={<ManageRoomAvailability />} />
+        <Route path="/view-availability-calendar" element={<ViewRoomAvailabilityCalenderPage />} />
+        <Route path="/view-reservations" element={<ViewRoomReservation />} />
+        <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
+        <Route path="/dashboard" element={<HotelOwnerDashboard />} />
+        <Route path="/Hotel-Owner-Profile-Settings" element={<HotelOwnerProfileSettings />} />
+
+        {/* ===== 404 FALLBACK ===== */}
+        <Route path="*" element={<h1 className="text-center mt-20 text-3xl font-bold">404 - Page Not Found</h1>} />
       </Routes>
     </BrowserRouter>
   );

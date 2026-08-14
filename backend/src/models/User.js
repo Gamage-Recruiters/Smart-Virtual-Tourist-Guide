@@ -36,7 +36,8 @@ const userSchema = new mongoose.Schema({
   },
   contactNumber: {
     type: String,
-    trim: true
+    trim: true,
+    default: ''
   },
   // Tourist specific fields
   country: {
@@ -77,9 +78,10 @@ const userSchema = new mongoose.Schema({
         hotelEmail: { type: String, trim: true, lowercase: true },
         hotelRegisteredYear: { type: String, trim: true },
         hotelContactNumber: { type: String, trim: true },
+        hotelAddress: { type: String, trim: true },
       }
     ],
-    default: undefined
+    default: []
   },
   // Guide specific fields
   guideId: {

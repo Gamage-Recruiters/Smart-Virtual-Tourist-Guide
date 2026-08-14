@@ -416,6 +416,7 @@ const loginUser = async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
+          hotels: user.hotels || [],
         },
         token: generateToken(user._id),
       });
@@ -609,7 +610,7 @@ const googleAuth = async (req, res) => {
       // Existing user — login
       return res.json({
         success: true,
-        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: user.hotels || [] },
         token: generateToken(user._id),
       });
     }
@@ -622,14 +623,16 @@ const googleAuth = async (req, res) => {
       fullName: name || emailNormalized.split('@')[0],
       username,
       email: emailNormalized,
-      password: uid, // Firebase UID as placeholder password (not used for login)
+      password: uid,
       role: assignedRole,
       googleId: uid,
+      contactNumber: '',
+      hotels: [],
     });
 
     res.status(201).json({
       success: true,
-      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: [] },
       token: generateToken(user._id),
     });
   } catch (error) {
