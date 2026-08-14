@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">Portrait illustration of John Perera</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7f3fa"/>
+      <stop offset="1" stop-color="#bedce9"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg)"/>
+  <path d="M30 158c5-34 22-52 50-52s45 18 50 52" fill="#17485e"/>
+  <path d="M68 101c2 13 22 13 24 0V85H68z" fill="#b47150"/>
+  <ellipse cx="80" cy="68" rx="29" ry="36" fill="#c98460"/>
+  <path d="M51 65c0-30 12-44 31-44 23 0 33 17 29 48l-8-18c-14 2-29-3-42-14l-5 28z" fill="#262c31"/>
+  <path d="M59 70c3-5 9-5 13 0M88 70c3-5 9-5 13 0" fill="none" stroke="#3a2722" stroke-width="3" stroke-linecap="round"/>
+  <path d="M69 87c7 5 15 5 22 0" fill="none" stroke="#824536" stroke-width="3" stroke-linecap="round"/>
+  <path d="m62 113 18 18 18-18 10 45H52z" fill="#f8fafb"/>
+  <path d="m80 131-7 27h14z" fill="#1e80a0"/>
+</svg>

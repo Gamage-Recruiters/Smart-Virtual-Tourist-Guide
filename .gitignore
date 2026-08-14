@@ -147,6 +147,12 @@
 # =====================
 backend/.env
 frontend/.env
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
 
 # =====================
 # DEPENDENCIES
@@ -155,6 +161,14 @@ node_modules/
 backend/node_modules/
 frontend/node_modules/
 jspm_packages/
+
+# Generated reports and local secrets
+reports/
+**/reports/
+secrets/
+**/secrets/
+*.pem
+*.key
 
 # =====================
 # LOGS

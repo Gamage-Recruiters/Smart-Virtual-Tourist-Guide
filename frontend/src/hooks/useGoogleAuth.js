@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signInWithGoogle } from '../services/firebase';
 import { socialAuthAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const getDashboardRoute = (role) => {
   switch (role) {
@@ -18,6 +19,7 @@ const getDashboardRoute = (role) => {
 };
 
 const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
+  const { signIn } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
 
@@ -32,8 +34,7 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
       const data = await socialAuthAPI.googleAuth(idToken, role);
 
       // Step 3: Save token + navigate to dashboard or custom route
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      signIn(data.user, data.token);
       
       if (customRedirect) {
         navigate(customRedirect);

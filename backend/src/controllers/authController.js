@@ -407,7 +407,7 @@ const loginUser = async (req, res) => {
       $or: [{ email: identifierTrimmed.toLowerCase() }, { username: identifierTrimmed }]
     });
 
-    if (user && (await user.matchPassword(password))) {
+    if (user && user.active !== false && (await user.matchPassword(password))) {
       res.json({
         success: true,
         user: {
@@ -421,7 +421,7 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ success: false, message: 'Invalid credentials' });
+      res.status(401).json({ success: false, message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

@@ -1,6 +1,5 @@
 import express, { json, urlencoded } from 'express';
 import { config } from 'dotenv';
-import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,8 +11,9 @@ import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.
 import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
+import guideRouter from './routes/guide/guideRouter.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import errorHandler from './middleware/HotelOwner/errorHandler.js';
+import errorHandler from './middleware/errorHandler.js';
 
 config();
 
@@ -30,9 +30,6 @@ app.use(urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// ==================== DATABASE CONNECTION ====================
-connectDB();
 
 // ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
@@ -65,6 +62,7 @@ app.get('/api/health', (req, res) => {
 // ==================== API ROUTES ====================
 // Authentication Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/guides', guideRouter);
 
 // Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);

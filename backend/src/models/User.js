@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema({
     enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user', 'admin'],
     required: true
   },
+  active: {
+    type: Boolean,
+    default: true,
+    index: true
+  },
   contactNumber: {
     type: String,
     trim: true,
@@ -149,7 +154,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 // Pre-save hook to hash password if it's modified
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password || this.password.startsWith('$2')) {
     return;
   }
   const salt = await bcrypt.genSalt(10);

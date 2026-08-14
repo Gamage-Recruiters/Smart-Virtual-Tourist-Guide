@@ -597,14 +597,15 @@
 
 // export default LoginScreen;
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 import AuthLayout from '../../components/Tourist/AuthLayout';
 import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
-import apiClient from '../../services/api';
+import { userAPI } from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
+import { useAuth } from '../../context/AuthContext';
 
 // Import social icons from assets (SVG files)
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
@@ -615,9 +616,18 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn } = useAuth();
+
+  const requestedReturn = location.state?.returnTo;
+  const safeReturnTo = typeof requestedReturn === 'string'
+    && requestedReturn.startsWith('/')
+    && !requestedReturn.startsWith('//')
+    ? requestedReturn
+    : null;
 
   // Google auth — role=null means backend uses existing user's role
-  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, null);
+  const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, null, safeReturnTo);
 
   const getDashboardRoute = (role) => {
     switch (role) {
@@ -647,15 +657,19 @@ const LoginScreen = () => {
     }
 
     try {
-      const data = await apiClient.post('/auth/login', {
+      const data = await userAPI.login({
         identifier,
         password,
       });
 
       // success login
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        signIn(data.user, data.token);
+
+        if (safeReturnTo) {
+          navigate(safeReturnTo, { replace: true });
+          return;
+        }
 
         // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);
@@ -668,7 +682,15 @@ const LoginScreen = () => {
         setError(data.message || 'Login failed');
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      if (err.code === 'INVALID_CREDENTIALS' || err.status === 401) {
+        setError('Incorrect email/username or password.');
+      } else if (err.code === 'NETWORK_ERROR' || err.code === 'TIMEOUT') {
+        setError('Unable to reach the server.');
+      } else if (err.status >= 500) {
+        setError('The server could not complete your request. Please try again.');
+      } else {
+        setError(err.message || 'Login failed. Please check your credentials.');
+      }
     }
   };
 
@@ -724,6 +746,7 @@ const LoginScreen = () => {
 
           <input
             type="text"
+            aria-label="Email or username"
             placeholder="Username or email address"
             className="w-full px-5 py-3.5 rounded-xl bg-white border border-gray-200 outline-none text-gray-700 text-sm"
             value={identifier}
@@ -733,6 +756,7 @@ const LoginScreen = () => {
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
+              aria-label="Password"
               placeholder="Password must be 8 characters"
               className="w-full px-5 py-3.5 rounded-xl bg-white border border-gray-200 outline-none text-gray-700 text-sm pr-12"
               value={password}
@@ -763,7 +787,7 @@ const LoginScreen = () => {
             </label>
           </div>
 
-          <button type="submit" className="btn-primary py-3 w-full text-lg">
+          <button type="submit" aria-label="Sign in" className="btn-primary py-3 w-full text-lg">
             Sign In →
           </button>
         </form>

@@ -11,4 +11,9 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+  },
 });

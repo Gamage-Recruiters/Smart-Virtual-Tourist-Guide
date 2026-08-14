@@ -66,10 +66,22 @@ import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage
 import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
 import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
 import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
+import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import GuidesCard from './components/marketplace/Guides_Card.jsx';
+import GuideBidsAlias from './pages/guides/GuideBidsAlias.jsx';
+import GuideBidsPage from './pages/guides/GuideBidsPage.jsx';
+import GuideBookingConfirmationPage from './pages/guides/GuideBookingConfirmationPage.jsx';
+import GuideBookingPage from './pages/guides/GuideBookingPage.jsx';
+import GuideProfilePage from './pages/guides/GuideProfilePage.jsx';
+import GuideOpportunitiesPage from './pages/guides/GuideOpportunitiesPage.jsx';
+import PublicGuideCatalogPage from './pages/guides/PublicGuideCatalogPage.jsx';
+import RequestGuidePage from './pages/guides/RequestGuidePage.jsx';
 
 function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
         <Route path="/activityprovider/activities" element={<ActivityList />} />
@@ -178,10 +190,22 @@ function App() {
         <Route path="/dashboard" element={<HotelOwnerDashboard />} />
         <Route path="/Hotel-Owner-Profile-Settings" element={<HotelOwnerProfileSettings />} />
 
+        {/* Request a Guide marketplace and two-sided bidding flow */}
+        <Route path="/guides" element={<GuidesCard />} />
+        <Route path="/guide-bids" element={<ProtectedRoute roles={['tourist_user', 'admin']}><GuideBidsAlias /></ProtectedRoute>} />
+        <Route path="/guides/opportunities" element={<ProtectedRoute roles={['guide_user', 'admin']}><GuideOpportunitiesPage /></ProtectedRoute>} />
+        <Route path="/guides/request" element={<ProtectedRoute roles={['tourist_user', 'admin']}><RequestGuidePage /></ProtectedRoute>} />
+        <Route path="/guides/requests/:requestId/bids" element={<ProtectedRoute roles={['tourist_user', 'admin']}><GuideBidsPage /></ProtectedRoute>} />
+        <Route path="/guides/bookings/:bookingId" element={<ProtectedRoute><GuideBookingPage /></ProtectedRoute>} />
+        <Route path="/guides/catalog/:catalogId" element={<PublicGuideCatalogPage />} />
+        <Route path="/guides/:guideId" element={<GuideProfilePage />} />
+        <Route path="/guides/requests/:requestId/confirm/:bidId" element={<ProtectedRoute roles={['tourist_user', 'admin']}><GuideBookingConfirmationPage /></ProtectedRoute>} />
+
         {/* ===== 404 FALLBACK ===== */}
         <Route path="*" element={<h1 className="text-center mt-20 text-3xl font-bold">404 - Page Not Found</h1>} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
