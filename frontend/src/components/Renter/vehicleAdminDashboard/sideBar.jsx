@@ -52,7 +52,7 @@ function Sidebar() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white shadow-md border border-slate-200 text-slate-700 md:hidden hover:bg-slate-50 transition"
+        className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white shadow-md border border-slate-200 text-slate-700 lg:hidden hover:bg-slate-50 transition"
         aria-label="Toggle menu"
       >
         {isOpen ? <X size={22} /> : <Menu size={22} />}
@@ -62,19 +62,19 @@ function Sidebar() {
       {isOpen && (
         <div
           onClick={closeSidebar}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-xs z-40 lg:hidden transition-opacity"
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#e8f0fe] h-screen flex flex-col justify-between py-6 px-4 shrink-0 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#e8f0fe] h-screen flex flex-col justify-between py-6 px-4 shrink-0 transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="flex flex-col">
           {/* Logo Area */}
-          <div className="mb-8 px-4 mt-12 md:mt-0">
+          <div className="mb-8 px-4 mt-12 lg:mt-0">
             <h1 className="text-xl font-extrabold text-slate-800 tracking-wide">
               VEHICLES
             </h1>
