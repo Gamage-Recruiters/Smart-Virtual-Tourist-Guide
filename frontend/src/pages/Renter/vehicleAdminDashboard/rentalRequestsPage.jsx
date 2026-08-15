@@ -81,7 +81,7 @@ function RentalRequestsPage() {
             <input 
               type="text" 
               placeholder="Search by route, vehicle, or name..." 
-              className="w-full bg-slate-100 text-sm py-2.5 pl-10 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400 text-slate-700"
+              className="w-full border border-slate-200 bg-slate-100 text-sm py-2.5 pl-10 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400 text-slate-700"
             />
           </div>
         </div>

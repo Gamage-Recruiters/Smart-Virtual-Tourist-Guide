@@ -31,8 +31,8 @@ const statsData = [
     icon: Truck,
     color: "text-cyan-600",
     bg: "bg-cyan-50",
-    badge: "Live",
-    badgeColor: "text-slate-400",
+    badge: "● Live",
+    badgeColor: "text-red-500",
   },
   {
     title: "AVG. RATING",

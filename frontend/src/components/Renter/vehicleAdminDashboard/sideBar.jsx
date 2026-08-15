@@ -69,7 +69,9 @@ function Sidebar() {
       {/* Sidebar Container */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-[#e8f0fe] h-screen flex flex-col justify-between py-6 px-4 shrink-0 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+          isOpen
+            ? "translate-x-0 shadow-2xl"
+            : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="flex flex-col">
@@ -131,14 +133,16 @@ function Sidebar() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-3 py-2.5 text-sm font-semibold text-white transition shadow-sm cursor-pointer"
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
+          {user?.role === "renter_user" && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-3 py-2.5 text-sm font-semibold text-white transition shadow-sm cursor-pointer"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          )}
         </div>
       </aside>
     </>
