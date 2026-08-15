@@ -174,7 +174,7 @@ function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       {/* 1. Header Section */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="flex flex-row items-center justify-between gap-4 mt-8 lg:mt-0">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Account Settings
@@ -190,11 +190,11 @@ function SettingsPage() {
             <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
           <button
-            className="flex items-center gap-2 bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-[#2563EB] text-white px-2.5 lg:px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer"
             onClick={() => setIsModalOpen(true)}
           >
             <Plus size={18} strokeWidth={3} />
-            ADD NEW VEHICLE
+           <span className="hidden lg:block">ADD NEW VEHICLE</span>
           </button>
         </div>
         <AddVehicleModal

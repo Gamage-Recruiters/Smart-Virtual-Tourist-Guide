@@ -1,5 +1,5 @@
 import  { useState } from 'react';
-import { Search, SlidersHorizontal, CarFront } from 'lucide-react';
+import { Search, CarFront } from 'lucide-react';
 
 // --- MOCK DATA ---
 const requestsData = [
@@ -69,7 +69,7 @@ function RentalRequestsPage() {
   return (
     <div className="flex flex-col gap-8 h-full">
       {/* 1. Top Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6 mt-8 lg:mt-0">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
           Rental Requests
         </h1>
@@ -84,11 +84,6 @@ function RentalRequestsPage() {
               className="w-full bg-slate-100 text-sm py-2.5 pl-10 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400 text-slate-700"
             />
           </div>
-          
-          {/* Filter Button */}
-          <button className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-slate-600">
-            <SlidersHorizontal size={18} />
-          </button>
         </div>
       </div>
 
