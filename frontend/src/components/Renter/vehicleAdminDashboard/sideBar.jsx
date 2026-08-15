@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,9 +7,14 @@ import {
   DollarSign,
   Settings,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 
 function Sidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
   const navItems = [
     {
       name: "Dashboard",
@@ -25,7 +31,7 @@ function Sidebar() {
     { name: "Earnings", path: "/vehicle-admin/earnings", icon: DollarSign },
     { name: "Settings", path: "/vehicle-admin/settings", icon: Settings },
   ];
-  const navigate = useNavigate();
+
   const storedUser = localStorage.getItem("userData");
   const user = storedUser ? JSON.parse(storedUser) : null;
 
@@ -38,74 +44,104 @@ function Sidebar() {
     navigate("/login");
   };
 
+  const closeSidebar = () => setIsOpen(false);
+
   return (
-    <aside className="w-64 bg-[#e8f0fe] h-full flex flex-col justify-between py-6 px-4">
-      <div>
-        {/* Logo Area */}
-        <div className="mb-10 px-4">
-          <h1 className="text-lg font-extrabold text-slate-800 tracking-wide">
-            VEHICLES
-          </h1>
-          <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">
-            Admin Portal
-          </p>
-        </div>
+    <>
+      {/* Mobile Hamburger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white shadow-md border border-slate-200 text-slate-700 md:hidden hover:bg-slate-50 transition"
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
 
-        {/* Navigation Links */}
-        <nav className="flex flex-col gap-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.path}
-              end={item.end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-semibold transition-all ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                    : "text-slate-500 hover:bg-blue-100 hover:text-blue-600"
-                }`
-              }
-            >
-              <item.icon size={18} />
-              {item.name}
-            </NavLink>
-          ))}
-        </nav>
-      </div>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          onClick={closeSidebar}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity"
+        />
+      )}
 
-      {/* Bottom Profile Section */}
-      <div className="">
-        <div className="flex items-center justify-center gap-3 border-b border-blue-200  p-2 px-2 mb-4">
-          <div className="w-11 h-11 rounded-full border-2 border-slate-300 cursor-pointer">
-            <Link to="/login">
-              <img
-              // user icon
-                src={user?.profileImage || "https://images.unsplash.com/vector-1776244475768-9554c65cd5b5?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
-                alt="Profile"
-                className="w-full h-full object-cover rounded-full"
-              />
-            </Link>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="xl:text-[17px] text-sm font-bold text-slate-800 truncate">
-              {user?.role === "renter_user" ? user?.fullName : "Guest"}
-            </p>
-            <p className="xl:text-[12px] text-[10px] font-semibold text-slate-500 truncate">
-              {user?.role === "renter_user" ? user?.email : ""}
+      {/* Sidebar Container */}
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#e8f0fe] h-screen flex flex-col justify-between py-6 px-4 shrink-0 transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        <div className="flex flex-col">
+          {/* Logo Area */}
+          <div className="mb-8 px-4 mt-12 md:mt-0">
+            <h1 className="text-xl font-extrabold text-slate-800 tracking-wide">
+              VEHICLES
+            </h1>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+              Admin Portal
             </p>
           </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-2">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.path}
+                end={item.end}
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-base font-semibold transition-all ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-300/40"
+                      : "text-slate-600 hover:bg-blue-100 hover:text-blue-600"
+                  }`
+                }
+              >
+                <item.icon size={20} />
+                {item.name}
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg borde bg-red-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-red-700 cursor-pointer"
-        >
-          <LogOut size={16} />
-          Logout
-        </button>
-      </div>
-    </aside>
+        {/* Bottom Profile & Actions */}
+        <div className="pt-4 border-t border-blue-200/60">
+          <div className="flex items-center gap-3 p-2 mb-2">
+            <div className="w-10 h-10 rounded-full border border-slate-300 overflow-hidden shrink-0">
+              <Link to="/login" onClick={closeSidebar}>
+                <img
+                  src={
+                    user?.profileImage ||
+                    "https://images.unsplash.com/vector-1776244475768-9554c65cd5b5?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  }
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </Link>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate">
+                {user?.role === "renter_user" ? user?.fullName : "pasan kumara"}
+              </p>
+              <p className="text-xs font-medium text-slate-500 truncate">
+                {user?.role === "renter_user" ? user?.email : "pasan@gmail.com"}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-3 py-2.5 text-sm font-semibold text-white transition shadow-sm cursor-pointer"
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
