@@ -580,6 +580,39 @@ const updateTravelInfo = async (req, res) => {
   }
 };
 
+const updateRenterInfo = async (req, res) => {
+  try{
+    const { fullName, email, contactNumber, renterVerificationDocument } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({success: false, message: 'User not found'});
+    }
+
+    user.fullName = fullName;
+    user.email = email;
+    user.contactNumber = contactNumber;
+    user.renterVerificationDocument = renterVerificationDocument;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Renter information updated successfully',
+      user: {
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        contactNumber: user.contactNumber,
+      }
+    })
+
+  } catch (error) {
+    res.status(500).json({success: false, message: 'Server error', error: error.message});
+  }
+}
+
 const googleAuth = async (req, res) => {
   try {
     if (!firebaseInitialized) {
@@ -678,6 +711,7 @@ export {
   forgotPassword,
   resetPassword,
   updateTravelInfo,
+  updateRenterInfo,
   addHotelInfo,
   googleAuth,
   getMe

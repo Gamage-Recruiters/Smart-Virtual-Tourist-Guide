@@ -128,9 +128,10 @@ const userSchema = new mongoose.Schema({
     type: String
   }],
   // Renter specific fields
-  renterVerificationDocument: [{
-    type: String
-  }]
+  renterVerificationDocument: {
+    nicOrPassport: { type: String, default: '' },
+    businessLicense: { type: String, default: '' },
+  }
 }, {
   timestamps: true,
   collection: 'users'

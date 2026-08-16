@@ -6,6 +6,8 @@ import {
   ShieldCheck,
   Building2,
   Trash2,
+  ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 import AddVehicleModal from "./addVehicle/addVehicleModal";
 import toast from "react-hot-toast";
@@ -56,7 +58,17 @@ function SettingsPage() {
         },
       })
       .then((res) => {
-        setRenter(res.data.user);
+        const userData = res.data.user;
+        setRenter(userData);
+
+        if (userData?.renterVerificationDocument) {
+          setNicOrPassport(
+            userData.renterVerificationDocument.nicOrPassport || null,
+          );
+          setBusinessLicense(
+            userData.renterVerificationDocument.businessLicense || null,
+          );
+        }
       })
       .catch((e) => {
         console.log(e.message);
@@ -122,27 +134,58 @@ function SettingsPage() {
     try {
       setProfileInforLoading(true);
 
-      const nicOrPassportUrl = nicOrPassport
-        ? await uploadFileToSupabase(
-            nicOrPassport,
-            "renter-verification-documents",
-          )
-        : null;
-      const businessLicenseUrl = businessLicense
-        ? await uploadFileToSupabase(
-            businessLicense,
-            "renter-verification-documents",
-          )
-        : null;
-      console.log({
-        token,
-        fullName: renter.fullName,
-        email: renter.email,
-        contactNumber: renter.contactNumber,
-        veificationDocuments: [nicOrPassportUrl, businessLicenseUrl],
-      });
+      const uploadOrKeepUrl = async (fileOrUrl) => {
+        if (!fileOrUrl) return "";
+        if (typeof fileOrUrl === "string") return fileOrUrl;
+        return await uploadFileToSupabase(
+          fileOrUrl,
+          "renter-verification-documents",
+        );
+      };
+
+      const [nicOrPassportUrl, businessLicenseUrl] = await Promise.all([
+        uploadOrKeepUrl(nicOrPassport),
+        uploadOrKeepUrl(businessLicense),
+      ]);
+
+      const response = await axios.put(
+        resolveApiUrl("/auth/update-renter-info"),
+        {
+          fullName: renter.fullName,
+          email: renter.email,
+          contactNumber: renter.contactNumber,
+          renterVerificationDocument: {
+            nicOrPassport: nicOrPassportUrl,
+            businessLicense: businessLicenseUrl,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      // 3. Update states to the permanent URL strings (replaces the local File objects)
+      setNicOrPassport(nicOrPassportUrl || null);
+      setBusinessLicense(businessLicenseUrl || null);
+
+      // 4. Update the renter user state with the latest saved DB record
+      if (response.data?.user) {
+        setRenter(response.data.user);
+        // If user profile is cached in localStorage, keep it synchronized:
+        localStorage.setItem("userData", JSON.stringify(response.data.user));
+      }
+
+      // 5. Clear the native file input values so browser drops the selected files
+      if (nicInputRef.current) nicInputRef.current.value = "";
+      if (businessLicenseInputRef.current)
+        businessLicenseInputRef.current.value = "";
+
+      toast.success("Profile Updated Successfully");
     } catch (err) {
       console.log(err);
+      toast.error(err.response?.data?.message || "Error. Try Again!");
     } finally {
       setProfileInforLoading(false);
     }
@@ -194,7 +237,7 @@ function SettingsPage() {
             onClick={() => setIsModalOpen(true)}
           >
             <Plus size={18} strokeWidth={3} />
-           <span className="hidden lg:block">ADD NEW VEHICLE</span>
+            <span className="hidden lg:block">ADD NEW VEHICLE</span>
           </button>
         </div>
         <AddVehicleModal
@@ -332,90 +375,121 @@ function SettingsPage() {
             </div>
           </div>
 
+          {/* Verification Documents Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-10">
             {/* Card 1: Owner NIC / Passport */}
             <div
               onClick={() => nicInputRef.current.click()}
-              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer tracking-wider ${
+              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer p-6 flex flex-col items-center text-center relative ${
                 nicError
                   ? "border-red-500 bg-red-50/20"
                   : nicOrPassport
-                    ? "border-green-500 bg-green-50/10"
-                    : "border-slate-200 hover:bg-slate-50"
+                    ? "border-green-500 bg-green-50/20"
+                    : "border-slate-200 hover:border-blue-400 hover:bg-slate-50"
               }`}
             >
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.pdf"
                 hidden
                 ref={nicInputRef}
                 onChange={(e) =>
                   processFile(e.target.files[0], setNicError, "nicOrPassport")
                 }
               />
-              <div className="p-6 flex flex-col items-center text-center relative">
-                <ShieldCheck
-                  size={32}
-                  className={
-                    nicOrPassport
-                      ? "text-green-600 mb-2"
-                      : "text-slate-400 mb-2"
-                  }
-                />
-                <h3 className="text-base font-extrabold text-slate-900 mb-1">
-                  Owner NIC / Passport
-                </h3>
 
-                {nicError ? (
-                  <span className="text-xs font-bold text-red-500 my-2">
-                    {nicError}
-                  </span>
-                ) : (
-                  <p className="text-xs text-slate-400 mb-4">
-                    {typeof nicOrPassport === "string" && nicOrPassport
-                      ? "File saved on record"
-                      : nicOrPassport?.name
-                        ? `Selected: ${nicOrPassport.name}`
-                        : "JPG, PNG (max 5MB)"}
-                  </p>
+              {/* Top Right Status Badge if already uploaded */}
+              {nicOrPassport && (
+                <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-bold">
+                  <CheckCircle2 size={13} />
+                  <span>Uploaded</span>
+                </div>
+              )}
+
+              <ShieldCheck
+                size={36}
+                className={
+                  nicOrPassport ? "text-green-600 mb-2" : "text-slate-400 mb-2"
+                }
+              />
+
+              <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                Owner NIC / Passport
+              </h3>
+
+              {nicError ? (
+                <span className="text-xs font-bold text-red-500 my-2">
+                  {nicError}
+                </span>
+              ) : (
+                <p className="text-xs text-slate-500 mb-4">
+                  {typeof nicOrPassport === "string" && nicOrPassport
+                    ? "Document verified & on record"
+                    : nicOrPassport?.name
+                      ? `Selected: ${nicOrPassport.name}`
+                      : "JPG, PNG, PDF (max 5MB)"}
+                </p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 mt-auto">
+                <button
+                  type="button"
+                  className={`text-xs font-bold px-4 py-2 rounded-xl transition-colors ${
+                    nicOrPassport
+                      ? "bg-slate-200 hover:bg-slate-300 text-slate-800"
+                      : "bg-[#e8f0fe] hover:bg-blue-200 text-blue-700"
+                  }`}
+                >
+                  {nicOrPassport ? "Replace File" : "Choose File"}
+                </button>
+
+                {/* External Link if URL exists */}
+                {typeof nicOrPassport === "string" && nicOrPassport && (
+                  <a
+                    href={nicOrPassport}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="View uploaded document"
+                  >
+                    <ExternalLink size={16} />
+                  </a>
                 )}
 
-                <div className="flex items-center gap-2">
-                  <div className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
-                    {nicOrPassport ? "Replace File" : "Choose File"}
-                  </div>
-
-                  {nicOrPassport && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setNicOrPassport(null);
-                      }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove document"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
+                {/* Remove Button */}
+                {nicOrPassport && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNicOrPassport(null);
+                      if (nicInputRef.current) nicInputRef.current.value = "";
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Remove document"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Card 2: Business License */}
             <div
               onClick={() => businessLicenseInputRef.current.click()}
-              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer tracking-wider ${
+              className={`border-2 border-dashed rounded-2xl transition-all cursor-pointer p-6 flex flex-col items-center text-center relative ${
                 businessLicenseError
                   ? "border-red-500 bg-red-50/20"
                   : businessLicense
-                    ? "border-green-500 bg-green-50/10"
-                    : "border-slate-200 hover:bg-slate-50"
+                    ? "border-green-500 bg-green-50/20"
+                    : "border-slate-200 hover:border-blue-400 hover:bg-slate-50"
               }`}
             >
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.pdf"
                 hidden
                 ref={businessLicenseInputRef}
                 onChange={(e) =>
@@ -426,52 +500,85 @@ function SettingsPage() {
                   )
                 }
               />
-              <div className="p-6 flex flex-col items-center text-center relative">
-                <Building2
-                  size={32}
-                  className={
-                    businessLicense
-                      ? "text-green-600 mb-2"
-                      : "text-slate-400 mb-2"
-                  }
-                />
-                <h3 className="text-base font-extrabold text-slate-900 mb-1">
-                  Business License
-                </h3>
 
-                {businessLicenseError ? (
-                  <span className="text-xs font-bold text-red-500 my-2">
-                    {businessLicenseError}
-                  </span>
-                ) : (
-                  <p className="text-xs text-slate-400 mb-4">
-                    {typeof businessLicense === "string" && businessLicense
-                      ? "File saved on record"
-                      : businessLicense?.name
-                        ? `Selected: ${businessLicense.name}`
-                        : "JPG, PNG (max 5MB)"}
-                  </p>
+              {/* Top Right Status Badge if already uploaded */}
+              {businessLicense && (
+                <div className="absolute top-3 right-3 flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[11px] font-bold">
+                  <CheckCircle2 size={13} />
+                  <span>Uploaded</span>
+                </div>
+              )}
+
+              <Building2
+                size={36}
+                className={
+                  businessLicense
+                    ? "text-green-600 mb-2"
+                    : "text-slate-400 mb-2"
+                }
+              />
+
+              <h3 className="text-base font-extrabold text-slate-900 mb-1">
+                Business License
+              </h3>
+
+              {businessLicenseError ? (
+                <span className="text-xs font-bold text-red-500 my-2">
+                  {businessLicenseError}
+                </span>
+              ) : (
+                <p className="text-xs text-slate-500 mb-4">
+                  {typeof businessLicense === "string" && businessLicense
+                    ? "Document verified & on record"
+                    : businessLicense?.name
+                      ? `Selected: ${businessLicense.name}`
+                      : "JPG, PNG, PDF (max 5MB)"}
+                </p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 mt-auto">
+                <button
+                  type="button"
+                  className={`text-xs font-bold px-4 py-2 rounded-xl transition-colors ${
+                    businessLicense
+                      ? "bg-slate-200 hover:bg-slate-300 text-slate-800"
+                      : "bg-[#e8f0fe] hover:bg-blue-200 text-blue-700"
+                  }`}
+                >
+                  {businessLicense ? "Replace File" : "Choose File"}
+                </button>
+
+                {/* External Link if URL exists */}
+                {typeof businessLicense === "string" && businessLicense && (
+                  <a
+                    href={businessLicense}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="View uploaded document"
+                  >
+                    <ExternalLink size={16} />
+                  </a>
                 )}
 
-                <div className="flex items-center gap-2">
-                  <div className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
-                    {businessLicense ? "Replace File" : "Choose File"}
-                  </div>
-
-                  {businessLicense && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setBusinessLicense(null);
-                      }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Remove document"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
+                {/* Remove Button */}
+                {businessLicense && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBusinessLicense(null);
+                      if (businessLicenseInputRef.current)
+                        businessLicenseInputRef.current.value = "";
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Remove document"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -535,10 +642,10 @@ function SettingsPage() {
 
       {/* 6. Footer Information */}
       <div className="flex flex-col md:flex-row items-center justify-end gap-4 px-2 mt-1">
-        <button className="flex items-center gap-1.5 text-sm px-5 py-3 rounded-xl bg-red-500 font-bold text-white">
+        {/* <button className="flex items-center gap-1.5 text-sm px-5 py-3 rounded-xl bg-red-500 font-bold text-white">
           <Trash2 size={18} />
           Deactivate Account
-        </button>
+        </button> */}
       </div>
     </div>
   );
