@@ -14,6 +14,7 @@ import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import errorHandler from './middleware/HotelOwner/errorHandler.js';
+import earningsRouter from './routes/vehicleRentAdmin/earningsRouter.js';
 
 config();
 
@@ -77,6 +78,7 @@ app.use('/api/users', userRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
+app.use('/api/renter/earnings', earningsRouter);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes

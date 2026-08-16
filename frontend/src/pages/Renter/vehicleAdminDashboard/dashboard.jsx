@@ -13,7 +13,61 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-// --- MOCK DATA ---
+
+function Dashboard() {
+  const [isModdalOpen, setIsModdalOpen] = useState(false);
+  const [fleetData, setFleetData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardStats, setDashboardStats] = useState([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
+  };
+
+  const normalizeFleetData = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.vehicles)) return payload.vehicles;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.items)) return payload.items;
+    return [];
+  };
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Call both endpoints simultaneously
+      const [fleetRes, statsRes] = await Promise.all([
+        axios.get(resolveApiUrl("/vehicle/recent"), { headers }),
+        axios.get(resolveApiUrl("/renter/earnings/dashboard-stats"), { headers }),
+      ]);
+
+      // Set state for each response
+      setFleetData(normalizeFleetData(fleetRes.data));
+      setDashboardStats(statsRes.data);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error.message);
+      setFleetData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (token) {
+    fetchDashboardData();
+  }
+  }, [refreshTrigger, token]);
+
+
+  // --- MOCK DATA ---
 const statsData = [
   {
     title: "TOTAL EARNINGS",
@@ -27,7 +81,7 @@ const statsData = [
   },
   {
     title: "ACTIVE RENTALS",
-    value: "04",
+    value: dashboardStats?.activeRenatalsCount || 0,
     icon: Truck,
     color: "text-cyan-600",
     bg: "bg-cyan-50",
@@ -82,43 +136,6 @@ const requestsData = [
   },
 ];
 
-function Dashboard() {
-  const [isModdalOpen, setIsModdalOpen] = useState(false);
-  const [fleetData, setFleetData] = useState([]);
-  const [isFleetLoading, setIsFleetLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
-
-  const resolveApiUrl = (path = "") => {
-    const base = (import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/$/, "");
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
-  };
-
-  const normalizeFleetData = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.vehicles)) return payload.vehicles;
-    if (Array.isArray(payload?.data)) return payload.data;
-    if (Array.isArray(payload?.items)) return payload.items;
-    return [];
-  };
-
-  useEffect(() => {
-    axios
-      .get(resolveApiUrl("/vehicle/recent"), {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setFleetData(normalizeFleetData(res.data));
-        setIsFleetLoading(false);
-      })
-      .catch((e) => {
-        console.error(e.message);
-        setFleetData([]);
-        setIsFleetLoading(false);
-      });
-  }, [refreshTrigger, token]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -174,9 +191,17 @@ function Dashboard() {
                 {stat.title}
               </h3>
               <p className="text-2xl font-extrabold text-slate-900">
-                {stat.value}
+                {isLoading ? (
+                  <span className="animate-pulse text-sm text-slate-300">Loading...</span>
+                ) : (
+                  (
+                  <>
+                    {stat.value}
+                  </>
+                )
+                )}
                 <span className="text-sm text-slate-400 font-bold">
-                  {stat.suffix}
+                  {isLoading? "" : stat.suffix}
                 </span>
               </p>
             </div>
@@ -263,7 +288,7 @@ function Dashboard() {
           </h2>
 
           <div className="flex flex-col gap-2 flex-1 justify-center">
-            {isFleetLoading ? (
+            {isLoading ? (
               <div className="flex flex-col gap-4 items-center justify-center py-8 text-slate-400">
                 <Loader2
                   size={28}
