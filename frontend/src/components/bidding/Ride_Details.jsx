@@ -408,8 +408,6 @@ export default function Ride_Details() {
                 Earning
               </span>
               <button
-                onClick={() => alert("Redirecting to Earnings page...")}
-                className="bg-[#007AFF] hover:bg-[#0063CC] text-white text-xs font-bold px-8 py-2.5 rounded-xl flex items-center gap-2 shadow transition-all"
               >
                 Earnings <span>➔</span>
               </button>

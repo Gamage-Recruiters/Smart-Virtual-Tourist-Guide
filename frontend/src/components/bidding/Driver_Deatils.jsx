@@ -34,7 +34,6 @@ export default function Driver_Details() {
       !nationalIdNumber ||
       !contactNumber
     ) {
-      alert("Please fill all driver details");
       return;
     }
 
@@ -61,13 +60,10 @@ export default function Driver_Details() {
       const result = await response.json();
 
       if (result.success) {
-        alert("Driver details saved successfully");
       } else {
-        alert(result.message || "Driver details save failed");
       }
     } catch (error) {
       console.error("Driver details save error:", error);
-      alert("Something went wrong. Check backend server.");
     } finally {
       setLoading(false);
     }
@@ -260,7 +256,6 @@ export default function Driver_Details() {
 
                 <button
                   type="button"
-                  onClick={() => alert("Earnings page coming soon")}
                   className="w-[170px] bg-[#3478F6] hover:bg-[#1f66e5] text-white py-3 rounded-xl flex items-center justify-center gap-4 shadow-lg shadow-blue-200 text-sm font-bold"
                 >
                   Earnings
