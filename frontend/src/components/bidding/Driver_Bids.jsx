@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import Header from "../Header";
 import Footer from "../Footer";
 import bImage from "../../assets/B.png";
+import toast from "react-hot-toast";
 
 import { MdOutlineEditNote, MdOutlineSocialDistance } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -187,7 +188,7 @@ export default function Driver_Bids() {
   // Submit bid
   const handleSubmitBid = async () => {
     if (!submitBidAmount) {
-      alert("Please enter a bid amount");
+      toast.error("Please enter a bid amount");
       return;
     }
     try {
@@ -203,22 +204,22 @@ export default function Driver_Bids() {
       });
       const data = await res.json();
       if (data.success) {
-        alert(`Bid of ${submitBidAmount} LKR submitted successfully!`);
+        toast.success(`Bid of ${submitBidAmount} LKR submitted successfully!`);
         setSubmitBidAmount("");
         fetchBids();
       } else {
-        alert(data.message || "Failed to submit bid");
+        toast.error(data.message || "Failed to submit bid");
       }
     } catch (error) {
       console.error("Submit bid error:", error);
-      alert("An error occurred while submitting the bid.");
+      toast.error("An error occurred while submitting the bid.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleAccept = () => alert("Trip accepted!");
-  const handleDecline = () => alert("Trip declined!");
+  const handleAccept = () => toast.success("Trip accepted!");
+  const handleDecline = () => toast.error("Trip declined!");
 
   const goToOtherBidsPage = () => {
     navigate(`/other-drivers`, { state: { customerName } });

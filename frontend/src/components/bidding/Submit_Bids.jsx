@@ -5,6 +5,7 @@ import bImage from "../../assets/B.png";
 import Footer from "../Footer";
 import { IoCaretBackOutline } from "react-icons/io5";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Submit_Bids() {
   const { tripId } = useParams();
@@ -40,12 +41,12 @@ export default function Submit_Bids() {
 
   const handleSubmitBid = async () => {
     if (!bidAmount) {
-      alert("Please enter bid amount");
+      toast.error("Please enter bid amount");
       return;
     }
 
     if (!tripId) {
-      alert("Trip ID not found. Please open this page with a trip ID.");
+      toast.error("Trip ID not found. Please open this page with a trip ID.");
       return;
     }
 
@@ -67,15 +68,15 @@ export default function Submit_Bids() {
       const result = await response.json();
 
       if (result.success) {
-        alert("Bid submitted successfully!");
+        toast.success("Bid submitted successfully!");
         setBidAmount("");
         fetchBids();
       } else {
-        alert(result.message || "Bid submit failed");
+        toast.error(result.message || "Bid submit failed");
       }
     } catch (error) {
       console.error("Submit bid error:", error);
-      alert("Something went wrong. Check backend server.");
+      toast.error("Something went wrong. Check backend server.");
     } finally {
       setLoading(false);
     }
@@ -180,14 +181,23 @@ export default function Submit_Bids() {
               </div>
             </div>
 
-            {/* Back Button */}
-            <div className="mt-14 flex justify-center">
+            {/* Action Buttons */}
+            <div className="mt-14 flex flex-col md:flex-row justify-center gap-4">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="w-full max-w-md bg-[#0B7CFF] hover:bg-[#006BE6] py-4 text-white rounded-xl flex items-center justify-center gap-4 transition-all shadow-xl shadow-blue-200"
+                className="w-full md:flex-1 bg-[#0B7CFF] hover:bg-[#006BE6] py-4 text-white rounded-xl flex items-center justify-center gap-4 transition-all shadow-xl shadow-blue-200"
               >
+                <IoCaretBackOutline size={18} />
                 <span className="font-bold text-sm">Back</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => navigate('/ride-details')}
+                className="w-full md:flex-1 bg-[#22C55E] hover:bg-[#16a34a] py-4 text-white rounded-xl flex items-center justify-center gap-4 transition-all shadow-xl shadow-green-200"
+              >
+                <span className="font-bold text-sm">View Ride Details</span>
                 <IoCaretBackOutline size={18} className="rotate-180" />
               </button>
             </div>
