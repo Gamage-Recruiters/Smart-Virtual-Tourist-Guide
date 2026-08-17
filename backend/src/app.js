@@ -4,6 +4,7 @@ import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { configureCloudinary } from './configs/ActivityProvider/cloudinary.js';
 
 // Import all routes with correct paths
 import roomRoutes from './routes/HotelOwner/Room.routes.js';
@@ -13,9 +14,14 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import activityRoutes from './routes/ActivityProvider/activity.routes.js';
+import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
+import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
+import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import errorHandler from './middleware/HotelOwner/errorHandler.js';
 
 config();
+configureCloudinary();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -47,7 +53,11 @@ app.get('/', (req, res) => {
       packages: 'GET /api/packages, POST /api/packages, PUT /api/packages/:id, DELETE /api/packages/:id',
       roomAvailability: 'GET /api/room-availability, POST /api/room-availability, PUT /api/room-availability/:id, DELETE /api/room-availability/:id',
       users: 'GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id',
-      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id'
+      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id',
+      activities: 'GET /api/activities, POST /api/activities, PUT /api/activities/:id, DELETE /api/activities/:id, PATCH /api/activities/:id/publish',
+      bookings: 'GET /api/bookings, PATCH /api/bookings/:id/status',
+      availability: 'GET /api/availability, GET /api/availability/date/:date',
+      calendar: 'GET /api/calendar/:activityId/month, GET /api/calendar/:activityId/summary, GET /api/calendar/:activityId/date/:date, POST /api/calendar/:activityId/date/:date, PATCH /api/calendar/:activityId/date/:date/unavailable'
     }
   });
 });
@@ -77,6 +87,12 @@ app.use('/api/users', userRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
+
+// Activity Provider Routes
+app.use('/api/activities', activityRoutes);
+app.use('/api/bookings', activityBookingRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes
