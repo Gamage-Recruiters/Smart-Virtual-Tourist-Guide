@@ -67,6 +67,18 @@ import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
 import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
 import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
 
+import IntegratedAdminDashboard from './pages/AdminDashboard';
+import IntegratedAdminUsers from './pages/UserManagement';
+import IntegratedAdminListings from './pages/ApproveListings';
+import IntegratedAdminAds from './pages/ManageAds';
+import IntegratedAdminCreateAd from './pages/CreateAdvertisement';
+import IntegratedAdminAddUser from './pages/AddNewAdmin';
+import IntegratedAdminViewDetails from './pages/ViewFullDetails';
+import IntegratedAdminLogin from './pages/Login';
+import IntegratedAdminEditAd from './pages/EditAdvertisement';
+import IntegratedAdminViewAd from './pages/ViewAdvertisement';
+import IntegratedAdminAccessDenied from './pages/AccessDenied';
+import IntegratedAdminProtectedRoute from './components/auth/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
@@ -104,7 +116,7 @@ function App() {
         <Route path="/renter" element={<RenterSignup />} />
         <Route path="/government" element={<GovernmentSignup />} />
         <Route path="/activity-provider" element={<ActivityProviderSignup />} />
-        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/legacy-login" element={<AdminLogin />} />
 
         {/* Driver signup — wrapped in shared context so all 3 steps share form state */}
         <Route
@@ -177,6 +189,99 @@ function App() {
         <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
         <Route path="/dashboard" element={<HotelOwnerDashboard />} />
         <Route path="/Hotel-Owner-Profile-Settings" element={<HotelOwnerProfileSettings />} />
+
+        {/* ===== INTEGRATED ADMIN ROUTES ===== */}
+        <Route path="/admin/login" element={<IntegratedAdminLogin />} />
+
+        <Route
+          path="/admin"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminDashboard />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminUsers />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users/new"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminAddUser />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/listings"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator', 'Moderator']}>
+              <IntegratedAdminListings />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/view-details/:id"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator', 'Moderator']}>
+              <IntegratedAdminViewDetails />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/ads"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminAds />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/ads/create"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminCreateAd />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/edit-ad/:id"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminEditAd />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/view-ad/:id"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Administrator']}>
+              <IntegratedAdminViewAd />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/access-denied"
+          element={
+            <IntegratedAdminProtectedRoute allowedRoles={['Editor']}>
+              <IntegratedAdminAccessDenied />
+            </IntegratedAdminProtectedRoute>
+          }
+        />
 
         {/* ===== 404 FALLBACK ===== */}
         <Route path="*" element={<h1 className="text-center mt-20 text-3xl font-bold">404 - Page Not Found</h1>} />
