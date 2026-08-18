@@ -30,4 +30,4 @@ const bidSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export default mongoose.model("Bid", bidSchema);
+export default mongoose.model("VehicleRentalBid", bidSchema);
