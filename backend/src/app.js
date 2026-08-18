@@ -40,6 +40,7 @@ app.get('/api/health', (req, res) => {
 });
 
 import restaurantRoutes from './routes/restaurantRoutes.js';
+import vehicleRentalBidRoutes from './routes/vehicleRentalBidRoutes.js';
 
 // Error handling middleware (must be last)
 app.use('/api/bookings', bookingRoutes);
@@ -52,6 +53,7 @@ app.use('/api/hotels', hotelRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/vehicle-rentals', vehicleRentalBidRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
