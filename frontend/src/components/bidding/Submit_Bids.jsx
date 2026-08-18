@@ -44,6 +44,10 @@ export default function Submit_Bids() {
       toast.error("Please enter bid amount");
       return;
     }
+    if (Number(bidAmount) <= 0) {
+      toast.error("Bid amount must be greater than 0");
+      return;
+    }
 
     if (!tripId) {
       toast.error("Trip ID not found. Please open this page with a trip ID.");
@@ -142,23 +146,9 @@ export default function Submit_Bids() {
 
               <div className="space-y-4">
                 {otherBids.length === 0 ? (
-                  [1, 2, 3, 4].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-center justify-between gap-6"
-                    >
-                      <span className="text-slate-700 font-bold text-xs min-w-[100px]">
-                        Driver Name
-                      </span>
-
-                      <input
-                        type="text"
-                        disabled
-                        placeholder="0.00"
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-slate-400 text-sm font-medium cursor-not-allowed"
-                      />
-                    </div>
-                  ))
+                  <div className="text-center py-6 text-slate-400 text-sm">
+                    No bids yet for this trip
+                  </div>
                 ) : (
                   otherBids.map((bid) => (
                     <div

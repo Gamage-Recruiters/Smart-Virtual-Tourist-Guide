@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -98,8 +98,9 @@ export default function Driver_Bids() {
   const [otherBids, setOtherBids] = useState([]);
   const [bidsLoading, setBidsLoading] = useState(false);
 
-  // Temporary tripId
-  const tripId = "TRIP_001";
+  // Get tripId from URL params or default to TRIP_001 if not present for fallback
+  const { id } = useParams();
+  const tripId = id || "TRIP_001";
 
   // Debounce: update actual pickup/drop after 1s typing pause
   useEffect(() => {
@@ -183,12 +184,38 @@ export default function Driver_Bids() {
 
   useEffect(() => {
     fetchBids();
-  }, []);
+    
+    // Fetch trip details from database if it's a real MongoDB ID
+    if (tripId && tripId !== "TRIP_001") {
+      const fetchTripDetails = async () => {
+        try {
+          const res = await fetch(`/api/bookings/${tripId}`);
+          const data = await res.json();
+          if (data.success && data.booking) {
+            const b = data.booking;
+            if (b.pickupLocation) setPickupInput(b.pickupLocation);
+            if (b.destination) setDropInput(b.destination);
+            if (b.customer) {
+              setCustomerName(`${b.customer.firstName || ''} ${b.customer.lastName || ''}`.trim());
+              if (b.customer.phone) setCustomerContact(b.customer.phone);
+            }
+          }
+        } catch (err) {
+          console.error("Fetch trip details error:", err);
+        }
+      };
+      fetchTripDetails();
+    }
+  }, [tripId]);
 
   // Submit bid
   const handleSubmitBid = async () => {
     if (!submitBidAmount) {
       toast.error("Please enter a bid amount");
+      return;
+    }
+    if (Number(submitBidAmount) <= 0) {
+      toast.error("Bid amount must be greater than 0");
       return;
     }
     try {

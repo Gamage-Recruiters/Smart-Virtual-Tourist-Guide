@@ -96,6 +96,28 @@ const passengers = [
 
 export default function Driver_Request() {
   const navigate = useNavigate();
+  const [request, setRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch pending driver bookings
+  React.useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await fetch('/api/bookings/type/driver');
+        const data = await res.json();
+        if (data.success && data.bookings && data.bookings.length > 0) {
+          // Find the first pending request
+          const pending = data.bookings.find(b => b.status === 'pending');
+          if (pending) setRequest(pending);
+        }
+      } catch (err) {
+        console.error("Fetch requests error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRequests();
+  }, []);
 
   // Prevent background scrolling so we only have one scrollbar
   React.useEffect(() => {
@@ -127,7 +149,7 @@ export default function Driver_Request() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
                   <HiOutlineLocationMarker className="text-blue-500" /> Pickup
                 </label>
-                <input type="text" placeholder="Select Pickup" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Select Pickup"} value={request?.pickupLocation || ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
               
               {/* Drop */}
@@ -135,7 +157,7 @@ export default function Driver_Request() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
                   <HiOutlineLocationMarker className="text-blue-500" /> Drop
                 </label>
-                <input type="text" placeholder="Select Drop" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Select Drop"} value={request?.destination || ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
 
               {/* Distance */}
@@ -143,7 +165,7 @@ export default function Driver_Request() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
                   <FaMapMarkerAlt className="text-blue-500" /> Distance
                 </label>
-                <input type="text" placeholder="Km" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Km"} value={request ? "Auto-calculated" : ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
 
               {/* Price */}
@@ -151,23 +173,23 @@ export default function Driver_Request() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
                   <FaRegIdCard className="text-blue-500" /> Price
                 </label>
-                <input type="text" placeholder="0.00" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "0.00"} value={request?.pricing?.total ? `LKR ${request.pricing.total}` : ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
 
               {/* Customer Details Name */}
               <div>
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
-                  <FaRegIdCard className="text-blue-500" /> Customer details
+                  <FaRegIdCard className="text-blue-500" /> Customer Name
                 </label>
-                <input type="text" placeholder="Customer Name" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Customer Name"} value={request?.customer ? `${request.customer.firstName} ${request.customer.lastName}` : ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
 
               {/* Customer Details Phone */}
               <div>
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
-                  <FaPhoneAlt className="text-blue-500" /> Customer details
+                  <FaPhoneAlt className="text-blue-500" /> Customer Contact
                 </label>
-                <input type="text" placeholder="Customer/Contact number" className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Customer/Contact number"} value={request?.customer?.phone || ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
             </div>
 
@@ -189,8 +211,9 @@ export default function Driver_Request() {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
               <button 
-                className="bg-[#3478F6] hover:bg-blue-600 text-white rounded-full px-10 py-3 font-bold flex items-center gap-2 shadow-lg transition-all w-full sm:w-40 justify-center"
-                onClick={() => navigate('/submit-bids')}
+                className="bg-[#3478F6] hover:bg-blue-600 text-white rounded-full px-10 py-3 font-bold flex items-center gap-2 shadow-lg transition-all w-full sm:w-40 justify-center disabled:opacity-50"
+                onClick={() => navigate(request ? `/submit-bids/${request._id}` : '/submit-bids')}
+                disabled={!request}
               >
                 Accept
                 <FaChevronRight className="text-[10px]" />

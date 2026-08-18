@@ -62,6 +62,7 @@ export default function App() {
         <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
         <Route path="/driver-request" element={<Driver_Request />} />
         <Route path="/submit-bids" element={<Driver_Bids />} />
+        <Route path="/submit-bids/:id" element={<Driver_Bids />} />
         <Route path="/driver-earnings" element={<Driver_Earnings />} />
 
       </Routes>
