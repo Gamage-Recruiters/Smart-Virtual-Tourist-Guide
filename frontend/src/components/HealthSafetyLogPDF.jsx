@@ -1,31 +1,39 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { fetchMedicalInfo } from '../services/healthService';
+import { fetchMedicalInfo, fetchIncidents } from '../services/healthService';
 
 const HealthSafetyLogPDF = ({ touristId, tripId }) => {
 
   const [healthData, setHealthData] = useState(null);
+  const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
     const loadMedical = async () => {
       const result = await fetchMedicalInfo(touristId);
       if (result.success) setHealthData(result.data);
     };
-    if (touristId) loadMedical();
+
+    const loadAlerts = async () => {
+      const result = await fetchIncidents(touristId);
+      if (result.success) {
+
+        const formatted = result.data.map(inc => ({
+          title: inc.incidentCategory,
+          desc: `District: ${inc.district}`,
+          time: `${inc.incidentDate} - ${inc.incidentTime}`
+        }));
+        setAlerts(formatted);
+      }
+    };
+
+
+    if (touristId) {
+      loadMedical();
+      loadAlerts();
+    }
   }, [touristId]);
 
-  const safetyAlerts = [
-    {
-      title: "Weather Advisory",
-      desc: "Heavy rainfall expected in Kandy region",
-      time: "March 16, 2026 - 8:00 AM"
-    },
-    {
-      title: "Safety Update",
-      desc: "All routes clear and safe for travel",
-      time: "March 17, 2026 - 6:30 AM"
-    }
-  ];
+
 
   return (
 
@@ -60,10 +68,6 @@ const HealthSafetyLogPDF = ({ touristId, tripId }) => {
           {healthData ? (
             <>
               <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
-                <span className="text-sm font-bold text-gray-700">Pre-trip health checkup completed</span>
-              </div>
-
-              <div className="flex items-center px-12 py-4 bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl border border-[#A2D5FF]/10">
                 <span className="text-sm font-bold text-gray-700">Blood Type: {healthData.bloodType}</span>
               </div>
 
@@ -94,32 +98,26 @@ const HealthSafetyLogPDF = ({ touristId, tripId }) => {
         </h3>
 
         <div className="space-y-8 pl-4">
-          {safetyAlerts.map((alert, idx) => (
-            <div key={idx} className="flex items-start gap-4">
-
-              {/* Red Warning Icon (No entry/minus circular symbol) */}
-              <span className="text-xl flex-shrink-0 mt-0.5 select-none">
-                ⛔
-              </span>
-
-              {/* Alert Details */}
-              <div className="flex flex-col gap-1.5">
-                {/* Title */}
-                <p className="font-extrabold text-gray-900 text-sm sm:text-base leading-none">
-                  {alert.title}
-                </p>
-                {/* Description */}
-                <p className="text-xs sm:text-sm text-gray-500 font-semibold leading-relaxed">
-                  {alert.desc}
-                </p>
-                {/* Date/Time */}
-                <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wide">
-                  {alert.time}
-                </p>
+          {alerts.length > 0 ? (
+            alerts.map((alert, idx) => (
+              <div key={idx} className="flex items-start gap-4">
+                <span className="text-xl flex-shrink-0 mt-0.5 select-none">⚠️</span>
+                <div className="flex flex-col gap-1.5">
+                  <p className="font-extrabold text-gray-900 text-sm sm:text-base leading-none">
+                    {alert.title}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-semibold leading-relaxed">
+                    {alert.desc}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wide">
+                    {alert.time}
+                  </p>
+                </div>
               </div>
-
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 italic pl-4">No safety alerts reported.</p>
+          )}
         </div>
       </div>
 

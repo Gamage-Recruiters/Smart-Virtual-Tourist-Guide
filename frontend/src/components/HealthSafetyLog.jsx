@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { fetchIncidentCount, fetchVaccinations } from '../services/healthService';
+import { fetchIncidentCount, fetchVaccinations, fetchIncidents } from '../services/healthService';
 
 const HealthSafetyLog = ({ touristId }) => {
 
     const [incidentCount, setIncidentCount] = useState(0);
     const [vaccines, setVaccines] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [incidents, setIncidents] = useState([]);
 
     useEffect(() => {
         const getCount = async () => {
@@ -29,25 +30,18 @@ const HealthSafetyLog = ({ touristId }) => {
             if (result.success) setVaccines(result.vaccinations);
         };
 
-        loadVaccines();
-        getCount();
+        const loadIncidents = async () => {
+            const result = await fetchIncidents(touristId);
+            if (result.success) setIncidents(result.data);
+        };
+
+        if (touristId) {
+            loadIncidents();
+            loadVaccines();
+            getCount();
+        }
+
     }, [touristId]);
-
-    const medicalCheckpoints = [
-        "Pre-departure health screening - March 14",
-        "Travel clinic consultation - March 10"
-    ];
-
-    // const vaccinations = [
-    //     "COVID-19 - Updated March 1",
-    //     "Hepatitis A - February 15",
-    //     "Typhoid - February 15"
-    // ];
-
-    const emergencyContacts = [
-        "Heavy rain warning - March 19",
-        "High heat advisory - March 17"
-    ];
 
     return (
         <section className="bg-white rounded-t-none rounded-b-none sm:rounded-b-none pt-6 px-6 pb-0 sm:pt-10 sm:px-10 md:pt-16 md:px-16 lg:pt-20 lg:px-20 w-full mb-0 !mt-0">
@@ -70,20 +64,6 @@ const HealthSafetyLog = ({ touristId }) => {
 
                 <div>
                     <h4 className="font-bold text-gray-900 text-lg sm:text-xl md:text-2xl mb-4">
-                        Medical checkpoints visited
-                    </h4>
-                    <ul className="space-y-3">
-                        {medicalCheckpoints.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base md:text-lg text-gray-700 font-medium">
-                                <span className="flex-shrink-0 mt-0.5">✅</span>
-                                <span>{item}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div>
-                    <h4 className="font-bold text-gray-900 text-lg sm:text-xl md:text-2xl mb-4">
                         Vaccinations verified
                     </h4>
                     <ul className="space-y-3">
@@ -102,16 +82,23 @@ const HealthSafetyLog = ({ touristId }) => {
 
                 <div>
                     <h4 className="font-bold text-gray-900 text-lg sm:text-xl md:text-2xl mb-4">
-                        Emergency contacts used
+                        Emergency incidents reported
                     </h4>
-                    <ul className="space-y-3">
-                        {emergencyContacts.map((item, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base md:text-lg text-gray-700 font-medium">
-                                <span className="flex-shrink-0 mt-0.5">⛔</span>
-                                <span>{item}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    {incidents.length > 0 ? (
+                        <ul className="space-y-3">
+                            {incidents.map((inc, idx) => (
+                                <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base md:text-lg text-gray-700 font-medium">
+                                    <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                                    <span>{inc.incidentCategory} - {inc.incidentDate}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="flex items-center gap-2 text-[#2ECC71] bg-green-50 px-4 py-3 rounded-xl border border-green-200">
+                            <span>✅</span>
+                            <span className="font-bold">No medical incidents reported during the trip</span>
+                        </div>
+                    )}
                 </div>
 
                 <div>

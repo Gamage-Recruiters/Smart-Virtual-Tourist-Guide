@@ -8,9 +8,9 @@ export const getVaccinations = async (req, res, next) => {
     const { touristId } = req.params;
 
     if (!touristId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "touristId is required in route parameters" 
+      return res.status(400).json({
+        success: false,
+        message: "touristId is required in route parameters"
       });
     }
 
@@ -23,7 +23,7 @@ export const getVaccinations = async (req, res, next) => {
     const verifiedVaccines = [];
 
     if (healthInfo) {
-      
+
       const healthData = healthInfo.toObject ? healthInfo.toObject() : healthInfo;
 
       for (const key in healthData) {
@@ -37,23 +37,23 @@ export const getVaccinations = async (req, res, next) => {
         if (vaccineObj && typeof vaccineObj === 'object' && vaccineObj.status === 'Vaccinated' || vaccineObj.status === 'Exempt') {
 
           let readableName = key
-            .replace(/([A-Z])/g, ' $1') 
-            .replace(/^./, (str) => str.toUpperCase()); 
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, (str) => str.toUpperCase());
 
-          if (key === 'covid19') readableName = 'COVID-19'; 
+          if (key === 'covid19') readableName = 'COVID-19';
 
           verifiedVaccines.push({
             name: readableName,
-            status: vaccineObj.status, 
+            status: vaccineObj.status,
             fileUrl: vaccineObj.fileUrl || ""
           });
         }
       }
     }
 
-    res.status(200).json({ 
-      success: true, 
-      vaccinations: verifiedVaccines 
+    res.status(200).json({
+      success: true,
+      vaccinations: verifiedVaccines
     });
 
   } catch (error) {
@@ -67,14 +67,14 @@ export const getIncidentCount = async (req, res, next) => {
     const { touristId } = req.params;
 
     if (!touristId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "touristId is required in route parameters" 
+      return res.status(400).json({
+        success: false,
+        message: "touristId is required in route parameters"
       });
     }
 
     const count = await Incident.countDocuments({ touristId });
-    
+
     res.status(200).json({ success: true, count });
   } catch (error) {
     logger.error('Error fetching incident count:', error);
@@ -82,35 +82,51 @@ export const getIncidentCount = async (req, res, next) => {
   }
 };
 
+// get all incidents for a tourist
+export const getIncidents = async (req, res, next) => {
+  try {
+    const { touristId } = req.params;
+    const incidents = await Incident.find({ touristId })
+      .select('incidentCategory incidentDate incidentTime district')
+      .sort({ incidentDate: -1 }) 
+      .limit(3);
+
+    res.status(200).json({ success: true, data: incidents });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+    next(error);
+  }
+};
+
+
 // get medical info for a final trip report PDF
 export const getMedicalInfo = async (req, res) => {
-    try {
-        const { touristId } = req.params;
-        const user = await User.findById(touristId, 'healthInfo');
+  try {
+    const { touristId } = req.params;
+    const user = await User.findById(touristId, 'healthInfo');
 
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        const healthData = user.healthInfo?.toObject ? user.healthInfo.toObject() : (user.healthInfo || {});
+    const healthData = user.healthInfo?.toObject ? user.healthInfo.toObject() : (user.healthInfo || {});
 
-        const vaccineKeys = Object.keys(healthData).filter(key => 
-            !['bloodType', 'medicalCondition', '_id'].includes(key)
-        );
+    const vaccineKeys = Object.keys(healthData).filter(key =>
+      !['bloodType', 'medicalCondition', '_id'].includes(key)
+    );
 
-        const allVaccinated = vaccineKeys.length > 0 && vaccineKeys.every(key => 
-            healthData[key]?.status === 'Vaccinated' || healthData[key]?.status === 'Exempt'
-        );
+    const allVaccinated = vaccineKeys.length > 0 && vaccineKeys.every(key =>
+      healthData[key]?.status === 'Vaccinated' || healthData[key]?.status === 'Exempt'
+    );
 
-        const incidentCount = await Incident.countDocuments({ touristId: touristId });
+    const incidentCount = await Incident.countDocuments({ touristId: touristId });
 
-        const medicalData = {
-            preTripCheckup: true, 
-            bloodType: healthData.bloodType || "Not provided",
-            allVaccinationsUpToDate: allVaccinated,
-            incidentCount: incidentCount
-        };
+    const medicalData = {
+      bloodType: healthData.bloodType || "Not provided",
+      allVaccinationsUpToDate: allVaccinated,
+      incidentCount: incidentCount
+    };
 
-        res.status(200).json({ success: true, data: medicalData });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+    res.status(200).json({ success: true, data: medicalData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

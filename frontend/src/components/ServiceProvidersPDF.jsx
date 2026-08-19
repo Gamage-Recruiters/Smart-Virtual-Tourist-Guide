@@ -1,39 +1,53 @@
-import React from 'react';
-import PERSON from './../assets/person.jpg';
+import React, { useState, useEffect } from 'react';
+import { fetchMyBookings } from '../services/bookingService';
 
-const ServiceProvidersPDF = () => {
+const ServiceProvidersPDF = ({ touristId, tripId }) => {
+  const [mainPartners, setMainPartners] = useState([]);
+  const [additionalProviders, setAdditionalProviders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const mainPartners = [
-    {
-      name: "Ministry of Crab",
-      role: "Restaurant",
-      rating: "4.9/5.0",
-      desc: "Fine dining, Seafood specialties",
-      img: PERSON 
-    },
-    {
-      name: "Blue Whale Tours",
-      role: "Tours & Activities",
-      rating: "4.9/5.0",
-      desc: "Fine dining, Seafood specialties",
-      img: PERSON
-    },
-    {
-      name: "Sampath Guide Services",
-      role: "Tour Guide",
-      rating: "4.9/5.0",
-      desc: "Cultural tours, Historical site guidance",
-      img: PERSON
-    }
-  ];
+  useEffect(() => {
+    const loadPdfData = async () => {
+      const userEmail = "it22300096@my.sliit.lk"; 
+      const result = await fetchMyBookings(userEmail);
 
-  const additionalProviders = [
-    { name: "The Heritage Restaurant", role: "Restaurant", date: "Mar 15, 2025" },
-    { name: "Cinnamon Lodge Habarana", role: "Accommodation", date: "Mar 17, 2025" }
-  ];
+      if (result.success) {
+   
+        const partners = [
+          ...result.data.activities.map(a => ({
+            name: a.service.name,
+            role: a.service.type || "Activity",
+            rating: `${a.service.rating || 4.9}/5.0`,
+            desc: a.service.description || "Fine services provided",
+            img: a.service.image 
+          })),
+          ...result.data.hotels.map(h => ({
+            name: h.service.name,
+            role: "Accommodation",
+            rating: `${h.service.rating || 4.9}/5.0`,
+            desc: h.service.description || "Comfortable stay",
+            img: h.service.image 
+          }))
+        ].slice(0, 3); 
+
+        setMainPartners(partners);
+
+        const additional = result.data.vehicles.map(v => ({
+          name: v.service.name,
+          role: "Transportation",
+          date: v.pickupDate ? new Date(v.pickupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Mar 15, 2025",
+          img: v.service.image
+        }));
+
+        setAdditionalProviders(additional);
+      }
+      setLoading(false);
+    };
+
+    loadPdfData();
+  }, [touristId, tripId]);
 
   return (
-
     <section className="bg-white w-full max-w-[794px] mx-auto p-10 md:p-14 border-x border-gray-100 rounded-none break-after-page">
       
       {/* ────────────────────────────────────────────────────────
@@ -62,7 +76,7 @@ const ServiceProvidersPDF = () => {
             key={idx} 
             className="bg-gradient-to-b from-white to-[#BCE2FF] rounded-[24px] p-5 flex flex-col items-center text-center gap-3 border border-[#A2D5FF]/15"
           >
-            {/* Circular Profile Image */}
+       
             <img 
               src={p.img} 
               alt={p.name} 
@@ -74,7 +88,7 @@ const ServiceProvidersPDF = () => {
               {p.name}
             </p>
             
-            {/* Role Badge (Solid soft-blue) */}
+            {/* Role Badge */}
             <span className="bg-[#B9DDFB] text-[#1E50FF] text-[10px] sm:text-xs font-extrabold px-4 py-1 rounded-full">
               {p.role}
             </span>
@@ -89,7 +103,7 @@ const ServiceProvidersPDF = () => {
               </span>
             </div>
             
-            {/* Description / Specialties */}
+            {/* Description */}
             <p className="text-[10px] sm:text-xs text-gray-500 font-semibold leading-relaxed max-w-[160px] min-h-[32px] flex items-center justify-center">
               {p.desc}
             </p>
@@ -105,30 +119,30 @@ const ServiceProvidersPDF = () => {
       {/* ────────────────────────────────────────────────────────
             4. ADDITIONAL SERVICE PROVIDERS
          ──────────────────────────────────────────────────────── */}
-      {/* Additional Providers Header Bar */}
       <div className="w-full bg-gradient-to-r from-[#F2F9FD] to-[#BCE2FF] rounded-xl px-6 py-4 mb-8 shadow-[0_2px_8px_rgba(0,0,0,0.01)] border border-[#A2D5FF]/10">
         <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-[#111111] leading-none">
           Additional Service Providers
         </h2>
       </div>
 
-      {/* Additional Providers List */}
       <div className="space-y-4 px-4">
-        {additionalProviders.map((ap, i) => (
-          <div 
-            key={i} 
-            className="flex justify-between items-center text-xs sm:text-sm text-gray-700 font-semibold py-1 border-b border-gray-50/50 pb-2"
-          >
-            {/* Name & Role (Role in brackets) */}
-            <span className="text-gray-800">
-              {ap.name} <span className="text-gray-400 font-medium text-xs">({ap.role})</span>
-            </span>
-            {/* Date */}
-            <span className="text-gray-500 font-semibold whitespace-nowrap">
-              {ap.date}
-            </span>
-          </div>
-        ))}
+        {additionalProviders.length > 0 ? (
+          additionalProviders.map((ap, i) => (
+            <div 
+              key={i} 
+              className="flex justify-between items-center text-xs sm:text-sm text-gray-700 font-semibold py-1 border-b border-gray-50/50 pb-2"
+            >
+              <span className="text-gray-800">
+                {ap.name} <span className="text-gray-400 font-medium text-xs">({ap.role})</span>
+              </span>
+              <span className="text-gray-500 font-semibold whitespace-nowrap">
+                {ap.date}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="text-xs text-gray-400 italic px-2">No additional providers found.</p>
+        )}
       </div>
 
     </section>

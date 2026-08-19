@@ -20,6 +20,7 @@ const FinalTripReport = () => {
 
   const touristId = "6a28dc49a14342989f1e4ee4";
   const tripId = "6a28dc49a14342989f1e4ee5";
+  const email = "it22300096@my.sliit.lk";
 
   const [itinerary, setItinerary] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -241,7 +242,7 @@ const FinalTripReport = () => {
         <main className="w-full min-h-screen bg-gradient-to-b from-[#D3EEFD] to-[#F4F9FF] px-4 sm:px-6 md:px-10 lg:px-16 py-7 space-y-7 flex flex-col items-center">
           <TripItinerary touristId={touristId} tripId={tripId} />
           <FinancialSummary touristId={touristId} tripId={tripId} />
-          <ServiceProviders />
+          <ServiceProviders userEmail={email} />
           <HealthSafetyLog touristId={touristId} />
           <TripHighlights touristId={touristId} tripId={tripId} />
           <RateExperience touristId={touristId} tripId={tripId} />
