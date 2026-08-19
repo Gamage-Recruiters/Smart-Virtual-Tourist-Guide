@@ -1,6 +1,5 @@
 import express, { json, urlencoded } from 'express';
 import { config } from 'dotenv';
-import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -33,8 +32,6 @@ app.use(urlencoded({ extended: true }));
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// ==================== DATABASE CONNECTION ====================
-connectDB();
 
 // ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
