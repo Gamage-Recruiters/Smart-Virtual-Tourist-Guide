@@ -23,7 +23,7 @@ function App() {
           {/* <Route path="/" element={<BehaviorStatReport />} /> */}
           {/* <Route path="/" element={<ComplaintReport />} /> */}
 
-          <Route path="/trip/:touristId/:tripId" element={<FinalTripReportPDF />} />
+          {/* <Route path="/trip/:touristId/:tripId" element={<FinalTripReportPDF />} /> */}
         </Routes>
       </Router>
     </>
