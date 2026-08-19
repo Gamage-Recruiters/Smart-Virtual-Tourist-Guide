@@ -2,6 +2,33 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return "";
+  if (timeStr.includes("AM") || timeStr.includes("PM")) return timeStr;
+  const [hours, minutes] = timeStr.split(":");
+  if (hours === undefined || minutes === undefined) return timeStr;
+  const h = parseInt(hours, 10);
+  if (isNaN(h)) return timeStr;
+  const ampm = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 === 0 ? 12 : h % 12;
+  return `${formattedHour}:${minutes} ${ampm}`;
+};
+
+const formatSlotDisplay = (slot) => {
+  if (typeof slot === "string") return slot;
+  
+  const startFormatted = formatTime(slot.startTime);
+  const endFormatted = formatTime(slot.endTime);
+  const timeRange = startFormatted && endFormatted 
+    ? `${startFormatted} - ${endFormatted}` 
+    : (startFormatted || slot.time || "");
+
+  if (slot.label && timeRange) {
+    return `${slot.label} (${timeRange})`;
+  }
+  return slot.label || timeRange || "Time Slot";
+};
+
 const ActivityAvailabilityCard = ({ activity }) => {
   const navigate = useNavigate();
 
@@ -11,7 +38,26 @@ const ActivityAvailabilityCard = ({ activity }) => {
     participants: "1",
   });
 
-  const basePrice = activity?.price;
+  const basePrice = activity?.price || 0;
+
+  // Extract time slots from activity model (timeSlotTemplates or timeSlots) or fallback
+  const getTimeSlots = () => {
+    const rawSlots =
+      activity?.timeSlotTemplates && activity.timeSlotTemplates.length > 0
+        ? activity.timeSlotTemplates
+        : activity?.timeSlots && activity.timeSlots.length > 0
+        ? activity.timeSlots
+        : null;
+
+    if (rawSlots) {
+      return rawSlots.map((slot) => formatSlotDisplay(slot));
+    }
+
+    // Fallback default time slots if activity model has no specified slots
+    return ["7:00 AM", "9:00 AM", "10:30 AM", "2:00 PM"];
+  };
+
+  const availableTimeSlots = getTimeSlots();
 
   const handleAvailabilityCheck = () => {
     // Basic validation
@@ -108,10 +154,11 @@ const ActivityAvailabilityCard = ({ activity }) => {
             className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select a time slot</option>
-            <option value="7:00 AM">7:00 AM</option>
-            <option value="9:00 AM">9:00 AM</option>
-            <option value="10:30 AM">10:30 AM</option>
-            <option value="2:00 PM">2:00 PM</option>
+            {availableTimeSlots.map((slot, index) => (
+              <option key={index} value={slot}>
+                {slot}
+              </option>
+            ))}
           </select>
         </div>
 
