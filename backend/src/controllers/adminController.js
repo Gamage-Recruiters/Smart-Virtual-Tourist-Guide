@@ -1,0 +1,530 @@
+import User from '../models/User.js';
+import Admin from '../models/Admin.js';
+import Booking from '../models/ActivityProvider/ActivityBooking.js';
+import Package from '../models/Package.js';
+import Advertisement from '../models/Advertisement.js';
+import Review from '../models/Review.js';
+import Room from '../models/HotelOwner/room.model.js';
+
+
+// Fetch dashboard statistics
+const getDashboardStats = async (req, res) => {
+    try {
+        // Run queries concurrently for high performance
+        const [totalUsers, travelAgencies, registeredDrivers, hotelPartners] = await Promise.all([
+            User.countDocuments({}), 
+            Package.distinct('AgencyContactInformation.agencyName').then((names) => names.filter(Boolean).length), 
+            User.countDocuments({ role: 'driver_user' }), 
+            User.countDocuments({ role: 'hotelowner_user' })
+        ]);
+
+        // Structuring the response exactly as Frontend expects
+        res.status(200).json({
+            success: true,
+            data: {
+                totalUsers,
+                travelAgencies,
+                registeredDrivers,
+                hotelPartners
+            }
+        });
+    } catch (error) {
+        console.error("Dashboard Stats Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while fetching analytics' });
+    }
+};
+
+// Get all users and admins combined for the management table
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({}).select('-password').lean();
+        const admins = await Admin.find({}).select('-password').lean();
+
+        // Combine and format data to match frontend table requirements
+        const combinedData = [...users, ...admins].sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.joinedDate);
+            const dateB = new Date(b.createdAt || b.joinedDate);
+            return dateB - dateA; // Sort by newest first
+        });
+
+        res.status(200).json({
+            success: true,
+            users: combinedData,
+            currentAdminId: req.admin._id.toString()
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error while fetching users' });
+    }
+};
+
+// Update user or admin status safely
+const updateUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (req.admin._id.toString() === id) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot change the status of your own administrator account.'
+            });
+        }
+
+        const validStatuses = ['Active', 'Suspended', 'Pending'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status value' });
+        }
+
+        // 1. Check User collection first
+        let updatedAccount = await User.findByIdAndUpdate(id, { status }, { new: true });
+
+        // 2. If not found in User, check Admin collection
+        if (!updatedAccount) {
+            if (status === 'Pending') {
+                return res.status(400).json({ success: false, message: 'Admins cannot have Pending status' });
+            }
+            updatedAccount = await Admin.findByIdAndUpdate(id, { status }, { new: true });
+        }
+
+        if (!updatedAccount) {
+            return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        res.status(200).json({ success: true, message: `Status updated to ${status}` });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error while updating status' });
+    }
+};
+// Get all ads with optional status filter
+const getAllAds = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = status ? { status } : {};
+        const ads = await Advertisement.find(filter).sort({ createdAt: -1 });
+        
+        res.status(200).json({ success: true, data: ads });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error fetching ads' });
+    }
+};
+
+// Update Ad Status (Active/Paused)
+const updateAdStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { status } = req.body;
+        
+        const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { new: true });
+        if (!updatedAd) return res.status(404).json({ success: false, message: 'Ad not found' });
+
+        res.status(200).json({ success: true, message: `Ad marked as ${status}`, data: updatedAd });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating ad' });
+    }
+};
+// Create a new advertisement
+const createAdvertisement = async (req, res) => {
+    try {
+        const { title, description, type, budget, startDate, endDate, imageUrl } = req.body;
+
+        // Create new Ad object
+        const newAd = new Advertisement({
+            title,
+            description,
+            companyName: 'System Admin', // Fallback for required fields
+            targetUrl: '#',
+            type, // Banner Ad, Sidebar Ad etc.
+            // Remove any '$' or letters from budget if user typed them
+            budget: Number(budget.toString().replace(/[^0-9.-]+/g,"")), 
+            startDate,
+            endDate,
+            // If no image uploaded, use a nice default travel image
+            imageUrl: imageUrl || 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=800&q=80',
+            status: 'Active',
+            clicks: 0,
+            impressions: 0
+        });
+
+        await newAd.save();
+        res.status(201).json({ success: true, message: 'Advertisement created successfully', data: newAd });
+    } catch (error) {
+        console.error("Create Ad Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while creating advertisement' });
+    }
+};
+// Get single advertisement by ID for viewing/editing
+const getAdvertisementById = async (req, res) => {
+    try {
+        const ad = await Advertisement.findById(req.params.id);
+        if (!ad) {
+            return res.status(404).json({ success: false, message: 'Advertisement not found' });
+        }
+        res.status(200).json({ success: true, data: ad });
+    } catch (error) {
+        console.error("Get Ad By ID Error:", error);
+        res.status(500).json({ success: false, message: 'Server error fetching advertisement' });
+    }
+};
+
+// Update an existing advertisement
+const updateAdvertisement = async (req, res) => {
+    try {
+        const updatedAd = await Advertisement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedAd) {
+            return res.status(404).json({ success: false, message: 'Advertisement not found' });
+        }
+        res.status(200).json({ success: true, message: 'Advertisement updated successfully', data: updatedAd });
+    } catch (error) {
+        console.error("Update Ad Error:", error);
+        res.status(500).json({ success: false, message: 'Server error updating advertisement' });
+    }
+};
+
+// Delete an advertisement
+const deleteAdvertisement = async (req, res) => {
+    try {
+        await Advertisement.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: 'Ad deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting ad' });
+    }
+};
+// Delete a user or admin account permanently
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (req.admin._id.toString() === id) {
+            return res.status(400).json({
+                success: false,
+                message: 'You cannot delete your own administrator account.'
+            });
+        }
+
+        // 1. Check and delete from User collection first
+        let deletedAccount = await User.findByIdAndDelete(id);
+
+        // 2. If not found in User, check and delete from Admin collection
+        if (!deletedAccount) {
+            deletedAccount = await Admin.findByIdAndDelete(id);
+        }
+
+        if (!deletedAccount) {
+            return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Account successfully deleted' });
+    } catch (error) {
+        console.error("Delete User Error:", error);
+        res.status(500).json({ success: false, message: 'Server error while deleting account' });
+    }
+};
+
+// ===============================
+// Dashboard Analytics
+// GET /admin/dashboard-analytics
+// ===============================
+const getDashboardAnalytics = async (req, res) => {
+    try {
+        // Monthly Revenue
+        const revenue = await Booking.aggregate([
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    revenue: { $sum: "$pricing.total" }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        // Monthly Bookings
+        const bookings = await Booking.aggregate([
+            {
+                $group: {
+                    _id: { $month: "$createdAt" },
+                    bookings: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+
+        // Package Categories
+        const packagePerformance = await Package.aggregate([
+            { $unwind: "$BasicInformation.categories" },
+            {
+                $group: {
+                    _id: "$BasicInformation.categories",
+                    value: { $sum: 1 }
+                }
+            },
+            { $sort: { value: -1 } }
+        ]);
+
+        // User Roles
+        const userDistribution = await User.aggregate([
+            {
+                $group: {
+                    _id: "$role",
+                    value: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        // Format Data for Charts
+        const revenueChart = months.map((month, index) => {
+            const item = revenue.find(r => r._id === index + 1);
+            return { name: month, revenue: item ? item.revenue : 0 };
+        });
+
+        const bookingChart = months.map((month, index) => {
+            const item = bookings.find(r => r._id === index + 1);
+            return { name: month, bookings: item ? item.bookings : 0 };
+        });
+
+        res.json({
+            success: true,
+            data: {
+                revenueChart,
+                bookingChart,
+                packagePerformance: packagePerformance.map(item => ({
+                    name: item._id,
+                    value: item.value
+                })),
+                userDistribution: userDistribution.map(item => ({
+                    name: item._id,
+                    value: item.value
+                }))
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Failed to load dashboard analytics"
+        });
+    }
+};
+
+// ===============================
+// Get Recent Activities
+// GET /admin/recent-activities
+// ===============================
+const getRecentActivities = async (req, res) => {
+    try {
+        // Fetch data from all 3 collections in parallel
+        const [users, bookings, packages, reviews, ads, rooms] = await Promise.all([
+            User.find({}).sort({ createdAt: -1 }).limit(5).select("fullName createdAt"),
+            Booking.find({}).sort({ createdAt: -1 }).limit(5), 
+            Package.find({}).sort({ createdAt: -1 }).limit(5).select("BasicInformation.title AgencyContactInformation.agencyName createdAt"),
+
+            Review.find({}).sort({ createdAt: -1 }).limit(5).select("rating targetType createdAt"), //[cite: 2]
+            Advertisement.find({}).sort({ createdAt: -1 }).limit(5).select("title type createdAt"), //[cite: 8]
+            Room.find({}).sort({ createdAt: -1 }).limit(5).select("roomName createdAt") //[cite: 5]
+        ]);
+
+        const activities = [];
+
+        users.forEach(user => {
+            activities.push({
+                id: `user-${user._id}`,
+                type: "USER",
+                title: "User Registration",
+                subtitle: user.fullName,
+                createdAt: user.createdAt
+            });
+        });
+
+        bookings.forEach(booking => {
+            activities.push({
+                id: `booking-${booking._id}`,
+                type: "BOOKING",
+                title: "Booking Completed",
+                subtitle: booking.customer ? `${booking.customer.firstName} ${booking.customer.lastName}` : "Unknown User",
+                createdAt: booking.createdAt
+            });
+        });
+
+        packages.forEach(pkg => {
+            activities.push({
+                id: `pkg-${pkg._id}`,
+                type: "PACKAGE",
+                title: "New Package Published",
+                subtitle: pkg.AgencyContactInformation?.agencyName || pkg.BasicInformation?.title || "Travel Agency",
+                createdAt: pkg.createdAt
+            });
+        });
+        reviews.forEach(review => {
+            activities.push({
+                id: `rev-${review._id}`,
+                type: "REVIEW",
+                title: "New Review Posted",
+                subtitle: `${review.rating} Stars for ${review.targetType}`, //[cite: 2]
+                createdAt: review.createdAt //[cite: 2]
+            });
+        });
+
+        ads.forEach(ad => {
+            activities.push({
+                id: `ad-${ad._id}`,
+                type: "ADVERTISEMENT",
+                title: "New Advertisement",
+                subtitle: `${ad.title} - ${ad.type}`, //[cite: 8]
+                createdAt: ad.createdAt //[cite: 8]
+            });
+        });
+
+        rooms.forEach(room => {
+            activities.push({
+                id: `room-${room._id}`,
+                type: "ROOM",
+                title: "New Room Added",
+                subtitle: room.roomName, //[cite: 5]
+                createdAt: room.createdAt //[cite: 5]
+            });
+        });
+
+        // Sort all merged activities by newest first
+        activities.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        res.json({
+            success: true,
+            data: activities.slice(0, 10) // Return only the top 10 newest activities
+        });
+
+    } catch (err) {
+        console.error("Recent Activity Error:", err);
+        res.status(500).json({ success: false, message: "Failed to load recent activities" });
+    }
+};
+
+//  Get Packages & Stats
+const getAdminPackages = async (req, res) => {
+    try {
+        const { status = 'all' } = req.query;
+
+        // Stats අරගැනීම (Aggregation)
+        const statsData = await Package.aggregate([
+            { $group: { _id: "$approvalStatus", count: { $sum: 1 } } }
+        ]);
+
+        let pending = 0, approved = 0, rejected = 0;
+        statsData.forEach(stat => {
+            if (stat._id === 'Pending') pending = stat.count;
+            if (stat._id === 'Approved') approved = stat.count;
+            if (stat._id === 'Rejected') rejected = stat.count;
+        });
+
+        let total = pending + approved + rejected;
+        let avgVerification = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+        // Data අරගැනීම
+        let query = {};
+        if (status !== 'all') query.approvalStatus = status;
+        
+        const packages = await Package.find(query).sort({ createdAt: -1 });
+
+        // Option A: Frontend එකට ඕනේ විදිහට Data Flatten කිරීම
+        const formattedPackages = packages.map(pkg => ({
+            _id: pkg._id,
+            title: pkg.BasicInformation?.title || "Untitled Package",
+            providerName: pkg.AgencyContactInformation?.agencyName || "Unknown",
+            location: pkg.LocationAndHighlights?.destination || "N/A",
+            price: pkg.BasicInformation?.price || 0,
+            status: pkg.approvalStatus,
+            images: pkg.LocationAndHighlights?.images || []
+        }));
+
+        res.json({
+            success: true,
+            stats: { pending, approved, rejected, avgVerification: `${avgVerification}%` },
+            data: formattedPackages
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+// 2. Approve Package
+const approvePackage = async (req, res) => {
+    try {
+        await Package.findByIdAndUpdate(req.params.id, { 
+            approvalStatus: 'Approved', 
+            approvedAt: new Date() 
+        });
+        res.json({ success: true, message: "Package approved" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error approving" });
+    }
+};
+
+// 3. Reject Package
+const rejectPackage = async (req, res) => {
+    try {
+        const { reason } = req.body;
+        await Package.findByIdAndUpdate(req.params.id, { 
+            approvalStatus: 'Rejected', 
+            rejectionReason: reason, 
+            rejectedAt: new Date() 
+        });
+        res.json({ success: true, message: "Package rejected" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error rejecting" });
+    }
+};
+// 4. Get Single Package Details by ID
+const getPackageById = async (req, res) => {
+    try {
+        const pkg = await Package.findById(req.params.id);
+        
+        if (!pkg) {
+            return res.status(404).json({ success: false, message: "Package not found" });
+        }
+
+        const formattedPackage = {
+            _id: pkg._id,
+            title: pkg.BasicInformation?.title || "Untitled Package",
+            providerName: pkg.AgencyContactInformation?.agencyName || "Unknown Agency",
+            rating: 4.5, 
+            verificationScore: "95% Verified", 
+            imageUrl: (pkg.LocationAndHighlights?.images && pkg.LocationAndHighlights.images.length > 0) 
+                        ? pkg.LocationAndHighlights.images[0] 
+                        : 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=1200&q=80',
+            description: pkg.BasicInformation?.description || "No description provided.",
+            location: pkg.LocationAndHighlights?.destination || "N/A",
+            type: pkg.BasicInformation?.categories?.[0] || "General Tour",
+            price: `$${pkg.BasicInformation?.price || 0}`,
+            since: "2026",
+            tags: pkg.BasicInformation?.categories || ["Travel", "Sri Lanka"],
+            status: pkg.approvalStatus || 'Pending'
+        };
+
+        res.json({ success: true, data: formattedPackage });
+    } catch (err) {
+        console.error("Get Package by ID Error:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+export { 
+    getDashboardStats, 
+    getAllUsers, 
+    updateUserStatus,
+    getAllAds,
+    updateAdStatus,
+    createAdvertisement,
+    getAdvertisementById,
+    updateAdvertisement,
+    deleteAdvertisement,
+    getDashboardAnalytics,
+    getRecentActivities,
+    deleteUser,
+    getAdminPackages,
+    approvePackage,
+    rejectPackage,
+    getPackageById
+};

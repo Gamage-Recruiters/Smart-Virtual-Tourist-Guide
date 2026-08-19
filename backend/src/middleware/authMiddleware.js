@@ -22,6 +22,13 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'User not found, unauthorized' });
       }
 
+      if (req.user.status && req.user.status !== 'Active') {
+        return res.status(403).json({
+          success: false,
+          message: 'Your account is not active. Please contact support.',
+        });
+      }
+
       next();
     } catch (error) {
       console.error('JWT Verification Error:', error);
