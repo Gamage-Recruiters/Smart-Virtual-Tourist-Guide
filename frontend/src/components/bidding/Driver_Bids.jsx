@@ -249,7 +249,7 @@ export default function Driver_Bids() {
   const handleDecline = () => toast.error("Trip declined!");
 
   const goToOtherBidsPage = () => {
-    navigate(`/other-drivers`, { state: { customerName } });
+    navigate(`/other-drivers/${tripId}`, { state: { customerName } });
   };
 
   return (

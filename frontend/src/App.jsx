@@ -64,6 +64,11 @@ export default function App() {
         <Route path="/submit-bids" element={<Driver_Bids />} />
         <Route path="/submit-bids/:id" element={<Driver_Bids />} />
         <Route path="/driver-earnings" element={<Driver_Earnings />} />
+        
+        {/* Added missing route for other-drivers */}
+        <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
+        <Route path="/other-drivers" element={<Submit_Bids />} />
+        <Route path="/ride-details" element={<Ride_Details />} />
 
       </Routes>
     </Router>

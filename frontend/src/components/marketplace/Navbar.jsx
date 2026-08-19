@@ -1,15 +1,18 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FaCar, FaSuitcaseRolling, FaCompass, FaHotel, FaUtensils, FaRunning } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
+  const { t } = useTranslation();
+
   const navItems = [
-    { id: 'drivers', label: 'Drivers', icon: <FaCar />, path: '/drivers' },
-    { id: 'vehicles', label: 'Vehicles', icon: <FaSuitcaseRolling />, path: '/vehicles' },
-    { id: 'guides', label: 'Guides', icon: <FaCompass />, path: '/guides' },
-    { id: 'hotels', label: 'Hotels', icon: <FaHotel />, path: '/hotels' },
-    { id: 'restaurants', label: 'Restaurants', icon: <FaUtensils />, path: '/restaurants' },
-    { id: 'activities', label: 'Activities', icon: <FaRunning />, path: '/activities' },
+    { id: 'drivers', icon: <FaCar />, path: '/drivers' },
+    { id: 'vehicles', icon: <FaSuitcaseRolling />, path: '/vehicles' },
+    { id: 'guides', icon: <FaCompass />, path: '/guides' },
+    { id: 'hotels', icon: <FaHotel />, path: '/hotels' },
+    { id: 'restaurants', icon: <FaUtensils />, path: '/restaurants' },
+    { id: 'activities', icon: <FaRunning />, path: '/activities' },
   ];
 
   return (
@@ -27,7 +30,7 @@ const Navbar = () => {
           `}
         >
           <span className="text-lg">{item.icon}</span>
-          <span>{item.label}</span>
+          <span>{t(`marketplaceNavbar.${item.id}`)}</span>
         </NavLink>
       ))}
     </nav>

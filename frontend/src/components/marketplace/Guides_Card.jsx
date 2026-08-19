@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaGlobe, FaAward, FaMapMarkerAlt } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 const defaultGuidesData = [
   {
@@ -74,6 +75,7 @@ const defaultGuidesData = [
 ];
 
 const Guides_Card = () => {
+  const { t } = useTranslation();
   const [guidesData, setGuidesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,32 +120,32 @@ const Guides_Card = () => {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.056 11.95 11.95 0 01-1.6 5.944 11.95 11.95 0 01-6.234 4.944 11.954 11.954 0 01-6.234-4.944 11.95 11.95 0 01-1.6-5.944zm8.92 4.71a1 1 0 10-1.414-1.414L8 9.586 7.328 8.914a1 1 0 00-1.414 1.414l1.383 1.383a1 1 0 001.414 0l2.374-2.374z" clipRule="evenodd" />
               </svg>
-              <span>Budget Guardian</span>
+              <span>{t("sidebar.budgetGuardian")}</span>
             </div>
-            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">GUIDE BUDGET AVAILABLE</span>
+            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">{t("sidebar.availableFunds")}</span>
             <div className="flex items-baseline space-x-1 mb-4">
               <span className="text-2xl font-black text-gray-900">145,000</span>
               <span className="text-xs font-bold text-gray-700">LKR</span>
             </div>
             <div className="mb-4">
               <div className="flex justify-between text-xs font-bold mb-1">
-                <span className="text-gray-500">Trip Progress</span>
-                <span className="text-[#1E40AF]">65% Used</span>
+                <span className="text-gray-500">{t("sidebar.tripProgress")}</span>
+                <span className="text-[#1E40AF]">65% {t("sidebar.used")}</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '65%' }}></div>
               </div>
             </div>
             <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
-              Manage Budget
+              {t("sidebar.manageBudget")}
             </button>
           </div>
 
           {/* Filters Card */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-gray-900 text-sm">Filters</h3>
-              <button className="text-xs font-bold text-blue-600 hover:underline">Reset</button>
+              <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters")}</h3>
+              <button className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
             </div>
             
             {/* Price Filter */}
@@ -175,7 +177,7 @@ const Guides_Card = () => {
 
             {/* Rating Filter */}
             <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Rating</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating")}</label>
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
                   <div className="flex items-center space-x-2">

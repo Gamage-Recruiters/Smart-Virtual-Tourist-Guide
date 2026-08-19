@@ -4,10 +4,12 @@ import {
   FaCogs, FaUsers
 } from 'react-icons/fa';
 import tuk from '../../assets/vehiclecard/tuk.png';
+import { useTranslation } from 'react-i18next';
 
 
 
 const Vehicles_Card = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [allVehicles, setAllVehicles] = useState([]);
   const [vehiclesData, setVehiclesData] = useState([]);
@@ -88,9 +90,9 @@ const Vehicles_Card = () => {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.056 11.95 11.95 0 01-1.6 5.944 11.95 11.95 0 01-6.234 4.944 11.954 11.954 0 01-6.234-4.944 11.95 11.95 0 01-1.6-5.944zm8.92 4.71a1 1 0 10-1.414-1.414L8 9.586 7.328 8.914a1 1 0 00-1.414 1.414l1.383 1.383a1 1 0 001.414 0l2.374-2.374z" clipRule="evenodd" />
               </svg>
-              <span>Budget Guardian</span>
+              <span>{t("sidebar.budgetGuardian")}</span>
             </div>
-            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">AVAILABLE FUNDS</span>
+            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">{t("sidebar.availableFunds")}</span>
             <div className="flex flex-col mb-4 mt-1">
               <div className="flex items-baseline space-x-1 mb-2">
                 <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
@@ -119,10 +121,10 @@ const Vehicles_Card = () => {
           {/* Filters Card */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-gray-900 text-sm">Filters</h3>
+              <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters")}</h3>
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Rating</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating")}</label>
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
                   <div className="flex items-center space-x-2">

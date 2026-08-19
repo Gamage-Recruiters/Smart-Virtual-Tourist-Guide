@@ -1,8 +1,10 @@
-
 import React from "react";
 import Decore from "../assets/Decore.png";
+import { useTranslation } from "react-i18next";
 
 export default function Main_Layout() {
+  const { t } = useTranslation();
+
   return (
     <div className="relative w-full bg-white overflow-x-hidden">
       
@@ -20,10 +22,10 @@ export default function Main_Layout() {
           {/* Left - Title & Subtitle */}
           <div>
             <h1 className="text-4xl font-extrabold uppercase tracking-wide text-gray-900">
-              Booking Marketplace
+              {t("mainLayout.title")}
             </h1>
             <p className="text-lg text-gray-500 mt-0.5">
-              Find and book the best verified travel services in Sri Lanka.
+              {t("mainLayout.subtitle")}
             </p>
           </div>
 
@@ -36,7 +38,7 @@ export default function Main_Layout() {
               </svg>
               <input
                 type="text"
-                placeholder="Search services..."
+                placeholder={t("mainLayout.searchPlaceholder")}
                 className="text-sm text-gray-400 outline-none bg-transparent w-full"
               />
             </div>
@@ -47,7 +49,7 @@ export default function Main_Layout() {
                 <circle cx="12" cy="12" r="10" strokeWidth={2} />
                 <path strokeLinecap="round" strokeWidth={2} d="M12 8v8M8 12h8" />
               </svg>
-              Post Custom Request
+              {t("mainLayout.postRequest")}
             </button>
           </div>
         </main>

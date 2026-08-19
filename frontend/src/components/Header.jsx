@@ -1,20 +1,50 @@
-import { ChevronDown } from "lucide-react"; // Replaced Search, Globe, Bell with ChevronDown
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronDown } from "lucide-react"; 
 import logo from "../assets/touristDashboard/Lanka.png";
 import textImage from "../assets/touristDashboard/main_text.png";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 function Header() {
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState(i18n.language || "EN");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const navLinks = [
-    "Home",
-    "Menu",
-    "Offers",
-    "Reservation",
-    "Revenue",
-    "Profile",
+    { key: "home", defaultLabel: "Home" },
+    { key: "menu", defaultLabel: "Menu" },
+    { key: "offers", defaultLabel: "Offers" },
+    { key: "reservation", defaultLabel: "Reservation" },
+    { key: "revenue", defaultLabel: "Revenue" },
+    { key: "profile", defaultLabel: "Profile" },
   ];
 
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
+
+  const handleLanguageChange = (lang) => {
+    setLanguage(lang);
+    i18n.changeLanguage(lang);
+    setIsDropdownOpen(false);
+  };
+
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <header className="w-full h-20 bg-white flex items-center justify-between  fixed top-0 left-0 z-50">
+    <header className="w-full h-20 bg-white flex items-center justify-between fixed top-0 left-0 z-50">
       {/* Left Section: Logo & Brand Text */}
       <div className="absolute top-0 left-0 h-full">
         <div className="relative w-32 h-20 shrink-0">
@@ -46,25 +76,52 @@ function Header() {
           <nav className="hidden lg:flex items-center gap-6 xl:gap-8 ">
             {navLinks.map((item) => (
               <Link
-                key={item}
-                to={`/${item.toLowerCase()}`}
+                key={item.key}
+                to={`/${item.defaultLabel.toLowerCase()}`}
                 className="text-slate-800 font-bold hover:text-blue-600 transition-colors text-lg"
               >
-                {item}
+                {t(`header.${item.key}`, item.defaultLabel)}
               </Link>
             ))}
           </nav>
 
           {/* Call to Action & Language Selector */}
-          <div className="flex items-center gap-6 ml-4 border-l border-slate-100 pl-6">
+          <div className="flex items-center gap-6 ml-4 border-l border-slate-100 pl-6 relative">
             <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition-transform active:scale-95">
-              Sign in
+              {t('header.signIn', 'Sign in')}
             </button>
 
-            <div className="flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900 transition-colors">
-              <span className="font-bold uppercase tracking-wide">EN</span>
-              <ChevronDown size={14} strokeWidth={3} />
+            {/* Language Selector */}
+            <div className="relative" ref={dropdownRef}>
+              <div 
+                className="flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900 transition-colors"
+                onClick={toggleDropdown}
+              >
+                <span className="font-bold uppercase tracking-wide">
+                  {language === "SI" ? "සිං" : language}
+                </span>
+                <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+              </div>
+
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+                  <div 
+                    className="px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors"
+                    onClick={() => handleLanguageChange("EN")}
+                  >
+                    English (EN)
+                  </div>
+                  <div 
+                    className="px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors"
+                    onClick={() => handleLanguageChange("SI")}
+                  >
+                    සිංහල (සිං)
+                  </div>
+                </div>
+              )}
             </div>
+
           </div>
         </div>
       </div>

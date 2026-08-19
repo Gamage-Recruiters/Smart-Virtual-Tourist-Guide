@@ -141,7 +141,7 @@ export default function Submit_Bids() {
             <div className="mb-10">
               <div className="flex items-center gap-2 mb-8 text-slate-700">
                 <Send size={14} className="rotate-12 text-blue-600" />
-                <h3 className="font-bold text-sm">Other driver bits</h3>
+                <h3 className="font-bold text-sm">Other driver bids</h3>
               </div>
 
               <div className="space-y-4">
