@@ -38,6 +38,8 @@ const Activities_Card = () => {
             rating: act.averageRating ,
             reviews: act.totalReviews ,
             price: act.pricePerPerson ,
+            timeSlotTemplates: act.timeSlotTemplates || [],
+            timeSlots: act.timeSlots || [],
             hasFreeCancellation: true, // Mock value
             isInstantBooking: true, // Mock value
             image: (act.images && act.images.length > 0) 

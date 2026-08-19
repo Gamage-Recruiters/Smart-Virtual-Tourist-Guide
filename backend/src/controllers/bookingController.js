@@ -5,6 +5,7 @@ import HotelBooking from '../models/HotelBooking.js';
 import RestaurantBooking from '../models/RestaurantBooking.js';
 import VehicleBooking from '../models/VehicleBooking.js';
 import { buildBookingData } from '../services/bookingService.js';
+import { getOrInitCalendar, findSlotInCalendar } from './activityController.js';
 
 const normalizeServiceType = (serviceType) =>
   typeof serviceType === 'string' ? serviceType.trim().toLowerCase() : '';
@@ -112,11 +113,35 @@ export const createBooking = async (req, res, next) => {
 
     const booking = await Model.create(bookingData);
 
+    // Update Activity Calendar booked count if serviceType is activity
+    if (serviceType === 'activity') {
+      const actId = service?.serviceId || service?._id || req.body.activityId || service?.id;
+      const actDate = bookingData.activityDate || req.body.activityDate;
+      const actSlot = bookingData.timeSlot || req.body.timeSlot;
+      const participantsCount = Number(bookingData.participants || req.body.participants) || 1;
+
+      if (actId && actDate && actSlot) {
+        try {
+          const calendar = await getOrInitCalendar(actId, actDate);
+          if (calendar && Array.isArray(calendar.timeSlots)) {
+            const slot = findSlotInCalendar(calendar.timeSlots, actSlot);
+            if (slot) {
+              slot.booked = (slot.booked || 0) + participantsCount;
+              await calendar.save();
+            }
+          }
+        } catch (calError) {
+          console.error('Error updating activity calendar on booking:', calError);
+        }
+      }
+    }
+
     res.status(201).json({ success: true, booking, serviceType });
   } catch (error) {
     next(error);
   }
 };
+
 
 export const getBookings = async (req, res, next) => {
   try {

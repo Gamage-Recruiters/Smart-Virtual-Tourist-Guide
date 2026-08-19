@@ -17,8 +17,20 @@ const hotelBookingSchema = new mongoose.Schema(
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    // Hotel & Room Specific Fields
+    hotelId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    roomNo: { type: String },
+    roomName: { type: String },
+    checkIn: { type: String },
+    checkOut: { type: String },
     checkInDate: { type: String },
     checkOutDate: { type: String },
+    bookedDate: { type: String },
+    bookingNo: { type: String },
+    bookingPrice: { type: Number, default: 0 },
+    adultCount: { type: Number, default: 1 },
+    childCount: { type: Number, default: 0 },
+    guestCountry: { type: String },
     roomType: { type: String },
     guests: { type: Number, min: 1 },
     roomsCount: { type: Number, default: 1, min: 1 },
@@ -47,6 +59,11 @@ const hotelBookingSchema = new mongoose.Schema(
       paidAt: { type: Date },
       payhereOrderId: { type: String },
       payherePaymentId: { type: String },
+      paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed', 'refunded', 'partial-refunded'],
+        default: 'pending',
+      },
     },
     status: {
       type: String,
@@ -60,3 +77,4 @@ const hotelBookingSchema = new mongoose.Schema(
 );
 
 export default mongoose.model('HotelBooking', hotelBookingSchema);
+
