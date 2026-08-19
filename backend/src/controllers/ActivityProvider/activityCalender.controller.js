@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Calendar from '../../models/ActivityProvider/activityCalender.model.js';
 import Activity from '../../models/ActivityProvider/activity.model.js';
 import Availability from '../../models/ActivityProvider/checkavailability.model.js';
@@ -63,6 +64,12 @@ const fetchBookedTourists = async (activityId, date) => {
 
     // 2. Fetch directly from ActivityBooking collection for confirmed bookings on this date
     const bookingQuery = { status: 'confirmed', activityDate: date };
+    if (activityId) {
+      bookingQuery['$or'] = [
+        { 'service.serviceId': activityId },
+        { activityId: activityId }
+      ];
+    }
     const confirmedBookings = await ActivityBooking.find(bookingQuery);
 
     for (const b of confirmedBookings) {
@@ -115,11 +122,18 @@ const getMonthCalendar = async (req, res) => {
       resultMap.set(obj.date, obj);
     });
 
-    // Merge dates with confirmed ActivityBookings in month
-    const confirmedBookings = await ActivityBooking.find({
+    // Merge dates with confirmed ActivityBookings in month for this activity
+    const bookingQuery = {
       status: 'confirmed',
       activityDate: { $gte: start, $lte: end },
-    });
+    };
+    if (activityId) {
+      bookingQuery['$or'] = [
+        { 'service.serviceId': activityId },
+        { activityId: activityId }
+      ];
+    }
+    const confirmedBookings = await ActivityBooking.find(bookingQuery);
 
     confirmedBookings.forEach((b) => {
       if (b.activityDate && !resultMap.has(b.activityDate)) {
@@ -132,11 +146,15 @@ const getMonthCalendar = async (req, res) => {
       }
     });
 
-    // Merge dates with active Availability entries
-    const availabilities = await Availability.find({
+    // Merge dates with active Availability entries for this activity
+    const availQuery = {
       status: { $ne: 'cancelled' },
       date: { $gte: start, $lte: end },
-    });
+    };
+    if (activityId) {
+      availQuery.activityId = activityId;
+    }
+    const availabilities = await Availability.find(availQuery);
 
     availabilities.forEach((a) => {
       if (a.date && !resultMap.has(a.date)) {
@@ -223,6 +241,10 @@ const saveCalendarDate = async (req, res) => {
     const { activityId, date } = req.params;
     const { timeSlots, isUnavailable, notes } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      return res.status(400).json({ success: false, message: 'Invalid activity ID' });
+    }
+
     if (Array.isArray(timeSlots)) {
       const invalid = timeSlots.find(
         (s) => typeof s.capacity === 'number' && typeof s.booked === 'number' && s.capacity < s.booked
@@ -235,11 +257,16 @@ const saveCalendarDate = async (req, res) => {
       }
     }
 
-    const entry = await Calendar.findOneAndUpdate(
-      { activityId, date },
-      { activityId, date, timeSlots, isUnavailable: !!isUnavailable, notes: notes || '' },
-      { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
-    );
+    let entry = await Calendar.findOne({ activityId, date });
+    if (!entry) {
+      entry = new Calendar({ activityId, date });
+    }
+
+    entry.timeSlots = Array.isArray(timeSlots) ? timeSlots : entry.timeSlots;
+    entry.isUnavailable = !!isUnavailable;
+    entry.notes = notes || '';
+
+    await entry.save();
 
     const bookedTourists = await fetchBookedTourists(activityId, date);
     const data = entry.toObject();
@@ -251,7 +278,8 @@ const saveCalendarDate = async (req, res) => {
       const messages = Object.values(err.errors).map((e) => e.message);
       return res.status(400).json({ success: false, message: messages.join(', ') });
     }
-    res.status(500).json({ success: false, message: err.message });
+    console.error('saveCalendarDate error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Failed to save calendar date' });
   }
 };
 
@@ -260,19 +288,46 @@ const markUnavailable = async (req, res) => {
   try {
     const { activityId, date } = req.params;
 
-    const entry = await Calendar.findOneAndUpdate(
-      { activityId, date },
-      { activityId, date, isUnavailable: true, status: 'unavailable' },
-      { new: true, upsert: true }
-    );
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      return res.status(400).json({ success: false, message: 'Invalid activity ID' });
+    }
+
+    const targetState = req.body?.isUnavailable !== undefined ? !!req.body.isUnavailable : true;
+
+    let entry = await Calendar.findOne({ activityId, date });
+    const activity = await Activity.findById(activityId).select('timeSlotTemplates maxParticipants');
+
+    if (!entry) {
+      if (!activity) {
+        return res.status(404).json({ success: false, message: 'Activity not found' });
+      }
+      entry = new Calendar({
+        activityId,
+        date,
+        timeSlots: slotsFromTemplates(activity),
+        isUnavailable: targetState,
+      });
+    } else {
+      entry.isUnavailable = targetState;
+      if ((!Array.isArray(entry.timeSlots) || entry.timeSlots.length === 0) && activity) {
+        entry.timeSlots = slotsFromTemplates(activity);
+      }
+    }
+
+    await entry.save();
 
     const bookedTourists = await fetchBookedTourists(activityId, date);
     const data = entry.toObject();
     data.bookedTourists = bookedTourists;
 
-    res.json({ success: true, data, message: 'Date marked as unavailable' });
+    const message = entry.isUnavailable
+      ? 'Date marked as unavailable'
+      : 'Date marked as available';
+
+    res.json({ success: true, data, message });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('markUnavailable error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Failed to update availability' });
   }
 };
 
@@ -286,12 +341,19 @@ const getSummary = async (req, res) => {
     const monthStart = `${y}-${m}-01`;
     const monthEnd   = `${y}-${m}-31`;
 
+    const bookingTodayQuery = { status: 'confirmed', activityDate: today };
+    const bookingMonthQuery = { status: 'confirmed', activityDate: { $gte: monthStart, $lte: monthEnd } };
+    if (activityId) {
+      bookingTodayQuery['$or'] = [{ 'service.serviceId': activityId }, { activityId: activityId }];
+      bookingMonthQuery['$or'] = [{ 'service.serviceId': activityId }, { activityId: activityId }];
+    }
+
     const [todayCalendar, monthCalendar, activity, confirmedBookingsToday, confirmedBookingsMonth] = await Promise.all([
       Calendar.findOne({ activityId, date: today }),
       Calendar.find({ activityId, date: { $gte: monthStart, $lte: monthEnd } }),
       Activity.findById(activityId).select('pricePerPerson'),
-      ActivityBooking.find({ status: 'confirmed', activityDate: today }),
-      ActivityBooking.find({ status: 'confirmed', activityDate: { $gte: monthStart, $lte: monthEnd } }),
+      ActivityBooking.find(bookingTodayQuery),
+      ActivityBooking.find(bookingMonthQuery),
     ]);
 
     const calTodayBookings = todayCalendar
