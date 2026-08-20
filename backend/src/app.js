@@ -15,6 +15,8 @@ import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
 import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
 import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
 
+import safetyRouter from './routes/Safety/safetyRouter.js';
+
 export const app = express();
 
 // 2. Configure CORS Middleware
@@ -23,10 +25,12 @@ app.use(cors());
 // middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/safety', safetyRouter);
 
 
 // basic routes

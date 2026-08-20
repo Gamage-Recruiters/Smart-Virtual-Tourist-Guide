@@ -11,6 +11,7 @@ import favoriteRouter from "./src/routes/NavigationAndMapping/favoriteRouter.js"
 import securityAlertRouter from "./src/routes/NavigationAndMapping/securityAlertRouter.js";
 import incidentRouter from "./src/routes/NavigationAndMapping/incidentRouter.js";
 import hotelRouter from "./src/routes/NavigationAndMapping/hotelRouter.js";
+import safetyRouter from "./src/routes/Safety/safetyRouter.js"
 
 // Configure cloudinary
 configureCloudinary();
@@ -27,6 +28,9 @@ app.use('/api/favorite-places', favoriteRouter);
 app.use('/api/security-alerts', securityAlertRouter);
 app.use('/api/incidents', incidentRouter);
 app.use('/api/hotels', hotelRouter);
+
+// Mount Safety routes
+app.use('/api/safety', safetyRouter);
 
 // Port
 const PORT = process.env.PORT || 5000;

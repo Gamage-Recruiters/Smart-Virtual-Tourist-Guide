@@ -57,7 +57,7 @@ export const debounce = (func, delay) => {
   };
 };
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDVs_OL6_0yDALiTiuzuyO6cTb5A-JEyuo';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyB47iNMtbMD7XcMw0789aQJxrOveN-9LtE';
 
 export function ensureMapsScript(callback) {
   if (window.google?.maps?.places) { callback(); return; }

@@ -1,4 +1,6 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// ==================== Existing Project Imports ====================
 import ActivityProviderDashboard from './pages/ActivityProvider/ActivityProviderDashboard.jsx';
 import ActivityList from './pages/ActivityProvider/ActivityList.jsx';
 import Activity from './pages/ActivityProvider/AddActivity.jsx';
@@ -13,6 +15,7 @@ import HowItWorks from './pages/HowItWork';
 
 import SignupForm from './pages/Tourist/SignupForm1';
 import TravelSafetyInfo from './pages/Tourist/SignupForm2';
+
 import LoginScreen from './pages/Login/LoginScreen';
 import ForgotPasswordScreen from './pages/Login/ForgotPasswordScreen';
 import NewPasswordCreate from './pages/Login/NewPasswordCreate';
@@ -21,13 +24,9 @@ import HotelOwnerSignup from './pages/HotelOwner/SignUp';
 import HotelInfo from './pages/HotelOwner/HotelInfo';
 
 import RestuarantSignup from './pages/Restuarant/SignupPage';
-
 import GuideSignup from './pages/Guide/SignupPage';
-
 import RenterSignup from './pages/Renter/SignupPage';
-
 import GovernmentSignup from './pages/Government/SignupPage';
-
 import ActivityProviderSignup from './pages/ActivityProvider/SignupPage';
 
 import AdminLogin from './pages/Admin/LoginPage';
@@ -35,16 +34,17 @@ import AdminLogin from './pages/Admin/LoginPage';
 import DriverSignUp1 from './pages/Driver/SignUpForm1';
 import DriverSignUp2 from './pages/Driver/SignUpForm2';
 import DriverSignUp3 from './pages/Driver/SignUpForm3';
+
 import { DriverSignupProvider } from './context/DriverSignupContext';
 import { PageTitleProvider } from './context/PageTitleContext';
 
-//import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
+
 import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
 import Dashboard from './pages/vehicleAdminDashboard/dashboard';
 import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage';
@@ -56,102 +56,440 @@ import MainPage from './pages/Tourist/touristMainPage/mainPage.jsx';
 import TouristProfilePage from './pages/Tourist/touristProfile/touristProfilePage.jsx';
 import TripPlanMainPage from './pages/Tourist/tripPlanMainPage/tripPlanMainPage.jsx';
 
-
 import NavigationMain from './pages/NavigationAndMapping/NavigationMain.jsx';
+
+
+// ==================== Safety Module Imports ====================
+import { SafetyProvider } from './context/SafetyContext.jsx';
+
+import SafetyLayout from './pages/safety/SafetyLayout';
+import PublicIncidentsPage from './pages/safety/PublicIncidentsPage';
+import EmergencyCallPage from './pages/safety/EmergencyCallPage';
+import SecurityAlertsPage from './pages/safety/SecurityAlertsPage';
+import IncidentReportPage from './pages/safety/IncidentReportPage';
+import IncidentTrackingPage from './pages/safety/IncidentTrackingPage';
+import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage';
+import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage';
+import WeatherAlertsPage from './pages/safety/WeatherAlertsPage';
+import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage';
+
+
+// ==================== CSS ====================
+import './App.css';
+
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <SafetyProvider>
+      <Router>
 
-        <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
-        <Route path="/activityprovider/activities" element={<ActivityList />} />
-        <Route path="/activityprovider/activities/new" element={<Activity />} />
-        <Route path="/activityprovider/activities/edit/:id" element={<Activity />} />
-        <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
-        <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
-        <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
-        {/* Landing pages */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={<AboutUs />} />
-          <Route path="how-it-works" element={<HowItWorks />} />
-        </Route>
+        <Routes>
 
-        {/* Auth */}
-        <Route path="/login" element={<LoginScreen />} />
-        <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
-        <Route path="/create-password" element={<NewPasswordCreate />} />
+          {/* ========================================================= */}
+          {/*                     EXISTING PROJECT                      */}
+          {/* ========================================================= */}
 
-        {/* Signup flows */}
-        <Route path="/tourist" element={<SignupForm />} />
-        <Route path="/travel-safety" element={<TravelSafetyInfo />} />
-        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
-        <Route path="/hotel-info" element={<HotelInfo />} />
-        <Route path="/restuarant" element={<RestuarantSignup />} />
-        <Route path="/guide" element={<GuideSignup />} />
-        <Route path="/renter" element={<RenterSignup />} />
-        <Route path="/government" element={<GovernmentSignup />} />
-        <Route path="/activity-provider" element={<ActivityProviderSignup />} />
-        <Route path="/admin" element={<AdminLogin />} />
+          {/* Activity Provider */}
+          <Route
+            path="/activityprovider/dashboard"
+            element={<ActivityProviderDashboard />}
+          />
 
-        {/* Driver signup — wrapped in shared context so all 3 steps share form state */}
-        <Route
-          path="/driver-signup1"
-          element={
-            <DriverSignupProvider>
-              <DriverSignUp1 />
-            </DriverSignupProvider>
-          }
-        />
-        <Route
-          path="/driver-signup2"
-          element={
-            <DriverSignupProvider>
-              <DriverSignUp2 />
-            </DriverSignupProvider>
-          }
-        />
-        <Route
-          path="/driver-signup3"
-          element={
-            <DriverSignupProvider>
-              <DriverSignUp3 />
-            </DriverSignupProvider>
-          }
-        />
+          <Route
+            path="/activityprovider/activities"
+            element={<ActivityList />}
+          />
 
-        {/* Dashboards */}
-        <Route path="/dashboard-Tourist" element={<MainPage />} />
-        <Route path="/touristProfile" element={<TouristProfilePage />} />
-        <Route path="/trip-plan" element={<TripPlanMainPage />} />
+          <Route
+            path="/activityprovider/activities/new"
+            element={<Activity />}
+          />
 
-        <Route path="/dashboard-HotelOwner" element={<DummyPageHotelOwner />} />
-        <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
-        <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
-        <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
-        <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
-        <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
-        <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
-        <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
+          <Route
+            path="/activityprovider/activities/edit/:id"
+            element={<Activity />}
+          />
 
-        <Route path="/direction" element={
-          <PageTitleProvider>
-            <NavigationMain />
-          </PageTitleProvider>
-        } />
+          <Route
+            path="/activityprovider/calendar"
+            element={<ManageCalendar />}
+          />
 
-        <Route path="/vehicle-admin" element={<VehicleAdmin />}>
-          <Route index element={<Dashboard />} />
-          <Route path="requests" element={<RentalRequestsPage />} />
-          <Route path="fleet" element={<MyFleetPage />} />
-          <Route path="earnings" element={<EarningsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/activityprovider/viewratings"
+            element={<ViewRatings />}
+          />
+
+          <Route
+            path="/activityprovider/acceptbookings"
+            element={<AcceptBookings />}
+          />
+
+
+          {/* Landing Pages */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutUs />} />
+            <Route path="how-it-works" element={<HowItWorks />} />
+          </Route>
+
+
+          {/* Authentication */}
+          <Route
+            path="/login"
+            element={<LoginScreen />}
+          />
+
+          <Route
+            path="/forgot-password"
+            element={<ForgotPasswordScreen />}
+          />
+
+          <Route
+            path="/create-password"
+            element={<NewPasswordCreate />}
+          />
+
+
+          {/* Signup Flows */}
+          <Route
+            path="/tourist"
+            element={<SignupForm />}
+          />
+
+          <Route
+            path="/travel-safety"
+            element={<TravelSafetyInfo />}
+          />
+
+          <Route
+            path="/hotel-owner"
+            element={<HotelOwnerSignup />}
+          />
+
+          <Route
+            path="/hotel-info"
+            element={<HotelInfo />}
+          />
+
+          <Route
+            path="/restuarant"
+            element={<RestuarantSignup />}
+          />
+
+          <Route
+            path="/guide"
+            element={<GuideSignup />}
+          />
+
+          <Route
+            path="/renter"
+            element={<RenterSignup />}
+          />
+
+          <Route
+            path="/government"
+            element={<GovernmentSignup />}
+          />
+
+          <Route
+            path="/activity-provider"
+            element={<ActivityProviderSignup />}
+          />
+
+          <Route
+            path="/admin"
+            element={<AdminLogin />}
+          />
+
+
+          {/* Driver Signup */}
+          <Route
+            path="/driver-signup1"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp1 />
+              </DriverSignupProvider>
+            }
+          />
+
+          <Route
+            path="/driver-signup2"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp2 />
+              </DriverSignupProvider>
+            }
+          />
+
+          <Route
+            path="/driver-signup3"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp3 />
+              </DriverSignupProvider>
+            }
+          />
+
+
+          {/* Dashboards */}
+          <Route
+            path="/dashboard-Tourist"
+            element={<MainPage />}
+          />
+
+          <Route
+            path="/touristProfile"
+            element={<TouristProfilePage />}
+          />
+
+          <Route
+            path="/trip-plan"
+            element={<TripPlanMainPage />}
+          />
+
+          <Route
+            path="/dashboard-HotelOwner"
+            element={<DummyPageHotelOwner />}
+          />
+
+          <Route
+            path="/dashboard-Restaurant"
+            element={<DummyPageRestaurant />}
+          />
+
+          <Route
+            path="/dashboard-Guide"
+            element={<DummyPageGuide />}
+          />
+
+          <Route
+            path="/dashboard-Renter"
+            element={<VehicleAdmin />}
+          />
+
+          <Route
+            path="/dashboard-Government"
+            element={<DummyPageGovernment />}
+          />
+
+          <Route
+            path="/dashboard-Driver"
+            element={<DummyPageDriver />}
+          />
+
+          <Route
+            path="/dashboard-Admin"
+            element={<DummyPageAdmin />}
+          />
+
+          <Route
+            path="/dashboard-ActivityProvider"
+            element={<ActivityProviderDashboard />}
+          />
+
+
+          {/* Existing Navigation */}
+          <Route
+            path="/direction"
+            element={
+              <PageTitleProvider>
+                <NavigationMain />
+              </PageTitleProvider>
+            }
+          />
+
+
+          {/* Vehicle Admin */}
+          <Route
+            path="/vehicle-admin"
+            element={<VehicleAdmin />}
+          >
+            <Route
+              index
+              element={<Dashboard />}
+            />
+
+            <Route
+              path="requests"
+              element={<RentalRequestsPage />}
+            />
+
+            <Route
+              path="fleet"
+              element={<MyFleetPage />}
+            />
+
+            <Route
+              path="earnings"
+              element={<EarningsPage />}
+            />
+
+            <Route
+              path="settings"
+              element={<SettingsPage />}
+            />
+          </Route>
+
+
+          {/* ========================================================= */}
+          {/*                         SAFETY MODULE                     */}
+          {/* ========================================================= */}
+
+          {/* Safety routes with Sidebar Layout */}
+          <Route
+            path="/safety"
+            element={<SafetyLayout />}
+          >
+
+            {/* /safety */}
+            <Route
+              index
+              element={<PublicIncidentsPage />}
+            />
+
+            {/* /safety/alerts */}
+            <Route
+              path="alerts"
+              element={<SecurityAlertsPage />}
+            />
+
+            {/* Old route → new route */}
+            <Route
+              path="security-alerts"
+              element={
+                <Navigate
+                  to="/safety/alerts"
+                  replace
+                />
+              }
+            />
+
+            {/* /safety/my-incidents */}
+            <Route
+              path="my-incidents"
+              element={<MyStatusDashboardPage />}
+            />
+
+            {/* Old route → new route */}
+            <Route
+              path="my-reports"
+              element={
+                <Navigate
+                  to="/safety/my-incidents"
+                  replace
+                />
+              }
+            />
+
+            {/* Old route → new route */}
+            <Route
+              path="status-dashboard"
+              element={
+                <Navigate
+                  to="/safety/my-incidents"
+                  replace
+                />
+              }
+            />
+
+            {/* /safety/public-analytics */}
+            <Route
+              path="public-analytics"
+              element={<IncidentTrackingPage />}
+            />
+
+            {/* Old route → new route */}
+            <Route
+              path="analytics"
+              element={
+                <Navigate
+                  to="/safety/public-analytics"
+                  replace
+                />
+              }
+            />
+
+            {/* /safety/public-incidents */}
+            <Route
+              path="public-incidents"
+              element={<PublicIncidentsPage />}
+            />
+
+            {/* /safety/weather */}
+            <Route
+              path="weather"
+              element={<WeatherAlertsPage />}
+            />
+
+          </Route>
+
+
+          {/* Safety Standalone Pages */}
+
+          {/* Emergency Call */}
+          <Route
+            path="/safety/emergency"
+            element={<EmergencyCallPage />}
+          />
+
+          {/* Navigation Directions */}
+          <Route
+            path="/safety/navigate"
+            element={<NavigationDirectionsPage />}
+          />
+
+          {/* Incident Report */}
+          <Route
+            path="/safety/report-incident"
+            element={<IncidentReportPage />}
+          />
+
+          {/* Old report form route */}
+          <Route
+            path="/safety/report-incident/form"
+            element={
+              <Navigate
+                to="/safety/report-incident"
+                replace
+              />
+            }
+          />
+
+          {/* Report Success */}
+          <Route
+            path="/safety/report-success"
+            element={<IncidentReportSuccessPage />}
+          />
+
+
+          {/* ========================================================= */}
+          {/*                    FALLBACK ROUTE                         */}
+          {/* ========================================================= */}
+
+          {/*
+            IMPORTANT:
+            Existing "/" route is preserved above.
+            Therefore we should NOT redirect "/" to "/safety".
+
+            Unknown URLs will go to the existing home page.
+          */}
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/"
+                replace
+              />
+            }
+          />
+
+        </Routes>
+
+      </Router>
+    </SafetyProvider>
   );
 }
 
 export default App;
-

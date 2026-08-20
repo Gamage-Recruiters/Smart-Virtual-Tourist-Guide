@@ -20,4 +20,4 @@ const incidentSchema = new mongoose.Schema(
   { collection: 'incidents' }
 );
 
-export default mongoose.model('Incident', incidentSchema);
+export default mongoose.model('NavIncident', incidentSchema);

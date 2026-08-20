@@ -34,7 +34,7 @@ function Sidebar() {
           <NavItem
             icon={<ShieldCheck size={20} />}
             label="Safety"
-            navigate="/"
+            navigate="/safety"
           />
           <NavItem icon={<User size={20} />} label="Profile" navigate="/touristProfile" active={location === "/touristProfile"}  />
         </nav>
