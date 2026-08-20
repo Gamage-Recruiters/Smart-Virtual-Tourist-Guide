@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import apiClient from '../../services/adminApi';
+import apiClient from '../../services/Admin/adminApi';
 
 const activityColor = {
   USER: "bg-yellow-400",

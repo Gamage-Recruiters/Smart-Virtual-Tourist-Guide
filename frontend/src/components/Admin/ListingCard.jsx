@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiFileText, FiEye, FiCheck, FiX, FiStar } from 'react-icons/fi';
-import ListingFallbackImage from '../../assets/Listing_Management.png';
+import ListingFallbackImage from '../../assets/Admin/Listing_Management.png';
 
 const ListingCard = ({ listing, onApprove, onReject }) => {
   const tags = Array.isArray(listing.tags) ? listing.tags : [];
