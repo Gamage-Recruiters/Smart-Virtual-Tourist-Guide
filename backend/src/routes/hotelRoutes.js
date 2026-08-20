@@ -6,6 +6,7 @@ import {
     getRoomById,
     updateRoom,
     deleteRoom,
+    checkRoomAvailability,
     createSpecialPackage,
     getSpecialPackages,
     getSpecialPackageById,
@@ -20,6 +21,7 @@ router.get('/', getAllHotels);
 
 // --- Room Routes ---
 router.post('/rooms', createRoom);
+router.post('/rooms/check-availability', checkRoomAvailability);
 router.get('/rooms', getRooms);
 router.get('/rooms/:id', getRoomById);
 router.put('/rooms/:id', updateRoom);
