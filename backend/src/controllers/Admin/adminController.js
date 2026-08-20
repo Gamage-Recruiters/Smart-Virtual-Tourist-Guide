@@ -1,10 +1,10 @@
-import User from '../models/User.js';
-import Admin from '../models/Admin.js';
-import Booking from '../models/ActivityProvider/ActivityBooking.js';
-import Package from '../models/Package.js';
-import Advertisement from '../models/Advertisement.js';
-import Review from '../models/Review.js';
-import Room from '../models/HotelOwner/room.model.js';
+import User from '../../models/User.js';
+import Admin from '../../models/Admin/Admin.js';
+import Booking from '../../models/ActivityProvider/ActivityBooking.js';
+import Package from '../../models/Admin/Package.js';
+import Advertisement from '../../models/Admin/Advertisement.js';
+import Review from '../../models/Admin/Review.js';
+import Room from '../../models/HotelOwner/room.model.js';
 
 
 // Fetch dashboard statistics

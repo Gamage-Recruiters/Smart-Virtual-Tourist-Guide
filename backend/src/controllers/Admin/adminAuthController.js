@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import Admin from '../models/Admin.js';
+import Admin from '../../models/Admin/Admin.js';
 
 const ALLOWED_ADMIN_ROLES = ['Administrator', 'Moderator', 'Editor'];
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
