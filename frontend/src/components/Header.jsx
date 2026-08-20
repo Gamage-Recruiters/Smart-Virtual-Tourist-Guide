@@ -103,35 +103,34 @@ export default function Header() {
   const readOnlySearch = isStartPage || isEtaPage;
 
   return (
-    <header className="relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible" style={{ borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)', willChange: 'transform' }}>
-      <div className="max-w-11xl mx-auto flex items-center justify-between h-full">
+    <header className="relative z-50 shadow-md overflow-visible" style={{ backgroundColor: '#ffffff', height: '80px', borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)' }}>
+      <div className="max-w-11xl mx-auto flex items-center justify-between h-full px-4">
         {/* Left: logo + text */}
-        <div className="flex items-center gap-1 h-full relative">
-          <img src={Logo} alt="Sri Lanka Tourism Logo" className="h-40 w-auto drop-shadow-md absolute -top-4 left-0" style={{ zIndex: 2, transform: 'translateZ(0)' }} />
-          <div className="flex flex-col items-center ml-24">
-            <span className="font-bold leading-tight" style={{ fontSize: 17, color: '#122E63', fontFamily: "'Inter', sans-serif", fontWeight: 700, letterSpacing: '1px' }}>
-              Smart Virtual Tourist Guide
+        <div className="flex items-center h-full relative">
+          <img src={Logo} alt="Sri Lanka Tourism Logo" className="drop-shadow-md absolute" style={{ height: '150px', width: 'auto', top: '-8px', left: '18px', zIndex: 2 }} />
+          <div className="flex flex-col items-start" style={{ marginLeft: '160px', marginTop: '4px' }}>
+            <span className="font-bold leading-tight" style={{ fontSize: '13px', color: '#122E63', fontFamily: "'Inter', sans-serif", letterSpacing: '0px', fontWeight: '700' }}>
+              Smart Virtual Tourism Guide
             </span>
-            <div style={{ background: '#fff', display: 'inline-block', padding: '0 8px', borderRadius: '6px', marginTop: 5 }}>
+            <div style={{ display: 'inline-block', marginTop: '2px' }}>
               <span
                 className="font-bold leading-tight whitespace-nowrap"
                 style={{
-                  fontSize: 'clamp(2rem, 2.6rem, 3rem)',
-                  letterSpacing: '8px',
+                  fontSize: '26px',
+                  letterSpacing: '4px',
                   fontFamily: "'Inter', sans-serif",
-                  display: 'inline-block',
-                  fontWeight: 700,
-                  backgroundImage: `url(${sriflag})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  color: 'transparent',
-                  transform: 'translateZ(0)',
-                  willChange: 'transform',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                Sri Lanka
+                <span style={{ color: '#0F5A29' }}>S</span>
+                <span style={{ color: '#0F5A29' }}>r</span>
+                <span style={{ color: '#0F5A29', marginRight: '6px' }}>i</span>
+                <span style={{ color: '#E76D1F' }}>L</span>
+                <span style={{ color: '#E76D1F', marginRight: '6px' }}>a</span>
+                <span style={{ color: '#E5B214', marginRight: '6px' }}>n</span>
+                <span style={{ color: '#8B1925' }}>k</span>
+                <span style={{ color: '#8B1925' }}>a</span>
               </span>
             </div>
           </div>
@@ -139,21 +138,22 @@ export default function Header() {
 
         {/* Center title */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
-          <h1 className="font-bold text-black text-3xl">{activePage === 'eta' ? '' : title}</h1>
+          <h1 className="font-bold text-black text-2xl">{activePage === 'eta' ? '' : title}</h1>
         </div>
 
         {/* Right: Search Bar */}
         {showSearchBar && activePage !== 'safety' ? (
-          <div ref={containerRef} style={{ position: 'relative', width: '800px', margin: '10px 30px' }}>
+          <div ref={containerRef} style={{ position: 'relative', width: '540px', marginRight: '80px' }}>
             <div
-              className="flex items-center gap-2 px-4 py-2"
+              className="flex items-center px-6"
               style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #A0DBFF 100%)',
+                height: '42px',
+                background: 'linear-gradient(90deg, #f0f7ff 0%, #bde0ff 100%)',
                 borderRadius: '999px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               }}
             >
-              <Search size={18} color="#000000" strokeWidth={2} />
+              <Search size={18} color="#000000" strokeWidth={2} style={{ flexShrink: 0, marginLeft: '12px' }} />
               <input
                 type="text"
                 value={readOnlySearch ? startPageDestination : query}
@@ -161,8 +161,8 @@ export default function Header() {
                 onKeyDown={readOnlySearch ? undefined : handleKeyDown}
                 placeholder="Search Here"
                 readOnly={readOnlySearch}
-                style={{ padding: '9px 0', flex: 1 }}
-                className="bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400 w-full"
+                style={{ flex: 1, textAlign: 'center', border: 'none', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: '14px' }}
+                className="text-gray-700 placeholder-gray-600 font-medium"
               />
               {isEtaPage && (
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginRight: '24px' }}>ETA Details</span>
@@ -175,8 +175,8 @@ export default function Header() {
                 </div>
               )}
               {!readOnlySearch && query.trim()
-                ? <X size={18} color="#000000" strokeWidth={2} style={{ cursor: 'pointer' }} onClick={() => { setQuery(''); setSuggestions([]); }} />
-                : <Mic size={18} color="#000000" strokeWidth={2} style={{ cursor: 'pointer' }} />
+                ? <X size={18} color="#000000" strokeWidth={2} style={{ cursor: 'pointer', flexShrink: 0, marginRight: '12px' }} onClick={() => { setQuery(''); setSuggestions([]); }} />
+                : <Mic size={18} color="#000000" strokeWidth={2} style={{ cursor: 'pointer', flexShrink: 0, marginRight: '12px' }} />
               }
             </div>
 
@@ -214,8 +214,8 @@ export default function Header() {
           <div id="header-search-portal" style={{ width: '880px', margin: '10px 30px', position: 'relative' }}>
             {activePage === 'directionOne' && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: '100%', paddingRight: '20px' }}>
-                <button 
-                  onClick={() => setActivePage('explore')} 
+                <button
+                  onClick={() => setActivePage('explore')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', pointerEvents: 'auto' }}
                   aria-label="Go Back"
                 >
