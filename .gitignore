@@ -65,8 +65,8 @@
 # # Yarn Integrity file
 # .yarn-integrity
 
-# # dotenv environment variable files
-# !.env.example
+# dotenv environment variable files
+!.env.example
 
 # # parcel-bundler cache (https://parceljs.org/)
 # .cache
@@ -145,12 +145,8 @@
 # =====================
 # ENV FILES (SECURE)
 # =====================
-.env
 backend/.env
 frontend/.env
-.env.local
-.env.development
-.env.production
 
 # =====================
 # DEPENDENCIES
@@ -232,3 +228,5 @@ coverage
 *.tgz
 
 frontend/vite.config copy.js
+
+config.bat

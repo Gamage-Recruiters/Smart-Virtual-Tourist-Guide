@@ -9,8 +9,9 @@ const getDashboardRoute = (role) => {
     case 'hotelowner_user':  return '/dashboard-HotelOwner';
     case 'restaurant_user':  return '/dashboard-Restaurant';
     case 'government_user':  return '/dashboard-Government';
-    case 'renter_user':      return '/dashboard-Renter';
+    case 'renter_user':      return '/vehicle-admin';
     case 'driver_user':      return '/dashboard-Driver';
+    case 'activityprovider_user': return '/activityprovider/dashboard';
     case 'admin':            return '/dashboard-Admin';
     default:                 return '/';
   }

@@ -14,9 +14,7 @@ import image4 from '../../assets/Tourist/bg4.png'
 import formBgImage from '../../assets/Tourist/form back.jpg'
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
-import appleIcon from '../../assets/HotelOwner/svg/apple.svg';
 
 const countriesList = getNames();
 
@@ -71,19 +69,18 @@ const SignupForm = () => {
 
     try {
       const finalCountry = formData.country === 'Other' ? formData.customCountry : formData.country;
-      const response = await userAPI.register({
+      
+      const signupData = {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
         gender: formData.gender,
         country: finalCountry,
         travelType: formData.travelType
-      });
+      };
 
-      // Store token and user data
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
-      localStorage.setItem('signupData', JSON.stringify(formData));
+      // Store form data for the next step
+      localStorage.setItem('signupData', JSON.stringify(signupData));
 
       // Navigate to travel safety page
       navigate('/travel-safety');
@@ -224,9 +221,6 @@ const SignupForm = () => {
                           </div>
                         )}
                         <div className="mt-4 flex justify-center gap-6">
-                          <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                            <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-                          </div>
                           <div
                             className={`cursor-pointer hover:bg-gray-100 p-2 rounded-full transition ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
                             onClick={handleGoogleAuth}
@@ -234,12 +228,9 @@ const SignupForm = () => {
                           >
                             <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
                           </div>
-                          <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                            <img src={appleIcon} alt="Apple" className="w-6 h-6 object-contain" />
-                          </div>
                         </div>
                         <p className="text-center mt-6 text-gray-600">
-                          Already have an account? <a href="/" className="text-[#3CB4FF] font-semibold hover:underline">Sign in</a>
+                          Already have an account? <a href="/login" className="text-[#3CB4FF] font-semibold hover:underline">Sign in</a>
                         </p>
                       </div>
                   </div>

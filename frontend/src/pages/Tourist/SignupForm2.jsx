@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { userAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom'
 import { IoMdArrowForward, IoMdArrowBack } from 'react-icons/io'
+import { getNames } from 'country-list'
 import { FaShieldAlt, FaHeartbeat, FaPhoneAlt, FaWallet, FaBed, FaUmbrellaBeach } from 'react-icons/fa'
 import Header from '../../components/Tourist/Header'
 import Footer from '../../components/Tourist/Footer'
@@ -25,6 +26,7 @@ const TravelSafetyInfo = () => {
     medicalCondition: '',
     emergencyName: '',
     emergencyRelationship: '',
+    emergencyContactNumber: '',
     emergencyCountry: 'United States'
   })
 
@@ -33,17 +35,17 @@ const TravelSafetyInfo = () => {
 
   // Load signup data when component mounts
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/tourist')
+    // Check if user has Form 1 data
+    const signupData = localStorage.getItem('signupData')
+    if (!signupData) {
+      navigate('/tourist') // or whichever route handles form 1
     }
   }, [navigate])
 
   const travelStyles = ['Adventure', 'Beach', 'Culture', 'Wildlife']
   const accommodationTypes = ['Hotel', 'Hostel', 'Resort', 'Homestay']
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
-  const countries = ['Sri Lanka', 'India', 'Maldives', 'Thailand', 'Singapore', 'United States', 'United Kingdom', 'Australia']
+  const countries = getNames();
 
   const handleStyleToggle = (style) => {
     setFormData(prev => ({
@@ -88,7 +90,11 @@ const TravelSafetyInfo = () => {
     setLoading(true);
 
     try {
+      const signupDataStr = localStorage.getItem('signupData');
+      const signupData = signupDataStr ? JSON.parse(signupDataStr) : {};
+
       const travelData = {
+        ...signupData,
         travelPreferences: {
           travelStart: formData.travelStart,
           travelEnd: formData.travelEnd,
@@ -107,16 +113,19 @@ const TravelSafetyInfo = () => {
         emergencyContact: {
           name: formData.emergencyName,
           relationship: formData.emergencyRelationship,
+          contactNumber: formData.emergencyContactNumber,
           country: formData.emergencyCountry
         }
       };
 
-      const response = await userAPI.updateTravelInfo(travelData);
+      const response = await userAPI.register(travelData);
 
       if (!response.success) {
         throw new Error(response.message || 'Failed to save information.');
       }
 
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('userData', JSON.stringify(response.user));
       localStorage.removeItem('signupData');
       navigate('/');
     } catch (error) {
@@ -353,7 +362,7 @@ const TravelSafetyInfo = () => {
                         <FaPhoneAlt className="mr-2 text-yellow-600" />
                         Emergency Contact
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
                           <input
@@ -374,6 +383,18 @@ const TravelSafetyInfo = () => {
                             value={formData.emergencyRelationship}
                             onChange={handleChange}
                             placeholder="e.g., Parent, Spouse, Friend"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CB4FF] focus:border-transparent outline-none transition bg-white/90"
+                            style={{ borderRadius: '10px' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                          <input
+                            type="tel"
+                            name="emergencyContactNumber"
+                            value={formData.emergencyContactNumber}
+                            onChange={handleChange}
+                            placeholder="e.g., +1 234 567 8900"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3CB4FF] focus:border-transparent outline-none transition bg-white/90"
                             style={{ borderRadius: '10px' }}
                           />

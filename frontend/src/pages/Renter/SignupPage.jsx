@@ -7,7 +7,6 @@ import heroImg from "../../assets/Renter/bg.png";
 import useGoogleAuth from "../../hooks/useGoogleAuth";
 
 // Import social icons from assets (SVG files)
-import facebookIcon from '../../assets/HotelOwner/svg/FB.svg';
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
 
 const RenterSignup = () => {
@@ -63,7 +62,7 @@ const RenterSignup = () => {
       localStorage.setItem("token", response.token);
       localStorage.setItem("userData", JSON.stringify(response.user));
 
-      navigate("/dashboard-Renter");
+      navigate("/vehicle-admin");
     } catch (err) {
       console.error(err);
       setError(err.message || "Registration failed. Please try again.");
@@ -242,9 +241,6 @@ const RenterSignup = () => {
                 >
                   <img src={googleIcon} alt="Google" className="w-6 h-6 object-contain" />
                 </div>
-                <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full">
-                  <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-                </div>
               </div>
         
             </div>
@@ -254,7 +250,7 @@ const RenterSignup = () => {
               <p className="text-gray-500">
                 Already have an account?{" "}
                 <Link
-                  to="/"
+                  to="/login"
                   className="text-blue-600 font-semibold"
                 >
                   Sign in

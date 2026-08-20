@@ -26,7 +26,7 @@ const generateUsername = async (email) => {
 const registerTourist = async (req, res) => {
   try {
     console.log('Registering tourist request body:', req.body);
-    const { fullName, email, password, country, travelType, gender } = req.body;
+    const { fullName, email, password, country, travelType, gender, travelPreferences, healthInfo, emergencyContact } = req.body;
 
     const emailNormalized = email.toLowerCase().trim();
     const userExists = await User.findOne({ email: emailNormalized });
@@ -45,6 +45,9 @@ const registerTourist = async (req, res) => {
       country,
       travelType,
       gender,
+      travelPreferences,
+      healthInfo,
+      emergencyContact,
     });
 
     res.status(201).json({
@@ -59,6 +62,9 @@ const registerTourist = async (req, res) => {
         country: user.country,
         travelType: user.travelType,
         gender: user.gender,
+        travelPreferences: user.travelPreferences,
+        healthInfo: user.healthInfo,
+        emergencyContact: user.emergencyContact,
       },
       token: generateToken(user._id),
     });
@@ -255,6 +261,45 @@ const registerRenter = async (req, res) => {
   }
 };
 
+const registerActivityProvider = async (req, res) => {
+  try {
+    const { fullName, email, password, contactNumber } = req.body;
+
+    const emailNormalized = email.toLowerCase().trim();
+    const userExists = await User.findOne({ email: emailNormalized });
+    if (userExists) {
+      return res.status(400).json({ success: false, message: 'User with this email already exists' });
+    }
+
+    const username = await generateUsername(emailNormalized);
+
+    const user = await User.create({
+      fullName,
+      username,
+      email: emailNormalized,
+      password,
+      role: 'activityprovider_user',
+      contactNumber
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Activity Provider registered successfully',
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        contactNumber: user.contactNumber
+      },
+      token: generateToken(user._id),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 const registerGovernment = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -309,6 +354,11 @@ const registerDriver = async (req, res) => {
 
     const username = await generateUsername(emailNormalized);
 
+    // Extract image URLs from Multer (Cloudinary)
+    const licenseImages = req.files?.licenseImages?.map(file => file.path) || [];
+    const regBookImages = req.files?.regBookImages?.map(file => file.path) || [];
+    const vehicleImages = req.files?.vehicleImages?.map(file => file.path) || [];
+
     const user = await User.create({
       fullName,
       username,
@@ -319,6 +369,9 @@ const registerDriver = async (req, res) => {
       vehicleNumber,
       licenseNumber,
       contactNumber,
+      licenseImages,
+      regBookImages,
+      vehicleImages,
     });
 
     res.status(201).json({
@@ -334,6 +387,9 @@ const registerDriver = async (req, res) => {
         vehicleNumber: user.vehicleNumber,
         licenseNumber: user.licenseNumber,
         contactNumber: user.contactNumber,
+        licenseImages: user.licenseImages,
+        regBookImages: user.regBookImages,
+        vehicleImages: user.vehicleImages,
       },
       token: generateToken(user._id),
     });
@@ -360,6 +416,7 @@ const loginUser = async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
+          hotels: user.hotels || [],
         },
         token: generateToken(user._id),
       });
@@ -454,6 +511,7 @@ const forgotPassword = async (req, res) => {
 
     res.json({ message: 'Reset link sent to your inbox. Please check.' });
   } catch (error) {
+    console.error('[PASS_RESET_ERROR]', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -552,7 +610,7 @@ const googleAuth = async (req, res) => {
       // Existing user — login
       return res.json({
         success: true,
-        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: user.hotels || [] },
         token: generateToken(user._id),
       });
     }
@@ -565,19 +623,45 @@ const googleAuth = async (req, res) => {
       fullName: name || emailNormalized.split('@')[0],
       username,
       email: emailNormalized,
-      password: uid, // Firebase UID as placeholder password (not used for login)
+      password: uid,
       role: assignedRole,
       googleId: uid,
+      contactNumber: '',
+      hotels: [],
     });
 
     res.status(201).json({
       success: true,
-      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: [] },
       token: generateToken(user._id),
     });
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(401).json({ success: false, message: 'Invalid or expired Google token' });
+  }
+};
+
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
@@ -588,6 +672,7 @@ export {
   registerGuide,
   registerRestaurant,
   registerRenter,
+  registerActivityProvider,
   registerGovernment,
   registerDriver,
   forgotPassword,
@@ -595,4 +680,5 @@ export {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
+  getMe
 };

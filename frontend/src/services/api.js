@@ -1,4 +1,3 @@
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -52,7 +51,14 @@ const apiClient = {
           : privateHeaders(),
       });
 
-      return await response.json();
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      return json;
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
@@ -61,15 +67,26 @@ const apiClient = {
 
   async post(endpoint, data) {
     try {
+      const isFormData = data instanceof FormData;
+
+      const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
+
+      if (isFormData) {
+        delete headers['Content-Type'];
+      }
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
-        headers: isPublicRoute(endpoint)
-          ? publicHeaders
-          : privateHeaders(),
-        body: JSON.stringify(data),
+        headers,
+        body: isFormData ? data : JSON.stringify(data),
       });
 
       const json = await response.json();
+
+      if (response.status === 401 && !endpoint.startsWith('/auth/login')) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
 
       if (!response.ok) {
         throw { message: json.message || 'Request failed' };
@@ -129,6 +146,9 @@ export const userAPI = {
   register(userData) {
     return apiClient.post('/auth/register/tourist', userData);
   },
+  login(credentials) {
+    return apiClient.post('/auth/login', credentials);
+  },
   updateTravelInfo(travelData) {
     return apiClient.put('/auth/update-travel-info', travelData);
   },
@@ -174,11 +194,29 @@ export const renterAPI = {
 };
 
 /**
+ * ACTIVITY PROVIDER APIs (from main)
+ */
+export const activityProviderAPI = {
+  register(userData) {
+    return apiClient.post('/auth/register/activity-provider', userData);
+  },
+};
+
+/**
  * GOVERNMENT APIs
  */
 export const governmentAPI = {
   register(userData) {
     return apiClient.post('/auth/register/government', userData);
+  },
+};
+
+/**
+ * DRIVER APIs (from main)
+ */
+export const driverAPI = {
+  register(userData) {
+    return apiClient.post('/auth/register/driver', userData);
   },
 };
 
@@ -191,12 +229,10 @@ export const socialAuthAPI = {
   },
 };
 
-/**
- * REVIEW APIs
- */
+// ==================== RESTAURANT-SPECIFIC APIs (from Integration-resturent/shakir) ====================
 
 /**
- * Private headers using restaurantToken (for dashboard calls)
+ * Private headers using restaurantToken (for restaurant dashboard calls)
  */
 const restaurantPrivateHeaders = () => {
   const headers = {
@@ -209,6 +245,9 @@ const restaurantPrivateHeaders = () => {
   return headers;
 };
 
+/**
+ * REVIEW APIs (Restaurant feature)
+ */
 export const reviewAPI = {
   /** Get reviews + stats for a restaurant (public, with optional auth for user review) */
   async getRestaurantReviews(restaurantId, page = 1) {
@@ -279,4 +318,3 @@ export const reviewAPI = {
 };
 
 export default apiClient;
-

@@ -339,7 +339,7 @@ const GuideSignup = () => {
             <div className="text-center mt-10">
               <p className="text-gray-500">
                 Already have an account?{" "}
-                <Link to="/" className="text-blue-600 font-semibold">
+                <Link to="/login" className="text-blue-600 font-semibold">
                   Sign in
                 </Link>
               </p>
