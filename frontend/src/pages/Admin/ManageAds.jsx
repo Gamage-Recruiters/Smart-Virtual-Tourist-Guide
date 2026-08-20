@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEdit, FiTrash2, FiPlus, FiTrendingUp, FiTrendingDown, FiDollarSign, FiMousePointer, FiBarChart2, FiUsers, FiCalendar, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import apiClient from '../services/adminApi';
-import AdvertisementManagementBg from '../assets/travel-ads-scaled 1.png';
+import apiClient from '../../services/Admin/adminApi';
+import AdvertisementManagementBg from '../../assets/Admin/travel-ads-scaled 1.png';
 
 const ManageAds = () => {
   const [ads, setAds] = useState([]);

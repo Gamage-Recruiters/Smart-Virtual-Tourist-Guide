@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminLayout from '../components/layout/AdminLayout';
-import HeroBg from '../assets/airplane-bg.jpg';
-import apiClient from '../services/adminApi';
+import AdminLayout from '../../components/Admin/AdminLayout';
+import HeroBg from '../../assets/Admin/airplane-bg.jpg';
+import apiClient from '../../services/Admin/adminApi';
 
 const Login = () => {
   const navigate = useNavigate();

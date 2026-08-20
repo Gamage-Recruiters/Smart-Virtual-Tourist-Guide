@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSearch, FiClock, FiCheckCircle, FiXCircle, FiShield, FiChevronLeft, FiChevronRight, FiSliders } from 'react-icons/fi';
-import apiClient from '../services/adminApi';
-import ListingCard from '../components/Admin/ListingCard';
-import RejectModal from '../components/Admin/RejectModal';
+import apiClient from '../../services/Admin/adminApi';
+import ListingCard from '../../components/Admin/ListingCard';
+import RejectModal from '../../components/Admin/RejectModal';
 import toast, { Toaster } from 'react-hot-toast';
-import ListingManagementBg from '../assets/Listing_Management.png';
+import ListingManagementBg from '../../assets/Admin/Listing_Management.png';
 
 const ApproveListings = () => {
   const [listingsData, setListingsData] = useState([]);

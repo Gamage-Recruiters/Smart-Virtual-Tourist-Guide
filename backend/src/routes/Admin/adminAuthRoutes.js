@@ -3,12 +3,12 @@ import {
   registerAdmin,
   loginAdmin,
   getAdminProfile,
-} from '../controllers/adminAuthController.js';
+} from '../../controllers/Admin/adminAuthController.js';
 import {
   protectAdmin,
   authorizeRoles,
-} from '../middleware/adminAuthMiddleware.js';
-import loginRateLimiter from '../middleware/loginRateLimiter.js';
+} from '../../middleware/Admin/adminAuthMiddleware.js';
+import loginRateLimiter from '../../middleware/Admin/loginRateLimiter.js';
 
 const router = express.Router();
 

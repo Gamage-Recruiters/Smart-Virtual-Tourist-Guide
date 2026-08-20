@@ -1,9 +1,9 @@
-import apiClient from '../services/adminApi';
+import apiClient from '../../services/Admin/adminApi';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiUsers, FiCheckCircle, FiClock, FiUserX, FiSearch, FiShield, FiMoreVertical, FiMail, FiPhone, FiMapPin, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import toast, { Toaster } from 'react-hot-toast';
-import UserManagementBg from '../assets/usermanagement.png';
+import UserManagementBg from '../../assets/Admin/usermanagement.png';
 
 const UserManagement = () => {
   const [usersList, setUsersList] = useState([]);

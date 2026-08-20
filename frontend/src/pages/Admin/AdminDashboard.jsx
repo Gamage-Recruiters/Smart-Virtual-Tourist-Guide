@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import StatCard from '../components/Admin/StatCard';
-import RevenueChart from '../components/Admin/RevenueChart';
-import BookingChart from '../components/Admin/BookingChart';
-import PackagePerformanceChart from '../components/Admin/PackagePerformanceChart';
-import BookingPieChart from '../components/Admin/BookingPieChart';
-import RecentActivity from '../components/Admin/RecentActivity';
+import StatCard from '../../components/Admin/StatCard';
+import RevenueChart from '../../components/Admin/RevenueChart';
+import BookingChart from '../../components/Admin/BookingChart';
+import PackagePerformanceChart from '../../components/Admin/PackagePerformanceChart';
+import BookingPieChart from '../../components/Admin/BookingPieChart';
+import RecentActivity from '../../components/Admin/RecentActivity';
 import { FiUsers, FiBriefcase, FiTruck, FiHome } from 'react-icons/fi';
-import HeroBg from "../assets/hero-bg.png";
-import apiClient from '../services/adminApi';
+import HeroBg from "../../assets/Admin/hero-bg.png";
+import apiClient from '../../services/Admin/adminApi';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({

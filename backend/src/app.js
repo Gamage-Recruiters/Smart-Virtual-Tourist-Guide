@@ -12,8 +12,8 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import adminAuthRoutes from './routes/adminAuthRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
+import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
+import adminRoutes from './routes/Admin/adminRoutes.js';
 import errorHandler from './middleware/HotelOwner/errorHandler.js';
 
 config();

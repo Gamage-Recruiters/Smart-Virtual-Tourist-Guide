@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import AdminLayout from '../layout/AdminLayout';
-import apiClient from '../../services/adminApi';
+import AdminLayout from './AdminLayout';
+import apiClient from '../../services/Admin/adminApi';
 
 const getRoleHome = (role) => {
   if (role === 'Administrator') return '/admin';

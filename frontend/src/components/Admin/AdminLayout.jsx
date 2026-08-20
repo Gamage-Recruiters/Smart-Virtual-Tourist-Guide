@@ -10,7 +10,7 @@ import {
   FiTwitter,
   FiX,
 } from 'react-icons/fi';
-import Logo from '../../assets/logo.png';
+import Logo from '../../assets/Admin/logo.png';
 
 const primaryNavigation = [
   { label: 'Dashboard', to: '/admin' },

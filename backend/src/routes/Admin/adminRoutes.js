@@ -16,11 +16,11 @@ import {
   approvePackage,
   rejectPackage,
   getPackageById,
-} from '../controllers/adminController.js';
+} from '../../controllers/Admin/adminController.js';
 import {
   protectAdmin,
   authorizeRoles,
-} from '../middleware/adminAuthMiddleware.js';
+} from '../../middleware/Admin/adminAuthMiddleware.js';
 
 const router = express.Router();
 

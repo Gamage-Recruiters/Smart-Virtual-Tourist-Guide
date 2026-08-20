@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiShield, FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiCheck } from 'react-icons/fi';
-import apiClient from '../services/adminApi';
+import apiClient from '../../services/Admin/adminApi';
 
 const AddNewAdmin = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { FiArrowLeft, FiEye, FiType, FiAlignLeft, FiTag, FiDollarSign, FiCalendar, FiBarChart2, FiMousePointer, FiUsers } from 'react-icons/fi';
-import apiClient from '../services/adminApi';
+import apiClient from '../../services/Admin/adminApi';
 
 const ViewAdvertisement = () => {
   const { id } = useParams();

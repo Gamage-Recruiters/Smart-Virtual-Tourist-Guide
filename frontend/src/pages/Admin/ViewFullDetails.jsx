@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { FiStar, FiMapPin, FiFileText, FiDollarSign, FiClock, FiCheckCircle, FiX, FiCheck, FiTag } from 'react-icons/fi';
-import apiClient from '../services/adminApi';
+import apiClient from '../../services/Admin/adminApi';
 
 const ViewFullDetails = () => {
   const { id } = useParams();
