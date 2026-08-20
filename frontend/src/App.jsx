@@ -67,18 +67,18 @@ import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
 import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
 import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
 
-import IntegratedAdminDashboard from './pages/AdminDashboard';
-import IntegratedAdminUsers from './pages/UserManagement';
-import IntegratedAdminListings from './pages/ApproveListings';
-import IntegratedAdminAds from './pages/ManageAds';
-import IntegratedAdminCreateAd from './pages/CreateAdvertisement';
-import IntegratedAdminAddUser from './pages/AddNewAdmin';
-import IntegratedAdminViewDetails from './pages/ViewFullDetails';
-import IntegratedAdminLogin from './pages/Login';
-import IntegratedAdminEditAd from './pages/EditAdvertisement';
-import IntegratedAdminViewAd from './pages/ViewAdvertisement';
-import IntegratedAdminAccessDenied from './pages/AccessDenied';
-import IntegratedAdminProtectedRoute from './components/auth/ProtectedRoute';
+import IntegratedAdminDashboard from './pages/Admin/AdminDashboard';
+import IntegratedAdminUsers from './pages/Admin/UserManagement';
+import IntegratedAdminListings from './pages/Admin/ApproveListings';
+import IntegratedAdminAds from './pages/Admin/ManageAds';
+import IntegratedAdminCreateAd from './pages/Admin/CreateAdvertisement';
+import IntegratedAdminAddUser from './pages/Admin/AddNewAdmin';
+import IntegratedAdminViewDetails from './pages/Admin/ViewFullDetails';
+import IntegratedAdminLogin from './pages/Admin/Login';
+import IntegratedAdminEditAd from './pages/Admin/EditAdvertisement';
+import IntegratedAdminViewAd from './pages/Admin/ViewAdvertisement';
+import IntegratedAdminAccessDenied from './pages/Admin/AccessDenied';
+import IntegratedAdminProtectedRoute from './components/Admin/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
