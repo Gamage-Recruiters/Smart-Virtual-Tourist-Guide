@@ -7,7 +7,8 @@ import HotelAvailabilityCard from "../../components/booking&reservation/serviceA
 import { 
   FaArrowLeft, FaMapMarkerAlt, FaStar, FaWifi, 
   FaSwimmingPool, FaDumbbell, FaSpa, FaUtensils, 
-  FaParking, FaCheckCircle, FaTimesCircle, FaShieldAlt, FaMedkit, FaPhoneAlt
+  FaParking, FaCheckCircle, FaTimesCircle, FaShieldAlt, FaMedkit, FaPhoneAlt,
+  FaGift, FaTag
 } from 'react-icons/fa';
 
 const HotelBooking = () => {
@@ -17,12 +18,36 @@ const HotelBooking = () => {
     const [selectedRoom, setSelectedRoom] = useState(null);
     const [rooms, setRooms] = useState([]);
     const [loadingRooms, setLoadingRooms] = useState(true);
+    const [packages, setPackages] = useState([]);
+    const [loadingPackages, setLoadingPackages] = useState(true);
     const availabilityCardRef = useRef(null);
 
     const handleSelectRoom = (room) => {
         setSelectedRoom(room);
         availabilityCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         toast(`Selected ${room.name}. Please select your booking dates to continue.`, { icon: '📅' });
+    };
+
+    const handleSelectPackage = (pkg) => {
+        const rawPrice = pkg.locationAndPricing?.[0]?.basePrice || 25000;
+        const discountPct = pkg.discount?.discountPercent || 0;
+        const discountAmt = pkg.discount?.discountAmountPerNight || 0;
+        let finalPrice = rawPrice;
+        if (discountPct > 0) {
+            finalPrice = rawPrice * (1 - discountPct / 100);
+        } else if (discountAmt > 0) {
+            finalPrice = Math.max(0, rawPrice - discountAmt);
+        }
+        
+        setSelectedRoom({
+            id: pkg._id,
+            name: `${pkg.packageName} (Special Package)`,
+            price: finalPrice,
+            isPackage: true,
+            ...pkg
+        });
+        availabilityCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toast(`Selected package: ${pkg.packageName}. Please select your booking dates to continue.`, { icon: '🎁' });
     };
 
     // Hotel details fallback
@@ -39,12 +64,13 @@ const HotelBooking = () => {
         currency: 'LKR'
     };
 
-    // Fetch dynamic rooms from backend using hotelId / ownerId
+    // Fetch dynamic rooms & packages from backend using hotelId / ownerId
     React.useEffect(() => {
+        const hotelOwnerId = hotel?._id || hotel?.ownerId;
+
         const fetchHotelRooms = async () => {
             setLoadingRooms(true);
             try {
-                const hotelOwnerId = hotel?._id || hotel?.ownerId;
                 const url = hotelOwnerId 
                     ? `http://localhost:5000/api/hotels/rooms?hotelId=${hotelOwnerId}`
                     : 'http://localhost:5000/api/hotels/rooms';
@@ -63,7 +89,29 @@ const HotelBooking = () => {
             }
         };
 
+        const fetchHotelPackages = async () => {
+            setLoadingPackages(true);
+            try {
+                const url = hotelOwnerId 
+                    ? `http://localhost:5000/api/hotels/packages?hotelId=${hotelOwnerId}`
+                    : 'http://localhost:5000/api/hotels/packages';
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    setPackages(data.data);
+                } else {
+                    setPackages([]);
+                }
+            } catch (err) {
+                console.error("Error fetching packages for hotel:", err);
+                setPackages([]);
+            } finally {
+                setLoadingPackages(false);
+            }
+        };
+
         fetchHotelRooms();
+        fetchHotelPackages();
     }, [hotel]);
 
     return (
@@ -207,6 +255,134 @@ const HotelBooking = () => {
                                                             >
                                                                 {isSelected ? 'Selected ✓' : 'Select Room'}
                                                             </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Special Package Section */}
+                            <div className="mb-10">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-sm">
+                                            <FaGift className="w-4 h-4" />
+                                        </div>
+                                        <h3 className="font-bold text-xl text-gray-900">Special Packages</h3>
+                                    </div>
+                                    <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                                        Exclusive Deals
+                                    </span>
+                                </div>
+
+                                {loadingPackages ? (
+                                    <div className="text-sm text-gray-500 py-4 font-medium animate-pulse">Loading special packages...</div>
+                                ) : packages.length === 0 ? (
+                                    <div className="text-sm text-gray-500 py-6 bg-amber-50/50 border border-amber-100 rounded-xl p-4 text-center">
+                                        No special packages currently available for this hotel.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {packages.map((pkg) => {
+                                            const basePrice = pkg.locationAndPricing?.[0]?.basePrice || 25000;
+                                            const discountPct = pkg.discount?.discountPercent;
+                                            const discountAmt = pkg.discount?.discountAmountPerNight;
+                                            let discountedPrice = basePrice;
+                                            if (discountPct > 0) {
+                                                discountedPrice = basePrice * (1 - discountPct / 100);
+                                            } else if (discountAmt > 0) {
+                                                discountedPrice = Math.max(0, basePrice - discountAmt);
+                                            }
+
+                                            const pkgImage = (pkg.images && pkg.images.length > 0) ? pkg.images[0] : displayHotel.image;
+                                            const isSelected = selectedRoom?.id === pkg._id || selectedRoom?.name?.includes(pkg.packageName);
+
+                                            return (
+                                                <div 
+                                                    key={pkg._id} 
+                                                    className={`rounded-2xl p-5 border transition-all relative overflow-hidden ${isSelected ? 'bg-amber-50/60 border-amber-500 shadow-md ring-1 ring-amber-500' : 'bg-gradient-to-r from-[#FFFDF9] to-[#FDFBF7] border-amber-100 hover:border-amber-300 hover:shadow-sm'}`}
+                                                >
+                                                    {/* Badge if discount exists */}
+                                                    {(discountPct > 0 || discountAmt > 0) && (
+                                                        <div className="absolute top-0 right-0 bg-gradient-to-l from-red-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs flex items-center gap-1">
+                                                            <FaTag className="w-2.5 h-2.5" />
+                                                            {discountPct > 0 ? `${discountPct}% OFF` : `LKR ${discountAmt} OFF`}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex flex-col sm:flex-row gap-5">
+                                                        <div className="relative w-full sm:w-44 h-36 shrink-0 rounded-xl overflow-hidden">
+                                                            <img src={pkgImage} alt={pkg.packageName} className="w-full h-full object-cover" />
+                                                            <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded font-medium">
+                                                                Package Deal
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1 flex flex-col justify-between">
+                                                            <div>
+                                                                <div className="flex justify-between items-start mb-1 pr-16 sm:pr-0">
+                                                                    <div>
+                                                                        <h4 className="font-extrabold text-gray-900 text-lg">{pkg.packageName}</h4>
+                                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                                            <span className="text-xs text-amber-700 font-semibold bg-amber-100/70 px-2 py-0.5 rounded">
+                                                                                {pkg.roomType}
+                                                                            </span>
+                                                                            {pkg.roomSize && (
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    • {pkg.roomSize} {pkg.measureType || 'sqm'}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        {discountedPrice < basePrice ? (
+                                                                            <div>
+                                                                                <span className="text-xs text-gray-400 line-through mr-1">LKR {basePrice.toLocaleString()}</span>
+                                                                                <span className="font-black text-xl text-amber-600">LKR {discountedPrice.toLocaleString()}</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="font-black text-xl text-gray-900">LKR {basePrice.toLocaleString()}</span>
+                                                                        )}
+                                                                        <span className="block text-[10px] text-gray-500">per night</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <p className="text-xs text-gray-600 line-clamp-2 my-2">
+                                                                    {pkg.description}
+                                                                </p>
+
+                                                                <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 font-medium">
+                                                                    <span className="bg-white px-2 py-1 rounded border border-amber-200 text-amber-900 font-semibold">
+                                                                        👥 {pkg.capacity?.adults || 2} Adults{pkg.capacity?.children ? `, ${pkg.capacity.children} Children` : ''}
+                                                                    </span>
+                                                                    {(pkg.amenities || []).map((amenity, idx) => (
+                                                                        <span key={idx} className="bg-white px-2 py-1 rounded border border-gray-200 capitalize">
+                                                                            {amenity}
+                                                                        </span>
+                                                                    ))}
+                                                                    {pkg.discount?.promoCode && (
+                                                                        <span className="bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded border border-amber-300">
+                                                                            Code: {pkg.discount.promoCode}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex justify-between items-end mt-4 pt-2 border-t border-amber-100/60">
+                                                                <div className="text-[11px] text-amber-800 font-medium">
+                                                                    {pkg.discount?.validTo && (
+                                                                        <span>Valid until: {pkg.discount.validTo}</span>
+                                                                    )}
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => handleSelectPackage(pkg)} 
+                                                                    className={`${isSelected ? 'bg-green-600 hover:bg-green-700 shadow-sm' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'} text-white text-xs font-bold px-6 py-2.5 rounded-lg transition shadow-xs`}
+                                                                >
+                                                                    {isSelected ? 'Selected ✓' : 'Select Package'}
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -64,48 +64,7 @@ export const getAllHotels = async (req, res, next) => {
             };
         }));
 
-        // For rooms with no hotelId or unlinked, group by contact email or room name into hotel cards
-        const unlinkedRooms = allRooms.filter(r => !r.hotelId || !hotelOwners.some(u => u._id.toString() === r.hotelId.toString()));
-        
-        const unlinkedHotelsMap = {};
-        unlinkedRooms.forEach(room => {
-            const key = room.contactInfo?.email || room.contactInfo?.contactName || room._id.toString();
-            if (!unlinkedHotelsMap[key]) {
-                const firstImg = (room.images && room.images.length > 0) ? room.images[0] : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600';
-                unlinkedHotelsMap[key] = {
-                    _id: room._id,
-                    ownerId: room._id,
-                    ownerName: room.contactInfo?.contactName || 'Hotel Representative',
-                    hotelName: room.roomName ? `${room.roomName} Hotel` : 'Boutique Hotel & Suites',
-                    hotelAddress: room.locationAndPricing?.[0]?.aboutLocation || 'Sri Lanka',
-                    hotelEmail: room.contactInfo?.email || '',
-                    hotelContactNumber: room.contactInfo?.contactNumber || '',
-                    minPrice: room.locationAndPricing?.[0]?.basePrice || 15000,
-                    amenities: room.amenities && room.amenities.length > 0 ? room.amenities : ['wifi', 'ac'],
-                    images: room.images && room.images.length > 0 ? room.images : [firstImg],
-                    starRating: 4,
-                    userRating: 4.5,
-                    reviews: 85,
-                    description: room.description || 'Comfortable hotel accommodation with modern amenities.',
-                    roomsCount: 1,
-                    rooms: [room]
-                };
-            } else {
-                unlinkedHotelsMap[key].rooms.push(room);
-                unlinkedHotelsMap[key].roomsCount += 1;
-                if (room.locationAndPricing?.[0]?.basePrice && room.locationAndPricing[0].basePrice < unlinkedHotelsMap[key].minPrice) {
-                    unlinkedHotelsMap[key].minPrice = room.locationAndPricing[0].basePrice;
-                }
-                if (room.images) {
-                    unlinkedHotelsMap[key].images.push(...room.images);
-                }
-            }
-        });
-
-        const unlinkedHotels = Object.values(unlinkedHotelsMap);
-        const combined = [...ownerHotels, ...unlinkedHotels];
-
-        res.status(200).json({ success: true, count: combined.length, data: combined });
+        res.status(200).json({ success: true, count: ownerHotels.length, data: ownerHotels });
     } catch (error) {
         next(error);
     }
@@ -134,13 +93,9 @@ export const getRooms = async (req, res, next) => {
                     { hotelId: hotelId },
                     { _id: hotelId }
                 ]
-            }).populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
-
-            if (rooms.length === 0) {
-                rooms = await Room.find().populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
-            }
+            }).populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         } else {
-            rooms = await Room.find().populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            rooms = await Room.find().populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         }
 
         const enrichedRooms = rooms.map((room) => {
@@ -173,7 +128,7 @@ export const getRooms = async (req, res, next) => {
 export const getRoomById = async (req, res, next) => {
     try {
         const room = await Room.findById(req.params.id)
-            .populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
         }
@@ -244,7 +199,20 @@ export const createSpecialPackage = async (req, res, next) => {
 
 export const getSpecialPackages = async (req, res, next) => {
     try {
-        const pkgs = await SpecialPackage.find();
+        const { hotelId } = req.query;
+        let pkgs = [];
+
+        if (hotelId) {
+            pkgs = await SpecialPackage.find({
+                $or: [
+                    { hotelId: hotelId },
+                    { _id: hotelId }
+                ]
+            }).populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
+        } else {
+            pkgs = await SpecialPackage.find().populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
+        }
+
         res.status(200).json({ success: true, count: pkgs.length, data: pkgs });
     } catch (error) {
         next(error);
