@@ -147,10 +147,6 @@
 # =====================
 backend/.env
 frontend/.env
-.env
-.env.*
-**/.env
-**/.env.*
 !.env.example
 !**/.env.example
 
@@ -229,7 +225,6 @@ coverage
 # =====================
 # IDE
 # =====================
-.vscode/
 !.vscode/extensions.json
 .idea
 
