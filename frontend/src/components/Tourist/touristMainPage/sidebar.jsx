@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { NavItem } from "../../../components/Tourist/touristMainPage/navItem";
 import {
   LayoutDashboard,
@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 
 function Sidebar() {
-  const path  = useLocation();
+  const path = useLocation();
+  const navigate = useNavigate();
   const location = path.pathname;
   return (
     <aside className="w-64 pt-35 h-screen bg-white border-r border-slate-200 flex flex-col justify-between fixed top-0 left-0">
@@ -20,23 +21,37 @@ function Sidebar() {
           <NavItem
             icon={<LayoutDashboard size={20} />}
             label="Dashboard"
-            navigate="/dashboard-Tourist"
+            navigate="/tourist-dashboard"
             //if navigate to dashboard, show active class
-            active={location === "/dashboard-Tourist" || location === "/dashboard" || location === "/"}
+            active={
+              location === "/tourist-dashboard" ||
+              location === "/dashboard" ||
+              location === "/"
+            }
           />
           <NavItem
             icon={<MapPin size={20} />}
             label="Plan Trip"
-            navigate="/trip-plan"
-            active={location === "/trip-plan"}
+            navigate="/tourist-dashboard/trip-plan"
+            active={location === "/tourist-dashboard/trip-plan"}
           />
-          <NavItem icon={<Map size={20} />} label="Map" navigate="/direction" />
+          <NavItem
+            icon={<Map size={20} />}
+            label="Map"
+            navigate="/tourist-dashboard/direction"
+            active={location === "/tourist-dashboard/direction"}
+          />
           <NavItem
             icon={<ShieldCheck size={20} />}
             label="Safety"
             navigate="/safety"
           />
-          <NavItem icon={<User size={20} />} label="Profile" navigate="/touristProfile" active={location === "/touristProfile"}  />
+          <NavItem
+            icon={<User size={20} />}
+            label="Profile"
+            navigate="/tourist-dashboard/touristProfile"
+            active={location === "/tourist-dashboard/touristProfile"}
+          />
         </nav>
       </div>
       <div>
@@ -46,7 +61,16 @@ function Sidebar() {
             label="Settings"
             navigate="/"
           />
-          <button className="flex items-center gap-4 px-8 pb-6 cursor-pointer transition-colors text-slate-400 hover:text-slate-600 font-semibold">
+          <button className="flex items-center gap-4 px-8 pb-6 cursor-pointer transition-colors text-slate-400 hover:text-slate-600 font-semibold"
+          onClick={()=>{
+            localStorage.removeItem("token")
+            localStorage.removeItem("touristProfile")
+            localStorage.removeItem("tripInfo")
+            localStorage.removeItem("user")
+            localStorage.removeItem("userData")
+            navigate("/login")
+          }}
+          >
             {" "}
             <span>
               <LogOut size={20} />
@@ -60,4 +84,3 @@ function Sidebar() {
 }
 
 export default Sidebar;
-

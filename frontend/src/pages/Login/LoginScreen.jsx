@@ -596,7 +596,7 @@
 // };
 
 // export default LoginScreen;
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -621,7 +621,7 @@ const LoginScreen = () => {
 
   const getDashboardRoute = (role) => {
     switch (role) {
-      case 'tourist_user': return '/dashboard-Tourist';
+      case 'tourist_user': return '/tourist-dashboard';
       case 'guide_user': return '/dashboard-Guide';
       case 'hotelowner_user': return '/dashboard-HotelOwner';
       case 'restaurant_user': return '/dashboard-Restaurant';

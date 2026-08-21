@@ -1,10 +1,8 @@
-import React from 'react';
 import Explore from './Explore';
 import Direction from './Direction';
 import DirectionOne from './DirectionOne';
 import EtaPage from './EtaPage';
 import SafetyAlertTemplate from './SafetyAlertTemplate';
-import Footer from '../../components/NavigationAndMapping/Footer';
 import Header from '../../components/NavigationAndMapping/Header';
 import { usePageTitle } from '../../context/PageTitleContext';
 
@@ -27,7 +25,6 @@ export default function NavigationMain() {
       <div style={{ flex: 1, position: 'relative' }}>
         {page}
       </div>
-      <Footer />
     </div>
   );
 }

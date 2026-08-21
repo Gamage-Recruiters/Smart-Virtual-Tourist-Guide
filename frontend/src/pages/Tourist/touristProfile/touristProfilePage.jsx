@@ -4,8 +4,6 @@ import PersonalDetails from "../../../components/Tourist/touristProfile/personal
 import TripInformation from "../../../components/Tourist/touristProfile/tripInformation";
 import HealthProfile from "../../../components/Tourist/touristProfile/healthProfile";
 import EmergencyContact from "../../../components/Tourist/touristProfile/emergencyContact";
-import Header from "../../../components/Header";
-import Footer from "../../../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { userAPI } from "../../../services/api";
 
@@ -210,7 +208,6 @@ export const TouristProfilePage = () => {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-[#eaf4fb] p-8 md:p-12 font-sans flex justify-center rounded-4xl">
         <form
           onSubmit={handleSubmit}
@@ -304,7 +301,6 @@ export const TouristProfilePage = () => {
           </div>
         </form>
       </div>
-      <Footer />
     </>
   );
 };
