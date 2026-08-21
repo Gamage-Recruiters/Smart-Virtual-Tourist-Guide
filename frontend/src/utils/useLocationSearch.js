@@ -1,51 +1,30 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ensureMapsScript } from './helpers';
-
-const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };
+import { searchPlaces, geocodeAddress } from './mapServices';
 
 export function useLocationSearch(onSelect, initialValue = '') {
-  const [query, setQuery] = useState(initialValue); // ← seeded once, never overridden
+  const [query, setQuery] = useState(initialValue);
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
-  const acServiceRef = useRef(null);
-  const geocoderRef = useRef(null);
   const containerRef = useRef(null);
-
-  useEffect(() => {
-    ensureMapsScript(() => {
-      acServiceRef.current = new window.google.maps.places.AutocompleteService();
-      geocoderRef.current = new window.google.maps.Geocoder();
-    });
-  }, []);
+  const debounceRef = useRef(null);
 
   const fetchSuggestions = useCallback((input) => {
-    if (!input.trim() || !acServiceRef.current) { setSuggestions([]); return; }
-    acServiceRef.current.getPlacePredictions(
-      {
-        input,
-        componentRestrictions: { country: 'lk' },
-        bounds: new window.google.maps.LatLngBounds(
-          { lat: SRI_LANKA_BOUNDS.south, lng: SRI_LANKA_BOUNDS.west },
-          { lat: SRI_LANKA_BOUNDS.north, lng: SRI_LANKA_BOUNDS.east }
-        ),
-      },
-      (predictions, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-          setSuggestions(predictions);
-        } else {
-          setSuggestions([]);
-        }
-      }
-    );
+    if (!input.trim()) { setSuggestions([]); return; }
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const results = await searchPlaces(input, 5);
+      setSuggestions(results);
+    }, 300);
   }, []);
 
-  const confirmPlace = useCallback((placeId, displayName) => {
+  const confirmPlace = useCallback((suggestion) => {
     setSuggestions([]);
-    geocoderRef.current?.geocode({ placeId }, (results, status) => {
-      if (status === 'OK' && results[0]) {
-        setQuery(displayName);
-        onSelect({ ...results[0], displayName });
-      }
+    setQuery(suggestion.displayName || suggestion.name);
+    onSelect({
+      displayName: suggestion.name,
+      formatted_address: suggestion.displayName,
+      geometry: { location: { lat: suggestion.lat, lng: suggestion.lng } },
+      place_id: suggestion.osm_id,
     });
   }, [onSelect]);
 
@@ -56,29 +35,26 @@ export function useLocationSearch(onSelect, initialValue = '') {
     fetchSuggestions(val);
   }, [fetchSuggestions]);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback(async () => {
     const q = query.trim();
-    if (!q || !geocoderRef.current) return;
-    geocoderRef.current.geocode(
-      { address: q, componentRestrictions: { country: 'lk' } },
-      (results, status) => {
-        if (status === 'OK' && results[0]) {
-          setSuggestions([]);
-          setQuery(q);
-          onSelect({ ...results[0], displayName: q });
-        } else {
-          fetchSuggestions(q);
-        }
-      }
-    );
-  }, [query, onSelect, fetchSuggestions]);
+    if (!q) return;
+    const result = await geocodeAddress(q);
+    if (result) {
+      setSuggestions([]);
+      onSelect({
+        displayName: q,
+        formatted_address: result.displayName,
+        geometry: { location: { lat: result.lat, lng: result.lng } },
+      });
+    }
+  }, [query, onSelect]);
 
   const handleKeyDown = useCallback((e) => {
     if (!suggestions.length) { if (e.key === 'Enter') handleSearch(); return; }
     if (e.key === 'ArrowDown') { setActiveIdx(i => Math.min(i + 1, suggestions.length - 1)); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { setActiveIdx(i => Math.max(i - 1, -1)); e.preventDefault(); }
     else if (e.key === 'Enter') {
-      if (activeIdx >= 0) confirmPlace(suggestions[activeIdx].place_id, suggestions[activeIdx].structured_formatting.main_text);
+      if (activeIdx >= 0) confirmPlace(suggestions[activeIdx]);
       else handleSearch();
     }
     else if (e.key === 'Escape') setSuggestions([]);

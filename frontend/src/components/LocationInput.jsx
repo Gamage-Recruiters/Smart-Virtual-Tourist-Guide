@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, MapPin, Clock } from 'lucide-react';
 import { useLocationSearch } from '../utils/useLocationSearch';
+import { geocodeAddress } from '../utils/mapServices';
 
 
 const HISTORY_KEY = 'locationSearchHistory';
@@ -85,12 +86,14 @@ export default function LocationInput({
           {history.map((h, i) => (
             <li
               key={i}
-              onMouseDown={() => {
+              onMouseDown={async () => {
                 setFocused(false);
-                if (window.google?.maps) {
-                  const geocoder = new window.google.maps.Geocoder();
-                  geocoder.geocode({ address: h, componentRestrictions: { country: 'lk' } }, (results, status) => {
-                    if (status === 'OK' && results[0]) onSelect({ ...results[0], displayName: h });
+                const result = await geocodeAddress(h);
+                if (result) {
+                  onSelect({
+                    displayName: h,
+                    formatted_address: result.displayName,
+                    geometry: { location: { lat: result.lat, lng: result.lng } },
                   });
                 }
               }}
@@ -116,8 +119,8 @@ export default function LocationInput({
         }}>
           {suggestions.map((p, i) => (
             <li
-              key={p.place_id}
-              onMouseDown={() => confirmPlace(p.place_id, p.structured_formatting.main_text)}
+              key={p.osm_id || i}
+              onMouseDown={() => confirmPlace(p)}
               onMouseEnter={() => setActiveIdx(i)}
               style={{
                 padding: '9px 14px', cursor: 'pointer', fontSize: '13px', color: '#333',
@@ -127,9 +130,9 @@ export default function LocationInput({
             >
               <MapPin size={13} color="#6B7280" />
               <span>
-                <strong>{p.structured_formatting.main_text}</strong>
-                {p.structured_formatting.secondary_text && (
-                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.structured_formatting.secondary_text}</span>
+                <strong>{p.name}</strong>
+                {p.displayName && p.displayName !== p.name && (
+                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.displayName}</span>
                 )}
               </span>
             </li>

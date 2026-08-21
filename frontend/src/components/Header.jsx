@@ -3,45 +3,23 @@ import { MapPin, Mic, Search, X } from 'lucide-react';
 import Logo from '../assets/Logo.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import sriflag from '../assets/sriflag.jpg';
-import { ensureMapsScript } from '../utils/helpers';
-
-const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };
+import { searchPlaces, geocodeAddress } from '../utils/mapServices';
 
 export default function Header() {
   const { title, showSearchBar, navigateToSearch, activePage, setActivePage, searchedPlace, etaData } = usePageTitle();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
-  const autocompleteRef = useRef(null);
-  const geocoderRef = useRef(null);
   const containerRef = useRef(null);
-
-  useEffect(() => {
-    ensureMapsScript(() => {
-      autocompleteRef.current = new window.google.maps.places.AutocompleteService();
-      geocoderRef.current = new window.google.maps.Geocoder();
-    });
-  }, []);
+  const debounceRef = useRef(null);
 
   const fetchSuggestions = useCallback((input) => {
-    if (!input.trim() || !autocompleteRef.current) { setSuggestions([]); return; }
-    autocompleteRef.current.getPlacePredictions(
-      {
-        input,
-        componentRestrictions: { country: 'lk' },
-        bounds: new window.google.maps.LatLngBounds(
-          { lat: SRI_LANKA_BOUNDS.south, lng: SRI_LANKA_BOUNDS.west },
-          { lat: SRI_LANKA_BOUNDS.north, lng: SRI_LANKA_BOUNDS.east }
-        ),
-      },
-      (predictions, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-          setSuggestions(predictions);
-        } else {
-          setSuggestions([]);
-        }
-      }
-    );
+    if (!input.trim()) { setSuggestions([]); return; }
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const results = await searchPlaces(input, 5);
+      setSuggestions(results);
+    }, 300);
   }, []);
 
   const handleChange = (e) => {
@@ -51,29 +29,32 @@ export default function Header() {
     fetchSuggestions(val);
   };
 
-  const selectSuggestion = useCallback((prediction) => {
-    const displayName = prediction.structured_formatting.main_text;
+  const selectSuggestion = useCallback((suggestion) => {
+    const displayName = suggestion.name;
     setQuery(displayName);
     setSuggestions([]);
-    geocoderRef.current?.geocode({ placeId: prediction.place_id }, (results, status) => {
-      if (status === 'OK' && results[0]) navigateToSearch({ ...results[0], displayName });
+    navigateToSearch({
+      displayName,
+      formatted_address: suggestion.displayName,
+      geometry: { location: { lat: suggestion.lat, lng: suggestion.lng } },
+      place_id: suggestion.osm_id,
     });
   }, [navigateToSearch]);
 
-  const handleSearch = useCallback(() => {
-    if (!query.trim() || !geocoderRef.current) return;
+  const handleSearch = useCallback(async () => {
+    if (!query.trim()) return;
     const displayName = query.trim();
-    geocoderRef.current.geocode(
-      { address: displayName, componentRestrictions: { country: 'lk' } },
-      (results, status) => {
-        if (status === 'OK' && results[0]) {
-          setSuggestions([]);
-          navigateToSearch({ ...results[0], displayName });
-        } else {
-          fetchSuggestions(displayName);
-        }
-      }
-    );
+    const result = await geocodeAddress(displayName);
+    if (result) {
+      setSuggestions([]);
+      navigateToSearch({
+        displayName,
+        formatted_address: result.displayName,
+        geometry: { location: { lat: result.lat, lng: result.lng } },
+      });
+    } else {
+      fetchSuggestions(displayName);
+    }
   }, [query, navigateToSearch, fetchSuggestions]);
 
   const handleKeyDown = (e) => {
@@ -189,7 +170,7 @@ export default function Header() {
               }}>
                 {suggestions.map((p, i) => (
                   <li
-                    key={p.place_id}
+                    key={p.osm_id || i}
                     onMouseDown={() => selectSuggestion(p)}
                     onMouseEnter={() => setActiveIdx(i)}
                     style={{
@@ -200,9 +181,9 @@ export default function Header() {
                   >
                     <MapPin size={14} color="#6B7280" />
                     <span>
-                      <strong>{p.structured_formatting.main_text}</strong>
-                      {p.structured_formatting.secondary_text && (
-                        <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.structured_formatting.secondary_text}</span>
+                      <strong>{p.name}</strong>
+                      {p.displayName && p.displayName !== p.name && (
+                        <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.displayName}</span>
                       )}
                     </span>
                   </li>

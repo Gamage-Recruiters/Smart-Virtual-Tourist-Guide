@@ -10,7 +10,7 @@ import manIcon from '../assets/manIcon.png';
 import upDown from '../assets/upDown.png';
 import { useLocationSearch } from '../utils/useLocationSearch';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { ensureMapsScript } from '../utils/helpers';
+import { geocodeAddress } from '../utils/mapServices';
 import { saveRecentPlace, fetchRecentPlaces } from '../services/api';
 
 const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
@@ -65,8 +65,8 @@ const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
         >
           {search.suggestions.map((place, idx) => (
             <li
-              key={place.place_id}
-              onMouseDown={() => search.confirmPlace(place.place_id, place.structured_formatting.main_text)}
+              key={place.osm_id || idx}
+              onMouseDown={() => search.confirmPlace(place)}
               onMouseEnter={() => search.setActiveIdx(idx)}
               style={{
                 padding: '9px 14px',
@@ -81,9 +81,9 @@ const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
             >
               <span style={{ color: '#6B7280', fontSize: '13px' }}>•</span>
               <span>
-                <strong>{place.structured_formatting.main_text}</strong>
-                {place.structured_formatting.secondary_text && (
-                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{place.structured_formatting.secondary_text}</span>
+                <strong>{place.name}</strong>
+                {place.displayName && place.displayName !== place.name && (
+                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{place.displayName}</span>
                 )}
               </span>
             </li>
@@ -100,17 +100,12 @@ const DirectionOne = () => {
   const [swapped, setSwapped] = useState(false);
   const [searching, setSearching] = useState(false);
   const [recentPlaces, setRecentPlaces] = useState([]);
-  const geocoderRef = useRef(null);
   const originSearch = useLocationSearch(() => {}, '');
   
   const initialDest = searchedPlace?.displayName || searchedPlace?.name || searchedPlace?.formatted_address?.split(',')[0] || '';
   const destinationSearch = useLocationSearch(() => {}, initialDest);
 
   useEffect(() => {
-    ensureMapsScript(() => {
-      geocoderRef.current = new window.google.maps.Geocoder();
-    });
-
     let isActive = true;
     fetchRecentPlaces(undefined, 6)
       .then(response => {
@@ -127,36 +122,35 @@ const DirectionOne = () => {
   const bothFilled = originSearch.query.trim() && destinationSearch.query.trim();
   const activeVehicleIcon = bothFilled && selectedVehicle ? vehicleIconMap[selectedVehicle] : null;
 
-  const handleSearch = (vehicleToUse = selectedVehicle) => {
-    if (!destinationSearch.query.trim() || !geocoderRef.current) return;
+  const handleSearch = async (vehicleToUse = selectedVehicle) => {
+    if (!destinationSearch.query.trim()) return;
     setSearching(true);
-    const geocoder = geocoderRef.current;
-    const SL = { country: 'lk' };
 
-    const processDestination = () => {
-      geocoder.geocode({ address: destinationSearch.query, componentRestrictions: SL }, (destResults, destStatus) => {
-        setSearching(false);
-        if (destStatus === 'OK' && destResults[0]) {
-          const destinationPlace = { ...destResults[0], displayName: destinationSearch.query };
-          setSearchedPlace(destinationPlace);
-          void saveRecentPlace(destinationPlace, 'Got Direction');
-        }
-        if (vehicleToUse) setPendingVehicle(vehicleToUse);
-        setActivePage('direction');
-      });
+    const processDestination = async () => {
+      const destResult = await geocodeAddress(destinationSearch.query);
+      setSearching(false);
+      if (destResult) {
+        const destinationPlace = {
+          displayName: destinationSearch.query,
+          formatted_address: destResult.displayName,
+          geometry: { location: { lat: destResult.lat, lng: destResult.lng } },
+        };
+        setSearchedPlace(destinationPlace);
+        void saveRecentPlace(destinationPlace, 'Got Direction');
+      }
+      if (vehicleToUse) setPendingVehicle(vehicleToUse);
+      setActivePage('direction');
     };
 
     if (originSearch.query.trim()) {
-      geocoder.geocode({ address: originSearch.query, componentRestrictions: SL }, (originResults, originStatus) => {
-        if (originStatus === 'OK' && originResults[0]) {
-          const loc = originResults[0].geometry.location;
-          setUserLocation({ lat: loc.lat(), lng: loc.lng() });
-          setPendingOriginLabel(originSearch.query);
-        }
-        processDestination();
-      });
+      const originResult = await geocodeAddress(originSearch.query);
+      if (originResult) {
+        setUserLocation({ lat: originResult.lat, lng: originResult.lng });
+        setPendingOriginLabel(originSearch.query);
+      }
+      await processDestination();
     } else {
-      processDestination();
+      await processDestination();
     }
   };
 
@@ -277,19 +271,17 @@ const DirectionOne = () => {
                 <div
                   key={place._id}
                   className="flex items-center bg-[#A2D4F2] rounded-lg px-4 py-5 shadow cursor-pointer hover:bg-[#8cc9ec] transition-colors"
-                  onClick={() => {
+                  onClick={async () => {
                     const placeName = place.name || place.displayName;
                     destinationSearch.setQuery(placeName);
-                    if (geocoderRef.current) {
-                      geocoderRef.current.geocode(
-                        { address: placeName, componentRestrictions: { country: 'lk' } },
-                        (results, status) => {
-                          if (status === 'OK' && results[0]) {
-                            setSearchedPlace({ ...results[0], displayName: placeName });
-                            setActivePage('explore');
-                          }
-                        }
-                      );
+                    const result = await geocodeAddress(placeName);
+                    if (result) {
+                      setSearchedPlace({
+                        displayName: placeName,
+                        formatted_address: result.displayName,
+                        geometry: { location: { lat: result.lat, lng: result.lng } },
+                      });
+                      setActivePage('explore');
                     }
                   }}
                 >

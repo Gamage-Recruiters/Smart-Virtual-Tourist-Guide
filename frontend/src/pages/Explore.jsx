@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+import L from 'leaflet';
 import middle from '../assets/middle.png';
 import exploreIcon from '../assets/explore.png';
 import explore2 from '../assets/explore2.png';
@@ -7,8 +8,20 @@ import user from '../assets/user.png';
 import directionIcon from '../assets/directionIcon.png';
 import directionImg from '../assets/direction.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { ensureMapsScript, formatViewedAgo } from '../utils/helpers';
+import { formatViewedAgo } from '../utils/helpers';
+import { reverseGeocode, getPlacePhoto, findNearbyPlaces } from '../utils/mapServices';
 import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace, fetchHotels } from '../services/api';
+
+// Fix Leaflet default marker icon paths (broken by bundlers like Vite)
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 const USER_LOCATION = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
 
@@ -56,7 +69,7 @@ const Explore = () => {
     return placeId || `${name}:${lat ?? ''}:${lng ?? ''}`;
   }, []);
 
-  const handleNavigate = useCallback((place) => {
+  const handleNavigate = useCallback(async (place) => {
     const placeKey = getPlaceKey(place);
     if (placeKey && lastHandledPlaceKeyRef.current === placeKey) return;
 
@@ -66,71 +79,42 @@ const Explore = () => {
 
     void saveRecentPlace(place, null);
 
-    if (!mapInstanceRef.current || !place.geometry?.location) return;    mapInstanceRef.current.panTo(place.geometry.location);
-    mapInstanceRef.current.setZoom(13);
-    if (markerRef.current) markerRef.current.setMap(null);
-    markerRef.current = new window.google.maps.Marker({
-      position: place.geometry.location,
-      map: mapInstanceRef.current,
-      title: /^[23456789CFGHJMPQRVWX]{4}\+/.test(place.formatted_address || '') ? place.name : (place.formatted_address || place.name),
-    });
+    if (!mapInstanceRef.current || !place.geometry?.location) return;
+    const loc = place.geometry.location;
+    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+
+    mapInstanceRef.current.setView([lat, lng], 13);
+    if (markerRef.current) markerRef.current.remove();
+    markerRef.current = L.marker([lat, lng]).addTo(mapInstanceRef.current)
+      .bindPopup(place.displayName || place.formatted_address || place.name || '')
+      .openPopup();
     setLocalSearched(true);
     setHasSearched(true);
 
-    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
+    // Fetch photos using Wikimedia for nearby tourist attractions
+    const placeName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
+    const nearbyPlaces = await findNearbyPlaces(lat, lng, 5000);
+    const photoPromises = nearbyPlaces.slice(0, 7).map(p => getPlacePhoto(p.name));
+    const photoResults = await Promise.all(photoPromises);
+    let urls = photoResults.filter(Boolean);
 
-    // Fetch photos for the most tourist attractive places within a 5km radius
-    service.textSearch({
-      location: place.geometry.location,
-      radius: 5000,
-      query: 'top tourist attractions',
-    }, (results, status) => {
-      let urls = [];
-      if (status === window.google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-        // Filter to only places with photos
-        const withPhotos = results.filter(r => r.photos && r.photos.length > 0);
-        
-        // Filter to natural places and top tourist attractions, excluding commercial businesses
-        const targetTypes = ['natural_feature', 'park', 'tourist_attraction', 'historical_landmark', 'place_of_worship'];
-        const excludedTypes = ['store', 'restaurant', 'cafe', 'shopping_mall', 'supermarket', 'food', 'spa', 'gym', 'bar', 'lodging'];
-        
-        let filteredResults = withPhotos.filter(r => {
-          if (r.types && r.types.some(t => excludedTypes.includes(t))) return false;
-          return r.types && r.types.some(t => targetTypes.includes(t));
-        });
+    // Also try to get a photo for the searched place itself
+    if (urls.length < 5 && placeName) {
+      const mainPhoto = await getPlacePhoto(placeName);
+      if (mainPhoto && !urls.includes(mainPhoto)) {
+        urls = [mainPhoto, ...urls].slice(0, 7);
+      }
+    }
 
-        // Fallback: If strict filtering yields too few photos, relax to any non-commercial place with photos
-        if (filteredResults.length < 5) {
-          filteredResults = withPhotos.filter(r => {
-            return !(r.types && r.types.some(t => excludedTypes.includes(t)));
-          });
-        }
-        
-        // Sort by popularity/rating
-        const sorted = filteredResults.sort((a, b) => ((b.rating || 0) * (b.user_ratings_total || 0)) - ((a.rating || 0) * (a.user_ratings_total || 0)));
-        
-        // Take 1 photo per place
-        urls = sorted.slice(0, 7).map(r => r.photos[0].getUrl({ maxWidth: 1600, maxHeight: 1200 }));
-      }
-      
-      // If we don't get enough photos from nearby search, include the place's own photos if available
-      if (urls.length < 5 && place.photos && place.photos.length > 0) {
-         const ownUrls = place.photos.map(p => p.getUrl({ maxWidth: 1600, maxHeight: 1200 }));
-         urls = [...new Set([...urls, ...ownUrls])].slice(0, 7);
-      }
-
-      setPlacePhotos(urls);
-      if (urls.length > 0) {
-        void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
-      }
-    });
+    setPlacePhotos(urls);
+    if (urls.length > 0) {
+      void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
+    }
 
     // Fetch hotels from database within 30km radius
     setHotelsLoading(true);
     const locationName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
-    const loc = place.geometry.location;
-    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
-    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
     fetchHotels(locationName, lat, lng)
       .then(res => {
         const data = Array.isArray(res?.data) ? res.data : [];
@@ -155,64 +139,30 @@ const Explore = () => {
       const category = 'home';
       let placeToSave = { name: "Your Location", geometry: { location: userLocation } };
       
-      if (window.google?.maps?.Geocoder) {
-        const geocoder = new window.google.maps.Geocoder();
-        const results = await new Promise((resolve) => {
-          geocoder.geocode({ location: userLocation }, (res, status) => {
-            if (status === 'OK' && res && res.length > 0) resolve(res);
-            else resolve(null);
-          });
-        });
-        if (results && results[0]) {
-          placeToSave = results[0];
+      // Reverse geocode with Nominatim
+      try {
+        const result = await reverseGeocode(userLocation.lat, userLocation.lng);
+        if (result && result.display_name) {
+          placeToSave = {
+            name: result.display_name.split(',')[0],
+            formatted_address: result.display_name,
+            geometry: { location: userLocation },
+          };
         }
-      }
+      } catch { /* keep default */ }
 
-      // Fetch photos for the home location using PlacesService
+      // Fetch photos using Wikimedia
       let photoUrls = [];
-      if (mapInstanceRef.current && window.google?.maps?.places?.PlacesService) {
-        const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
+      const locationName = placeToSave.name || placeToSave.formatted_address?.split(',').slice(0, 2).join(',') || 'Your Location';
+      const photo = await getPlacePhoto(locationName);
+      if (photo) photoUrls.push(photo);
 
-        // If the geocoded place has a place_id, try getDetails for photos first
-        if (placeToSave.place_id) {
-          photoUrls = await new Promise((resolve) => {
-            service.getDetails(
-              { placeId: placeToSave.place_id, fields: ['photos'] },
-              (detail, status) => {
-                if (status === window.google.maps.places.PlacesServiceStatus.OK && detail?.photos?.length > 0) {
-                  const urls = detail.photos.slice(0, 2).map((p) => {
-                    try { return p.getUrl({ maxWidth: 400, maxHeight: 400 }); } catch { return ''; }
-                  }).filter(Boolean);
-                  resolve(urls);
-                } else {
-                  resolve([]);
-                }
-              }
-            );
-          });
-        }
-
-        // Fallback: search for nearby scenic photos if getDetails yielded nothing
-        if (photoUrls.length === 0) {
-          const locationName = placeToSave.formatted_address
-            ? placeToSave.formatted_address.split(',').slice(0, 2).join(',')
-            : 'Your Location';
-          photoUrls = await new Promise((resolve) => {
-            service.textSearch(
-              { query: `scenic places near ${locationName}`, location: userLocation, radius: 5000 },
-              (results, status) => {
-                if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length > 0) {
-                  const withPhotos = results.filter((r) => r.photos && r.photos.length > 0);
-                  const urls = withPhotos.slice(0, 2).map((r) => {
-                    try { return r.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 }); } catch { return ''; }
-                  }).filter(Boolean);
-                  resolve(urls);
-                } else {
-                  resolve([]);
-                }
-              }
-            );
-          });
+      // Fallback: try nearby tourist attractions for photos
+      if (photoUrls.length === 0) {
+        const nearbyPlaces = await findNearbyPlaces(userLocation.lat, userLocation.lng, 5000);
+        for (const p of nearbyPlaces.slice(0, 2)) {
+          const url = await getPlacePhoto(p.name);
+          if (url) photoUrls.push(url);
         }
       }
       
@@ -231,15 +181,12 @@ const Explore = () => {
     }
     try {
       const category = 'favorite';
+      // Fetch a photo via Wikimedia for the destination
+      const placeName = searchedPlace.displayName || searchedPlace.formatted_address?.split(',')[0] || searchedPlace.name || '';
       const photoUrls = [];
-      if (searchedPlace.photos && searchedPlace.photos.length > 0) {
-        searchedPlace.photos.slice(0, 2).forEach((photo) => {
-          try {
-            if (typeof photo.getUrl === 'function') {
-              photoUrls.push(photo.getUrl({ maxWidth: 400, maxHeight: 400 }));
-            }
-          } catch (e) { /* ignore */ }
-        });
+      if (placeName) {
+        const photo = await getPlacePhoto(placeName);
+        if (photo) photoUrls.push(photo);
       }
       await saveFavoritePlace(searchedPlace, category, null, photoUrls);
       setActionMessage({ text: 'Saved to favorites!', type: 'success' });
@@ -256,11 +203,11 @@ const Explore = () => {
     if (searchedPlace?.geometry?.location) {
       const lat = typeof searchedPlace.geometry.location.lat === 'function' ? searchedPlace.geometry.location.lat() : searchedPlace.geometry.location.lat;
       const lng = typeof searchedPlace.geometry.location.lng === 'function' ? searchedPlace.geometry.location.lng() : searchedPlace.geometry.location.lng;
-      url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
     } else {
       const name = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || searchedPlace?.name;
       if (name) {
-        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
+        url = `https://www.openstreetmap.org/search?query=${encodeURIComponent(name)}`;
       }
     }
 
@@ -423,44 +370,32 @@ const Explore = () => {
     setOnNavigate(handleNavigate);
     if (!searchedPlace) setHasSearched(false);
 
+const userLocationIcon = L.divIcon({
+  className: '',
+  html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+});
+
 const initMap = (center, zoom) => {
-  mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-    center,
+  mapInstanceRef.current = L.map(mapRef.current, {
+    center: [center.lat, center.lng],
     zoom,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
     zoomControl: true,
-    rotateControl: false,
-    gestureHandling: 'cooperative',
-    styles: [
-      { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#a2daf2' }] },
-      { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#d0f0c0' }] },
-      { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-      { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#9be79b' }] },
-      { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#6abf69' }] },
-    ],
   });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+  }).addTo(mapInstanceRef.current);
 };
 
 const placeUserMarker = (coords) => {
-  if (userMarkerRef.current) userMarkerRef.current.setMap(null);
-  userMarkerRef.current = new window.google.maps.Marker({
-    position: coords,
-    map: mapInstanceRef.current,
-    title: 'Your Location',
-    icon: {
-      path: window.google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: '#4285F4',
-      fillOpacity: 1,
-      strokeColor: '#fff',
-      strokeWeight: 2,
-    },
-  });
+  if (userMarkerRef.current) userMarkerRef.current.remove();
+  userMarkerRef.current = L.marker([coords.lat, coords.lng], { icon: userLocationIcon })
+    .addTo(mapInstanceRef.current)
+    .bindPopup('Your Location');
 };
 
-ensureMapsScript(() => {
   let activeLocation = userLocation;
   if (activeLocation) {
     const isInsideSriLanka = activeLocation.lat >= 5.7 && activeLocation.lat <= 10.0 && activeLocation.lng >= 79.4 && activeLocation.lng <= 82.1;
@@ -487,12 +422,12 @@ ensureMapsScript(() => {
 
   // Restore searched place marker and state
   if (hasRestoredPlace) {
-    if (markerRef.current) markerRef.current.setMap(null);
-    markerRef.current = new window.google.maps.Marker({
-      position: searchedPlace.geometry.location,
-      map: mapInstanceRef.current,
-      title: searchedPlace.formatted_address || searchedPlace.name || searchedPlace.displayName || '',
-    });
+    const loc = searchedPlace.geometry.location;
+    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+    if (markerRef.current) markerRef.current.remove();
+    markerRef.current = L.marker([lat, lng]).addTo(mapInstanceRef.current)
+      .bindPopup(searchedPlace.formatted_address || searchedPlace.name || searchedPlace.displayName || '');
     setLocalSearched(true);
     setHasSearched(true);
   }
@@ -522,12 +457,15 @@ ensureMapsScript(() => {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }
-});
 
 
     return () => {
       setShowSearchBar(false);
       setOnNavigate(null);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
     };
   }, []);
 
@@ -539,25 +477,20 @@ ensureMapsScript(() => {
 
     // Only re-center when the user hasn't searched for a place yet
     if (!searched) {
-      mapInstanceRef.current.setCenter(userLocation);
-      mapInstanceRef.current.setZoom(14);
+      mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 14);
     }
 
     // Always keep the blue user-location marker up to date
-    if (userMarkerRef.current) userMarkerRef.current.setMap(null);
-    userMarkerRef.current = new window.google.maps.Marker({
-      position: userLocation,
-      map: mapInstanceRef.current,
-      title: 'Your Location',
-      icon: {
-        path: window.google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: '#4285F4',
-        fillOpacity: 1,
-        strokeColor: '#fff',
-        strokeWeight: 2,
-      },
+    const userLocationIcon = L.divIcon({
+      className: '',
+      html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
     });
+    if (userMarkerRef.current) userMarkerRef.current.remove();
+    userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userLocationIcon })
+      .addTo(mapInstanceRef.current)
+      .bindPopup('Your Location');
   }, [userLocation, searched]);
 
   useEffect(() => {
