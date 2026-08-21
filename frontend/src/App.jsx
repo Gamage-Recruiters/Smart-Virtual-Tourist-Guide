@@ -50,12 +50,12 @@ import DummyPageGovernment from "./pages/Government/dummyPage";
 import DummyPageDriver from "./pages/Driver/dummyPage";
 import DummyPageAdmin from "./pages/Admin/dummyPage";
 
-import VehicleAdmin from "./pages/vehicleAdminDashboard/vehicleAdminPage";
-import Dashboard from "./pages/vehicleAdminDashboard/dashboard";
-import RentalRequestsPage from "./pages/vehicleAdminDashboard/rentalRequestsPage";
-import MyFleetPage from "./pages/vehicleAdminDashboard/myFleetPage";
-import EarningsPage from "./pages/vehicleAdminDashboard/earningsPage";
-import SettingsPage from "./pages/vehicleAdminDashboard/settingsPage";
+import VehicleAdmin from "./pages/Renter/vehicleAdminDashboard/vehicleAdminPage";
+import Dashboard from "./pages/Renter/vehicleAdminDashboard/dashboard";
+import RentalRequestsPage from "./pages/Renter/vehicleAdminDashboard/rentalRequestsPage";
+import MyFleetPage from "./pages/Renter/vehicleAdminDashboard/myFleetPage";
+import EarningsPage from "./pages/Renter/vehicleAdminDashboard/earningsPage";
+import SettingsPage from "./pages/Renter/vehicleAdminDashboard/settingsPage";
 
 import MainPage from "./pages/Tourist/touristMainPage/mainPage.jsx";
 import TouristProfilePage from "./pages/Tourist/touristProfile/touristProfilePage.jsx";
