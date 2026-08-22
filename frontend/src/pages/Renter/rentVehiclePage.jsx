@@ -220,7 +220,7 @@ export const RentVehiclePage = () => {
 
   const handleViewDetails = (id) => {
     const selectedVehicle = allVehicles.find((v) => v.id === id);
-    navigate(`/tourist-dashboard/rent-vehicle/vehicle-details/${id}`, { state: { vehicle: selectedVehicle } });
+    navigate(`/dashboard-Tourist/rent-vehicle/vehicle-details/${id}`, { state: { vehicle: selectedVehicle } });
   };
 
   return (
