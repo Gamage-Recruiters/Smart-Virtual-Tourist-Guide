@@ -621,7 +621,7 @@ const LoginScreen = () => {
 
   const getDashboardRoute = (role) => {
     switch (role) {
-      case 'tourist_user': return '/tourist-dashboard';
+      case 'tourist_user': return '/dashboard-Tourist';
       case 'guide_user': return '/dashboard-Guide';
       case 'hotelowner_user': return '/dashboard-HotelOwner';
       case 'restaurant_user': return '/dashboard-Restaurant';

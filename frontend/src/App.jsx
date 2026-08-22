@@ -17,6 +17,8 @@ import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import AboutUs from "./pages/AboutUs";
 import HowItWorks from "./pages/HowItWork";
+import Destinations from "./pages/Destinations";
+import ContactPage from "./pages/Contact";
 
 import SignupForm from "./pages/Tourist/SignupForm1";
 import TravelSafetyInfo from "./pages/Tourist/SignupForm2";
@@ -25,8 +27,18 @@ import LoginScreen from "./pages/Login/LoginScreen";
 import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
 import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
+// ===== FEATURE/ACCOMMODATION-MANAGEMENT ROUTES =====
 import HotelOwnerSignup from "./pages/HotelOwner/SignUp";
 import HotelInfo from "./pages/HotelOwner/HotelInfo";
+import HotelOwnerDashboard from "./pages/HotelOwner/HotelOwnerDashboard.jsx";
+import ViewCurrentRoomsPackages from "./pages/HotelOwner/ViewCurrentRoomsPackages.jsx";
+import AddRoomPage from "./pages/HotelOwner/AddRoomPage.jsx";
+import AddSpecialPackages from "./pages/HotelOwner/AddSpecialPackages.jsx";
+import ManageRoomAvailability from "./pages/HotelOwner/ManageRoomAvailability.jsx";
+import ViewRoomAvailabilityCalenderPage from "./pages/HotelOwner/ViewRoomAvailabilityCalenderPage.jsx";
+import ViewRoomReservation from "./pages/HotelOwner/ViewRoomReservation.jsx";
+import FinancialAnalysisDashboard from "./pages/HotelOwner/FinancialAnalysisDashboard.jsx";
+import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSettings.jsx";
 
 import RestuarantSignup from "./pages/Restuarant/SignupPage";
 import GuideSignup from "./pages/Guide/SignupPage";
@@ -43,7 +55,6 @@ import DriverSignUp3 from "./pages/Driver/SignUpForm3";
 import { DriverSignupProvider } from "./context/DriverSignupContext";
 import { PageTitleProvider } from "./context/PageTitleContext";
 
-import DummyPageHotelOwner from "./pages/HotelOwner/dummyPage";
 import DummyPageRestaurant from "./pages/Restuarant/dummyPage";
 import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
@@ -100,42 +111,38 @@ function App() {
             path="/activityprovider/dashboard"
             element={<ActivityProviderDashboard />}
           />
-
           <Route
             path="/activityprovider/activities"
             element={<ActivityList />}
           />
-
           <Route
             path="/activityprovider/activities/new"
             element={<Activity />}
           />
-
           <Route
             path="/activityprovider/activities/edit/:id"
             element={<Activity />}
           />
-
           <Route
             path="/activityprovider/calendar"
             element={<ManageCalendar />}
           />
-
           <Route
             path="/activityprovider/viewratings"
             element={<ViewRatings />}
           />
-
           <Route
             path="/activityprovider/acceptbookings"
             element={<AcceptBookings />}
           />
 
-          {/* Landing Pages */}
+          {/* Landing pages */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutUs />} />
+            <Route path="destinations" element={<Destinations />} />
             <Route path="how-it-works" element={<HowItWorks />} />
+            <Route path="contact" element={<ContactPage />} />
           </Route>
 
           {/* Authentication */}
@@ -217,15 +224,44 @@ function App() {
               element={<VehicleDetailsPage />}
             />
             <Route path="book-driver" element={<BookDriver />} />
-            <Route path="find-hotel" element={<FindHotelPage/>} />
-            <Route path="find-hotel/hotel-details/:id" element={<HotelDetails/>} />
+            <Route path="find-hotel" element={<FindHotelPage />} />
+            <Route
+              path="find-hotel/hotel-details/:id"
+              element={<HotelDetails />}
+            />
           </Route>
 
           <Route
             path="/dashboard-HotelOwner"
-            element={<DummyPageHotelOwner />}
+            element={<HotelOwnerDashboard />}
           />
-
+          {/* ACCOMMODATION MANAGEMENT ROUTES */}
+          <Route
+            path="/view-rooms-packages"
+            element={<ViewCurrentRoomsPackages />}
+          />
+          <Route path="/add-room-package" element={<AddRoomPage />} />
+          <Route path="/edit-room/:id" element={<AddRoomPage />} />
+          <Route path="/add-special-package" element={<AddSpecialPackages />} />
+          <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
+          <Route
+            path="/manage-availability"
+            element={<ManageRoomAvailability />}
+          />
+          <Route
+            path="/view-availability-calendar"
+            element={<ViewRoomAvailabilityCalenderPage />}
+          />
+          <Route path="/view-reservations" element={<ViewRoomReservation />} />
+          <Route
+            path="/financial-analysis"
+            element={<FinancialAnalysisDashboard />}
+          />
+          <Route path="/dashboard" element={<HotelOwnerDashboard />} />
+          <Route
+            path="/Hotel-Owner-Profile-Settings"
+            element={<HotelOwnerProfileSettings />}
+          />
           <Route
             path="/dashboard-Restaurant"
             element={<DummyPageRestaurant />}

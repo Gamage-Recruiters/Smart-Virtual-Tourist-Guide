@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 // IMPORT YOUR FLAG IMAGE HERE
 import sriLankaFlag from '../assets/SLFH.jpg'; 
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/logo.png'; 
+import logoImage from '../assets/HotelOwner/logo.png'; 
 // IMPORT YOUR BACKGROUND IMAGE HERE
 import bg4Image from '../assets/bg4.png'; 
+
+
 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
