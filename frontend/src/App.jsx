@@ -205,7 +205,7 @@ function App() {
           />
 
           {/*tourist Dashboards */}
-          <Route path="/tourist-dashboard" element={<MainPage />}>
+          <Route path="/dashboard-Tourist" element={<MainPage />}>
             <Route index element={<TouristDashboard />} />
             <Route path="trip-plan" element={<TripPlanningPage />} />
             {/* Navigation */}

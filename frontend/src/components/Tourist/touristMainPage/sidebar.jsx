@@ -21,25 +21,25 @@ function Sidebar() {
           <NavItem
             icon={<LayoutDashboard size={20} />}
             label="Dashboard"
-            navigate="/tourist-dashboard"
+            navigate="/dashboard-Tourist"
             //if navigate to dashboard, show active class
             active={
-              location === "/tourist-dashboard" ||
-              location === "/dashboard" ||
-              location === "/"
+              location === "/" ||
+              location === "/dashboard-Tourist" ||
+              location.startsWith("/dashboard-Tourist/")
             }
           />
           <NavItem
             icon={<MapPin size={20} />}
             label="Plan Trip"
-            navigate="/tourist-dashboard/trip-plan"
-            active={location === "/tourist-dashboard/trip-plan"}
+            navigate="/dashboard-Tourist/trip-plan"
+            active={location === "/dashboard-Tourist/trip-plan"}
           />
           <NavItem
             icon={<Map size={20} />}
             label="Map"
-            navigate="/tourist-dashboard/direction"
-            active={location === "/tourist-dashboard/direction"}
+            navigate="/dashboard-Tourist/direction"
+            active={location === "/dashboard-Tourist/direction"}
           />
           <NavItem
             icon={<ShieldCheck size={20} />}
@@ -49,8 +49,8 @@ function Sidebar() {
           <NavItem
             icon={<User size={20} />}
             label="Profile"
-            navigate="/tourist-dashboard/touristProfile"
-            active={location === "/tourist-dashboard/touristProfile"}
+            navigate="/dashboard-Tourist/touristProfile"
+            active={location === "/dashboard-Tourist/touristProfile"}
           />
         </nav>
       </div>
@@ -64,9 +64,6 @@ function Sidebar() {
           <button className="flex items-center gap-4 px-8 pb-6 cursor-pointer transition-colors text-slate-400 hover:text-slate-600 font-semibold"
           onClick={()=>{
             localStorage.removeItem("token")
-            localStorage.removeItem("touristProfile")
-            localStorage.removeItem("tripInfo")
-            localStorage.removeItem("user")
             localStorage.removeItem("userData")
             navigate("/login")
           }}

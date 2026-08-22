@@ -99,7 +99,7 @@ export default function HotelCard({ hotel }) {
 
             <button
 
-            onClick={() => navigate(`/tourist-dashboard/find-hotel/hotel-details/${hotel.id}`)}
+            onClick={() => navigate(`/dashboard-Tourist/find-hotel/hotel-details/${hotel.id}`)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl">
               View Details
             </button>
