@@ -27,11 +27,8 @@ import safetyRouter from './routes/Safety/safetyRouter.js';
 export const app = express();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const app = express();
 
 // ==================== MIDDLEWARE ====================
-// CORS - only once (removed duplicate)
-app.use(cors());
 
 // middleware
 app.use(cors());
