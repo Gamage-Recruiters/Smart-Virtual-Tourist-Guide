@@ -295,7 +295,7 @@
 // export default AuthLayout;
 
 import React from 'react';
-import Header from './Header.jsx';
+import Header from '../header.jsx';
 import Footer from './Footer.jsx';
 import logoText from '../../assets/Tourist/name.png';
 

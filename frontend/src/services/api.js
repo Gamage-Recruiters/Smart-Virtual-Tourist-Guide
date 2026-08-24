@@ -194,7 +194,7 @@ export const renterAPI = {
 };
 
 /**
- * ACTIVITY PROVIDER APIs
+ * ACTIVITY PROVIDER APIs (from main)
  */
 export const activityProviderAPI = {
   register(userData) {
@@ -212,7 +212,7 @@ export const governmentAPI = {
 };
 
 /**
- * DRIVER APIs
+ * DRIVER APIs (from main)
  */
 export const driverAPI = {
   register(userData) {
@@ -226,6 +226,94 @@ export const driverAPI = {
 export const socialAuthAPI = {
   googleAuth(idToken, role) {
     return apiClient.post('/auth/google', { idToken, role });
+  },
+};
+
+// ==================== RESTAURANT-SPECIFIC APIs (from Integration-resturent/shakir) ====================
+
+/**
+ * Private headers using restaurantToken (for restaurant dashboard calls)
+ */
+const restaurantPrivateHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  const token = localStorage.getItem('restaurantToken');
+  if (token && token !== 'null') {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+/**
+ * REVIEW APIs (Restaurant feature)
+ */
+export const reviewAPI = {
+  /** Get reviews + stats for a restaurant (public, with optional auth for user review) */
+  async getRestaurantReviews(restaurantId, page = 1) {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('token');
+      if (token && token !== 'null') {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(
+        `${API_BASE_URL}/reviews/restaurant/${restaurantId}?page=${page}`,
+        { method: 'GET', headers }
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('API GET Reviews Error:', error);
+      throw error;
+    }
+  },
+
+  /** Create a review */
+  createReview(data) {
+    return apiClient.post('/reviews', data);
+  },
+
+  /** Update own review */
+  updateReview(reviewId, data) {
+    return apiClient.put(`/reviews/${reviewId}`, data);
+  },
+
+  /** Delete own review */
+  deleteReview(reviewId) {
+    return apiClient.delete(`/reviews/${reviewId}`);
+  },
+
+  /** Restaurant owner: reply to a review */
+  async replyToReview(reviewId, reply) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}/reply`, {
+        method: 'PUT',
+        headers: restaurantPrivateHeaders(),
+        body: JSON.stringify({ reply }),
+      });
+      const json = await response.json();
+      if (!response.ok) {
+        throw { message: json.message || 'Request failed' };
+      }
+      return json;
+    } catch (error) {
+      console.error('API Reply Error:', error);
+      throw error;
+    }
+  },
+
+  /** Restaurant owner: get all reviews for own restaurant (dashboard) */
+  async getOwnerReviews(restaurantId, page = 1) {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reviews/owner/${restaurantId}?page=${page}`,
+        { method: 'GET', headers: restaurantPrivateHeaders() }
+      );
+      return await response.json();
+    } catch (error) {
+      console.error('API GET Owner Reviews Error:', error);
+      throw error;
+    }
   },
 };
 
