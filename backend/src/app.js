@@ -1,12 +1,19 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
+import express, { json, urlencoded } from 'express';
+import { config } from 'dotenv';
+import connectDB from "./configs/database.js";
 import cors from 'cors';
-import authRouter from './routes/authRoutes.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+// Import all routes with correct paths
+import roomRoutes from './routes/HotelOwner/Room.routes.js';
+import specialPackageRoutes from './routes/HotelOwner/specialPackage.routes.js';
+import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.js';
+import userRoutes from './routes/HotelOwner/user.routes.js';
+import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import errorHandler from './middleware/errorHandler.js';
+import errorHandler from './middleware/HotelOwner/errorHandler.js';
 
 import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
 import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
@@ -24,28 +31,66 @@ import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
 
 export const app = express();
 
-// 2. Configure CORS Middleware
-app.use(cors());
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// ==================== MIDDLEWARE ====================
 
 // middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// routes
+// Serve uploaded images as static files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// ==================== DATABASE CONNECTION ====================
+connectDB();
+
+// ==================== BASIC ROUTES ====================
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Welcome to Smart Virtual Tourist Guide API',
+    version: '1.0.0',
+    endpoints: {
+      health: 'GET /api/health',
+      auth: 'POST /api/auth/register, POST /api/auth/login',
+      dashboard: 'GET /api/dashboard',
+      rooms: 'GET /api/rooms, POST /api/rooms, PUT /api/rooms/:id, DELETE /api/rooms/:id',
+      packages: 'GET /api/packages, POST /api/packages, PUT /api/packages/:id, DELETE /api/packages/:id',
+      roomAvailability: 'GET /api/room-availability, POST /api/room-availability, PUT /api/room-availability/:id, DELETE /api/room-availability/:id',
+      users: 'GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id',
+      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id'
+    }
+  });
+});
+
+// Health check - single endpoint (removed duplicate)
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: 'Connected'
+  });
+});
+
+// ==================== API ROUTES ====================
+// Authentication Routes
 app.use('/api/auth', authRoutes);
+
+// Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/safety', safetyRouter);
 
 
-// basic routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Smart Virtual Tourist Guide API' });
-});
+// Hotel Owner Routes - Room Management
+app.use('/api/rooms', roomRoutes);
+app.use('/api/packages', specialPackageRoutes);
+app.use('/api/room-availability', roomAvailabilityRoutes);
+app.use('/api/users', userRoutes);
 
-// Vehicle routes
+// Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
-app.use('/api/auth', authRouter);
 
 // Tourist Dashboard routes
 app.use("/api/budget", budgetRoutes);
@@ -62,11 +107,16 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running' });
+// ==================== ERROR HANDLING ====================
+// 404 handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
 });
 
-// error handler middleware
+// Global error handler middleware (must be last)
 app.use(errorHandler);
 
 export default app;

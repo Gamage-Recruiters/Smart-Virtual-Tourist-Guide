@@ -332,7 +332,7 @@ const rightStyle = {
 
       <Header />
 
-      <main className="relative min-h-300 pt-1 overflow-hidden">
+      <main className="relative min-h-300 pt-1 overflow-hidden bg-[#f4f8fc]">
 
         {/* LEFT IMAGE */}
         <div

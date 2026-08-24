@@ -1,14 +1,12 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import{ useState, useRef, useEffect, useCallback } from 'react';
 import { MapPin, Mic, Search, X } from 'lucide-react';
-import Logo from '../../assets/NavigationAndMapping/logo.png';
 import { usePageTitle } from '../../context/PageTitleContext';
-import sriflag from '../../assets/NavigationAndMapping/sriflag.jpg';
 import { ensureMapsScript } from '../../utils/helpers';
 
 const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };
 
 export default function Header() {
-  const { title, showSearchBar, navigateToSearch, activePage, setActivePage, searchedPlace, etaData } = usePageTitle();
+  const { showSearchBar, navigateToSearch, activePage, setActivePage, searchedPlace, etaData } = usePageTitle();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -103,46 +101,10 @@ export default function Header() {
   const readOnlySearch = isStartPage || isEtaPage;
 
   return (
-    <header className="relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible" style={{ borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)', willChange: 'transform' }}>
+    <header className=" bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible" style={{ borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)', willChange: 'transform' }}>
       <div className="max-w-11xl mx-auto flex items-center justify-between h-full">
-        {/* Left: logo + text */}
-        <div className="flex items-center gap-1 h-full relative">
-          <img src={Logo} alt="Sri Lanka Tourism Logo" className="h-40 w-auto drop-shadow-md absolute -top-4 left-0" style={{ zIndex: 2, transform: 'translateZ(0)' }} />
-          <div className="flex flex-col items-center ml-24">
-            <span className="font-bold leading-tight" style={{ fontSize: 17, color: '#122E63', fontFamily: "'Inter', sans-serif", fontWeight: 700, letterSpacing: '1px' }}>
-              Smart Virtual Tourist Guide
-            </span>
-            <div style={{ background: '#fff', display: 'inline-block', padding: '0 8px', borderRadius: '6px', marginTop: 5 }}>
-              <span
-                className="font-bold leading-tight whitespace-nowrap"
-                style={{
-                  fontSize: 'clamp(2rem, 2.6rem, 3rem)',
-                  letterSpacing: '8px',
-                  fontFamily: "'Inter', sans-serif",
-                  display: 'inline-block',
-                  fontWeight: 700,
-                  backgroundImage: `url(${sriflag})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  color: 'transparent',
-                  transform: 'translateZ(0)',
-                  willChange: 'transform',
-                }}
-              >
-                Sri Lanka
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Center title */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
-          <h1 className="font-bold text-black text-3xl">{activePage === 'eta' ? '' : title}</h1>
-        </div>
-
-        {/* Right: Search Bar */}
+        {/*  Search Bar */}
         {showSearchBar && activePage !== 'safety' ? (
           <div ref={containerRef} style={{ position: 'relative', width: '800px', margin: '10px 30px' }}>
             <div

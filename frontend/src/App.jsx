@@ -1,66 +1,80 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 // ==================== Existing Project Imports ====================
-import ActivityProviderDashboard from './pages/ActivityProvider/ActivityProviderDashboard.jsx';
-import ActivityList from './pages/ActivityProvider/ActivityList.jsx';
-import Activity from './pages/ActivityProvider/AddActivity.jsx';
-import ManageCalendar from './pages/ActivityProvider/ManageCalendar.jsx';
-import ViewRatings from './pages/ActivityProvider/ViewRatings.jsx';
-import AcceptBookings from './pages/ActivityProvider/AcceptBookings.jsx';
+import ActivityProviderDashboard from "./pages/ActivityProvider/ActivityProviderDashboard.jsx";
+import ActivityList from "./pages/ActivityProvider/ActivityList.jsx";
+import Activity from "./pages/ActivityProvider/AddActivity.jsx";
+import ManageCalendar from "./pages/ActivityProvider/ManageCalendar.jsx";
+import ViewRatings from "./pages/ActivityProvider/ViewRatings.jsx";
+import AcceptBookings from "./pages/ActivityProvider/AcceptBookings.jsx";
 
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import AboutUs from './pages/AboutUs';
-import HowItWorks from './pages/HowItWork';
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import AboutUs from "./pages/AboutUs";
+import HowItWorks from "./pages/HowItWork";
+import Destinations from "./pages/Destinations";
+import ContactPage from "./pages/Contact";
 
-import SignupForm from './pages/Tourist/SignupForm1';
-import TravelSafetyInfo from './pages/Tourist/SignupForm2';
+import SignupForm from "./pages/Tourist/SignupForm1";
+import TravelSafetyInfo from "./pages/Tourist/SignupForm2";
 
-import LoginScreen from './pages/Login/LoginScreen';
-import ForgotPasswordScreen from './pages/Login/ForgotPasswordScreen';
-import NewPasswordCreate from './pages/Login/NewPasswordCreate';
+import LoginScreen from "./pages/Login/LoginScreen";
+import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
+import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
-import HotelOwnerSignup from './pages/HotelOwner/SignUp';
-import HotelInfo from './pages/HotelOwner/HotelInfo';
+// ===== FEATURE/ACCOMMODATION-MANAGEMENT ROUTES =====
+import HotelOwnerSignup from "./pages/HotelOwner/SignUp";
+import HotelInfo from "./pages/HotelOwner/HotelInfo";
+import HotelOwnerDashboard from "./pages/HotelOwner/HotelOwnerDashboard.jsx";
+import ViewCurrentRoomsPackages from "./pages/HotelOwner/ViewCurrentRoomsPackages.jsx";
+import AddRoomPage from "./pages/HotelOwner/AddRoomPage.jsx";
+import AddSpecialPackages from "./pages/HotelOwner/AddSpecialPackages.jsx";
+import ManageRoomAvailability from "./pages/HotelOwner/ManageRoomAvailability.jsx";
+import ViewRoomAvailabilityCalenderPage from "./pages/HotelOwner/ViewRoomAvailabilityCalenderPage.jsx";
+import ViewRoomReservation from "./pages/HotelOwner/ViewRoomReservation.jsx";
+import FinancialAnalysisDashboard from "./pages/HotelOwner/FinancialAnalysisDashboard.jsx";
+import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSettings.jsx";
 
-import RestuarantSignup from './pages/Restuarant/SignupPage';
-import GuideSignup from './pages/Guide/SignupPage';
-import RenterSignup from './pages/Renter/SignupPage';
-import GovernmentSignup from './pages/Government/SignupPage';
-import ActivityProviderSignup from './pages/ActivityProvider/SignupPage';
+import RestuarantSignup from "./pages/Restuarant/SignupPage";
+import GuideSignup from "./pages/Guide/SignupPage";
+import RenterSignup from "./pages/Renter/SignupPage";
+import GovernmentSignup from "./pages/Government/SignupPage";
+import ActivityProviderSignup from "./pages/ActivityProvider/SignupPage";
 
-import AdminLogin from './pages/Admin/LoginPage';
+import AdminLogin from "./pages/Admin/LoginPage";
 
-import DriverSignUp1 from './pages/Driver/SignUpForm1';
-import DriverSignUp2 from './pages/Driver/SignUpForm2';
-import DriverSignUp3 from './pages/Driver/SignUpForm3';
+import DriverSignUp1 from "./pages/Driver/SignUpForm1";
+import DriverSignUp2 from "./pages/Driver/SignUpForm2";
+import DriverSignUp3 from "./pages/Driver/SignUpForm3";
 
-import { DriverSignupProvider } from './context/DriverSignupContext';
-import { PageTitleProvider } from './context/PageTitleContext';
+import { DriverSignupProvider } from "./context/DriverSignupContext";
+import { PageTitleProvider } from "./context/PageTitleContext";
 
-import DummyPageHotelOwner from './pages/HotelOwner/dummyPage';
-import DummyPageRestaurant from './pages/Restuarant/dummyPage';
-import DummyPageGuide from './pages/Guide/dummyPage';
-import DummyPageGovernment from './pages/Government/dummyPage';
-import DummyPageDriver from './pages/Driver/dummyPage';
-import DummyPageAdmin from './pages/Admin/dummyPage';
+import DummyPageRestaurant from "./pages/Restuarant/dummyPage";
+import DummyPageGuide from "./pages/Guide/dummyPage";
+import DummyPageGovernment from "./pages/Government/dummyPage";
+import DummyPageDriver from "./pages/Driver/dummyPage";
+import DummyPageAdmin from "./pages/Admin/dummyPage";
 
-import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
-import Dashboard from './pages/vehicleAdminDashboard/dashboard';
-import RentalRequestsPage from './pages/vehicleAdminDashboard/rentalRequestsPage';
-import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
-import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
-import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
+import VehicleAdmin from "./pages/Renter/vehicleAdminDashboard/vehicleAdminPage";
+import Dashboard from "./pages/Renter/vehicleAdminDashboard/dashboard";
+import RentalRequestsPage from "./pages/Renter/vehicleAdminDashboard/rentalRequestsPage";
+import MyFleetPage from "./pages/Renter/vehicleAdminDashboard/myFleetPage";
+import EarningsPage from "./pages/Renter/vehicleAdminDashboard/earningsPage";
+import SettingsPage from "./pages/Renter/vehicleAdminDashboard/settingsPage";
 
-import MainPage from './pages/Tourist/touristMainPage/mainPage.jsx';
-import TouristProfilePage from './pages/Tourist/touristProfile/touristProfilePage.jsx';
-import TripPlanMainPage from './pages/Tourist/tripPlanMainPage/tripPlanMainPage.jsx';
+import MainPage from "./pages/Tourist/touristMainPage/mainPage.jsx";
+import TouristProfilePage from "./pages/Tourist/touristProfile/touristProfilePage.jsx";
 
-import NavigationMain from './pages/NavigationAndMapping/NavigationMain.jsx';
-
+import NavigationMain from "./pages/NavigationAndMapping/NavigationMain.jsx";
 
 // ==================== Safety Module Imports ====================
-import { SafetyProvider } from './context/SafetyContext.jsx';
+import { SafetyProvider } from "./context/SafetyContext.jsx";
 
 import SafetyLayout from './pages/safety/SafetyLayout';
 import PublicIncidentsPage from './pages/safety/PublicIncidentsPage';
@@ -73,20 +87,22 @@ import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage'
 import WeatherAlertsPage from './pages/safety/WeatherAlertsPage';
 import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage';
 
-import TouristRestaurantsPage from './pages/Restuarant/TouristRestaurantsPage.jsx'
-
 
 // ==================== CSS ====================
-import './App.css';
-
+import "./App.css";
+import { RentVehiclePage } from "./pages/Renter/rentVehiclePage.jsx";
+import TouristDashboard from "./pages/Tourist/touristDashboard/dashboard.jsx";
+import TripPlanningPage from "./pages/Tourist/tripPlanning/TripPlanningPage.jsx";
+import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
+import BookDriver from "./pages/Driver/bookDriver.jsx";
+import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
+import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
 
 function App() {
   return (
     <SafetyProvider>
       <Router>
-
         <Routes>
-
           {/* ========================================================= */}
           {/*                     EXISTING PROJECT                      */}
           {/* ========================================================= */}
@@ -96,114 +112,70 @@ function App() {
             path="/activityprovider/dashboard"
             element={<ActivityProviderDashboard />}
           />
-
           <Route
             path="/activityprovider/activities"
             element={<ActivityList />}
           />
-
           <Route
             path="/activityprovider/activities/new"
             element={<Activity />}
           />
-
           <Route
             path="/activityprovider/activities/edit/:id"
             element={<Activity />}
           />
-
           <Route
             path="/activityprovider/calendar"
             element={<ManageCalendar />}
           />
-
           <Route
             path="/activityprovider/viewratings"
             element={<ViewRatings />}
           />
-
           <Route
             path="/activityprovider/acceptbookings"
             element={<AcceptBookings />}
           />
 
-
-          {/* Landing Pages */}
+          {/* Landing pages */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutUs />} />
+            <Route path="destinations" element={<Destinations />} />
             <Route path="how-it-works" element={<HowItWorks />} />
+            <Route path="contact" element={<ContactPage />} />
           </Route>
 
-
           {/* Authentication */}
-          <Route
-            path="/login"
-            element={<LoginScreen />}
-          />
+          <Route path="/login" element={<LoginScreen />} />
 
-          <Route
-            path="/forgot-password"
-            element={<ForgotPasswordScreen />}
-          />
+          <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
 
-          <Route
-            path="/create-password"
-            element={<NewPasswordCreate />}
-          />
-
+          <Route path="/create-password" element={<NewPasswordCreate />} />
 
           {/* Signup Flows */}
-          <Route
-            path="/tourist"
-            element={<SignupForm />}
-          />
+          <Route path="/tourist" element={<SignupForm />} />
 
-          <Route
-            path="/travel-safety"
-            element={<TravelSafetyInfo />}
-          />
+          <Route path="/travel-safety" element={<TravelSafetyInfo />} />
 
-          <Route
-            path="/hotel-owner"
-            element={<HotelOwnerSignup />}
-          />
+          <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
 
-          <Route
-            path="/hotel-info"
-            element={<HotelInfo />}
-          />
+          <Route path="/hotel-info" element={<HotelInfo />} />
 
-          <Route
-            path="/restuarant"
-            element={<RestuarantSignup />}
-          />
+          <Route path="/restuarant" element={<RestuarantSignup />} />
 
-          <Route
-            path="/guide"
-            element={<GuideSignup />}
-          />
+          <Route path="/guide" element={<GuideSignup />} />
 
-          <Route
-            path="/renter"
-            element={<RenterSignup />}
-          />
+          <Route path="/renter" element={<RenterSignup />} />
 
-          <Route
-            path="/government"
-            element={<GovernmentSignup />}
-          />
+          <Route path="/government" element={<GovernmentSignup />} />
 
           <Route
             path="/activity-provider"
             element={<ActivityProviderSignup />}
           />
 
-          <Route
-            path="/admin"
-            element={<AdminLogin />}
-          />
-
+          <Route path="/admin" element={<AdminLogin />} />
 
           {/* Driver Signup */}
           <Route
@@ -233,207 +205,153 @@ function App() {
             }
           />
 
-
-          {/* Dashboards */}
-          <Route
-            path="/dashboard-Tourist"
-            element={<MainPage />}
-          />
-
-          <Route
-            path="/touristProfile"
-            element={<TouristProfilePage />}
-          />
-
-          <Route
-            path="/trip-plan"
-            element={<TripPlanMainPage />}
-          />
+          {/*tourist Dashboards */}
+          <Route path="/dashboard-Tourist" element={<MainPage />}>
+            <Route index element={<TouristDashboard />} />
+            <Route path="trip-plan" element={<TripPlanningPage />} />
+            {/* Navigation */}
+            <Route
+              path="direction"
+              element={
+                <PageTitleProvider>
+                  <NavigationMain />
+                </PageTitleProvider>
+              }
+            />
+            <Route path="touristProfile" element={<TouristProfilePage />} />
+            <Route path="rent-vehicle" element={<RentVehiclePage />} />
+            <Route
+              path="rent-vehicle/vehicle-details/:id"
+              element={<VehicleDetailsPage />}
+            />
+            <Route path="book-driver" element={<BookDriver />} />
+            <Route path="find-hotel" element={<FindHotelPage />} />
+            <Route
+              path="find-hotel/hotel-details/:id"
+              element={<HotelDetails />}
+            />
+          </Route>
 
           <Route
             path="/dashboard-HotelOwner"
-            element={<DummyPageHotelOwner />}
+            element={<HotelOwnerDashboard />}
           />
-
+          {/* ACCOMMODATION MANAGEMENT ROUTES */}
+          <Route
+            path="/view-rooms-packages"
+            element={<ViewCurrentRoomsPackages />}
+          />
+          <Route path="/add-room-package" element={<AddRoomPage />} />
+          <Route path="/edit-room/:id" element={<AddRoomPage />} />
+          <Route path="/add-special-package" element={<AddSpecialPackages />} />
+          <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
+          <Route
+            path="/manage-availability"
+            element={<ManageRoomAvailability />}
+          />
+          <Route
+            path="/view-availability-calendar"
+            element={<ViewRoomAvailabilityCalenderPage />}
+          />
+          <Route path="/view-reservations" element={<ViewRoomReservation />} />
+          <Route
+            path="/financial-analysis"
+            element={<FinancialAnalysisDashboard />}
+          />
+          <Route path="/dashboard" element={<HotelOwnerDashboard />} />
+          <Route
+            path="/Hotel-Owner-Profile-Settings"
+            element={<HotelOwnerProfileSettings />}
+          />
           <Route
             path="/dashboard-Restaurant"
             element={<DummyPageRestaurant />}
           />
 
-          <Route
-            path="/dashboard-Guide"
-            element={<DummyPageGuide />}
-          />
+          <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
 
-          <Route
-            path="/dashboard-Renter"
-            element={<VehicleAdmin />}
-          />
+          <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
 
           <Route
             path="/dashboard-Government"
             element={<DummyPageGovernment />}
           />
 
-          <Route
-            path="/dashboard-Driver"
-            element={<DummyPageDriver />}
-          />
+          <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
 
-          <Route
-            path="/dashboard-Admin"
-            element={<DummyPageAdmin />}
-          />
+          <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
 
           <Route
             path="/dashboard-ActivityProvider"
             element={<ActivityProviderDashboard />}
           />
 
-
-          {/* Existing Navigation */}
-          <Route
-            path="/direction"
-            element={
-              <PageTitleProvider>
-                <NavigationMain />
-              </PageTitleProvider>
-            }
-          />
-
-
           {/* Vehicle Admin */}
-          <Route
-            path="/vehicle-admin"
-            element={<VehicleAdmin />}
-          >
-            <Route
-              index
-              element={<Dashboard />}
-            />
+          <Route path="/vehicle-admin" element={<VehicleAdmin />}>
+            <Route index element={<Dashboard />} />
 
-            <Route
-              path="requests"
-              element={<RentalRequestsPage />}
-            />
+            <Route path="requests" element={<RentalRequestsPage />} />
 
-            <Route
-              path="fleet"
-              element={<MyFleetPage />}
-            />
+            <Route path="fleet" element={<MyFleetPage />} />
 
-            <Route
-              path="earnings"
-              element={<EarningsPage />}
-            />
+            <Route path="earnings" element={<EarningsPage />} />
 
-            <Route
-              path="settings"
-              element={<SettingsPage />}
-            />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
-
 
           {/* ========================================================= */}
           {/*                         SAFETY MODULE                     */}
           {/* ========================================================= */}
 
           {/* Safety routes with Sidebar Layout */}
-          <Route
-            path="/safety"
-            element={<SafetyLayout />}
-          >
-
+          <Route path="/safety" element={<SafetyLayout />}>
             {/* /safety */}
-            <Route
-              index
-              element={<PublicIncidentsPage />}
-            />
+            <Route index element={<PublicIncidentsPage />} />
 
             {/* /safety/alerts */}
-            <Route
-              path="alerts"
-              element={<SecurityAlertsPage />}
-            />
+            <Route path="alerts" element={<SecurityAlertsPage />} />
 
             {/* Old route → new route */}
             <Route
               path="security-alerts"
-              element={
-                <Navigate
-                  to="/safety/alerts"
-                  replace
-                />
-              }
+              element={<Navigate to="/safety/alerts" replace />}
             />
 
             {/* /safety/my-incidents */}
-            <Route
-              path="my-incidents"
-              element={<MyStatusDashboardPage />}
-            />
+            <Route path="my-incidents" element={<MyStatusDashboardPage />} />
 
             {/* Old route → new route */}
             <Route
               path="my-reports"
-              element={
-                <Navigate
-                  to="/safety/my-incidents"
-                  replace
-                />
-              }
+              element={<Navigate to="/safety/my-incidents" replace />}
             />
 
             {/* Old route → new route */}
             <Route
               path="status-dashboard"
-              element={
-                <Navigate
-                  to="/safety/my-incidents"
-                  replace
-                />
-              }
+              element={<Navigate to="/safety/my-incidents" replace />}
             />
 
             {/* /safety/public-analytics */}
-            <Route
-              path="public-analytics"
-              element={<IncidentTrackingPage />}
-            />
+            <Route path="public-analytics" element={<IncidentTrackingPage />} />
 
             {/* Old route → new route */}
             <Route
               path="analytics"
-              element={
-                <Navigate
-                  to="/safety/public-analytics"
-                  replace
-                />
-              }
+              element={<Navigate to="/safety/public-analytics" replace />}
             />
 
             {/* /safety/public-incidents */}
-            <Route
-              path="public-incidents"
-              element={<PublicIncidentsPage />}
-            />
+            <Route path="public-incidents" element={<PublicIncidentsPage />} />
 
             {/* /safety/weather */}
-            <Route
-              path="weather"
-              element={<WeatherAlertsPage />}
-            />
-
+            <Route path="weather" element={<WeatherAlertsPage />} />
           </Route>
-
 
           {/* Safety Standalone Pages */}
 
           {/* Emergency Call */}
-          <Route
-            path="/safety/emergency"
-            element={<EmergencyCallPage />}
-          />
+          <Route path="/safety/emergency" element={<EmergencyCallPage />} />
 
           {/* Navigation Directions */}
           <Route
@@ -450,12 +368,7 @@ function App() {
           {/* Old report form route */}
           <Route
             path="/safety/report-incident/form"
-            element={
-              <Navigate
-                to="/safety/report-incident"
-                replace
-              />
-            }
+            element={<Navigate to="/safety/report-incident" replace />}
           />
            {/* Restuarant */}
            <Route
@@ -470,7 +383,6 @@ function App() {
             element={<IncidentReportSuccessPage />}
           />
 
-
           {/* ========================================================= */}
           {/*                    FALLBACK ROUTE                         */}
           {/* ========================================================= */}
@@ -483,18 +395,8 @@ function App() {
             Unknown URLs will go to the existing home page.
           */}
 
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to="/"
-                replace
-              />
-            }
-          />
-
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
       </Router>
     </SafetyProvider>
   );

@@ -8,7 +8,7 @@ import UpcomingBookings from "../../../components/Tourist/touristDashboard/upcom
 import TripCalendar from "../../../components/Tourist/touristDashboard/calender";
 import dayjs from "dayjs";
 
-function Dashboard() {
+function TouristDashboard() {
   // Retrieve travel dates from localStorage (tripInfo or touristProfile)
   const getDates = () => {
     let startStr = "2026-05-15";
@@ -94,4 +94,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default TouristDashboard;
