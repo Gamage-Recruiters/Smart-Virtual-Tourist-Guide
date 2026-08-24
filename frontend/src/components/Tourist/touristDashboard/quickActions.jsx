@@ -17,7 +17,7 @@ function QuickActions() {
         <QuickAction icon={<Map size={20} />} label="Book Guide" />
         <QuickAction icon={<Car size={20} />} label="Rent Vehicle" location="/rent-vehicle"/>
         <QuickAction icon={<Hotel size={20} />} label="Find Hotel" location="/find-hotel" />
-        <QuickAction icon={<Utensils size={20} />} label="Food" />
+        <QuickAction icon={<Utensils size={20} />} label="Food" location="/restaurants"/>
         <QuickAction icon={<Package size={20} />} label="Packages" />
         <QuickAction icon={<SquareActivity size={20} />} label="Activities" />
       </div>

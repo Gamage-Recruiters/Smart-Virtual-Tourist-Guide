@@ -17,6 +17,11 @@ import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
 
 import safetyRouter from './routes/Safety/safetyRouter.js';
 
+import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
+
+
+
+
 export const app = express();
 
 // 2. Configure CORS Middleware
@@ -49,6 +54,8 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/itinerary", itineraryRoutes);
+
+app.use('/api/restaurants', restaurantRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

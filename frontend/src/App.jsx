@@ -73,6 +73,8 @@ import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage'
 import WeatherAlertsPage from './pages/safety/WeatherAlertsPage';
 import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage';
 
+import TouristRestaurantsPage from './pages/Restuarant/TouristRestaurantsPage.jsx'
+
 
 // ==================== CSS ====================
 import './App.css';
@@ -455,6 +457,12 @@ function App() {
               />
             }
           />
+           {/* Restuarant */}
+           <Route
+            path="/restaurants"
+            element={<TouristRestaurantsPage />}
+          />
+
 
           {/* Report Success */}
           <Route
