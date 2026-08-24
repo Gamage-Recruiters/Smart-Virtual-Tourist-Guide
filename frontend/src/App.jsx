@@ -76,16 +76,17 @@ import NavigationMain from "./pages/NavigationAndMapping/NavigationMain.jsx";
 // ==================== Safety Module Imports ====================
 import { SafetyProvider } from "./context/SafetyContext.jsx";
 
-import SafetyLayout from "./pages/safety/SafetyLayout";
-import PublicIncidentsPage from "./pages/safety/PublicIncidentsPage";
-import EmergencyCallPage from "./pages/safety/EmergencyCallPage";
-import SecurityAlertsPage from "./pages/safety/SecurityAlertsPage";
-import IncidentReportPage from "./pages/safety/IncidentReportPage";
-import IncidentTrackingPage from "./pages/safety/IncidentTrackingPage";
-import MyStatusDashboardPage from "./pages/safety/MyStatusDashboardPage";
-import IncidentReportSuccessPage from "./pages/safety/IncidentReportSuccessPage";
-import WeatherAlertsPage from "./pages/safety/WeatherAlertsPage";
-import NavigationDirectionsPage from "./pages/safety/NavigationDirectionsPage";
+import SafetyLayout from './pages/safety/SafetyLayout';
+import PublicIncidentsPage from './pages/safety/PublicIncidentsPage';
+import EmergencyCallPage from './pages/safety/EmergencyCallPage';
+import SecurityAlertsPage from './pages/safety/SecurityAlertsPage';
+import IncidentReportPage from './pages/safety/IncidentReportPage';
+import IncidentTrackingPage from './pages/safety/IncidentTrackingPage';
+import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage';
+import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage';
+import WeatherAlertsPage from './pages/safety/WeatherAlertsPage';
+import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage';
+
 
 // ==================== CSS ====================
 import "./App.css";
@@ -369,6 +370,12 @@ function App() {
             path="/safety/report-incident/form"
             element={<Navigate to="/safety/report-incident" replace />}
           />
+           {/* Restuarant */}
+           <Route
+            path="/restaurants"
+            element={<TouristRestaurantsPage />}
+          />
+
 
           {/* Report Success */}
           <Route
