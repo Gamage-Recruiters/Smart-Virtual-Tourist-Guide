@@ -35,7 +35,7 @@ const reviewSchema = new mongoose.Schema({
   },
   // --- NEW: Array of Cloudinary Image URLs ---
   images: {
-    type: [String], 
+    type: [String],
     default: []
   },
   helpfulCount: {
@@ -56,10 +56,10 @@ const reviewSchema = new mongoose.Schema({
     default: null
   }
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
-// Create a compound index to optimize queries for reviews of a specific provider and type  
+// Create a compound index to optimize queries for reviews of a specific provider and type
 reviewSchema.index({ targetProviderId: 1, targetType: 1 });
 
-export default mongoose.model('Review', reviewSchema);
+export default mongoose.model('PlatformReview', reviewSchema, 'platform_reviews');
