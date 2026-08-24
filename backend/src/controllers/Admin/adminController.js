@@ -3,7 +3,7 @@ import Admin from '../../models/Admin/Admin.js';
 import Booking from '../../models/ActivityProvider/ActivityBooking.js';
 import Package from '../../models/Admin/Package.js';
 import Advertisement from '../../models/Admin/Advertisement.js';
-import Review from '../../models/Admin/Review.js';
+import Review from '../../models/review.model.js';
 import Room from '../../models/HotelOwner/room.model.js';
 
 
@@ -12,9 +12,9 @@ const getDashboardStats = async (req, res) => {
     try {
         // Run queries concurrently for high performance
         const [totalUsers, travelAgencies, registeredDrivers, hotelPartners] = await Promise.all([
-            User.countDocuments({}), 
-            Package.distinct('AgencyContactInformation.agencyName').then((names) => names.filter(Boolean).length), 
-            User.countDocuments({ role: 'driver_user' }), 
+            User.countDocuments({}),
+            Package.distinct('AgencyContactInformation.agencyName').then((names) => names.filter(Boolean).length),
+            User.countDocuments({ role: 'driver_user' }),
             User.countDocuments({ role: 'hotelowner_user' })
         ]);
 
@@ -101,7 +101,7 @@ const getAllAds = async (req, res) => {
         const { status } = req.query;
         const filter = status ? { status } : {};
         const ads = await Advertisement.find(filter).sort({ createdAt: -1 });
-        
+
         res.status(200).json({ success: true, data: ads });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error fetching ads' });
@@ -114,7 +114,7 @@ const updateAdStatus = async (req, res) => {
         const { id } = req.params;
 
         const { status } = req.body;
-        
+
         const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { new: true });
         if (!updatedAd) return res.status(404).json({ success: false, message: 'Ad not found' });
 
@@ -136,7 +136,7 @@ const createAdvertisement = async (req, res) => {
             targetUrl: '#',
             type, // Banner Ad, Sidebar Ad etc.
             // Remove any '$' or letters from budget if user typed them
-            budget: Number(budget.toString().replace(/[^0-9.-]+/g,"")), 
+            budget: Number(budget.toString().replace(/[^0-9.-]+/g,"")),
             startDate,
             endDate,
             // If no image uploaded, use a nice default travel image
@@ -318,7 +318,7 @@ const getRecentActivities = async (req, res) => {
         // Fetch data from all 3 collections in parallel
         const [users, bookings, packages, reviews, ads, rooms] = await Promise.all([
             User.find({}).sort({ createdAt: -1 }).limit(5).select("fullName createdAt"),
-            Booking.find({}).sort({ createdAt: -1 }).limit(5), 
+            Booking.find({}).sort({ createdAt: -1 }).limit(5),
             Package.find({}).sort({ createdAt: -1 }).limit(5).select("BasicInformation.title AgencyContactInformation.agencyName createdAt"),
 
             Review.find({}).sort({ createdAt: -1 }).limit(5).select("rating targetType createdAt"), //[cite: 2]
@@ -362,7 +362,7 @@ const getRecentActivities = async (req, res) => {
                 id: `rev-${review._id}`,
                 type: "REVIEW",
                 title: "New Review Posted",
-                subtitle: `${review.rating} Stars for ${review.targetType}`, //[cite: 2]
+                subtitle: `${review.rating} Stars for ${review.targetType || 'Restaurant'}`, //[cite: 2]
                 createdAt: review.createdAt //[cite: 2]
             });
         });
@@ -424,7 +424,7 @@ const getAdminPackages = async (req, res) => {
         // Data අරගැනීම
         let query = {};
         if (status !== 'all') query.approvalStatus = status;
-        
+
         const packages = await Package.find(query).sort({ createdAt: -1 });
 
         // Option A: Frontend එකට ඕනේ විදිහට Data Flatten කිරීම
@@ -452,9 +452,9 @@ const getAdminPackages = async (req, res) => {
 // 2. Approve Package
 const approvePackage = async (req, res) => {
     try {
-        await Package.findByIdAndUpdate(req.params.id, { 
-            approvalStatus: 'Approved', 
-            approvedAt: new Date() 
+        await Package.findByIdAndUpdate(req.params.id, {
+            approvalStatus: 'Approved',
+            approvedAt: new Date()
         });
         res.json({ success: true, message: "Package approved" });
     } catch (err) {
@@ -466,10 +466,10 @@ const approvePackage = async (req, res) => {
 const rejectPackage = async (req, res) => {
     try {
         const { reason } = req.body;
-        await Package.findByIdAndUpdate(req.params.id, { 
-            approvalStatus: 'Rejected', 
-            rejectionReason: reason, 
-            rejectedAt: new Date() 
+        await Package.findByIdAndUpdate(req.params.id, {
+            approvalStatus: 'Rejected',
+            rejectionReason: reason,
+            rejectedAt: new Date()
         });
         res.json({ success: true, message: "Package rejected" });
     } catch (err) {
@@ -480,7 +480,7 @@ const rejectPackage = async (req, res) => {
 const getPackageById = async (req, res) => {
     try {
         const pkg = await Package.findById(req.params.id);
-        
+
         if (!pkg) {
             return res.status(404).json({ success: false, message: "Package not found" });
         }
@@ -489,10 +489,10 @@ const getPackageById = async (req, res) => {
             _id: pkg._id,
             title: pkg.BasicInformation?.title || "Untitled Package",
             providerName: pkg.AgencyContactInformation?.agencyName || "Unknown Agency",
-            rating: 4.5, 
-            verificationScore: "95% Verified", 
-            imageUrl: (pkg.LocationAndHighlights?.images && pkg.LocationAndHighlights.images.length > 0) 
-                        ? pkg.LocationAndHighlights.images[0] 
+            rating: 4.5,
+            verificationScore: "95% Verified",
+            imageUrl: (pkg.LocationAndHighlights?.images && pkg.LocationAndHighlights.images.length > 0)
+                        ? pkg.LocationAndHighlights.images[0]
                         : 'https://images.unsplash.com/photo-1544473244-f6895e69ce8d?w=1200&q=80',
             description: pkg.BasicInformation?.description || "No description provided.",
             location: pkg.LocationAndHighlights?.destination || "N/A",
@@ -510,9 +510,9 @@ const getPackageById = async (req, res) => {
     }
 };
 
-export { 
-    getDashboardStats, 
-    getAllUsers, 
+export {
+    getDashboardStats,
+    getAllUsers,
     updateUserStatus,
     getAllAds,
     updateAdStatus,
