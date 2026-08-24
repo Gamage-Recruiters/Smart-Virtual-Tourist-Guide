@@ -15,16 +15,24 @@ import threeDots from '../assets/3dots.png';
 import upDown from '../assets/upDown.png';
 import closeIcon from '../assets/closeIcon.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { ensureMapsScript } from '../utils/helpers';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { getRoute, findNearbyPlaces, getPlacePhoto, searchPlaces as searchPlacesService, geocodeAddress } from '../utils/mapServices';
+
+// Fix Leaflet default marker icon paths (broken by bundlers like Vite)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 import { checkRouteForFlood } from '../utils/floodService';
 import { saveFavoritePlace, fetchCrimeAlerts, fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import LocationInput from '../components/LocationInput';
 
 const MODE_CONFIGS = [
-  { key: 'drive', label: 'Drive', icon: carIcon, travelMode: 'DRIVING', multiplier: 1 },
-  { key: 'bike', label: 'Bike', icon: bikeIcon, travelMode: 'BICYCLING', multiplier: 1.35 },
-  { key: 'transit', label: 'Transit', icon: busIcon, travelMode: 'TRANSIT', multiplier: 1.85 },
-  { key: 'walk', label: 'Walk', icon: manIcon, travelMode: 'WALKING', multiplier: 8.5 },
+  { key: 'drive', label: 'Drive', icon: carIcon, osrmProfile: 'driving', multiplier: 1 },
+  { key: 'bike', label: 'Bike', icon: bikeIcon, osrmProfile: 'cycling', multiplier: 1.35 },
+  { key: 'transit', label: 'Transit', icon: busIcon, osrmProfile: 'driving', multiplier: 1.85 },
+  { key: 'walk', label: 'Walk', icon: manIcon, osrmProfile: 'foot', multiplier: 8.5 },
 ];
 
 const SHOW_CRIME_LABELS_ON_START_MAP = false;
@@ -248,46 +256,41 @@ const Direction = ({ showDetailsPanel = true }) => {
     return minDist;
   };
 
-  const getNavigationMarkerIcon = () => ({
-    url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'>
-        <path d='M17 2 L28 32 L17 25 L6 32 Z' fill='#1A73E8' stroke='#ffffff' stroke-width='2' stroke-linejoin='round'/>
-      </svg>
-    `),
-    scaledSize: new window.google.maps.Size(34, 34),
-    anchor: new window.google.maps.Point(17, 17),
+  const getNavigationMarkerIcon = () => L.divIcon({
+    className: '',
+    html: `<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'><path d='M17 2 L28 32 L17 25 L6 32 Z' fill='#1A73E8' stroke='#ffffff' stroke-width='2' stroke-linejoin='round'/></svg>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+  });
+
+  const getBlueMarkerIcon = () => L.divIcon({
+    className: '',
+    html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
   });
 
   const addPoiMarker = (place) => {
     if (!mapInstanceRef.current || !place?.location) return;
 
+    const lat = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
+    const lng = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
+
     const existingMarker = poiMarkersRef.current.find((marker) => marker.__placeId === place.placeId);
     if (existingMarker) {
-      mapInstanceRef.current.panTo(existingMarker.getPosition());
-      mapInstanceRef.current.setZoom(16);
+      mapInstanceRef.current.setView(existingMarker.getLatLng(), 16);
       return;
     }
 
-    const marker = new window.google.maps.Marker({
-      position: place.location,
-      map: mapInstanceRef.current,
-      title: place.name,
-      icon: { url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png' },
-    });
+    const marker = L.marker([lat, lng]).addTo(mapInstanceRef.current)
+      .bindPopup(`<div style="font-family:Inter,sans-serif;font-size:13px;max-width:160px"><strong>${place.name}</strong>${place.rating ? `<br/>⭐ ${place.rating.toFixed(1)}` : ''}<br/><span style="color:#6B7280;font-size:11px">${place.vicinity}</span></div>`);
 
     marker.__placeId = place.placeId;
-
-    const infoWindow = new window.google.maps.InfoWindow({
-      content: `<div style="font-family:Inter,sans-serif;font-size:13px;max-width:160px"><strong>${place.name}</strong>${place.rating ? `<br/>⭐ ${place.rating.toFixed(1)}` : ''}<br/><span style="color:#6B7280;font-size:11px">${place.vicinity}</span></div>`,
-    });
-
-    marker.addListener('click', () => infoWindow.open(mapInstanceRef.current, marker));
     poiMarkersRef.current.push(marker);
-    mapInstanceRef.current.panTo(place.location);
-    mapInstanceRef.current.setZoom(16);
+    mapInstanceRef.current.setView([lat, lng], 16);
   };
 
-  const searchPlacesAlongRoute = useCallback((category) => {
+  const searchPlacesAlongRoute = useCallback(async (category) => {
     const result = directionsResultRef.current;
     if (!result || !mapInstanceRef.current) return;
 
@@ -304,54 +307,53 @@ const Direction = ({ showDetailsPanel = true }) => {
     setPoiResults([]);
 
     const totalPoints = path.length;
-    const sampleCount = Math.min(20, Math.max(8, Math.floor(totalPoints / 10)));
+    const sampleCount = Math.min(8, Math.max(3, Math.floor(totalPoints / 15)));
     const step = Math.max(1, Math.floor(totalPoints / sampleCount));
     const samplePoints = [];
     for (let i = 0; i < totalPoints; i += step) samplePoints.push(path[i]);
-    if (samplePoints[samplePoints.length - 1] !== path[totalPoints - 1]) {
-      samplePoints.push(path[totalPoints - 1]);
-    }
 
-    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
+    // Map category types to Overpass tags
+    const overpassTypeMap = {
+      restaurant: '"amenity"="restaurant"',
+      gas_station: '"amenity"="fuel"',
+      cafe: '"amenity"="cafe"',
+      supermarket: '"shop"="supermarket"',
+    };
+    const overpassType = overpassTypeMap[config.type] || `"amenity"="${config.type}"`;
+
     const seen = new Set();
     const collected = [];
-    let pending = samplePoints.length;
 
-    samplePoints.forEach((point) => {
-      const requestParams = { location: point, radius: searchRadius, type: config.type };
-      if (config.keyword) requestParams.keyword = config.keyword;
-      service.nearbySearch(
-        requestParams,
-        (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-            results.forEach((place) => {
-              if (seen.has(place.place_id)) return;
-              const dist = getDistanceToPath(place.geometry.location, path);
-              if (dist <= searchRadius) {
-                seen.add(place.place_id);
-                collected.push({
-                  name: place.name,
-                  rating: place.rating || null,
-                  vicinity: place.vicinity || '',
-                  photo: (place.photos && place.photos.length > 0) ? (typeof place.photos[0].getUrl === 'function' ? place.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 }) : (place.photos[0].url || (typeof place.photos[0] === 'string' ? place.photos[0] : null))) : null,
-                  placeId: place.place_id,
-                  location: place.geometry.location,
-                });
-              }
+    for (const point of samplePoints) {
+      const ptLat = typeof point.lat === 'function' ? point.lat() : point.lat;
+      const ptLng = typeof point.lng === 'function' ? point.lng() : point.lng;
+      try {
+        const results = await findNearbyPlaces(ptLat, ptLng, searchRadius, overpassType);
+        for (const place of results) {
+          const key = `${place.lat},${place.lng}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const dist = getDistanceToPath({ lat: place.lat, lng: place.lng }, path);
+          if (dist <= searchRadius) {
+            collected.push({
+              name: place.name,
+              rating: null,
+              vicinity: place.type || '',
+              photo: null,
+              placeId: `osm-${place.osmId}`,
+              location: { lat: place.lat, lng: place.lng },
             });
           }
-          pending -= 1;
-          if (pending === 0) {
-            const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-            setPoiResults(sorted);
-            setPoiLoading(false);
-          }
         }
-      );
-    });
+      } catch { /* ignore */ }
+    }
+
+    const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    setPoiResults(sorted);
+    setPoiLoading(false);
   }, [selectedIdx]);
 
-  const searchAttractionsAlongRoute = useCallback(() => {
+  const searchAttractionsAlongRoute = useCallback(async () => {
     const result = directionsResultRef.current;
     if (!result || !mapInstanceRef.current) return;
 
@@ -359,56 +361,45 @@ const Direction = ({ showDetailsPanel = true }) => {
     if (!path.length) return;
 
     const totalPoints = path.length;
-    const sampleCount = Math.min(15, Math.max(6, Math.floor(totalPoints / 12)));
+    const sampleCount = Math.min(6, Math.max(3, Math.floor(totalPoints / 15)));
     const step = Math.max(1, Math.floor(totalPoints / sampleCount));
     const samplePoints = [];
     for (let i = 0; i < totalPoints; i += step) samplePoints.push(path[i]);
-    if (samplePoints[samplePoints.length - 1] !== path[totalPoints - 1]) {
-      samplePoints.push(path[totalPoints - 1]);
-    }
 
     setPoiLoading(true);
     setPoiResults([]);
 
-    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
     const seen = new Set();
     const collected = [];
-    let pending = samplePoints.length * POI_ATTRACTION_KEYWORDS.length;
 
-    samplePoints.forEach((point) => {
-      POI_ATTRACTION_KEYWORDS.forEach(({ type, keyword, radius }) => {
-        service.nearbySearch(
-          { location: point, radius, type, keyword },
-          (results, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
-              results.forEach((place) => {
-                if (seen.has(place.place_id)) return;
-                const minRating = 4.5;
-                if ((place.rating || 0) < minRating) return;
-                const dist = getDistanceToPath(place.geometry.location, path);
-                if (dist <= radius) {
-                  seen.add(place.place_id);
-                  collected.push({
-                    name: place.name,
-                    rating: place.rating || null,
-                    vicinity: place.vicinity || '',
-                    photo: (place.photos && place.photos.length > 0) ? (typeof place.photos[0].getUrl === 'function' ? place.photos[0].getUrl({ maxWidth: 400, maxHeight: 400 }) : place.photos[0].url || (typeof place.photos[0] === 'string' ? place.photos[0] : null)) : null,
-                    placeId: place.place_id,
-                    location: place.geometry.location,
-                  });
-                }
-              });
-            }
-            pending -= 1;
-            if (pending === 0) {
-              const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-              setPoiResults(sorted);
-              setPoiLoading(false);
-            }
+    for (const point of samplePoints) {
+      const ptLat = typeof point.lat === 'function' ? point.lat() : point.lat;
+      const ptLng = typeof point.lng === 'function' ? point.lng() : point.lng;
+      try {
+        const results = await findNearbyPlaces(ptLat, ptLng, 2000);
+        for (const place of results) {
+          const key = `${place.lat},${place.lng}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const dist = getDistanceToPath({ lat: place.lat, lng: place.lng }, path);
+          if (dist <= 2000) {
+            const photo = await getPlacePhoto(place.name).catch(() => null);
+            collected.push({
+              name: place.name,
+              rating: null,
+              vicinity: place.type || '',
+              photo,
+              placeId: `osm-${place.osmId}`,
+              location: { lat: place.lat, lng: place.lng },
+            });
           }
-        );
-      });
-    });
+        }
+      } catch { /* ignore */ }
+    }
+
+    const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    setPoiResults(sorted);
+    setPoiLoading(false);
   }, [selectedIdx]);
   const stopAutocompleteRef = useRef(null);
   const stopGeocoderRef = useRef(null);
@@ -450,42 +441,20 @@ const Direction = ({ showDetailsPanel = true }) => {
 
   const [floodDetected, setFloodDetected] = useState(false);
 
-  const getRouteLabelClass = () => {
-    if (RouteLabelClassRef.current) return RouteLabelClassRef.current;
-    RouteLabelClassRef.current = class RouteLabel extends window.google.maps.OverlayView {
-      constructor(pos, html, onClick) {
-        super();
-        this.pos = pos;
-        this.html = html;
-        this.div = null;
-        this._onClick = onClick || null;
-      }
-      onAdd() {
-        this.div = document.createElement('div');
-        const clickable = !!this._onClick;
-        this.div.style.cssText = `position:absolute;pointer-events:${clickable ? 'auto' : 'none'};transform:translate(-50%,-50%);z-index:1000;${clickable ? 'cursor:pointer;' : ''}`;
-        this.div.innerHTML = this.html;
-        if (this._onClick) {
-          this.div.addEventListener('click', this._onClick);
-        }
-        this.getPanes().floatPane.appendChild(this.div);
-      }
-      draw() {
-        const p = this.getProjection()?.fromLatLngToDivPixel(this.pos);
-        if (p && this.div) { this.div.style.left = p.x + 'px'; this.div.style.top = p.y + 'px'; }
-      }
-      onRemove() {
-        if (this.div) { this.div.parentNode?.removeChild(this.div); this.div = null; }
-      }
-    };
-    return RouteLabelClassRef.current;
-  };
-
   const createRouteLabel = (map, position, content, onClick) => {
-    const LabelClass = getRouteLabelClass();
-    const label = new LabelClass(position, content, onClick);
-    label.setMap(map);
-    return label;
+    const lat = typeof position.lat === 'function' ? position.lat() : position.lat;
+    const lng = typeof position.lng === 'function' ? position.lng() : position.lng;
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="transform:translate(-50%,-50%);${onClick ? 'cursor:pointer;' : 'pointer-events:none;'}">${content}</div>`,
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
+    });
+    const marker = L.marker([lat, lng], { icon, interactive: !!onClick }).addTo(map);
+    if (onClick) marker.on('click', onClick);
+    // Leaflet-compatible setMap(null) pattern for uniform cleanup
+    marker.setMap = (m) => { if (!m) marker.remove(); };
+    return marker;
   };
 
   const hideTooltip = () => {};
@@ -498,118 +467,37 @@ const Direction = ({ showDetailsPanel = true }) => {
     return `${Math.max(1, Math.round(meters))} m`;
   };
 
-  const toRad = (val) => (val * Math.PI) / 180;
-  const getDistanceMeters = (a, b) => {
-    if (!a || !b) return null;
-    const lat1 = a.lat;
-    const lng1 = a.lng;
-    const lat2 = typeof b.lat === 'function' ? b.lat() : b.lat;
-    const lng2 = typeof b.lng === 'function' ? b.lng() : b.lng;
-    const R = 6371000;
-    const dLat = toRad(lat2 - lat1);
-    const dLng = toRad(lng2 - lng1);
-    const s1 = Math.sin(dLat / 2) ** 2;
-    const s2 = Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(s1 + s2), Math.sqrt(1 - (s1 + s2)));
-    return R * c;
-  };
-
-  const formatManeuver = (step) => {
-    if (!step) return '';
-
-    const maneuver = (step.maneuver || '').replace(/_/g, ' ').trim();
-    if (maneuver) {
-      return maneuver.charAt(0).toUpperCase() + maneuver.slice(1);
-    }
-
-    const raw = sanitizeInstruction(step.instructions || step.html_instructions || '');
-    if (!raw) return '';
-
-    const lower = raw.toLowerCase();
-    if (lower.startsWith('head ') || lower.startsWith('continue') || lower.startsWith('keep ')) {
-      return '';
-    }
-
-    return raw;
-  };
-
-  const getActiveManeuverStep = () => {
-    const steps = directionsResultRef.current?.routes?.[selectedIdx]?.legs?.[0]?.steps || [];
-    if (!steps.length) return null;
-
-    const idx = Math.min(navStepIndex, steps.length - 1);
-    const currentStep = steps[idx];
-    const currentLabel = formatManeuver(currentStep);
-    if (currentLabel) return { step: currentStep, label: currentLabel };
-
-    const lookAhead = steps.slice(idx + 1).find((step) => formatManeuver(step));
-    if (lookAhead) return { step: lookAhead, label: formatManeuver(lookAhead) };
-
-    return { step: currentStep, label: sanitizeInstruction(currentStep.instructions || currentStep.html_instructions || 'Continue') };
-  };
-
-  const updateNavigation = useCallback((loc, forcedIndex = null) => {
-    const result = directionsResultRef.current;
-    const leg = result?.routes?.[selectedIdx]?.legs?.[0];
-    const steps = leg?.steps || [];
-    if (!steps.length) {
-      setNavInstruction('Heading to destination');
-      setNavDistance('');
-      return;
-    }
-
-    let idx = forcedIndex != null ? forcedIndex : navStepIndex;
-    if (idx >= steps.length) idx = steps.length - 1;
-    const currentStep = steps[idx];
-    const distanceToEnd = getDistanceMeters(loc, currentStep?.end_location);
-
-    if (distanceToEnd != null && distanceToEnd < 30 && idx < steps.length - 1) {
-      idx += 1;
-      setNavStepIndex(idx);
-    } else if (forcedIndex != null) {
-      setNavStepIndex(idx);
-    }
-
-    const step = steps[idx] || currentStep;
-    if (step) {
-      setNavInstruction(sanitizeInstruction(step.instructions || step.html_instructions || 'Continue'));
-      const stepMeters = getDistanceMeters(loc, step.end_location);
-      setNavDistance(formatDistance(stepMeters));
-      setNavArrived(idx >= steps.length - 1 && (stepMeters != null && stepMeters < 40));
-    }
-  }, [navStepIndex, selectedIdx]);
-
   const clearPoiMarkers = () => {
-    poiMarkersRef.current.forEach((m) => m.setMap(null));
+    poiMarkersRef.current.forEach((m) => m.remove());
     poiMarkersRef.current = [];
   };
 
   const clearPathClickLabel = () => {
     if (pathClickLabelRef.current) {
-      pathClickLabelRef.current.setMap(null);
+      pathClickLabelRef.current.remove();
       pathClickLabelRef.current = null;
     }
   };
 
   const clearFloodOverlays = () => {
-    floodLabelsRef.current.forEach((label) => label.setMap(null));
+    floodLabelsRef.current.forEach((label) => label.remove());
     floodLabelsRef.current = [];
   };
 
   const clearCrimeOverlays = () => {
-    crimeLabelsRef.current.forEach((label) => label.setMap(null));
+    crimeLabelsRef.current.forEach((label) => label.remove());
     crimeLabelsRef.current = [];
   };
 
   const clearRoadblockOverlays = () => {
-    roadblockLabelsRef.current.forEach((label) => label.setMap(null));
+    roadblockLabelsRef.current.forEach((label) => label.remove());
     roadblockLabelsRef.current = [];
   };
 
   const clearRouteOverlays = () => {
-    renderersRef.current.forEach((renderer) => renderer.setMap(null));
-    clickPathsRef.current.forEach((path) => path.setMap(null));
-    routeLabelsRef.current.forEach((label) => label.setMap(null));
+    renderersRef.current.forEach((renderer) => renderer.remove());
+    clickPathsRef.current.forEach((path) => path.remove());
+    routeLabelsRef.current.forEach((label) => label.remove());
     clearFloodOverlays();
     clearCrimeOverlays();
     clearRoadblockOverlays();
@@ -622,364 +510,146 @@ const Direction = ({ showDetailsPanel = true }) => {
   const drawSelectedRoute = (idx) => {
     const result = directionsResultRef.current;
     if (!result || !mapInstanceRef.current) return;
-
     clearRouteOverlays();
     setSelectedIdx(idx);
 
     result.routes.forEach((route, i) => {
       const isSelected = i === idx;
+      const coords = route.overview_path.map(p => [
+        typeof p.lat === 'function' ? p.lat() : p.lat,
+        typeof p.lng === 'function' ? p.lng() : p.lng,
+      ]);
 
       if (isSelected) {
-        const renderer = new window.google.maps.DirectionsRenderer({
-          map: mapInstanceRef.current,
-          directions: result,
-          routeIndex: i,
-          suppressInfoWindows: true,
-          polylineOptions: {
-            strokeColor: '#1A73E8',
-            strokeWeight: 5,
-            strokeOpacity: 1,
-            zIndex: 10,
-            clickable: false,
-          },
-        });
-        renderersRef.current.push(renderer);
-      } else {
-        if (!showDetailsPanel) return; // Do not draw alternative routes on start page
-        const polyline = new window.google.maps.Polyline({
-          path: route.overview_path,
-          map: mapInstanceRef.current,
-          strokeColor: '#9E9E9E',
-          strokeWeight: 4,
-          strokeOpacity: 0.85,
-          zIndex: 1,
-          clickable: false,
-        });
-        // White border effect for alternative routes (like Google Maps)
-        const polylineBorder = new window.google.maps.Polyline({
-          path: route.overview_path,
-          map: mapInstanceRef.current,
-          strokeColor: '#00b3f4',
-          strokeWeight: 7,
-          strokeOpacity: 0.5,
-          zIndex: 0,
-          clickable: false,
-        });
-        renderersRef.current.push(polylineBorder);
+        const polyline = L.polyline(coords, { color: '#1A73E8', weight: 5, opacity: 1 }).addTo(mapInstanceRef.current);
         renderersRef.current.push(polyline);
-      }
-
-      const clickPath = new window.google.maps.Polyline({
-        path: route.overview_path,
-        map: mapInstanceRef.current,
-        strokeOpacity: 0,
-        strokeWeight: 40,
-        zIndex: 20,
-        clickable: true,
-      });
-
-      if (i === idx) {
-        const leg = result.routes[i]?.legs?.[0];
-        const duration = leg?.duration_in_traffic?.text || leg?.duration?.text || '--';
-        const distanceKm = leg?.distance?.text || '--';
-        const modeConfig = MODE_CONFIGS.find(m => m.key === selectedMode) || MODE_CONFIGS[0];
-        const labelHtml = `
-          <div style="background:linear-gradient(135deg,#fff 0%,#EFF6FF 100%);border-radius:12px;box-shadow:0 4px 16px rgba(26,115,232,0.18);padding:10px 14px;font-family:Inter,sans-serif;pointer-events:none;white-space:nowrap;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <img src="${modeConfig.icon}" style="width:20px;height:20px;object-fit:contain"/>
-              <span style="font-weight:700;font-size:14px;color:#122E63">${duration}</span>
-            </div>
-            <div style="font-size:13px;color:#374151">${distanceKm}</div>
-          </div>`;
-
-        clickPath.addListener('mousemove', (e) => {
-          clearPathClickLabel();
-          pathClickLabelRef.current = createRouteLabel(mapInstanceRef.current, e.latLng, labelHtml);
-        });
-        clickPath.addListener('mouseout', () => clearPathClickLabel());
-        clickPath.addListener('click', () => clearPathClickLabel());
       } else {
-        clickPath.addListener('click', () => selectRouteRef.current(i));
+        if (!showDetailsPanel) return;
+        const border = L.polyline(coords, { color: '#00b3f4', weight: 7, opacity: 0.5 }).addTo(mapInstanceRef.current);
+        const line = L.polyline(coords, { color: '#9E9E9E', weight: 4, opacity: 0.85 }).addTo(mapInstanceRef.current);
+        renderersRef.current.push(border);
+        renderersRef.current.push(line);
       }
 
-      // Permanent label at route midpoint
+      const clickPath = L.polyline(coords, { color: 'transparent', weight: 40, opacity: 0, interactive: true }).addTo(mapInstanceRef.current);
+      if (i !== idx) clickPath.on('click', () => selectRouteRef.current(i));
+
       const path = route.overview_path;
       const midPoint = path[Math.floor(path.length / 2)];
-      const leg = result.routes[i]?.legs?.[0];
-      const duration = leg?.duration_in_traffic?.text || leg?.duration?.text || '--';
+      const leg = route.legs?.[0];
+      const duration = leg?.duration?.text || '--';
       const distance = leg?.distance?.text || '--';
-      const freeMins = leg?.duration?.value ? Math.round(leg.duration.value / 60) : 0;
-      const trafficMins = leg?.duration_in_traffic?.value
-        ? Math.round(leg.duration_in_traffic.value / 60)
-        : freeMins;
-      const ratio = freeMins > 0 ? trafficMins / freeMins : 1;
-      const traffic = ratio >= 1.4 ? 'Heavy traffic' : ratio >= 1.15 ? 'Moderate traffic' : 'Light traffic';
-      const trafficAvailable = leg?.duration_in_traffic?.value != null;
-      const hasTrafficDelay = trafficAvailable && trafficMins > freeMins;
-      const shouldShowTrafficLabel = !showDetailsPanel && isSelected && (
-        traffic === 'Heavy traffic' || traffic === 'Moderate traffic'
-      );
-      if (!showDetailsPanel) {
-        // Add a clickable overlay for ETA label
-        const labelContent = `
-          <div id="eta-label-overlay" style="width:189.99635314941406px;height:101.90234375px;border-radius:10px;background:linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);box-shadow:0px 2px 2px 0px #00000040;display:flex;flex-direction:column;justify-content:center;padding:12px 16px;gap:8px;cursor:pointer;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <img src="${carIcon}" style="width:18px;height:18px;object-fit:contain" />
-              <span style="font-weight:600;color:#111827;font-size:14px;">${distance}</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <img src="${clockIcon}" style="width:18px;height:18px;object-fit:contain" />
-              <span style="font-weight:600;color:#111827;font-size:14px;">ETA: ${duration}</span>
-            </div>
-          </div>`;
+      const durationMins = leg?.duration?.value ? Math.round(leg.duration.value / 60) : 0;
+
+      if (!showDetailsPanel && isSelected) {
+        const labelContent = `<div id="eta-label-overlay" style="width:190px;height:102px;border-radius:10px;background:linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);box-shadow:0px 2px 2px 0px #00000040;display:flex;flex-direction:column;justify-content:center;padding:12px 16px;gap:8px;cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><img src="${carIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">${distance}</span></div><div style="display:flex;align-items:center;gap:8px;"><img src="${clockIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">ETA: ${duration}</span></div></div>`;
         const etaClickHandler = () => {
-          if (typeof window.setActivePageGlobal === 'function') {
-            window.setActivePageGlobal('eta');
-          }
-          if (typeof window.setEtaTitleGlobal === 'function') {
-            window.setEtaTitleGlobal(`ETA: ${duration}`);
-          }
-          if (typeof window.setEtaDataGlobal === 'function') {
-            window.setEtaDataGlobal({
-              distance,
-              duration,
-              durationMinutes: trafficMins || freeMins,
-              traffic,
-              mode: selectedMode,
-              selectedRouteIndex: i,
-            });
-          }
+          if (typeof window.setActivePageGlobal === 'function') window.setActivePageGlobal('eta');
+          if (typeof window.setEtaTitleGlobal === 'function') window.setEtaTitleGlobal(`ETA: ${duration}`);
+          if (typeof window.setEtaDataGlobal === 'function') window.setEtaDataGlobal({ distance, duration, durationMinutes: durationMins, traffic: 'Light traffic', mode: selectedMode, selectedRouteIndex: i });
         };
         const label = createRouteLabel(mapInstanceRef.current, midPoint, labelContent, etaClickHandler);
         routeLabelsRef.current.push(label);
       }
-
-      if (!showDetailsPanel && isSelected) {
-
-        // ── Traffic label: find the actual worst-congested step on the route ──
-        const steps = result.routes[i]?.legs?.[0]?.steps || [];
-        let worstStepLocation = null;
-        let worstRatio = 1;
-        steps.forEach((step) => {
-          const stepFree = step.duration?.value || 0;
-          const stepTraffic = step.duration_in_traffic?.value || stepFree;
-          const stepRatio = stepFree > 0 ? stepTraffic / stepFree : 1;
-          if (stepRatio > worstRatio) {
-            worstRatio = stepRatio;
-            // Use the midpoint of the step's path for the label position
-            const stepPath = step.path || [];
-            worstStepLocation = stepPath.length > 0
-              ? stepPath[Math.floor(stepPath.length / 2)]
-              : step.start_location;
-          }
-        });
-        // Fall back to 75% of overview path if no per-step traffic data
-        if (!worstStepLocation && hasTrafficDelay) {
-          worstStepLocation = path[Math.floor(path.length * 0.75)];
-        }
-
-        if (worstStepLocation && hasTrafficDelay) {
-          const trafficLabelHtml = `
-            <div style="width:140px;height:40px;border-radius:12px;background:#EAB308;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0px 2px 4px rgba(0,0,0,0.3);">
-              <svg width="22" height="20" viewBox="0 0 48 44" aria-hidden="true">
-                <path d="M24 3.5L3.5 39.5c-.7 1.2.2 2.7 1.6 2.7h38c1.4 0 2.3-1.5 1.6-2.7L24 3.5z" fill="none" stroke="#E53935" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="24" cy="30" r="2.6" fill="#E53935" />
-                <line x1="24" y1="14" x2="24" y2="26" stroke="#E53935" strokeWidth="4" strokeLinecap="round" />
-              </svg>
-              <span style="font-weight:700;font-size:15px;color:#000;">Traffic</span>
-            </div>`;
-          const trafficOverlay = createRouteLabel(mapInstanceRef.current, worstStepLocation, trafficLabelHtml);
-          routeLabelsRef.current.push(trafficOverlay);
-        }
-
-
-      }
-
-      // ── Flood label (shown separately at 1/3 point of the route) ──
-      // Drawn asynchronously after route is confirmed; see checkAndDrawFloodLabel below.
-
       clickPathsRef.current.push(clickPath);
     });
   };
 
-  const requestDirections = (origin, destinationLocation, modeKey) => {
-    if (!window.google?.maps || !mapInstanceRef.current) return;
+  const requestDirections = async (origin, destinationLocation, modeKey) => {
+    if (!mapInstanceRef.current) return;
+    let oLat, oLng;
+    if (typeof origin?.lat === 'function') { oLat = origin.lat(); oLng = origin.lng(); }
+    else if (typeof origin?.lat === 'number') { oLat = origin.lat; oLng = origin.lng; }
+    else if (origin?.location) { oLat = typeof origin.location.lat === 'function' ? origin.location.lat() : origin.location.lat; oLng = typeof origin.location.lng === 'function' ? origin.location.lng() : origin.location.lng; }
+    else { setError('Please select a valid starting location.'); return; }
 
-    // Normalize origin to LatLng or LatLngLiteral
-    let normalizedOrigin;
-    if (typeof origin?.lat === 'function' && typeof origin?.lng === 'function') {
-      normalizedOrigin = origin;
-    } else if (typeof origin?.lat === 'number' && typeof origin?.lng === 'number') {
-      normalizedOrigin = new window.google.maps.LatLng(origin.lat, origin.lng);
-    } else if (origin?.location) {
-      normalizedOrigin = origin.location;
-    } else {
-      console.error('Invalid origin:', origin);
-      setError('Please select a valid starting location.');
-      return;
-    }
+    let dLat, dLng;
+    if (typeof destinationLocation?.lat === 'function') { dLat = destinationLocation.lat(); dLng = destinationLocation.lng(); }
+    else if (typeof destinationLocation?.lat === 'number') { dLat = destinationLocation.lat; dLng = destinationLocation.lng; }
+    else if (destinationLocation?.geometry?.location) { const loc = destinationLocation.geometry.location; dLat = typeof loc.lat === 'function' ? loc.lat() : loc.lat; dLng = typeof loc.lng === 'function' ? loc.lng() : loc.lng; }
+    else { setError('Please select a valid destination.'); return; }
 
-    // Normalize destination to LatLng or LatLngLiteral
-    let normalizedDestination;
-    if (typeof destinationLocation?.lat === 'function' && typeof destinationLocation?.lng === 'function') {
-      normalizedDestination = destinationLocation;
-    } else if (typeof destinationLocation?.lat === 'number' && typeof destinationLocation?.lng === 'number') {
-      normalizedDestination = new window.google.maps.LatLng(destinationLocation.lat, destinationLocation.lng);
-    } else if (destinationLocation?.geometry?.location) {
-      normalizedDestination = destinationLocation.geometry.location;
-    } else {
-      console.error('Invalid destination:', destinationLocation);
-      setError('Please select a valid destination.');
-      return;
-    }
-
+    const normalizedOrigin = { lat: oLat, lng: oLng };
+    const normalizedDestination = { lat: dLat, lng: dLng };
     activeRoutePairRef.current = { origin: normalizedOrigin, destination: normalizedDestination };
     const modeConfig = MODE_CONFIGS.find((mode) => mode.key === modeKey) || MODE_CONFIGS[0];
-    const directionsService = new window.google.maps.DirectionsService();
     const requestId = ++routeRequestIdRef.current;
-
-    console.log('[Direction] requestDirections called:', {
-      origin: normalizedOrigin?.toString?.() || normalizedOrigin,
-      destination: normalizedDestination?.toString?.() || normalizedDestination,
-      mode: modeKey,
-      travelMode: modeConfig.travelMode,
-    });
-
     setLoadingRoutes(true);
     setError(null);
     clearRouteOverlays();
 
-    const tryRoute = (travelMode) => {
-      directionsService.route(
-        {
-          origin: normalizedOrigin,
-          destination: normalizedDestination,
-          travelMode: window.google.maps.TravelMode[travelMode],
-          provideRouteAlternatives: true,
-          drivingOptions: travelMode === 'DRIVING' ? {
-            departureTime: new Date(),
-            trafficModel: window.google.maps.TrafficModel.BEST_GUESS,
-          } : undefined,
-          ...(travelMode === 'TRANSIT' ? { transitOptions: { departureTime: new Date() } } : {}),
-        },
-        (result, status) => {
-          if (requestId !== routeRequestIdRef.current) return;
+    try {
+      const osrmRoutes = await getRoute(oLat, oLng, dLat, dLng, modeConfig.osrmProfile);
+      if (requestId !== routeRequestIdRef.current) return;
+      if (!osrmRoutes || osrmRoutes.length === 0) {
+        setLoadingRoutes(false);
+        setError('No route found between these locations. Try different points.');
+        setRoutes([]); directionsResultRef.current = null; return;
+      }
 
-          if (status !== window.google.maps.DirectionsStatus.OK) {
-            // BICYCLING and TRANSIT not supported in Sri Lanka — fall back to DRIVING
-            if (travelMode === 'BICYCLING' || travelMode === 'TRANSIT') {
-              setFallbackMode(true);
-              tryRoute('DRIVING');
-              return;
-            }
-            setLoadingRoutes(false);
-            const errorMessages = {
-              'ZERO_RESULTS': 'No route found between these locations. Try different points.',
-              'NOT_FOUND': 'One or both locations could not be found. Please verify addresses.',
-              'INVALID_REQUEST': 'Invalid route request. Please check your locations.',
-              'OVER_QUERY_LIMIT': 'Too many requests. Please try again in a moment.',
-              'REQUEST_DENIED': 'Route request was denied. Check API configuration.',
-              'UNKNOWN_ERROR': 'Server error. Please try again.',
-            };
-            console.error('Directions API error:', status);
-            setError(errorMessages[status] || 'Could not find a route to this destination.');
-            setRoutes([]);
-            directionsResultRef.current = null;
-            return;
-          }
+      const normalizedRoutes = osrmRoutes.map((route) => {
+        const distM = route.distance;
+        const durS = route.duration;
+        const durMins = Math.round(durS / 60);
+        const distText = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${Math.round(distM)} m`;
+        const durText = formatCompactDuration(durMins);
+        const overviewPath = (route.geometry?.coordinates || []).map(c => ({ lat: c[1], lng: c[0] }));
+        const steps = (route.steps || []).map(step => ({
+          instructions: step.name ? `${step.maneuver?.type || 'Continue'} on ${step.name}` : (step.maneuver?.type || 'Continue'),
+          maneuver: step.maneuver?.modifier || step.maneuver?.type || '',
+          distance: { value: step.distance, text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m` },
+          duration: { value: step.duration, text: formatCompactDuration(Math.round(step.duration / 60)) },
+          start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
+          end_location: overviewPath[overviewPath.length - 1],
+        }));
+        return {
+          overview_path: overviewPath,
+          legs: [{ distance: { value: distM, text: distText }, duration: { value: durS, text: durText }, steps, start_location: overviewPath[0] || normalizedOrigin, end_location: overviewPath[overviewPath.length - 1] || normalizedDestination }],
+          summary: route.summary || 'Suggested route',
+        };
+      });
 
-          setLoadingRoutes(false);
-          setFallbackMode(false);
-          directionsResultRef.current = result;
+      const result = { routes: normalizedRoutes };
+      directionsResultRef.current = result;
+      setLoadingRoutes(false);
+      setFallbackMode(false);
+      const routeInfoList = normalizedRoutes.map((r) => {
+        const leg = r.legs[0];
+        return { duration: leg.duration?.text || '--', durationMinutes: leg.duration?.value ? Math.round(leg.duration.value / 60) : 0, distance: leg.distance?.text || '--', summary: r.summary, traffic: 'Light traffic' };
+      });
+      setRoutes(routeInfoList);
+      let shortestIdx = 0; let minDist = Infinity;
+      normalizedRoutes.forEach((r, i) => { const d = r.legs?.[0]?.distance?.value || Infinity; if (d < minDist) { minDist = d; shortestIdx = i; } });
+      setSelectedIdx(shortestIdx);
+      drawSelectedRoute(shortestIdx);
 
-          const routeInfoList = result.routes.map((route) => {
-            const leg = route.legs[0];
-            const freeMins = leg.duration?.value ? Math.round(leg.duration.value / 60) : 0;
-            const trafficMins = leg.duration_in_traffic?.value
-              ? Math.round(leg.duration_in_traffic.value / 60)
-              : freeMins;
-            const ratio = freeMins > 0 ? trafficMins / freeMins : 1;
-            const traffic =
-              ratio >= 1.4 ? 'Heavy traffic'
-              : ratio >= 1.15 ? 'Moderate traffic'
-              : 'Light traffic';
-            return {
-              duration: leg.duration_in_traffic?.text || leg.duration?.text || '--',
-              durationMinutes: trafficMins || freeMins,
-              distance: leg.distance?.text || '--',
-              summary: route.summary || 'Suggested route',
-              traffic,
-            };
-          });
-
-          setRoutes(routeInfoList);
-
-          let shortestIdx = 0;
-          let minDistance = Infinity;
-          result.routes.forEach((route, i) => {
-            const dist = route.legs?.[0]?.distance?.value || Infinity;
-            if (dist < minDistance) {
-              minDistance = dist;
-              shortestIdx = i;
-            }
-          });
-
-          setSelectedIdx(shortestIdx);
-          drawSelectedRoute(shortestIdx);
-
-          // On the start page, fit the map to the full route so ETA labels are visible
-          if (!showDetailsPanel) {
-            const selectedLeg = result.routes[shortestIdx]?.legs?.[0];
-            if (selectedLeg) {
-              const bounds = new window.google.maps.LatLngBounds();
-              bounds.extend(selectedLeg.start_location);
-              bounds.extend(selectedLeg.end_location);
-              // Also include the midpoint where the ETA label sits
-              const overviewPath = result.routes[shortestIdx]?.overview_path || [];
-              if (overviewPath.length > 0) {
-                const mid = overviewPath[Math.floor(overviewPath.length / 2)];
-                bounds.extend(mid);
-              }
-              mapInstanceRef.current.fitBounds(bounds, { top: 60, bottom: 60, left: 30, right: 30 });
-            }
-          }
-
-          // Push ETA data into context so Header can show it on the start page
-          if (!showDetailsPanel && routeInfoList[shortestIdx]) {
-            const info = routeInfoList[shortestIdx];
-            setEtaData({
-              distance: info.distance,
-              duration: info.duration,
-              durationMinutes: info.durationMinutes,
-              traffic: info.traffic,
-              mode: selectedMode,
-            });
-          }
-
-          // Real-time flood check on the selected route
-          if (!showDetailsPanel) {
-            const selectedGoogleRoute = result.routes[0];
-            const overviewPath = selectedGoogleRoute?.overview_path || [];
-            checkAndDrawFloodLabel(overviewPath);
-            checkAndDrawCrimeLabels(overviewPath);
-            checkAndDrawRoadblockLabels(overviewPath);
-            // Poll every 5 minutes
-            if (floodPollRef.current) clearInterval(floodPollRef.current);
-            floodPollRef.current = setInterval(() => {
-              checkAndDrawFloodLabel(overviewPath);
-            }, 5 * 60 * 1000);
-          }
-          // Cache this mode's actual minutes
-          modeMinutesCache.current[modeConfig.key] = routeInfoList[0]?.durationMinutes || 0;
-          if (travelMode === 'DRIVING') {
-            drivingMinutesRef.current = routeInfoList[0]?.durationMinutes || 0;
-          }
-        }
-      );
-    };
-
-    tryRoute(modeConfig.travelMode);
+      if (normalizedRoutes[shortestIdx]?.overview_path?.length > 0) {
+        const bounds = L.latLngBounds(normalizedRoutes[shortestIdx].overview_path.map(p => [p.lat, p.lng]));
+        mapInstanceRef.current.fitBounds(bounds, { padding: [60, 30] });
+      }
+      if (!showDetailsPanel && routeInfoList[shortestIdx]) {
+        const info = routeInfoList[shortestIdx];
+        setEtaData({ distance: info.distance, duration: info.duration, durationMinutes: info.durationMinutes, traffic: info.traffic, mode: selectedMode });
+      }
+      if (!showDetailsPanel) {
+        const overviewPath = normalizedRoutes[0]?.overview_path || [];
+        checkAndDrawFloodLabel(overviewPath);
+        checkAndDrawCrimeLabels(overviewPath);
+        checkAndDrawRoadblockLabels(overviewPath);
+        if (floodPollRef.current) clearInterval(floodPollRef.current);
+        floodPollRef.current = setInterval(() => checkAndDrawFloodLabel(overviewPath), 5 * 60 * 1000);
+      }
+      modeMinutesCache.current[modeConfig.key] = routeInfoList[0]?.durationMinutes || 0;
+      if (modeConfig.osrmProfile === 'driving') drivingMinutesRef.current = routeInfoList[0]?.durationMinutes || 0;
+    } catch (err) {
+      if (requestId !== routeRequestIdRef.current) return;
+      setLoadingRoutes(false);
+      console.error('OSRM route error:', err);
+      setError('Could not find a route to this destination.');
+      setRoutes([]); directionsResultRef.current = null;
+    }
   };
+
 
   const selectRoute = (idx) => {
     drawSelectedRoute(idx);
@@ -1310,67 +980,47 @@ const Direction = ({ showDetailsPanel = true }) => {
     }
   };
 
-  const findNearestHospital = useCallback((loc) => {
+  const findNearestHospital = useCallback(async (loc) => {
     if (!mapInstanceRef.current || showDetailsPanel) return;
-    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current);
-    const userLatLng = new window.google.maps.LatLng(loc.lat, loc.lng);
     const HOSPITAL_NAV_RADIUS = 2000;
-    service.nearbySearch(
-      { location: userLatLng, radius: HOSPITAL_NAV_RADIUS, type: 'hospital' },
-      (results, status) => {
-        if (nearestHospitalOverlayRef.current) {
-          nearestHospitalOverlayRef.current.setMap(null);
-          nearestHospitalOverlayRef.current = null;
-        }
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !results?.length) return;
-        const EXCLUDE_KEYWORDS = /medical cent(er|re)|medi cent(er|re)/i;
-        const hospital = results
-          .filter(p => !EXCLUDE_KEYWORDS.test(p.name || ''))
-          .sort((a, b) => {
-            const dA = getDistanceMeters(loc, a.geometry.location) ?? Infinity;
-            const dB = getDistanceMeters(loc, b.geometry.location) ?? Infinity;
-            return dA - dB;
-          })
-          .find(p => (getDistanceMeters(loc, p.geometry.location) ?? Infinity) <= HOSPITAL_NAV_RADIUS);
-        if (!hospital) return;
-        const name = hospital.name || 'Hospital';
-        const shortName = name.length > 18 ? name.slice(0, 16) + '…' : name;
-        const html = `
-          <div style="max-width:160px;min-width:120px;height:38px;border-radius:8px;background:#EAB308;display:flex;align-items:center;justify-content:center;padding:0 10px;box-shadow:0px 2px 4px rgba(0,0,0,0.3);gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c00" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v20M2 12h20"/></svg>
-            <span style="font-weight:700;font-size:13px;color:#000;white-space:nowrap;">${shortName}</span>
-          </div>`;
-        nearestHospitalOverlayRef.current = createRouteLabel(mapInstanceRef.current, hospital.geometry.location, html);
+    try {
+      if (nearestHospitalOverlayRef.current) {
+        nearestHospitalOverlayRef.current.remove();
+        nearestHospitalOverlayRef.current = null;
       }
-    );
+      const results = await findNearbyPlaces(loc.lat, loc.lng, HOSPITAL_NAV_RADIUS, '"amenity"="hospital"');
+      if (!results?.length) return;
+      const EXCLUDE_KEYWORDS = /medical cent(er|re)|medi cent(er|re)/i;
+      const hospital = results
+        .filter(p => !EXCLUDE_KEYWORDS.test(p.name || ''))
+        .sort((a, b) => {
+          const dA = getDistanceMeters(loc, { lat: a.lat, lng: a.lng }) ?? Infinity;
+          const dB = getDistanceMeters(loc, { lat: b.lat, lng: b.lng }) ?? Infinity;
+          return dA - dB;
+        })[0];
+
+      if (!hospital || (getDistanceMeters(loc, { lat: hospital.lat, lng: hospital.lng }) ?? Infinity) > HOSPITAL_NAV_RADIUS) return;
+      
+      const name = hospital.name || 'Hospital';
+      const shortName = name.length > 18 ? name.slice(0, 16) + '…' : name;
+      const html = `
+        <div style="max-width:160px;min-width:120px;height:38px;border-radius:8px;background:#EAB308;display:flex;align-items:center;justify-content:center;padding:0 10px;box-shadow:0px 2px 4px rgba(0,0,0,0.3);gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c00" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v20M2 12h20"/></svg>
+          <span style="font-weight:700;font-size:13px;color:#000;white-space:nowrap;">${shortName}</span>
+        </div>`;
+      nearestHospitalOverlayRef.current = createRouteLabel(mapInstanceRef.current, { lat: hospital.lat, lng: hospital.lng }, html);
+    } catch (err) { console.warn('Hospital search failed', err); }
   }, [showDetailsPanel]);
 
   const placeOriginMarker = (loc, isDetailsPage = false) => {
     if (originMarkerRef.current) {
-      originMarkerRef.current.setPosition(loc);
-      originMarkerRef.current.setIcon(
-        isDetailsPage
-          ? {
-              url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-              scaledSize: new window.google.maps.Size(32, 32),
-              anchor: new window.google.maps.Point(16, 16),
-            }
-          : getNavigationMarkerIcon()
-      );
-      originMarkerRef.current.setMap(mapInstanceRef.current);
+      originMarkerRef.current.setLatLng(loc);
+      originMarkerRef.current.setIcon(isDetailsPage ? getBlueMarkerIcon() : getNavigationMarkerIcon());
     } else {
-      originMarkerRef.current = new window.google.maps.Marker({
-        position: loc,
-        map: mapInstanceRef.current,
-        icon: isDetailsPage
-          ? {
-              url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-              scaledSize: new window.google.maps.Size(32, 32),
-              anchor: new window.google.maps.Point(16, 16),
-            }
-          : getNavigationMarkerIcon(),
-        zIndex: 999,
-      });
+      originMarkerRef.current = L.marker(loc, {
+        icon: isDetailsPage ? getBlueMarkerIcon() : getNavigationMarkerIcon(),
+        zIndexOffset: 999
+      }).addTo(mapInstanceRef.current);
     }
   };
 
@@ -1380,61 +1030,63 @@ const Direction = ({ showDetailsPanel = true }) => {
     if (!showDetailsPanel) {
       placeOriginMarker(loc, false);
     } else {
-      // On the Direction details page, show a blue dot at the user's location
       placeOriginMarker(loc, true);
-      // Fit map to show both user location and destination
       const dest = destPlace || searchedPlace;
-      const destLoc = dest?.geometry?.location;
+      const destLoc = dest?.location || dest?.geometry?.location;
       if (destLoc && mapInstanceRef.current) {
-        const bounds = new window.google.maps.LatLngBounds();
-        bounds.extend(new window.google.maps.LatLng(loc.lat, loc.lng));
-        bounds.extend(destLoc);
-        mapInstanceRef.current.fitBounds(bounds, { top: 80, bottom: 80, left: 40, right: 40 });
+        const dLat = typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat;
+        const dLng = typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng;
+        mapInstanceRef.current.fitBounds(L.latLngBounds([loc, [dLat, dLng]]), { padding: [40, 40] });
       } else if (mapInstanceRef.current) {
-        mapInstanceRef.current.panTo(new window.google.maps.LatLng(loc.lat, loc.lng));
-        mapInstanceRef.current.setZoom(14);
+        mapInstanceRef.current.setView(loc, 14);
       }
     }
     if (fireRoute) {
       originChosenRef.current = true;
       const dest = destPlace || searchedPlace;
-      if (dest?.geometry?.location) {
-        const destLoc = dest.geometry.location;
+      const destLoc = dest?.location || dest?.geometry?.location;
+      if (destLoc) {
         requestDirections(loc, destLoc, selectedMode);
       }
     }
   }, [showDetailsPanel, selectedMode, destPlace, searchedPlace]);
 
   const onOriginSelect = useCallback((place) => {
-    const loc = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
-    applyOrigin(loc, place.displayName);
+    if (!place?.location) return;
+    const loc = { lat: place.location.lat, lng: place.location.lng };
+    applyOrigin(loc, place.displayName || place.name);
   }, [applyOrigin]);
 
   const onDestSelect = useCallback((place) => {
     setDestPlace(place);
     setSearchedPlace(place);
     
-    if (!place?.geometry?.location) {
+    const loc = place?.location || place?.geometry?.location;
+    if (!loc) {
       setError('Please select a valid destination from the suggestions.');
       return;
     }
 
-    const loc = place.geometry.location;
+    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
     
-    // Update or create destination marker
     if (destMarkerRef.current) {
-      destMarkerRef.current.setPosition({ lat: loc.lat(), lng: loc.lng() });
+      destMarkerRef.current.setLatLng([lat, lng]);
     } else if (mapInstanceRef.current) {
-      destMarkerRef.current = new window.google.maps.Marker({
-        position: { lat: loc.lat(), lng: loc.lng() },
-        map: mapInstanceRef.current,
-        icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-      });
+      destMarkerRef.current = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41]
+        })
+      }).addTo(mapInstanceRef.current);
     }
 
-    // Request directions if origin is set
     if (userLocationRef.current) {
-      requestDirections(userLocationRef.current, loc, selectedMode);
+      requestDirections(userLocationRef.current, { lat, lng }, selectedMode);
     }
   }, [selectedMode, setSearchedPlace]);
 
@@ -1451,7 +1103,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         userLocationRef.current = loc;
         applyOrigin(loc, 'Your location', true);
-        mapInstanceRef.current?.panTo(loc);
+        mapInstanceRef.current?.setView(loc);
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
@@ -1459,71 +1111,64 @@ const Direction = ({ showDetailsPanel = true }) => {
   }, [applyOrigin]);
 
   useEffect(() => {
-    ensureMapsScript(() => {
-      const destLoc = (destPlace || searchedPlace)?.geometry?.location;
-      const initialCenter = destLoc ? { lat: destLoc.lat(), lng: destLoc.lng() } : { lat: 7.8731, lng: 80.7718 };
+    const destLoc = (destPlace || searchedPlace)?.location || (destPlace || searchedPlace)?.geometry?.location;
+    let lat = 7.8731, lng = 80.7718;
+    if (destLoc) {
+      lat = typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat;
+      lng = typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng;
+    }
+    const initialCenter = [lat, lng];
 
-      // Clear pending values now that we've consumed them
-      if (pendingOriginLabel) setPendingOriginLabel('');
-      if (pendingVehicle) setPendingVehicle(null);
+    if (pendingOriginLabel) setPendingOriginLabel('');
+    if (pendingVehicle) setPendingVehicle(null);
 
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-        center: initialCenter,
-        zoom: destLoc ? 12 : 7,
-        restriction: {
-          latLngBounds: SRI_LANKA_BOUNDS,
-          strictBounds: true,
-        },
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: true,
-        gestureHandling: 'cooperative',
-        styles: [
-          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#a2daf2' }] },
-          { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#d0f0c0' }] },
-          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-          { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#9be79b' }] },
-          { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#6abf69' }] },
-        ],
-      });
-      setMapReady(true);
-
-      if (!trafficLayerRef.current) {
-        trafficLayerRef.current = new window.google.maps.TrafficLayer();
-      }
-      trafficLayerRef.current.setMap(mapInstanceRef.current);
-
-      // Place destination marker — no route yet
-      if (destLoc) {
-        destMarkerRef.current = new window.google.maps.Marker({
-          position: { lat: destLoc.lat(), lng: destLoc.lng() },
-          map: mapInstanceRef.current,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-        });
-      }
-
-      // Silently detect user location — place marker only, no route
-      if (userLocation) {
-        applyOrigin(userLocation, 'Your location', Boolean(destLoc));
-      } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            applyOrigin(loc, 'Your location', Boolean(destLoc));
-          },
-          (err) => {
-            // Show a helpful message if location is denied
-            if (showDetailsPanel && !userLocationRef.current) {
-              setTimeout(() => {
-                setError('Location access denied. Please enter your starting location manually.');
-              }, 500);
-            }
-          },
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-        );
-      }
+    const map = L.map(mapRef.current, {
+      center: initialCenter,
+      zoom: destLoc ? 12 : 7,
+      zoomControl: true,
+      zoomAnimation: true,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
     });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+    setMapReady(true);
+
+    if (destLoc) {
+      destMarkerRef.current = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41]
+        })
+      }).addTo(map);
+    }
+
+    if (userLocation) {
+      applyOrigin(userLocation, 'Your location', Boolean(destLoc));
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          applyOrigin(loc, 'Your location', Boolean(destLoc));
+        },
+        (err) => {
+          if (showDetailsPanel && !userLocationRef.current) {
+            setTimeout(() => setError('Location access denied. Please enter your starting location manually.'), 500);
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      );
+    }
     return () => {
       routeRequestIdRef.current += 1;
       clearRouteOverlays();
@@ -1641,18 +1286,18 @@ const Direction = ({ showDetailsPanel = true }) => {
       const destLat = typeof currentDest.lat === 'function' ? currentDest.lat() : currentDest.lat;
       const destLng = typeof currentDest.lng === 'function' ? currentDest.lng() : currentDest.lng;
       
-      const modeMap = { drive: 'driving', bike: 'bicycling', walk: 'walking', transit: 'transit' };
-      const mode = modeMap[selectedMode] || 'driving';
+      const modeMap = { drive: 'car', bike: 'bicycle', walk: 'foot', transit: 'car' };
+      const mode = modeMap[selectedMode] || 'car';
       
-      url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=${mode}`;
+      url = `https://www.openstreetmap.org/directions?engine=osrm_${mode}&route=${originLat}%2C${originLng}%3B${destLat}%2C${destLng}`;
     } else {
       const dest = destPlace || searchedPlace;
       if (dest?.geometry?.location) {
         const lat = typeof dest.geometry.location.lat === 'function' ? dest.geometry.location.lat() : dest.geometry.location.lat;
         const lng = typeof dest.geometry.location.lng === 'function' ? dest.geometry.location.lng() : dest.geometry.location.lng;
-        url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        url = `https://www.openstreetmap.org/search?query=${lat}%2C${lng}`;
       } else if (destination) {
-        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+        url = `https://www.openstreetmap.org/search?query=${encodeURIComponent(destination)}`;
       }
     }
 
@@ -1671,10 +1316,9 @@ const Direction = ({ showDetailsPanel = true }) => {
         await navigator.clipboard.writeText(fullText);
         setActionMessage('Route copied to clipboard.');
       } else {
-        // Fallback for older browsers or insecure contexts
         const textArea = document.createElement("textarea");
         textArea.value = fullText;
-        textArea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
+        textArea.style.position = "fixed";
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
@@ -1682,14 +1326,11 @@ const Direction = ({ showDetailsPanel = true }) => {
           document.execCommand('copy');
           setActionMessage('Route copied to clipboard.');
         } catch (err) {
-          console.error('Fallback: Oops, unable to copy', err);
           setActionMessage('Failed to share.');
         }
         document.body.removeChild(textArea);
       }
     } catch (error) {
-      console.error('Error sharing:', error);
-      // navigator.share throws an error if user cancels, so we show cancelled
       if (error.name === 'AbortError') {
         setActionMessage('Share cancelled.');
       } else {
@@ -1702,17 +1343,8 @@ const Direction = ({ showDetailsPanel = true }) => {
     const dest = destPlace || searchedPlace;
     if (dest) {
       try {
-        // Extract photo URLs from the Google Maps place object
         const photoUrls = [];
-        if (dest.photos && dest.photos.length > 0) {
-          dest.photos.slice(0, 2).forEach(photo => {
-            try {
-              if (typeof photo.getUrl === 'function') {
-                photoUrls.push(photo.getUrl({ maxWidth: 400, maxHeight: 400 }));
-              }
-            } catch (e) { /* ignore */ }
-          });
-        }
+        if (dest.photo) photoUrls.push(dest.photo);
         await saveFavoritePlace(dest, 'work', null, photoUrls);
         setActionMessage('Saved');
       } catch (error) {
@@ -1732,9 +1364,6 @@ const Direction = ({ showDetailsPanel = true }) => {
   };
 
   const handleStart = () => {
-    // Keep the user's currently selected route (selectedIdx) —
-    // do NOT override it with the shortest-distance route.
-
     setShowSearchBar(true);
     if (setActivePage) {
       setActivePage('start');
@@ -1746,14 +1375,13 @@ const Direction = ({ showDetailsPanel = true }) => {
   const focusJourneyStart = useCallback(() => {
     if (!mapInstanceRef.current) return;
 
-    const startLocation = originMarkerRef.current?.getPosition()
+    const startLocation = originMarkerRef.current?.getLatLng?.()
       || userLocationRef.current
       || activeRoutePairRef.current.origin;
 
     if (!startLocation) return;
 
-    mapInstanceRef.current.panTo(startLocation);
-    mapInstanceRef.current.setZoom(18); // Zoom in for real-time navigation
+    mapInstanceRef.current.setView(startLocation, 18);
   }, [selectedIdx]);
 
   useEffect(() => {
@@ -1812,66 +1440,26 @@ const Direction = ({ showDetailsPanel = true }) => {
     setStopSuggestions([]);
     setActiveCategory(null);
     setStopPanelCollapsed(false);
-
-    ensureMapsScript(() => {
-      stopAutocompleteRef.current = new window.google.maps.places.AutocompleteService();
-      stopGeocoderRef.current = new window.google.maps.Geocoder();
-      // Auto-load high-rated attractions along the route
-      searchAttractionsAlongRoute();
-    });
+    searchAttractionsAlongRoute();
   };
 
-  const fetchStopSuggestions = useCallback((input) => {
+  const fetchStopSuggestions = useCallback(async (input) => {
     if (!input.trim()) { setStopSuggestions([]); return; }
-    const result = directionsResultRef.current;
-    if (!result || !mapInstanceRef.current) {
-      // No route yet — fall back to country-wide autocomplete
-      if (!stopAutocompleteRef.current) { setStopSuggestions([]); return; }
-      stopAutocompleteRef.current.getPlacePredictions(
-        { input, componentRestrictions: { country: 'lk' } },
-        (predictions, status) => {
-          setStopSuggestions(
-            status === window.google.maps.places.PlacesServiceStatus.OK && predictions ? predictions : []
-          );
-        }
-      );
-      return;
+    try {
+      const results = await searchPlacesService(input, { lat: 7.8731, lon: 80.7718 }, 50000, 5);
+      const formatted = results.map(r => ({
+        place_id: `${r.lat},${r.lon}`,
+        description: r.name ? `${r.name}, ${r.address?.city || r.address?.county || r.address?.state || ''}` : r.displayName,
+        geometry: { location: { lat: () => r.lat, lng: () => r.lon } },
+        displayName: r.name || r.displayName
+      }));
+      setStopSuggestions(formatted);
+    } catch (err) {
+      console.error('Failed to fetch stop suggestions', err);
+      setStopSuggestions([]);
     }
-
-    const path = result.routes[selectedIdx]?.overview_path || [];
-    if (!path.length) { setStopSuggestions([]); return; }
-
-    // Build a tight LatLngBounds around the route path
-    const bounds = new window.google.maps.LatLngBounds();
-    path.forEach((pt) => bounds.extend(pt));
-
-    // Use autocomplete biased to the route bounding box
-    if (!stopAutocompleteRef.current) { setStopSuggestions([]); return; }
-    stopAutocompleteRef.current.getPlacePredictions(
-      { input, bounds, strictBounds: true, componentRestrictions: { country: 'lk' } },
-      (predictions, status) => {
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
-          setStopSuggestions([]);
-          return;
-        }
-        // Further filter: only keep predictions whose location is within 1km of the route
-        const geocoder = stopGeocoderRef.current;
-        if (!geocoder) { setStopSuggestions(predictions.slice(0, 5)); return; }
-        const filtered = [];
-        let remaining = predictions.length;
-        predictions.forEach((p) => {
-          geocoder.geocode({ placeId: p.place_id }, (geoResults, geoStatus) => {
-            if (geoStatus === 'OK' && geoResults?.[0]) {
-              const dist = getDistanceToPath(geoResults[0].geometry.location, path);
-              if (dist <= 1000) filtered.push(p);
-            }
-            remaining -= 1;
-            if (remaining === 0) setStopSuggestions(filtered.slice(0, 5));
-          });
-        });
-      }
-    );
   }, [selectedIdx]);
+
   useEffect(() => {
     if (addStopOpen && activeCategory) searchPlacesAlongRoute(activeCategory);
   }, [selectedIdx]);
@@ -1879,7 +1467,7 @@ const Direction = ({ showDetailsPanel = true }) => {
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const timer = setTimeout(() => {
-      window.google?.maps?.event?.trigger(mapInstanceRef.current, 'resize');
+      mapInstanceRef.current.invalidateSize();
     }, 500);
     return () => clearTimeout(timer);
   }, [stopPanelCollapsed]);

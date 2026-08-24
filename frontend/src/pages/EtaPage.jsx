@@ -6,7 +6,9 @@ import busIcon from '../assets/busIcon.png';
 import bikeIcon from '../assets/bikeIcon.png';
 import manIcon from '../assets/manIcon.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
-import { ensureMapsScript } from '../utils/helpers';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { getRoute } from '../utils/mapServices';
 
 const MODE_ICONS = {
   drive: carIcon,
@@ -81,161 +83,118 @@ const EtaPage = () => {
   const roadCondition = traffic === 'Heavy traffic' ? 'Congested' : 'Clear';
 
   useEffect(() => {
-    ensureMapsScript(() => {
-      const destLoc = searchedPlace?.geometry?.location;
-      const originLat = userLocation?.lat != null ? (typeof userLocation.lat === 'function' ? userLocation.lat() : userLocation.lat) : null;
-      const originLng = userLocation?.lng != null ? (typeof userLocation.lng === 'function' ? userLocation.lng() : userLocation.lng) : null;
-      const hasOrigin = originLat != null && originLng != null;
+    const destLoc = searchedPlace?.location || searchedPlace?.geometry?.location;
+    const originLat = userLocation?.lat != null ? (typeof userLocation.lat === 'function' ? userLocation.lat() : userLocation.lat) : null;
+    const originLng = userLocation?.lng != null ? (typeof userLocation.lng === 'function' ? userLocation.lng() : userLocation.lng) : null;
+    const hasOrigin = originLat != null && originLng != null;
 
-      const initialCenter = hasOrigin
-        ? { lat: originLat, lng: originLng }
-        : destLoc
-          ? { lat: destLoc.lat(), lng: destLoc.lng() }
-          : { lat: 7.8731, lng: 80.7718 };
+    const initialCenter = hasOrigin
+      ? [originLat, originLng]
+      : destLoc
+        ? [typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat, typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng]
+        : [7.8731, 80.7718];
 
-      mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-        center: initialCenter,
-        zoom: hasOrigin || destLoc ? 10 : 7,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: false,
-        gestureHandling: 'cooperative',
-        styles: [
-          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#a2daf2' }] },
-          { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#d0f0c0' }] },
-          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-          { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#9be79b' }] },
-          { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#6abf69' }] },
-        ],
-      });
-      setMapReady(true);
-
-      // Request directions if origin + destination available
-      if (hasOrigin && destLoc) {
-        const directionsService = new window.google.maps.DirectionsService();
-        const modeMap = { drive: 'DRIVING', bike: 'BICYCLING', transit: 'TRANSIT', walk: 'WALKING' };
-        const travelMode = modeMap[mode] || 'DRIVING';
-        const originLatLng = new window.google.maps.LatLng(originLat, originLng);
-
-        directionsService.route(
-          {
-            origin: originLatLng,
-            destination: destLoc,
-            travelMode: window.google.maps.TravelMode[travelMode],
-            provideRouteAlternatives: true,
-            drivingOptions: travelMode === 'DRIVING' ? {
-              departureTime: new Date(),
-              trafficModel: window.google.maps.TrafficModel.BEST_GUESS,
-            } : undefined,
-          },
-          (result, status) => {
-            if (status === window.google.maps.DirectionsStatus.OK) {
-              // Parse all routes for the alternative routes card
-              const allRoutes = result.routes.map((route, idx) => {
-                const leg = route.legs[0];
-                const freeMins = leg.duration?.value ? Math.round(leg.duration.value / 60) : 0;
-                const trafficMins = leg.duration_in_traffic?.value
-                  ? Math.round(leg.duration_in_traffic.value / 60)
-                  : freeMins;
-                const ratio = freeMins > 0 ? trafficMins / freeMins : 1;
-                const routeTraffic =
-                  ratio >= 1.4 ? 'Heavy traffic'
-                  : ratio >= 1.15 ? 'Moderate traffic'
-                  : 'Light traffic';
-                return {
-                  index: idx,
-                  duration: leg.duration_in_traffic?.text || leg.duration?.text || '--',
-                  durationMinutes: trafficMins || freeMins,
-                  distance: leg.distance?.text || '--',
-                  summary: route.summary || '',
-                  traffic: routeTraffic,
-                };
-              });
-              // Sort by duration so fastest is first
-              allRoutes.sort((a, b) => a.durationMinutes - b.durationMinutes);
-              setAlternativeRoutes(allRoutes);
-
-              const preferredIndex = etaData?.selectedRouteIndex ?? 0;
-              const safeIndex = preferredIndex < result.routes.length ? preferredIndex : 0;
-              const renderer = new window.google.maps.DirectionsRenderer({
-                map: mapInstanceRef.current,
-                directions: result,
-                routeIndex: safeIndex,
-                suppressInfoWindows: true,
-                suppressMarkers: false,
-                polylineOptions: {
-                  strokeColor: '#1A73E8',
-                  strokeWeight: 5,
-                  strokeOpacity: 1,
-                },
-              });
-
-              // Fit map to show full route
-              const bounds = new window.google.maps.LatLngBounds();
-              const leg = result.routes[safeIndex]?.legs?.[0];
-              if (leg) {
-                bounds.extend(leg.start_location);
-                bounds.extend(leg.end_location);
-                const overviewPath = result.routes[safeIndex]?.overview_path || [];
-                overviewPath.forEach(pt => bounds.extend(pt));
-                mapInstanceRef.current.fitBounds(bounds, { top: 60, bottom: 60, left: 30, right: 30 });
-              }
-
-              // Add "You" label at origin
-              const originLoc = result.routes[safeIndex]?.legs?.[0]?.start_location;
-              if (originLoc) {
-                new window.google.maps.Marker({
-                  position: originLoc,
-                  map: mapInstanceRef.current,
-                  icon: {
-                    path: window.google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: '#104bc0',
-                    fillOpacity: 1,
-                    strokeColor: '#fff',
-                    strokeWeight: 2,
-                  },
-                  label: {
-                    text: 'You',
-                    color: '#104bc0',
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    className: 'map-you-label',
-                  },
-                });
-              }
-
-              // Add "Full Overview" label at midpoint
-              const path = result.routes[safeIndex]?.overview_path || [];
-              if (path.length > 0) {
-                const mid = path[Math.floor(path.length / 2)];
-                const OverlayClass = class extends window.google.maps.OverlayView {
-                  constructor(pos, html) { super(); this.pos = pos; this.html = html; this.div = null; }
-                  onAdd() {
-                    this.div = document.createElement('div');
-                    this.div.style.cssText = 'position:absolute;pointer-events:none;transform:translate(-50%,-50%);z-index:1000;';
-                    this.div.innerHTML = this.html;
-                    this.getPanes().floatPane.appendChild(this.div);
-                  }
-                  draw() {
-                    const p = this.getProjection()?.fromLatLngToDivPixel(this.pos);
-                    if (p && this.div) { this.div.style.left = p.x + 'px'; this.div.style.top = p.y + 'px'; }
-                  }
-                  onRemove() { if (this.div) { this.div.parentNode?.removeChild(this.div); this.div = null; } }
-                };
-                const overlay = new OverlayClass(mid, `
-                  <div style="background:linear-gradient(90deg,#FFFFFF 0%,#A0DBFF 100%);border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.2);padding:8px 20px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#111827;white-space:nowrap;">
-                    Full Overview
-                  </div>
-                `);
-                overlay.setMap(mapInstanceRef.current);
-              }
-            }
-          }
-        );
-      }
+    const map = L.map(mapRef.current, {
+      center: initialCenter,
+      zoom: hasOrigin || destLoc ? 10 : 7,
+      zoomControl: false,
+      zoomAnimation: true,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
     });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+    setMapReady(true);
+
+    if (hasOrigin && destLoc) {
+      const modeMap = { drive: 'driving', bike: 'cycling', walk: 'foot', transit: 'driving' };
+      const osrmProfile = modeMap[mode] || 'driving';
+      const destLat = typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat;
+      const destLng = typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng;
+
+      getRoute(originLat, originLng, destLat, destLng, osrmProfile).then((osrmRoutes) => {
+        if (osrmRoutes && osrmRoutes.length > 0) {
+          const allRoutes = osrmRoutes.map((route, idx) => {
+            const durationMins = Math.round(route.duration / 60);
+            const distM = route.distance;
+            const distText = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${Math.round(distM)} m`;
+            
+            return {
+              index: idx,
+              duration: `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`,
+              durationMinutes: durationMins,
+              distance: distText,
+              summary: route.summary || '',
+              traffic: 'Light traffic',
+              coordinates: (route.geometry?.coordinates || []).map(c => [c[1], c[0]])
+            };
+          });
+
+          allRoutes.sort((a, b) => a.durationMinutes - b.durationMinutes);
+          setAlternativeRoutes(allRoutes);
+
+          const preferredIndex = etaData?.selectedRouteIndex ?? 0;
+          const safeIndex = preferredIndex < osrmRoutes.length ? preferredIndex : 0;
+          const selectedRoute = allRoutes[safeIndex];
+
+          if (selectedRoute && selectedRoute.coordinates.length > 0) {
+            L.polyline(selectedRoute.coordinates, {
+              color: '#1A73E8',
+              weight: 5,
+              opacity: 1
+            }).addTo(map);
+
+            const bounds = L.latLngBounds(selectedRoute.coordinates);
+            map.fitBounds(bounds, { padding: [30, 30] });
+
+            // "You" Marker
+            const originLoc = selectedRoute.coordinates[0];
+            const youIcon = L.divIcon({
+              className: '',
+              html: `
+                <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+                  <div style="width:20px;height:20px;border-radius:50%;background:#104bc0;border:2px solid #fff;box-shadow:0 0 4px rgba(0,0,0,0.3);"></div>
+                  <div class="map-you-label" style="position:absolute;top:22px;color:#104bc0;font-weight:bold;font-size:12px;">You</div>
+                </div>
+              `,
+              iconSize: [20, 40],
+              iconAnchor: [10, 10]
+            });
+            L.marker(originLoc, { icon: youIcon }).addTo(map);
+
+            // "Full Overview" Label
+            const midIndex = Math.floor(selectedRoute.coordinates.length / 2);
+            const midLoc = selectedRoute.coordinates[midIndex];
+            const midIcon = L.divIcon({
+              className: '',
+              html: `
+                <div style="background:linear-gradient(90deg,#FFFFFF 0%,#A0DBFF 100%);border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,0.2);padding:8px 20px;font-family:Inter,sans-serif;font-size:13px;font-weight:600;color:#111827;white-space:nowrap;transform:translate(-50%,-50%);">
+                  Full Overview
+                </div>
+              `,
+              iconSize: [0, 0],
+              iconAnchor: [0, 0]
+            });
+            L.marker(midLoc, { icon: midIcon, interactive: false }).addTo(map);
+          }
+        }
+      }).catch(err => {
+        console.error('Failed to load OSRM route on EtaPage:', err);
+      });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
   return (
