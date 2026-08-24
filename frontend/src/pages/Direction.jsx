@@ -256,18 +256,22 @@ const Direction = ({ showDetailsPanel = true }) => {
     return minDist;
   };
 
-  const getNavigationMarkerIcon = () => L.divIcon({
-    className: '',
-    html: `<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'><path d='M17 2 L28 32 L17 25 L6 32 Z' fill='#1A73E8' stroke='#ffffff' stroke-width='2' stroke-linejoin='round'/></svg>`,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
+  const getNavigationMarkerIcon = () => L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   });
 
-  const getBlueMarkerIcon = () => L.divIcon({
-    className: '',
-    html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
+  const getBlueMarkerIcon = () => L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   });
 
   const addPoiMarker = (place) => {
@@ -541,7 +545,42 @@ const Direction = ({ showDetailsPanel = true }) => {
       const distance = leg?.distance?.text || '--';
       const durationMins = leg?.duration?.value ? Math.round(leg.duration.value / 60) : 0;
 
-      if (!showDetailsPanel && isSelected) {
+      // Draw custom ETA labels on the map for all routes to match the design
+      if (showDetailsPanel) {
+        let labelContent = '';
+        if (isSelected) {
+          // Dark blue label for selected route
+          labelContent = `
+            <div style="background-color:#104bc0;color:#fff;padding:8px 12px;border-radius:8px;font-family:Inter,sans-serif;font-size:16px;font-weight:600;box-shadow:0 4px 6px rgba(0,0,0,0.3);display:inline-block;white-space:nowrap;position:relative;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                ${duration}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:400;">
+                Tolls
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <div style="position:absolute;bottom:-6px;left:20px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #104bc0;"></div>
+            </div>`;
+        } else {
+          // White label for alternative routes
+          labelContent = `
+            <div style="background-color:#fff;color:#333;padding:8px 12px;border-radius:8px;font-family:Inter,sans-serif;font-size:16px;font-weight:600;box-shadow:0 4px 6px rgba(0,0,0,0.15);display:inline-block;white-space:nowrap;position:relative;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                ${duration}
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:400;color:#666;">
+                Tolls
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+            </div>`;
+        }
+        
+        const label = createRouteLabel(mapInstanceRef.current, midPoint, labelContent, () => {
+          if (!isSelected) selectRouteRef.current(i);
+        });
+        routeLabelsRef.current.push(label);
+      } else if (!showDetailsPanel && isSelected) {
         const labelContent = `<div id="eta-label-overlay" style="width:190px;height:102px;border-radius:10px;background:linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);box-shadow:0px 2px 2px 0px #00000040;display:flex;flex-direction:column;justify-content:center;padding:12px 16px;gap:8px;cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><img src="${carIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">${distance}</span></div><div style="display:flex;align-items:center;gap:8px;"><img src="${clockIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">ETA: ${duration}</span></div></div>`;
         const etaClickHandler = () => {
           if (typeof window.setActivePageGlobal === 'function') window.setActivePageGlobal('eta');
@@ -551,6 +590,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         const label = createRouteLabel(mapInstanceRef.current, midPoint, labelContent, etaClickHandler);
         routeLabelsRef.current.push(label);
       }
+
       clickPathsRef.current.push(clickPath);
     });
   };
@@ -826,7 +866,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         <span style="font-weight:700;font-size:11px;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${labelText}</span>
       </div>`;
 
-    const crimePos = new window.google.maps.LatLng(crimeLat, crimeLng);
+    const crimePos = { lat: crimeLat, lng: crimeLng };
     const overlay = createRouteLabel(mapInstanceRef.current, crimePos, crimeLabelHtml);
     crimeLabelsRef.current.push(overlay);
   };
@@ -956,8 +996,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         </svg>
         <span style="font-weight:700;font-size:11px;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${labelText}</span>
       </div>`;
-
-    const roadblockPos = new window.google.maps.LatLng(roadblockLat, roadblockLng);
+    const roadblockPos = { lat: roadblockLat, lng: roadblockLng };
     const overlay = createRouteLabel(mapInstanceRef.current, roadblockPos, roadblockLabelHtml);
     roadblockLabelsRef.current.push(overlay);
   };
@@ -1102,7 +1141,7 @@ const Direction = ({ showDetailsPanel = true }) => {
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         userLocationRef.current = loc;
-        applyOrigin(loc, 'Your location', true);
+        applyOrigin(loc, `Your Location (${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)})`, true);
         mapInstanceRef.current?.setView(loc);
       },
       () => {},
@@ -1111,6 +1150,11 @@ const Direction = ({ showDetailsPanel = true }) => {
   }, [applyOrigin]);
 
   useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
     const destLoc = (destPlace || searchedPlace)?.location || (destPlace || searchedPlace)?.geometry?.location;
     let lat = 7.8731, lng = 80.7718;
     if (destLoc) {
@@ -1121,6 +1165,8 @@ const Direction = ({ showDetailsPanel = true }) => {
 
     if (pendingOriginLabel) setPendingOriginLabel('');
     if (pendingVehicle) setPendingVehicle(null);
+
+    if (!mapRef.current) return;
 
     const map = L.map(mapRef.current, {
       center: initialCenter,
@@ -1154,12 +1200,12 @@ const Direction = ({ showDetailsPanel = true }) => {
     }
 
     if (userLocation) {
-      applyOrigin(userLocation, 'Your location', Boolean(destLoc));
+      applyOrigin(userLocation, `Your Location (${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})`, Boolean(destLoc));
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          applyOrigin(loc, 'Your location', Boolean(destLoc));
+          applyOrigin(loc, `Your Location (${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)})`, Boolean(destLoc));
         },
         (err) => {
           if (showDetailsPanel && !userLocationRef.current) {
@@ -1173,8 +1219,25 @@ const Direction = ({ showDetailsPanel = true }) => {
       routeRequestIdRef.current += 1;
       clearRouteOverlays();
       if (floodPollRef.current) clearInterval(floodPollRef.current);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      originMarkerRef.current = null;
+      destMarkerRef.current = null;
+      trafficLayerRef.current = null;
+      poiMarkersRef.current = [];
     };
   }, []);
+
+  const updateNavigation = useCallback((loc, forceStep = null) => {
+    // Basic stub to prevent crashes. Full step-by-step navigation logic can be restored later.
+    if (!routes || !routes[selectedIdx]) return;
+    const route = routes[selectedIdx];
+    if (forceStep !== null) {
+      setNavStepIndex(forceStep);
+    }
+  }, [routes, selectedIdx]);
 
   useEffect(() => {
     if (!mapReady || showDetailsPanel || !navigator.geolocation) return;
@@ -1194,7 +1257,8 @@ const Direction = ({ showDetailsPanel = true }) => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.panTo(loc);
           if (pos.coords.heading != null && !Number.isNaN(pos.coords.heading)) {
-            mapInstanceRef.current.setHeading(pos.coords.heading);
+            // Leaflet map does not natively support setHeading without a plugin.
+            // mapInstanceRef.current.setHeading(pos.coords.heading);
           }
         }
         
@@ -1387,7 +1451,7 @@ const Direction = ({ showDetailsPanel = true }) => {
   useEffect(() => {
     if (!showDetailsPanel) {
       if (userLocationRef.current) {
-        placeOriginMarker(userLocationRef.current);
+        placeOriginMarker(userLocationRef.current, false);
       }
       // Re-draw the selected route so ETA labels (guarded by !showDetailsPanel)
       // are created now that we're on the start page
@@ -1396,8 +1460,10 @@ const Direction = ({ showDetailsPanel = true }) => {
       }
       // Always zoom into the user's location for real-time navigation
       focusJourneyStart();
-    } else if (originMarkerRef.current) {
-      originMarkerRef.current.setMap(null);
+    } else {
+      if (userLocationRef.current) {
+        placeOriginMarker(userLocationRef.current, true);
+      }
     }
   }, [showDetailsPanel]);
 
@@ -1475,6 +1541,22 @@ const Direction = ({ showDetailsPanel = true }) => {
   const baseModeMinutes = selectedMode === 'drive'
     ? (selectedRouteMinutes || drivingMinutesRef.current || 215)
     : (drivingMinutesRef.current || selectedRouteMinutes || 215);
+
+  const getActiveManeuverStep = useCallback(() => {
+    if (!routes || !routes[selectedIdx] || !routes[selectedIdx].steps) return null;
+    const steps = routes[selectedIdx].steps;
+    if (navStepIndex >= steps.length) return null;
+    const step = steps[navStepIndex];
+    
+    // Parse OSRM step to return a standardized maneuver object
+    return {
+      label: step.maneuver?.instruction || step.name || 'Continue',
+      html: step.maneuver?.instruction || '',
+      isNext: true,
+      lat: step.maneuver?.location?.[1],
+      lng: step.maneuver?.location?.[0]
+    };
+  }, [routes, selectedIdx, navStepIndex]);
 
   const activeManeuver = getActiveManeuverStep();
   const currentTurnInstruction = activeManeuver?.label || '';
@@ -2077,7 +2159,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                 <img src={swapped ? redPinIcon : blueLocationIcon} alt="Origin" className="w-5 h-5 shrink-0" />
                 <LocationInput
                   placeholder="Your location"
-                  initialValue={pendingOriginLabel || ''}
+                  initialValue={originLabel || pendingOriginLabel || ''}
                   onSelect={onOriginSelect}
                   showGps
                   gpsDisplayValue="Your Location"
@@ -2091,7 +2173,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                       (pos) => {
                         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                         userLocationRef.current = loc;
-                        applyOrigin(loc, 'Your location', true);
+                        applyOrigin(loc, `Your Location (${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)})`, true);
                       },
                       () => {},
                       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }

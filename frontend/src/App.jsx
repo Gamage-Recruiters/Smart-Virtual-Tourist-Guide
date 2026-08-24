@@ -1,3 +1,4 @@
+import React from 'react';
 import Explore from './pages/Explore';
 import Direction from './pages/Direction';
 import DirectionOne from './pages/DirectionOne';
@@ -35,10 +36,34 @@ function AppContent() {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', background: 'red', color: 'white', fontFamily: 'monospace' }}>
+          <h2>React Crash</h2>
+          <pre>{this.state.error?.toString()}</pre>
+          <pre>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
     <PageTitleProvider>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </PageTitleProvider>
   );
 }

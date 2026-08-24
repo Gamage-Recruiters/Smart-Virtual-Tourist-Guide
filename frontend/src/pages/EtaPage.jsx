@@ -94,6 +94,13 @@ const EtaPage = () => {
         ? [typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat, typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng]
         : [7.8731, 80.7718];
 
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+
+    if (!mapRef.current) return;
+
     const map = L.map(mapRef.current, {
       center: initialCenter,
       zoom: hasOrigin || destLoc ? 10 : 7,

@@ -23,20 +23,18 @@ const geocodeLocation = async (locationName) => {
   const cacheKey = locationName.trim().toLowerCase();
   if (geocodeCache.has(cacheKey)) return geocodeCache.get(cacheKey);
 
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    console.warn('[hotels] No GOOGLE_MAPS_API_KEY set, cannot geocode locations');
-    return null;
-  }
+  // Rate limiting helper for Nominatim (1 request/sec max)
+  await new Promise(resolve => setTimeout(resolve, 1100));
 
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationName + ', Sri Lanka')}&key=${apiKey}`;
-    const response = await fetch(url);
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationName + ', Sri Lanka')}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'SmartVirtualTouristGuide/1.0' }
+    });
     const data = await response.json();
 
-    if (data.status === 'OK' && data.results.length > 0) {
-      const { lat, lng } = data.results[0].geometry.location;
-      const coords = { lat, lng };
+    if (data && data.length > 0) {
+      const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
       geocodeCache.set(cacheKey, coords);
       return coords;
     }

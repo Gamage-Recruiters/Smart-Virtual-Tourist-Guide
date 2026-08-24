@@ -19,32 +19,20 @@ const resolvePlaceId = (req) => {
 	return req.body?.placeId || req.body?.place_id || req.query?.placeId || req.query?.place_id || null;
 };
 
-const fetchPlaceImageUrls = async (placeId) => {
-	const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY;
-	if (!apiKey) {
-		console.warn('[recentPlaces] GOOGLE_MAPS_API_KEY is missing. imageUrls will stay empty.');
+const fetchPlaceImageUrls = async (placeName) => {
+	if (!placeName) return [];
+	const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=400&origin=*`;
+	try {
+		const res = await fetch(url);
+		const data = await res.json();
+		const pages = data?.query?.pages || {};
+		const page = Object.values(pages)[0];
+		const thumb = page?.thumbnail?.source;
+		return thumb ? [thumb] : [];
+	} catch (error) {
+		console.error('Failed to fetch place image urls:', error);
 		return [];
 	}
-
-	if (!placeId) return [];
-
-	const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
-	url.searchParams.set('place_id', placeId);
-	url.searchParams.set('fields', 'photos');
-	url.searchParams.set('key', apiKey);
-
-	const response = await fetch(url.toString());
-	if (!response.ok) return [];
-
-	const payload = await response.json();
-	const photos = payload?.result?.photos || [];
-
-	return photos.slice(0, 2).map((photo) => {
-		const reference = photo.photo_reference;
-		return reference
-			? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${encodeURIComponent(reference)}&key=${apiKey}`
-			: '';
-	}).filter(Boolean);
 };
 
 const getRecentPlaces = async (req, res) => {
@@ -96,7 +84,7 @@ const createRecentPlace = async (req, res) => {
 		const resolvedPlaceId = placeId || resolvePlaceId(req);
 		const resolvedAction = normalizeAction(action);
 		const resolvedImageUrls = normalizeImageUrls(imageUrls || (imageUrl ? [imageUrl] : []));
-		const fetchedImageUrls = resolvedImageUrls.length > 0 ? resolvedImageUrls : await fetchPlaceImageUrls(resolvedPlaceId);
+		const fetchedImageUrls = resolvedImageUrls.length > 0 ? resolvedImageUrls : await fetchPlaceImageUrls(resolvedName);
 		const imageUrlsToStore = normalizeImageUrls(fetchedImageUrls);
 		const lookupQuery = {
 			userId: resolvedUserId,
