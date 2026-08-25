@@ -80,6 +80,14 @@ import MyFleetPage from './pages/vehicleAdminDashboard/myFleetPage';
 import EarningsPage from './pages/vehicleAdminDashboard/earningsPage';
 import SettingsPage from './pages/vehicleAdminDashboard/settingsPage';
 
+// ===== FEATURE/TRAVEL-PACKAGEMENT-MANAGEMENT ROUTES =====
+import AddNewPackage from './pages/travelPackage/AddNewPackage.jsx';
+import SucessPackage from './pages/travelPackage/SucessPackage.jsx';
+import UserPackages from './pages/travelPackage/UserPackages.jsx';
+import AdminPackages from './pages/travelPackage/AdminPackages.jsx';
+import PackageView from './pages/travelPackage/PackageView.jsx';
+import CreateAD from './pages/travelPackage/CreateAD.jsx';
+
 function App() {
   return (
     <BrowserRouter>
@@ -94,7 +102,7 @@ function App() {
         <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
 
         {/* ===== LANDING PAGES (from main) ===== */}
-        <Route path="/" element={<Layout />}>
+        <Route path="/home" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="destinations" element={<Destinations />} />
@@ -201,6 +209,18 @@ function App() {
           <Route path="revenue" element={<ResturentRevenuePage />} />
           <Route path="profile" element={<ResturentProfilePage />} />
         </Route>
+
+        {/* ===== TRAVEL PACKAGE ROUTES ===== */}
+        {/* Default route for travel packages - you can keep this or remove it */}
+        <Route path="/" element={<UserPackages />} />
+    
+        <Route path="/packages/view/:id" element={<PackageView />} />
+        <Route path="/packages/user" element={<UserPackages />} />
+        <Route path="/packages/admin" element={<AdminPackages />} />
+        <Route path="/packages/new" element={<AddNewPackage />} />
+        <Route path="/packages/edit/:id" element={<AddNewPackage />} />
+        <Route path="/packages/success" element={<SucessPackage />} />
+        <Route path="/packages/create-ad" element={<CreateAD />} />
 
         {/* ===== 404 FALLBACK ===== */}
         <Route path="*" element={<Navigate to="/" replace />} />
