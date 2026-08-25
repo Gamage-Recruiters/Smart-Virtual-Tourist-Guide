@@ -23,6 +23,10 @@ import uploadRoutes from './routes/upload.routes.js';
 import reservationRoutes from './routes/reservation.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 
+// ===== TRAVEL PACKAGE ROUTE IMPORTS =====
+import packageRoutes from './routes/travelPackage/packageRoutes.js';
+import advertisementRoutes from './routes/travelPackage/advertisementRoutes.js';
+
 config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -61,6 +65,9 @@ app.get('/', (req, res) => {
       offers: 'GET /api/offers, POST /api/offers',
       reservations: 'GET /api/reservations, POST /api/reservations',
       reviews: 'GET /api/reviews, POST /api/reviews',
+      // Travel Package endpoints
+      travelPackages: 'GET /api/packages, POST /api/packages, PUT /api/packages/:id, DELETE /api/packages/:id',
+      advertisements: 'GET /api/advertisements, POST /api/advertisements, PUT /api/advertisements/:id, DELETE /api/advertisements/:id',
     }
   });
 });
@@ -84,7 +91,7 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
-app.use('/api/packages', specialPackageRoutes);
+app.use('/api/special-packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
 app.use('/api/users', userRoutes);
 
@@ -98,6 +105,10 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/reviews', reviewRoutes);
+
+// ===== TRAVEL PACKAGE ROUTES =====
+app.use('/api/packages', packageRoutes);
+app.use('/api/advertisements', advertisementRoutes);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes
