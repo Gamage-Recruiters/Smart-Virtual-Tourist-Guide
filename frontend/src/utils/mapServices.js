@@ -79,10 +79,134 @@ export async function findNearbyPlaces(lat, lng, radiusMeters = 5000, types = '"
 
 // ── Wikimedia: Place Photos ──
 export async function getPlacePhoto(placeName) {
-  const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;
-  const res = await fetch(url);
-  const data = await res.json();
-  const pages = data?.query?.pages || {};
-  const page = Object.values(pages)[0];
-  return page?.thumbnail?.source || null;
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const pages = data?.query?.pages || {};
+    const page = Object.values(pages)[0];
+    return page?.thumbnail?.source || null;
+  } catch (error) {
+    console.warn(`Wikimedia photo load failed for ${placeName}:`, error.message);
+    return null;
+  }
+}
+
+// ── Overpass: Unified Batch Nearby Places ──
+const OVERPASS_MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.ru/api/interpreter',
+];
+
+async function fetchOverpass(query) {
+  for (const mirror of OVERPASS_MIRRORS) {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(`${mirror}?data=${encodeURIComponent(query)}`, { signal: controller.signal });
+      clearTimeout(id);
+      if (res.ok) {
+        return await res.json();
+      } else {
+        console.error('Overpass mirror returned error:', mirror, res.status, await res.text());
+      }
+    } catch (err) { 
+      console.error('Overpass mirror fetch failed:', mirror, err.message);
+    }
+  }
+  throw new Error('All Overpass mirrors failed');
+}
+
+export async function findAllNearbyPOIs(samplePoints, radiusMap = {
+  attraction: 2000,
+  fuel: 1500,
+  restaurant: 800,
+  cafe: 800,
+  supermarket: 800,
+}) {
+  if (!samplePoints || samplePoints.length === 0) return [];
+
+  // Round + dedupe sample points to avoid redundant coverage
+  const points = dedupePoints(samplePoints, 3); // 3 decimal places ≈ 100m
+  if (points.length === 0) return [];
+
+  // Build "lat1,lon1,lat2,lon2,..." string safely with fixed decimals
+  const coords = points.map(p => `${Number(p.lat).toFixed(5)},${Number(p.lng).toFixed(5)}`).join(',');
+
+  const query = `[out:json][timeout:25];
+(
+  node["amenity"~"restaurant|cafe|fuel"](around:${radiusMap.restaurant},${coords});
+  node["shop"="supermarket"](around:${radiusMap.supermarket},${coords});
+  node["tourism"~"attraction|viewpoint|museum"](around:${radiusMap.attraction},${coords});
+);
+out body;`;
+
+  const data = await fetchOverpass(query);
+  return dedupeAndTag(data?.elements || []);
+}
+
+function dedupePoints(points, decimals) {
+  const seen = new Set();
+  return points.filter(p => {
+    const key = `${p.lat.toFixed(decimals)},${p.lng.toFixed(decimals)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function dedupeAndTag(elements) {
+  const seen = new Set();
+  return elements.reduce((acc, el) => {
+    const key = `${el.lat.toFixed(5)},${el.lon.toFixed(5)}`;
+    if (seen.has(key)) return acc;
+    seen.add(key);
+    
+    let category = 'other';
+    if (el.tags?.amenity === 'restaurant') category = 'Restaurant';
+    else if (el.tags?.amenity === 'fuel') category = 'Petrol Station';
+    else if (el.tags?.amenity === 'cafe') category = 'Coffee Shop';
+    else if (el.tags?.shop === 'supermarket') category = 'Supermarket';
+    else if (el.tags?.tourism) category = 'Attraction';
+
+    acc.push({
+      name: el.tags?.name || 'Unknown',
+      lat: el.lat,
+      lng: el.lon,
+      category: category,
+      vicinity: el.tags?.['addr:street'] || el.tags?.['addr:city'] || '',
+      osmId: el.id,
+      placeId: `osm-${el.id}`,
+      location: { lat: el.lat, lng: el.lon },
+    });
+    return acc;
+  }, []);
+}
+
+export function getCachedPOIs(routeHash, maxAgeMs = 30 * 60 * 1000) {
+  try {
+    const raw = sessionStorage.getItem(`poi_${routeHash}`);
+    if (!raw) return null;
+    const { pois, timestamp } = JSON.parse(raw);
+    if (Date.now() - timestamp > maxAgeMs) {
+      sessionStorage.removeItem(`poi_${routeHash}`);
+      return null;
+    }
+    return pois;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function setCachedPOIs(routeHash, pois) {
+  try {
+    sessionStorage.setItem(
+      `poi_${routeHash}`,
+      JSON.stringify({ pois, timestamp: Date.now() })
+    );
+  } catch (e) {
+    // storage quota exceeded — fail silently, RAM cache still works
+  }
 }

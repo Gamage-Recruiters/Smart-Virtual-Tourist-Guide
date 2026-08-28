@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import middle from '../assets/middle.png';
 import bikeIcon from '../assets/bikeIcon.png';
@@ -19,7 +19,28 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { getRoute, findNearbyPlaces, getPlacePhoto, searchPlaces as searchPlacesService, geocodeAddress } from '../utils/mapServices';
+import { getRoute, findNearbyPlaces, getPlacePhoto, searchPlaces as searchPlacesService, geocodeAddress, findAllNearbyPOIs, getCachedPOIs, setCachedPOIs } from '../utils/mapServices';
+
+const getRouteHash = (route) => {
+  const path = route?.overview_path || [];
+  if (!path.length) return '';
+  const start = path[0];
+  const end = path[path.length - 1];
+  const mid = path[Math.floor(path.length / 2)];
+  const round = (n) => typeof n === 'function' ? n().toFixed(3) : n.toFixed(3);
+  return [
+    round(start.lat), round(start.lng),
+    round(mid.lat), round(mid.lng),
+    round(end.lat), round(end.lng),
+    path.length,
+  ].join('_');
+};
+
+const getSampleCount = (routeDistanceMeters, radius) => {
+  const coverage = radius * 1.5;
+  const needed = Math.ceil(routeDistanceMeters / coverage);
+  return Math.min(Math.max(needed, 3), 8);
+};
 
 // Fix Leaflet default marker icon paths (broken by bundlers like Vite)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -213,10 +234,12 @@ const Direction = ({ showDetailsPanel = true }) => {
   const [stopQuery, setStopQuery] = useState('');
   const [stopSuggestions, setStopSuggestions] = useState([]);
   const [stopActiveIdx, setStopActiveIdx] = useState(-1);
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [poiResults, setPoiResults] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('Attraction');
+  const [allPois, setAllPois] = useState([]);
+  const [poiError, setPoiError] = useState(false);
   const [poiLoading, setPoiLoading] = useState(false);
   const [stopPanelCollapsed, setStopPanelCollapsed] = useState(false);
+  const poiCacheRef = useRef(new Map());
 
   useEffect(() => {
     if (actionMessage) {
@@ -283,128 +306,82 @@ const Direction = ({ showDetailsPanel = true }) => {
     const existingMarker = poiMarkersRef.current.find((marker) => marker.__placeId === place.placeId);
     if (existingMarker) {
       mapInstanceRef.current.setView(existingMarker.getLatLng(), 16);
+      existingMarker.openPopup();
       return;
     }
 
     const marker = L.marker([lat, lng]).addTo(mapInstanceRef.current)
-      .bindPopup(`<div style="font-family:Inter,sans-serif;font-size:13px;max-width:160px"><strong>${place.name}</strong>${place.rating ? `<br/>⭐ ${place.rating.toFixed(1)}` : ''}<br/><span style="color:#6B7280;font-size:11px">${place.vicinity}</span></div>`);
+      .bindPopup(`<div style="font-family:Inter,sans-serif;font-size:13px;max-width:160px">
+        <strong>${place.name}</strong><br/>
+        <span style="background:#1A73E8;color:white;padding:2px 6px;border-radius:4px;font-size:10px;margin-top:4px;margin-bottom:4px;display:inline-block;">📍 Suggested Stop</span><br/>
+        <span style="color:#6B7280;font-size:11px">${place.vicinity || place.category}</span>
+      </div>`);
 
     marker.__placeId = place.placeId;
     poiMarkersRef.current.push(marker);
     mapInstanceRef.current.setView([lat, lng], 16);
+    marker.openPopup();
   };
 
-  const searchPlacesAlongRoute = useCallback(async (category) => {
+  const loadPOIsForRoute = useCallback(async () => {
     const result = directionsResultRef.current;
     if (!result || !mapInstanceRef.current) return;
-
     const routeIndex = selectedIdx;
-    const path = result.routes[routeIndex]?.overview_path || [];
-    if (!path.length) return;
+    const route = result.routes[routeIndex];
+    if (!route) return;
 
-    const config = CATEGORY_TYPES[category];
-    if (!config) return;
+    const hash = getRouteHash(route);
+    if (!hash) return;
 
-    const searchRadius = config.type === 'gas_station' ? 1500 : 800;
-
-    setPoiLoading(true);
-    setPoiResults([]);
-
-    const totalPoints = path.length;
-    const sampleCount = Math.min(8, Math.max(3, Math.floor(totalPoints / 15)));
-    const step = Math.max(1, Math.floor(totalPoints / sampleCount));
-    const samplePoints = [];
-    for (let i = 0; i < totalPoints; i += step) samplePoints.push(path[i]);
-
-    // Map category types to Overpass tags
-    const overpassTypeMap = {
-      restaurant: '"amenity"="restaurant"',
-      gas_station: '"amenity"="fuel"',
-      cafe: '"amenity"="cafe"',
-      supermarket: '"shop"="supermarket"',
-    };
-    const overpassType = overpassTypeMap[config.type] || `"amenity"="${config.type}"`;
-
-    const seen = new Set();
-    const collected = [];
-
-    for (const point of samplePoints) {
-      const ptLat = typeof point.lat === 'function' ? point.lat() : point.lat;
-      const ptLng = typeof point.lng === 'function' ? point.lng() : point.lng;
-      try {
-        const results = await findNearbyPlaces(ptLat, ptLng, searchRadius, overpassType);
-        for (const place of results) {
-          const key = `${place.lat},${place.lng}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          const dist = getDistanceToPath({ lat: place.lat, lng: place.lng }, path);
-          if (dist <= searchRadius) {
-            collected.push({
-              name: place.name,
-              rating: null,
-              vicinity: place.type || '',
-              photo: null,
-              placeId: `osm-${place.osmId}`,
-              location: { lat: place.lat, lng: place.lng },
-            });
-          }
-        }
-      } catch { /* ignore */ }
+    if (poiCacheRef.current.has(hash)) {
+      setAllPois(poiCacheRef.current.get(hash));
+      setPoiError(false);
+      return;
     }
 
-    const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    setPoiResults(sorted);
-    setPoiLoading(false);
-  }, [selectedIdx]);
-
-  const searchAttractionsAlongRoute = useCallback(async () => {
-    const result = directionsResultRef.current;
-    if (!result || !mapInstanceRef.current) return;
-
-    const path = result.routes[selectedIdx]?.overview_path || [];
-    if (!path.length) return;
-
-    const totalPoints = path.length;
-    const sampleCount = Math.min(6, Math.max(3, Math.floor(totalPoints / 15)));
-    const step = Math.max(1, Math.floor(totalPoints / sampleCount));
-    const samplePoints = [];
-    for (let i = 0; i < totalPoints; i += step) samplePoints.push(path[i]);
-
-    setPoiLoading(true);
-    setPoiResults([]);
-
-    const seen = new Set();
-    const collected = [];
-
-    for (const point of samplePoints) {
-      const ptLat = typeof point.lat === 'function' ? point.lat() : point.lat;
-      const ptLng = typeof point.lng === 'function' ? point.lng() : point.lng;
-      try {
-        const results = await findNearbyPlaces(ptLat, ptLng, 2000);
-        for (const place of results) {
-          const key = `${place.lat},${place.lng}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          const dist = getDistanceToPath({ lat: place.lat, lng: place.lng }, path);
-          if (dist <= 2000) {
-            const photo = await getPlacePhoto(place.name).catch(() => null);
-            collected.push({
-              name: place.name,
-              rating: null,
-              vicinity: place.type || '',
-              photo,
-              placeId: `osm-${place.osmId}`,
-              location: { lat: place.lat, lng: place.lng },
-            });
-          }
-        }
-      } catch { /* ignore */ }
+    const cached = getCachedPOIs(hash);
+    if (cached) {
+      poiCacheRef.current.set(hash, cached);
+      setAllPois(cached);
+      setPoiError(false);
+      return;
     }
 
-    const sorted = collected.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    setPoiResults(sorted);
-    setPoiLoading(false);
+    setPoiLoading(true);
+    setPoiError(false);
+
+    try {
+      const path = route.overview_path || [];
+      const distM = route.legs?.[0]?.distance?.value || 5000;
+      
+      const sampleCount = getSampleCount(distM, 800);
+      const step = Math.max(1, Math.floor(path.length / sampleCount));
+      const samplePoints = [];
+      for (let i = 0; i < path.length; i += step) {
+        const pt = path[i];
+        samplePoints.push({
+          lat: typeof pt.lat === 'function' ? pt.lat() : pt.lat,
+          lng: typeof pt.lng === 'function' ? pt.lng() : pt.lng
+        });
+      }
+
+      const pois = await findAllNearbyPOIs(samplePoints);
+      poiCacheRef.current.set(hash, pois);
+      setCachedPOIs(hash, pois);
+      setAllPois(pois);
+    } catch (err) {
+      console.error('Failed to load POIs:', err);
+      setPoiError(true);
+      setAllPois([]);
+    } finally {
+      setPoiLoading(false);
+    }
   }, [selectedIdx]);
+
+  const filteredPois = useMemo(() => {
+    if (!activeCategory || activeCategory === 'all') return allPois;
+    return allPois.filter(p => p.category === activeCategory);
+  }, [allPois, activeCategory]);
   const stopAutocompleteRef = useRef(null);
   const stopGeocoderRef = useRef(null);
   const stopContainerRef = useRef(null);
@@ -1177,10 +1154,9 @@ const Direction = ({ showDetailsPanel = true }) => {
       markerZoomAnimation: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      subdomains: 'abcd',
-      maxZoom: 20
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
     }).addTo(map);
 
     mapInstanceRef.current = map;
@@ -1504,9 +1480,9 @@ const Direction = ({ showDetailsPanel = true }) => {
     setAddStopOpen(true);
     setStopQuery('');
     setStopSuggestions([]);
-    setActiveCategory(null);
+    setActiveCategory('Attraction');
     setStopPanelCollapsed(false);
-    searchAttractionsAlongRoute();
+    loadPOIsForRoute();
   };
 
   const fetchStopSuggestions = useCallback(async (input) => {
@@ -1527,8 +1503,8 @@ const Direction = ({ showDetailsPanel = true }) => {
   }, [selectedIdx]);
 
   useEffect(() => {
-    if (addStopOpen && activeCategory) searchPlacesAlongRoute(activeCategory);
-  }, [selectedIdx]);
+    if (addStopOpen) loadPOIsForRoute();
+  }, [selectedIdx, addStopOpen, loadPOIsForRoute]);
 
   useEffect(() => {
     if (!mapInstanceRef.current) return;
@@ -1820,10 +1796,10 @@ const Direction = ({ showDetailsPanel = true }) => {
             {/* Category menu bar */}
             <div style={{ marginTop: '20px'}}>
               <div style={{ display: 'flex', gap: '25%',marginLeft: '2%' }}>
-                {['Restaurant', 'Petrol Station', 'Coffee Shop', 'Supermarket'].map((item) => (
+                {['Restaurant', 'Petrol Station', 'Coffee Shop', 'Supermarket', 'Attraction'].map((item) => (
                   <span
                     key={item}
-                    onClick={() => { setActiveCategory(item); searchPlacesAlongRoute(item); }}
+                    onClick={() => setActiveCategory(item)}
                     style={{
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
@@ -1860,15 +1836,30 @@ const Direction = ({ showDetailsPanel = true }) => {
                 Searching along route...
               </p>
             )}
-            {!poiLoading && poiResults.length === 0 && (
-              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#6B7280', marginLeft: '2%' }}>
-                {activeCategory ? `No ${activeCategory.toLowerCase()} found along this route.` : 'No attractions found within 2 km of your route.'}
-              </p>
+            {!poiLoading && poiError && (
+              <div className="poi-empty-state" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#E53935', marginLeft: '2%' }}>
+                Failed to load places. Please try again.
+              </div>
             )}
-            {!poiLoading && poiResults.length > 0 && (
+            {!poiLoading && !poiError && filteredPois.length === 0 && (
+              <div className="poi-empty-state" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#6B7280', marginLeft: '2%' }}>
+                No places found nearby.
+              </div>
+            )}
+            {!poiLoading && !poiError && filteredPois.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', paddingBottom: '8px', marginLeft: '2%', maxHeight: '520px', overflowY: 'auto' }}>
-                {poiResults.map((place) => (
-                  <div key={place.placeId}
+                {filteredPois.map((place) => {
+                  const CATEGORY_ICONS = {
+                    'Restaurant': '🍴',
+                    'Coffee Shop': '☕',
+                    'Petrol Station': '⛽',
+                    'Supermarket': '🛒',
+                    'Attraction': '📍',
+                    'other': '📍',
+                  };
+                  const icon = CATEGORY_ICONS[place.category] || '📍';
+                  return (
+                  <div key={place.osmId}
                     onClick={() => {
                       addPoiMarker(place);
                       setStopPanelCollapsed(true);
@@ -1877,26 +1868,17 @@ const Direction = ({ showDetailsPanel = true }) => {
                       background: '#fff', borderRadius: '10px',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
                       overflow: 'hidden', cursor: 'pointer',
+                      padding: '12px'
                     }}>
-                    <div style={{ width: '100%', height: '160px', overflow: 'hidden', flexShrink: 0 }}>
-                      {place.photo
-                        ? <img src={place.photo} alt={place.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                            referrerPolicy="no-referrer"
-                            onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = '#e0eeff'; e.target.parentNode.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" stroke-width="1.5" style="margin:auto;display:block;margin-top:64px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'; }}
-                          />
-                        : <div style={{ width: '100%', height: '100%', background: '#e0eeff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                          </div>
-                      }
-                    </div>
-                    <div style={{ padding: '8px 10px' }}>
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '13px', color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{place.name}</p>
-                      {place.rating && <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#F5A623', margin: '4px 0 0' }}>{'★'.repeat(Math.round(place.rating))} {place.rating.toFixed(1)}</p>}
-                      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#6B7280', margin: '4px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{place.vicinity}</p>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <span style={{ fontSize: '20px', lineHeight: '24px' }}>{icon}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: '14px', color: '#111', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{place.name}</p>
+                        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#6B7280', margin: '4px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{place.vicinity}</p>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             )}
 
