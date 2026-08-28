@@ -6,24 +6,7 @@ import { usePageTitle } from '../contexts/PageTitleContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import { fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { checkRouteForFlood } from '../utils/floodService';
-
-/* Calculate distance between two coordinates in metres (Haversine) */
-const haversineDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371000;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-const formatDistance = (metres) => {
-  if (metres < 1000) return `${Math.round(metres)}m`;
-  return `${(metres / 1000).toFixed(1)}km`;
-};
+import { haversineDistance, formatDistanceCompact as formatDistance } from '../utils/geo';
 
 export default function SafetyAlertTemplate() {
   const { setTitle, safetyData } = usePageTitle();

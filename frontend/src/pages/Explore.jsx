@@ -12,17 +12,9 @@ import { useAppNavigate } from '../hooks/useAppNavigate';
 import { formatViewedAgo } from '../utils/helpers';
 import { reverseGeocode, getPlacePhoto, findNearbyPlaces } from '../utils/mapServices';
 import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace, fetchHotels } from '../services/api';
-
-// Fix Leaflet default marker icon paths (broken by bundlers like Vite)
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { isInsideSriLanka } from '../utils/geo';
+import { createUserLocationIcon } from '../utils/leafletSetup';
+import '../utils/leafletSetup'; // ensures default icon fix runs
 
 const USER_LOCATION = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
 
@@ -372,12 +364,7 @@ const Explore = () => {
     setOnNavigate(handleNavigate);
     if (!searchedPlace) setHasSearched(false);
 
-const userLocationIcon = L.divIcon({
-  className: '',
-  html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
-});
+const userLocationIcon = createUserLocationIcon();
 
 const initMap = (center, zoom) => {
   mapInstanceRef.current = L.map(mapRef.current, {
@@ -400,8 +387,7 @@ const placeUserMarker = (coords) => {
 
   let activeLocation = userLocation;
   if (activeLocation) {
-    const isInsideSriLanka = activeLocation.lat >= 5.7 && activeLocation.lat <= 10.0 && activeLocation.lng >= 79.4 && activeLocation.lng <= 82.1;
-    if (!isInsideSriLanka) {
+    if (!isInsideSriLanka(activeLocation.lat, activeLocation.lng)) {
       activeLocation = { lat: 6.9271, lng: 79.8612 };
       setUserLocation(activeLocation);
     }
@@ -441,8 +427,8 @@ const placeUserMarker = (coords) => {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-        const isInsideSriLanka = pos.lat >= 5.7 && pos.lat <= 10.0 && pos.lng >= 79.4 && pos.lng <= 82.1;
-        if (!isInsideSriLanka) {
+        const insideSL = isInsideSriLanka(pos.lat, pos.lng);
+        if (!insideSL) {
           pos = { lat: 6.9271, lng: 79.8612 }; // Default to Colombo
         }
         setUserLocation(pos);
@@ -483,12 +469,7 @@ const placeUserMarker = (coords) => {
     }
 
     // Always keep the blue user-location marker up to date
-    const userLocationIcon = L.divIcon({
-      className: '',
-      html: '<div style="width:20px;height:20px;background:#4285F4;border:3px solid #fff;border-radius:50%;box-shadow:0 0 6px rgba(66,133,244,0.6);"></div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-    });
+    const userLocationIcon = createUserLocationIcon();
     if (userMarkerRef.current) userMarkerRef.current.remove();
     userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userLocationIcon })
       .addTo(mapInstanceRef.current)

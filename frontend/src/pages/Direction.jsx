@@ -17,169 +17,20 @@ import upDown from '../assets/upDown.png';
 import closeIcon from '../assets/closeIcon.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { getRoute, findNearbyPlaces, getPlacePhoto, searchPlaces as searchPlacesService, geocodeAddress, findAllNearbyPOIs, getCachedPOIs, setCachedPOIs } from '../utils/mapServices';
-
-const getRouteHash = (route) => {
-  const path = route?.overview_path || [];
-  if (!path.length) return '';
-  const start = path[0];
-  const end = path[path.length - 1];
-  const mid = path[Math.floor(path.length / 2)];
-  const round = (n) => typeof n === 'function' ? n().toFixed(3) : n.toFixed(3);
-  return [
-    round(start.lat), round(start.lng),
-    round(mid.lat), round(mid.lng),
-    round(end.lat), round(end.lng),
-    path.length,
-  ].join('_');
-};
-
-const getSampleCount = (routeDistanceMeters, radius) => {
-  const coverage = radius * 1.5;
-  const needed = Math.ceil(routeDistanceMeters / coverage);
-  return Math.min(Math.max(needed, 3), 8);
-};
-
-// Fix Leaflet default marker icon paths (broken by bundlers like Vite)
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 import { checkRouteForFlood } from '../utils/floodService';
 import { saveFavoritePlace, fetchCrimeAlerts, fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import LocationInput from '../components/LocationInput';
-
-const MODE_CONFIGS = [
-  { key: 'drive', label: 'Drive', icon: carIcon, osrmProfile: 'driving', multiplier: 1 },
-  { key: 'bike', label: 'Bike', icon: bikeIcon, osrmProfile: 'cycling', multiplier: 1.35 },
-  { key: 'transit', label: 'Transit', icon: busIcon, osrmProfile: 'driving', multiplier: 1.85 },
-  { key: 'walk', label: 'Walk', icon: manIcon, osrmProfile: 'foot', multiplier: 8.5 },
-];
+import { haversineDist, formatDistance, getDistanceToPath } from '../utils/geo';
+import { getBlueMarkerIcon, getNavigationMarkerIcon, createRouteLabel } from '../utils/leafletSetup';
+import '../utils/leafletSetup'; // ensures default icon fix runs
+import { MODE_CONFIGS, getRouteHash, getSampleCount, parseDurationToMinutes, formatCompactDuration, estimateModeDuration, buildRouteDescription, describeRoute, sanitizeInstruction } from '../utils/routeHelpers';
 
 const SHOW_CRIME_LABELS_ON_START_MAP = false;
 const SHOW_ROADBLOCK_LABELS_ON_START_MAP = false;
 
-const SRI_LANKA_BOUNDS = {
-  north: 10.0,
-  south: 5.7,
-  east: 82.1,
-  west: 79.4,
-};
-
-const parseDurationToMinutes = (durationText = '') => {
-  const normalized = durationText.toLowerCase();
-  const dayMatch = normalized.match(/(\d+)\s*day/);
-  const hourMatch = normalized.match(/(\d+)\s*hour/);
-  const minuteMatch = normalized.match(/(\d+)\s*min/);
-
-  const days = dayMatch ? Number(dayMatch[1]) : 0;
-  const hours = hourMatch ? Number(hourMatch[1]) : 0;
-  const minutes = minuteMatch ? Number(minuteMatch[1]) : 0;
-
-  return (days * 24 * 60) + (hours * 60) + minutes;
-};
-
-const formatCompactDuration = (minutes) => {
-  if (!Number.isFinite(minutes) || minutes <= 0) {
-    return '--';
-  }
-
-  if (minutes >= 24 * 60) {
-    const days = Math.max(1, Math.round(minutes / (24 * 60)));
-    return `${days} day${days > 1 ? 's' : ''}`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = Math.round(minutes % 60);
-
-  if (hours === 0) {
-    return `${remainingMinutes} min`;
-  }
-
-  if (remainingMinutes === 0) {
-    return `${hours} hr`;
-  }
-
-  return `${hours} hr ${remainingMinutes} min`;
-};
-
-const estimateModeDuration = (baseMinutes, multiplier) => {
-  if (!baseMinutes) return '--';
-  return formatCompactDuration(Math.max(1, Math.round(baseMinutes * multiplier)));
-};
-
-const buildRouteDescription = (route, idx, allRoutes) => {
-  if (!route || allRoutes.length === 0) return { summary: '', petrol: '' };
-
-  const others = allRoutes.filter((_, i) => i !== idx);
-  const mins = route.durationMinutes;
-
-  // Distance comparison
-  const parseKm = (d = '') => parseFloat(d.replace(/[^0-9.]/g, '')) || 0;
-  const distKm = parseKm(route.distance);
-  const otherDists = others.map(r => parseKm(r.distance)).filter(d => d > 0);
-  const avgOtherDist = otherDists.length ? otherDists.reduce((a, b) => a + b, 0) / otherDists.length : distKm;
-  const distDiff = distKm - avgOtherDist;
-  const distNote =
-    Math.abs(distDiff) < 0.5 ? 'similar in distance'
-    : distDiff > 0 ? `${Math.abs(distDiff).toFixed(1)} km longer in distance`
-    : `${Math.abs(distDiff).toFixed(1)} km shorter in distance`;
-
-  // Time comparison
-  const fasterCount = others.filter(r => r.durationMinutes > mins).length;
-  const slowerCount = others.filter(r => r.durationMinutes < mins).length;
-
-  let summary;
-  if (allRoutes.length === 1) {
-    summary = `This is the only available route and is ${distNote}.`;
-  } else if (slowerCount === 0 && fasterCount > 0) {
-    summary = `This route is faster than ${fasterCount} alternative${fasterCount > 1 ? 's' : ''} and ${distNote}.`;
-  } else if (fasterCount === 0 && slowerCount > 0) {
-    summary = `This route is slower than ${slowerCount} alternative${slowerCount > 1 ? 's' : ''} and ${distNote}.`;
-  } else if (fasterCount > 0 && slowerCount > 0) {
-    summary = `This route is faster than ${fasterCount} alternative${fasterCount > 1 ? 's' : ''}, slower than ${slowerCount}, and ${distNote}.`;
-  } else {
-    summary = `This route has similar travel time and is ${distNote}.`;
-  }
-
-  // Petrol saving vs slowest
-  const maxMins = Math.max(...allRoutes.map(r => r.durationMinutes).filter(m => m > 0));
-  const saving = maxMins > 0 && mins < maxMins ? Math.round(((maxMins - mins) / maxMins) * 100) : 0;
-  const petrol = saving > 0 ? saving : 0;
-
-  return { summary, petrol };
-};
-
-const describeRoute = (route, idx, allRoutes) => {
-  if (!route || allRoutes.length === 0) return 'Suggested route';
-
-  const mins = route.durationMinutes;
-  const allMins = allRoutes.map(r => r.durationMinutes).filter(m => m > 0);
-  const minTime = Math.min(...allMins);
-  const maxTime = Math.max(...allMins);
-
-  let routeLabel;
-  if (allRoutes.length === 1) {
-    routeLabel = 'Fastest route';
-  } else if (mins === minTime) {
-    routeLabel = 'Fastest route';
-  } else if (mins === maxTime) {
-    routeLabel = 'Slowest route';
-  } else {
-    const timeDiff = mins - minTime;
-    routeLabel = `${formatCompactDuration(timeDiff)} slower`;
-  }
-
-  const via = route.summary ? `via ${route.summary}` : '';
-  // Use real traffic from API if available, else fall back to ratio-based
-  const traffic = route.traffic || (() => {
-    const ratio = allRoutes.length > 1 ? mins / minTime : 1;
-    return ratio >= 1.4 ? 'Heavy traffic' : ratio >= 1.15 ? 'Moderate traffic' : 'Light traffic';
-  })();
-
-  return [routeLabel, traffic, via].filter(Boolean).join(' · ');
-};
+// parseDurationToMinutes, formatCompactDuration, estimateModeDuration,
+// buildRouteDescription, describeRoute — now imported from utils/routeHelpers.js
 
 const Direction = ({ showDetailsPanel = true }) => {
   const { searchedPlace, userLocation, pendingOriginLabel, pendingVehicle, setPendingOriginLabel, setPendingVehicle, setTitle, setEtaData, setSearchedPlace, setSafetyData, setHasSearched, setShowSearchBar } = usePageTitle();
@@ -268,41 +119,7 @@ const Direction = ({ showDetailsPanel = true }) => {
     { type: 'tourist_attraction', keyword: 'tourist attraction',   radius: 2000 },
   ];
 
-  const getDistanceToPath = (point, path) => {
-    const R = 6371000;
-    const toRad2 = (v) => (v * Math.PI) / 180;
-    let minDist = Infinity;
-    const pLat = typeof point.lat === 'function' ? point.lat() : point.lat;
-    const pLng = typeof point.lng === 'function' ? point.lng() : point.lng;
-    for (const seg of path) {
-      const sLat = typeof seg.lat === 'function' ? seg.lat() : seg.lat;
-      const sLng = typeof seg.lng === 'function' ? seg.lng() : seg.lng;
-      const dLat = toRad2(pLat - sLat);
-      const dLng = toRad2(pLng - sLng);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad2(sLat)) * Math.cos(toRad2(pLat)) * Math.sin(dLng / 2) ** 2;
-      const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  };
-
-  const getNavigationMarkerIcon = () => L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-
-  const getBlueMarkerIcon = () => L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
+  // getDistanceToPath, getNavigationMarkerIcon, getBlueMarkerIcon — now imported from utils/
 
   const addPoiMarker = (place) => {
     if (!mapInstanceRef.current || !place?.location) return;
@@ -429,31 +246,9 @@ const Direction = ({ showDetailsPanel = true }) => {
 
   const [floodDetected, setFloodDetected] = useState(false);
 
-  const createRouteLabel = (map, position, content, onClick) => {
-    const lat = typeof position.lat === 'function' ? position.lat() : position.lat;
-    const lng = typeof position.lng === 'function' ? position.lng() : position.lng;
-    const icon = L.divIcon({
-      className: '',
-      html: `<div style="transform:translate(-50%,-50%);${onClick ? 'cursor:pointer;' : 'pointer-events:none;'}">${content}</div>`,
-      iconSize: [0, 0],
-      iconAnchor: [0, 0],
-    });
-    const marker = L.marker([lat, lng], { icon, interactive: !!onClick }).addTo(map);
-    if (onClick) marker.on('click', onClick);
-    // Leaflet-compatible setMap(null) pattern for uniform cleanup
-    marker.setMap = (m) => { if (!m) marker.remove(); };
-    return marker;
-  };
+  // createRouteLabel, sanitizeInstruction, formatDistance — now imported from utils/
 
   const hideTooltip = () => {};
-
-  const sanitizeInstruction = (html = '') => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-
-  const formatDistance = (meters) => {
-    if (!Number.isFinite(meters)) return '';
-    if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
-    return `${Math.max(1, Math.round(meters))} m`;
-  };
 
   const clearPoiMarkers = () => {
     poiMarkersRef.current.forEach((m) => m.remove());
@@ -734,18 +529,7 @@ const Direction = ({ showDetailsPanel = true }) => {
     floodLabelsRef.current.push(overlay);
   };
 
-  // Haversine distance helper (metres)
-  const haversineDist = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
+  // haversineDist — now imported from utils/geo.js
 
   /**
    * Show only the single nearest AHEAD crime alert on the map.
