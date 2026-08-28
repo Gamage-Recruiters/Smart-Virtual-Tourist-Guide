@@ -13,7 +13,15 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import errorHandler from './middleware/HotelOwner/errorHandler.js';
+import errorHandler from './middleware/errorHandler.js';
+
+// Restaurant route imports (from Integration-resturent/shakir branch)
+import restaurantRoutes from './routes/restaurant.routes.js';
+import menuItemRoutes from './routes/menuItem.routes.js';
+import offerRoutes from './routes/offer.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
+import reservationRoutes from './routes/reservation.routes.js';
+import reviewRoutes from './routes/review.routes.js';
 
 import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
 import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
@@ -59,7 +67,12 @@ app.get('/', (req, res) => {
       packages: 'GET /api/packages, POST /api/packages, PUT /api/packages/:id, DELETE /api/packages/:id',
       roomAvailability: 'GET /api/room-availability, POST /api/room-availability, PUT /api/room-availability/:id, DELETE /api/room-availability/:id',
       users: 'GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id',
-      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id'
+      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id',
+      restaurants: 'GET /api/restaurants, POST /api/restaurants, PUT /api/restaurants/:id, DELETE /api/restaurants/:id',
+      menu: 'GET /api/menu, POST /api/menu, PUT /api/menu/:id, DELETE /api/menu/:id',
+      offers: 'GET /api/offers, POST /api/offers',
+      reservations: 'GET /api/reservations, POST /api/reservations',
+      reviews: 'GET /api/reviews, POST /api/reviews',
     }
   });
 });
@@ -91,21 +104,6 @@ app.use('/api/users', userRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
-
-// Tourist Dashboard routes
-app.use("/api/budget", budgetRoutes);
-app.use("/api/tourist", touristRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/itinerary", itineraryRoutes);
-
-app.use('/api/restaurants', restaurantRoutes);
-
-// Basic health check route
-app.get('/api/health', (req, res) => {
-  res.json({ message: 'Server is running' });
-});
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes
