@@ -8,6 +8,7 @@ import user from '../assets/user.png';
 import directionIcon from '../assets/directionIcon.png';
 import directionImg from '../assets/direction.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
+import { useAppNavigate } from '../hooks/useAppNavigate';
 import { formatViewedAgo } from '../utils/helpers';
 import { reverseGeocode, getPlacePhoto, findNearbyPlaces } from '../utils/mapServices';
 import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace, fetchHotels } from '../services/api';
@@ -32,7 +33,8 @@ const Explore = () => {
   const userMarkerRef = useRef(null);
   const lastHandledPlaceKeyRef = useRef('');
 
-  const { setShowSearchBar, setOnNavigate, hasSearched, setHasSearched, searchedPlace, setActivePage, setUserLocation, userLocation } = usePageTitle();
+  const { setShowSearchBar, setOnNavigate, hasSearched, setHasSearched, searchedPlace, setUserLocation, userLocation } = usePageTitle();
+  const appNavigate = useAppNavigate();
   const [localSearched, setLocalSearched] = useState(false);
   const searched = hasSearched || localSearched;
   const [placePhotos, setPlacePhotos] = useState([]);
@@ -127,8 +129,8 @@ const Explore = () => {
   const handleExploreAction = useCallback((targetPage = 'direction') => {
     if (!searchedPlace) return;
     void saveRecentPlace(searchedPlace, 'Got Direction');
-    setActivePage(targetPage);
-  }, [searchedPlace, setActivePage]);
+    appNavigate(targetPage);
+  }, [searchedPlace, appNavigate]);
 
   const handleSavePlace = useCallback(async () => {
     if (!userLocation) {
@@ -552,7 +554,7 @@ const placeUserMarker = (coords) => {
           <img
             src={directionIcon}
             alt="Direction"
-            onClick={() => setActivePage('directionOne')}
+            onClick={() => appNavigate('directionOne')}
             style={{ position: 'absolute', bottom: '20px', right: '50px', width: '70px', cursor: 'pointer', zIndex: 40 }}
           />
         </div>

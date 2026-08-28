@@ -15,7 +15,6 @@ export const PageTitleProvider = ({ children }) => {
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchedPlace, setSearchedPlace] = useState(null);
-  const [activePage, setActivePage] = useState('explore');
   const [userLocation, setUserLocation] = useState(null);
   const [pendingOriginLabel, setPendingOriginLabel] = useState('');
   const [pendingVehicle, setPendingVehicle] = useState(null);
@@ -36,7 +35,6 @@ export const PageTitleProvider = ({ children }) => {
       showSearchBar, setShowSearchBar,
       hasSearched, setHasSearched,
       searchedPlace, setSearchedPlace,
-      activePage, setActivePage,
       userLocation, setUserLocation,
       pendingOriginLabel, setPendingOriginLabel,
       pendingVehicle, setPendingVehicle,

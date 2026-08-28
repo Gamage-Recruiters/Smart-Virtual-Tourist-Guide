@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppNavigate } from '../hooks/useAppNavigate';
 import middle from '../assets/middle.png';
 import bikeIcon from '../assets/bikeIcon.png';
 import manIcon from '../assets/manIcon.png';
@@ -181,7 +182,15 @@ const describeRoute = (route, idx, allRoutes) => {
 };
 
 const Direction = ({ showDetailsPanel = true }) => {
-  const { searchedPlace, userLocation, setActivePage, pendingOriginLabel, pendingVehicle, setPendingOriginLabel, setPendingVehicle, setTitle, setEtaData, setSearchedPlace, setSafetyData, setHasSearched, setShowSearchBar } = usePageTitle();
+  const { searchedPlace, userLocation, pendingOriginLabel, pendingVehicle, setPendingOriginLabel, setPendingVehicle, setTitle, setEtaData, setSearchedPlace, setSafetyData, setHasSearched, setShowSearchBar } = usePageTitle();
+  const appNavigate = useAppNavigate();
+  // Refs so Leaflet overlay click handlers can access current functions without window globals
+  const appNavigateRef = useRef(appNavigate);
+  const setTitleRef = useRef(setTitle);
+  const setEtaDataRef = useRef(setEtaData);
+  useEffect(() => { appNavigateRef.current = appNavigate; }, [appNavigate]);
+  useEffect(() => { setTitleRef.current = setTitle; }, [setTitle]);
+  useEffect(() => { setEtaDataRef.current = setEtaData; }, [setEtaData]);
 
   useEffect(() => {
     setTitle('');
@@ -192,10 +201,8 @@ const Direction = ({ showDetailsPanel = true }) => {
     return () => setShowSearchBar(false);
   }, [setShowSearchBar, showDetailsPanel]);
 
-  // Expose navigation and ETA setter globally for overlay click handler
-  window.setActivePageGlobal = setActivePage;
-  window.setEtaTitleGlobal = setTitle;
-  window.setEtaDataGlobal = setEtaData;
+  // Navigation and ETA setters are now accessed via refs (appNavigateRef, setTitleRef, setEtaDataRef)
+  // instead of window globals
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -560,9 +567,9 @@ const Direction = ({ showDetailsPanel = true }) => {
       } else if (!showDetailsPanel && isSelected) {
         const labelContent = `<div id="eta-label-overlay" style="width:190px;height:102px;border-radius:10px;background:linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);box-shadow:0px 2px 2px 0px #00000040;display:flex;flex-direction:column;justify-content:center;padding:12px 16px;gap:8px;cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><img src="${carIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">${distance}</span></div><div style="display:flex;align-items:center;gap:8px;"><img src="${clockIcon}" style="width:18px;height:18px;object-fit:contain" /><span style="font-weight:600;color:#111827;font-size:14px;">ETA: ${duration}</span></div></div>`;
         const etaClickHandler = () => {
-          if (typeof window.setActivePageGlobal === 'function') window.setActivePageGlobal('eta');
-          if (typeof window.setEtaTitleGlobal === 'function') window.setEtaTitleGlobal(`ETA: ${duration}`);
-          if (typeof window.setEtaDataGlobal === 'function') window.setEtaDataGlobal({ distance, duration, durationMinutes: durationMins, traffic: 'Light traffic', mode: selectedMode, selectedRouteIndex: i });
+          appNavigateRef.current('eta');
+          setTitleRef.current(`ETA: ${duration}`);
+          setEtaDataRef.current({ distance, duration, durationMinutes: durationMins, traffic: 'Light traffic', mode: selectedMode, selectedRouteIndex: i });
         };
         const label = createRouteLabel(mapInstanceRef.current, midPoint, labelContent, etaClickHandler);
         routeLabelsRef.current.push(label);
@@ -1405,11 +1412,9 @@ const Direction = ({ showDetailsPanel = true }) => {
 
   const handleStart = () => {
     setShowSearchBar(true);
-    if (setActivePage) {
-      setActivePage('start');
-      setActionMessage('Opening start page.');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    appNavigate('start');
+    setActionMessage('Opening start page.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const focusJourneyStart = useCallback(() => {
@@ -1473,7 +1478,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         },
       });
     }
-    setActivePage && setActivePage('safety');
+    appNavigate('safety');
   };
 
   const handleAddStop = () => {
@@ -1656,7 +1661,7 @@ const Direction = ({ showDetailsPanel = true }) => {
             <button
               type="button"
               onClick={() => {
-                setActivePage && setActivePage('explore');
+                appNavigate('explore');
               }}
               className="rounded-xl bg-[#e53e3e] px-12 py-4 text-lg font-semibold text-white hover:bg-[#c53030]"
             >
@@ -1889,7 +1894,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         {!showDetailsPanel && (
           <button
             type="button"
-            onClick={() => setActivePage && setActivePage('direction')}
+            onClick={() => appNavigate('direction')}
             aria-label="Back to direction"
             style={{
               position: 'absolute',
@@ -1917,7 +1922,7 @@ const Direction = ({ showDetailsPanel = true }) => {
         {showDetailsPanel && !addStopOpen && (
           <button
             type="button"
-            onClick={() => setActivePage && setActivePage('explore')}
+            onClick={() => appNavigate('explore')}
             aria-label="Back to explore"
             style={{
               position: 'absolute',

@@ -6,6 +6,7 @@ import busIcon from '../assets/busIcon.png';
 import bikeIcon from '../assets/bikeIcon.png';
 import manIcon from '../assets/manIcon.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
+import { useAppNavigate } from '../hooks/useAppNavigate';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getRoute } from '../utils/mapServices';
@@ -61,7 +62,8 @@ const getTrafficLabel = (traffic) => {
 };
 
 const EtaPage = () => {
-  const { etaData, searchedPlace, userLocation, setActivePage } = usePageTitle();
+  const { etaData, searchedPlace, userLocation } = usePageTitle();
+  const appNavigate = useAppNavigate();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
@@ -382,7 +384,7 @@ const EtaPage = () => {
         }}>
           <button
             type="button"
-            onClick={() => setActivePage && setActivePage('direction')}
+            onClick={() => appNavigate('direction')}
             style={{
               background: '#2B5BA9',
               color: 'white',
@@ -401,7 +403,7 @@ const EtaPage = () => {
           </button>
           <button
             type="button"
-            onClick={() => setActivePage && setActivePage('start')}
+            onClick={() => appNavigate('start')}
             style={{
               background: '#2B5BA9',
               color: 'white',

@@ -3,6 +3,7 @@ import { AlertTriangle, Phone } from 'lucide-react';
 import bottomLogo from '../assets/bottomLogo.png';
 import middle from '../assets/middle.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
+import { useAppNavigate } from '../hooks/useAppNavigate';
 import { fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { checkRouteForFlood } from '../utils/floodService';
 
@@ -25,7 +26,8 @@ const formatDistance = (metres) => {
 };
 
 export default function SafetyAlertTemplate() {
-  const { setTitle, setActivePage, safetyData } = usePageTitle();
+  const { setTitle, safetyData } = usePageTitle();
+  const appNavigate = useAppNavigate();
 
   useEffect(() => {
     setTitle('Safety Alert');
@@ -385,7 +387,7 @@ export default function SafetyAlertTemplate() {
           </div>
           <button
             type="button"
-            onClick={() => setActivePage('start')}
+            onClick={() => appNavigate('start')}
             className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md"
           >
             Back

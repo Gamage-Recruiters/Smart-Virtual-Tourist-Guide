@@ -1,17 +1,28 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MapPin, Mic, Search, X } from 'lucide-react';
 import Logo from '../assets/Logo.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
+import { useAppNavigate } from '../hooks/useAppNavigate';
 import sriflag from '../assets/sriflag.jpg';
 import { searchPlaces, geocodeAddress } from '../utils/mapServices';
 
 export default function Header() {
-  const { title, showSearchBar, navigateToSearch, activePage, setActivePage, searchedPlace, etaData } = usePageTitle();
+  const { title, showSearchBar, navigateToSearch, searchedPlace, etaData } = usePageTitle();
+  const appNavigate = useAppNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
+
+  // Derive page context from the current URL
+  const isStartPage = location.pathname === '/navigation';
+  const isEtaPage = location.pathname === '/eta';
+  const isExplorePage = location.pathname === '/';
+  const isDirectionOnePage = location.pathname === '/direction/setup';
+  const isSafetyPage = location.pathname === '/route-alerts';
 
   const fetchSuggestions = useCallback((input) => {
     if (!input.trim()) { setSuggestions([]); return; }
@@ -72,15 +83,13 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    if (activePage !== 'explore') return;
+    if (!isExplorePage) return;
 
     const destinationName = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || '';
     setQuery(destinationName);
-  }, [activePage, searchedPlace]);
+  }, [isExplorePage, searchedPlace]);
 
   const startPageDestination = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || '';
-  const isStartPage = activePage === 'start';
-  const isEtaPage = activePage === 'eta';
   const readOnlySearch = isStartPage || isEtaPage;
 
   return (
@@ -119,11 +128,11 @@ export default function Header() {
 
         {/* Center title */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
-          <h1 className="font-bold text-black text-2xl">{activePage === 'eta' ? '' : title}</h1>
+          <h1 className="font-bold text-black text-2xl">{isEtaPage ? '' : title}</h1>
         </div>
 
         {/* Right: Search Bar */}
-        {showSearchBar && activePage !== 'safety' ? (
+        {showSearchBar && !isSafetyPage ? (
           <div ref={containerRef} style={{ position: 'relative', width: '540px', marginRight: '80px' }}>
             <div
               className="flex items-center px-6"
@@ -193,10 +202,10 @@ export default function Header() {
           </div>
         ) : (
           <div id="header-search-portal" style={{ width: '880px', margin: '10px 30px', position: 'relative' }}>
-            {activePage === 'directionOne' && (
+            {isDirectionOnePage && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: '100%', paddingRight: '20px' }}>
                 <button
-                  onClick={() => setActivePage('explore')}
+                  onClick={() => appNavigate('explore')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', pointerEvents: 'auto' }}
                   aria-label="Go Back"
                 >
