@@ -16,7 +16,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
-import restaurantRoutes from './routes/restaurant.routes.js';
+
 import menuItemRoutes from './routes/menuItem.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';

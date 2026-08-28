@@ -43,7 +43,6 @@ export const TouristProfilePage = () => {
         let localUser = savedUserStr ? JSON.parse(savedUserStr) : {};
         let localSignup = signupDataStr ? JSON.parse(signupDataStr) : {};
 
-        let apiProfile = {};
         let apiUser = {};
 
         const token = localStorage.getItem("token");
@@ -52,14 +51,28 @@ export const TouristProfilePage = () => {
             const apiRes = await userAPI.getProfile();
             if (apiRes && apiRes.success) {
               apiUser = apiRes.user || {};
-              apiProfile = apiRes.profile || {};
             }
           } catch (apiErr) {
             console.warn("Could not fetch profile from backend API, using local storage:", apiErr);
           }
         }
 
-        const merged = { ...localSignup, ...localUser, ...localProfile, ...apiUser, ...apiProfile };
+        // MongoDB Atlas schema nested objects
+        const travelPref = apiUser.travelPreferences || {};
+        const health = apiUser.healthInfo || {};
+        const emergency = apiUser.emergencyContact || {};
+
+        const merged = { ...localSignup, ...localUser, ...localProfile, ...apiUser };
+
+        // Helper to format date strings for input fields (YYYY-MM-DD)
+        const formatDate = (dateVal) => {
+          if (!dateVal) return "";
+          try {
+            return new Date(dateVal).toISOString().split('T')[0];
+          } catch {
+            return dateVal;
+          }
+        };
 
         if (Object.keys(merged).length > 0) {
           setFormData(prev => ({
@@ -69,24 +82,24 @@ export const TouristProfilePage = () => {
             password: merged.password || prev.password,
             country: merged.country || prev.country,
             passport: merged.passport || merged.passportNumber || prev.passport,
-            startDate: merged.travelStart || merged.startDate || prev.startDate,
-            endDate: merged.travelEnd || merged.endDate || prev.endDate,
-            budget: merged.budgetMax || merged.budget || prev.budget,
-            preferences: Array.isArray(merged.travelStyle) 
-              ? merged.travelStyle 
+            startDate: formatDate(travelPref.travelStart || merged.travelStart || merged.startDate || prev.startDate),
+            endDate: formatDate(travelPref.travelEnd || merged.travelEnd || merged.endDate || prev.endDate),
+            budget: travelPref.budgetRange?.max || merged.budgetMax || merged.budget || prev.budget,
+            preferences: Array.isArray(travelPref.travelStyle) && travelPref.travelStyle.length > 0
+              ? travelPref.travelStyle
               : Array.isArray(merged.preferences) 
                 ? merged.preferences 
                 : prev.preferences,
-            bloodType: merged.bloodType || prev.bloodType,
-            medicalConditions: merged.medicalCondition || merged.medicalConditions || prev.medicalConditions,
+            bloodType: health.bloodType || merged.bloodType || prev.bloodType,
+            medicalConditions: health.medicalCondition || merged.medicalCondition || merged.medicalConditions || prev.medicalConditions,
             allergies: Array.isArray(merged.allergies) && merged.allergies.length > 0
               ? merged.allergies
-              : merged.medicalCondition
-                ? [merged.medicalCondition]
+              : health.medicalCondition
+                ? [health.medicalCondition]
                 : prev.allergies,
-            emergencyName: merged.emergencyName || merged.emergencyContactName || prev.emergencyName,
-            emergencyPhone: merged.emergencyContactNumber || merged.emergencyPhone || prev.emergencyPhone,
-            emergencyRelation: merged.emergencyRelationship || merged.relationship || merged.emergencyRelation || prev.emergencyRelation,
+            emergencyName: emergency.name || merged.emergencyName || merged.emergencyContactName || prev.emergencyName,
+            emergencyPhone: emergency.contactNumber || merged.emergencyContactNumber || merged.emergencyPhone || prev.emergencyPhone,
+            emergencyRelation: emergency.relationship || merged.emergencyRelationship || merged.relationship || merged.emergencyRelation || prev.emergencyRelation,
           }));
         }
       } catch (err) {
@@ -143,10 +156,35 @@ export const TouristProfilePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Structure payload matching MongoDB Atlas User schema
+      const atlasPayload = {
+        country: formData.country,
+        travelPreferences: {
+          travelStart: formData.startDate ? new Date(formData.startDate) : undefined,
+          travelEnd: formData.endDate ? new Date(formData.endDate) : undefined,
+          budgetRange: {
+            min: 0,
+            max: Number(formData.budget),
+            currency: "LKR",
+          },
+          travelStyle: formData.preferences,
+        },
+        healthInfo: {
+          bloodType: formData.bloodType,
+          medicalCondition: formData.medicalConditions,
+        },
+        emergencyContact: {
+          name: formData.emergencyName,
+          relationship: formData.emergencyRelation,
+          contactNumber: formData.emergencyPhone,
+          country: formData.country,
+        },
+      };
+
       const updatedProfile = {
+        ...atlasPayload,
         fullName: formData.fullName,
         email: formData.email,
-        country: formData.country,
         passportNumber: formData.passport,
         passport: formData.passport,
         startDate: formData.startDate,
@@ -155,12 +193,9 @@ export const TouristProfilePage = () => {
         travelEnd: formData.endDate,
         budget: Number(formData.budget),
         budgetMax: Number(formData.budget),
-        budgetRange: `Rs. ${formData.budget}`,
         preferences: formData.preferences,
-        travelStyle: formData.preferences,
         bloodType: formData.bloodType,
         medicalConditions: formData.medicalConditions,
-        medicalCondition: formData.medicalConditions,
         allergies: formData.allergies,
         emergencyContactName: formData.emergencyName,
         emergencyName: formData.emergencyName,
@@ -188,11 +223,11 @@ export const TouristProfilePage = () => {
         preferences: formData.preferences,
       }));
 
-      // Post/Put to backend API if token exists
+      // Post/Put to backend MongoDB Atlas API if authenticated
       const token = localStorage.getItem("token");
       if (token && token !== "null") {
         try {
-          await userAPI.updateProfile(updatedProfile);
+          await userAPI.updateTravelInfo(atlasPayload);
         } catch (apiErr) {
           console.warn("Backend profile sync notice:", apiErr);
         }

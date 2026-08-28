@@ -7,7 +7,7 @@ import {
   User,
   MapPin,
   LogOut,
-  Settings,
+  
 } from "lucide-react";
 
 function Sidebar() {
@@ -56,11 +56,7 @@ function Sidebar() {
       </div>
       <div>
         <nav className="border-t border-slate-200">
-          <NavItem
-            icon={<Settings size={20} />}
-            label="Settings"
-            navigate="/"
-          />
+        
           <button className="flex items-center gap-4 px-8 pb-6 cursor-pointer transition-colors text-slate-400 hover:text-slate-600 font-semibold"
           onClick={()=>{
             localStorage.removeItem("token")

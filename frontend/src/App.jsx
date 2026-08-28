@@ -28,7 +28,10 @@ import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
 import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
 // ===== FEATURE/ACCOMMODATION-MANAGEMENT ROUTES =====
-import HotelOwnerSignup from "./pages/HotelOwner/SignUp";
+import RestuarantSignup from "./pages/Restuarant/resturentRegistrationPage.jsx";
+import RestuarantDashboard from "./pages/Restuarant/resturentDashboardPage.jsx";
+import TouristRestaurantsPage from "./pages/Restuarant/TouristRestaurantsPage.jsx";
+import HotelOwnerSignup from "./pages/HotelOwner/SignUp.jsx";
 import HotelInfo from "./pages/HotelOwner/HotelInfo";
 import HotelOwnerDashboard from "./pages/HotelOwner/HotelOwnerDashboard.jsx";
 import ViewCurrentRoomsPackages from "./pages/HotelOwner/ViewCurrentRoomsPackages.jsx";
@@ -40,7 +43,6 @@ import ViewRoomReservation from "./pages/HotelOwner/ViewRoomReservation.jsx";
 import FinancialAnalysisDashboard from "./pages/HotelOwner/FinancialAnalysisDashboard.jsx";
 import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSettings.jsx";
 
-import RestuarantSignup from "./pages/Restuarant/SignupPage";
 import GuideSignup from "./pages/Guide/SignupPage";
 import RenterSignup from "./pages/Renter/SignupPage";
 import GovernmentSignup from "./pages/Government/SignupPage";
@@ -55,7 +57,7 @@ import DriverSignUp3 from "./pages/Driver/SignUpForm3";
 import { DriverSignupProvider } from "./context/DriverSignupContext";
 import { PageTitleProvider } from "./context/PageTitleContext";
 
-import DummyPageRestaurant from "./pages/Restuarant/dummyPage";
+
 import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
 import DummyPageDriver from "./pages/Driver/dummyPage";
@@ -265,7 +267,7 @@ function App() {
           />
           <Route
             path="/dashboard-Restaurant"
-            element={<DummyPageRestaurant />}
+            element={<RestuarantDashboard />}
           />
 
           <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
