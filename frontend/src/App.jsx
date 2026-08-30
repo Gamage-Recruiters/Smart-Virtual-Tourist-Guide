@@ -12,6 +12,13 @@ import VehicleBooking from './pages/more_details_services_booking/VehicleBooking
 import GuideBooking from './pages/more_details_services_booking/GuideBooking.jsx'
 import RestaurantBooking from './pages/more_details_services_booking/RestaurantBooking.jsx'
 import MyBookings from './pages/booking&reservation/MyBookings.jsx'
+import CommunityDashboard from './pages/CommunityDashboard.jsx'
+import SmeParticipationStats from './pages/SmeParticipationStats.jsx'
+import CommunityEconomicImpact from './pages/CommunityEconomicImpact.jsx'
+import TouristFeedback from './pages/TouristFeedback.jsx'
+
+
+
 
 
 //Marketplace engine-------------------------------------
@@ -69,6 +76,12 @@ export default function App() {
         <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
         <Route path="/other-drivers" element={<Submit_Bids />} />
         <Route path="/ride-details" element={<Ride_Details />} />
+
+        {/* Community Dashboard */}
+        <Route path="/community-dashboard" element={<CommunityDashboard />} />
+        <Route path="/sme-participation-stats" element={<SmeParticipationStats />} />
+        <Route path="/community-economic-impact" element={<CommunityEconomicImpact />} />
+        <Route path="/tourist-feedback" element={<TouristFeedback />} />
 
       </Routes>
     </Router>

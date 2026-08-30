@@ -41,6 +41,7 @@ app.get('/api/health', (req, res) => {
 
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import vehicleRentalBidRoutes from './routes/vehicleRentalBidRoutes.js';
+import communityStatsRoutes from './routes/communityStatsRoutes.js';
 
 // Error handling middleware (must be last)
 app.use('/api/bookings', bookingRoutes);
@@ -54,8 +55,10 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/vehicle-rentals', vehicleRentalBidRoutes);
+app.use('/api/community-stats', communityStatsRoutes);
 
 // Error handling middleware (must be last)
+
 app.use(errorHandler);
 
 export default app;

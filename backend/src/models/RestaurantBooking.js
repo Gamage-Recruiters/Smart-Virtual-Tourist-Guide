@@ -46,6 +46,27 @@ const restaurantBookingSchema = new mongoose.Schema(
       paidAt: { type: Date },
       payhereOrderId: { type: String },
       payherePaymentId: { type: String },
+
+      paymentStatus: {
+        type: String,
+        enum: [
+          'pending', 'paid', 'failed', 'refunded', 'full-refunded', 'partial-refunded', 'pending refunded'
+        ],
+        default: 'pending',
+      },
+
+      refundAmount: { type: Number, default: 0 },
+      refundReason: { type: String },
+      refundDate: { type: Date },
+      refundHistory: [
+        {
+          amount: Number,
+          reason: String,
+          date: Date
+        }
+      ],
+      refundTransactionId: { type: String },
+      cancellationAccountablePerson: { type: String },
     },
     status: {
       type: String,
