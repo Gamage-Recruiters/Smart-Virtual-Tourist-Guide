@@ -35,11 +35,83 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
   const taxes = Math.round(roomPrice * 0.03); // 3% taxes
   const total = roomPrice + serviceFee + taxes;
 
-  const handleAvailabilityCheck = () => {
+  const [checking, setChecking] = useState(false);
+
+  const handleAvailabilityCheck = async () => {
     if (!hotelData.checkIn || !hotelData.checkOut) {
-      toast.error("Please fill in booking dates.");
+      toast.error("Please fill in check-in and check-out dates.");
       return;
     }
+
+    const start = new Date(hotelData.checkIn);
+    const end = new Date(hotelData.checkOut);
+
+    if (start >= end) {
+      toast.error("Check-out date must be after check-in date.");
+      return;
+    }
+
+    // Validate against selectedRoom model dates & status client-side
+    if (selectedRoom) {
+      if (selectedRoom.roomStatus && selectedRoom.roomStatus !== 'Available') {
+        toast.error(`Selected room is currently ${selectedRoom.roomStatus}. Please choose another room.`);
+        return;
+      }
+
+      const isOverlapping = (periods) => {
+        if (!Array.isArray(periods)) return false;
+        return periods.some(period => {
+          const pStart = new Date(period.startDate);
+          const pEnd = new Date(period.endDate);
+          return start < pEnd && end > pStart;
+        });
+      };
+
+      if (isOverlapping(selectedRoom.blockedDates)) {
+        toast.error("Selected dates overlap with blocked dates for this room.");
+        return;
+      }
+
+      if (isOverlapping(selectedRoom.maintenanceDates)) {
+        toast.error("Selected dates overlap with scheduled maintenance for this room.");
+        return;
+      }
+
+      if (isOverlapping(selectedRoom.bookingDates)) {
+        toast.error("Selected dates overlap with an existing booking for this room.");
+        return;
+      }
+    }
+
+    // Verify against backend Room model API
+    const targetRoomId = selectedRoom?._id || selectedRoom?.id;
+    if (targetRoomId && !selectedRoom?.isPackage) {
+      setChecking(true);
+      try {
+        const res = await fetch('http://localhost:5000/api/hotels/rooms/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: targetRoomId,
+            checkIn: hotelData.checkIn,
+            checkOut: hotelData.checkOut
+          })
+        });
+
+        const data = await res.json();
+        if (data.success && !data.available) {
+          toast.error(data.reason || "Room is not available for the selected dates.");
+          setChecking(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Availability check API error:", err);
+      } finally {
+        setChecking(false);
+      }
+    }
+
+    toast.success("Room is available! Proceeding to checkout...", { icon: '✨' });
 
     navigate("/booking-page", {
       state: {
@@ -130,9 +202,10 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
 
         <button
           onClick={handleAvailabilityCheck}
-          className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm mt-2"
+          disabled={checking}
+          className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] disabled:bg-gray-400 text-white py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm mt-2"
         >
-          Check availability
+          {checking ? "Checking availability..." : "Check availability"}
         </button>
 
         {/* Total Price Display */}

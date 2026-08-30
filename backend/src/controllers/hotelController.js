@@ -1,6 +1,18 @@
+import mongoose from 'mongoose';
 import Room from '../models/Room.js';
 import SpecialPackage from '../models/SpecialPackage.js';
 import User from '../models/User.js';
+
+// Helper function to find a hotel owner in tourismGuideDB by user ID or hotel sub-document ID
+const findOwnerByAnyId = async (idStr) => {
+    if (!idStr || !mongoose.Types.ObjectId.isValid(idStr)) return null;
+    return await User.findOne({
+        $or: [
+            { _id: idStr },
+            { 'hotels._id': idStr }
+        ]
+    });
+};
 
 // --- Global Hotel Controllers ---
 
@@ -16,7 +28,25 @@ export const getAllHotels = async (req, res, next) => {
         const allRooms = await Room.find();
 
         const ownerHotels = await Promise.all(hotelOwners.map(async (user) => {
-            const userRooms = allRooms.filter(r => r.hotelId && r.hotelId.toString() === user._id.toString());
+            const validIds = [
+                user._id.toString(),
+                ...(user.hotels || []).map(h => h._id ? h._id.toString() : null)
+            ].filter(Boolean);
+
+            const userEmails = [
+                user.email,
+                ...(user.hotels || []).map(h => h.hotelEmail)
+            ].filter(Boolean).map(e => e.toLowerCase());
+
+            const userNames = [user.fullName].filter(Boolean).map(n => n.toLowerCase());
+
+            const userRooms = allRooms.filter(r => {
+                if (r.hotelId && validIds.includes(r.hotelId.toString())) return true;
+                if (r.contactInfo?.email && userEmails.includes(r.contactInfo.email.toLowerCase())) return true;
+                if (r.contactInfo?.contactName && userNames.includes(r.contactInfo.contactName.toLowerCase())) return true;
+                return false;
+            });
+
             const userObj = user.toObject();
             const primaryHotel = (userObj.hotels && userObj.hotels.length > 0) ? userObj.hotels[0] : {};
 
@@ -64,48 +94,7 @@ export const getAllHotels = async (req, res, next) => {
             };
         }));
 
-        // For rooms with no hotelId or unlinked, group by contact email or room name into hotel cards
-        const unlinkedRooms = allRooms.filter(r => !r.hotelId || !hotelOwners.some(u => u._id.toString() === r.hotelId.toString()));
-        
-        const unlinkedHotelsMap = {};
-        unlinkedRooms.forEach(room => {
-            const key = room.contactInfo?.email || room.contactInfo?.contactName || room._id.toString();
-            if (!unlinkedHotelsMap[key]) {
-                const firstImg = (room.images && room.images.length > 0) ? room.images[0] : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600';
-                unlinkedHotelsMap[key] = {
-                    _id: room._id,
-                    ownerId: room._id,
-                    ownerName: room.contactInfo?.contactName || 'Hotel Representative',
-                    hotelName: room.roomName ? `${room.roomName} Hotel` : 'Boutique Hotel & Suites',
-                    hotelAddress: room.locationAndPricing?.[0]?.aboutLocation || 'Sri Lanka',
-                    hotelEmail: room.contactInfo?.email || '',
-                    hotelContactNumber: room.contactInfo?.contactNumber || '',
-                    minPrice: room.locationAndPricing?.[0]?.basePrice || 15000,
-                    amenities: room.amenities && room.amenities.length > 0 ? room.amenities : ['wifi', 'ac'],
-                    images: room.images && room.images.length > 0 ? room.images : [firstImg],
-                    starRating: 4,
-                    userRating: 4.5,
-                    reviews: 85,
-                    description: room.description || 'Comfortable hotel accommodation with modern amenities.',
-                    roomsCount: 1,
-                    rooms: [room]
-                };
-            } else {
-                unlinkedHotelsMap[key].rooms.push(room);
-                unlinkedHotelsMap[key].roomsCount += 1;
-                if (room.locationAndPricing?.[0]?.basePrice && room.locationAndPricing[0].basePrice < unlinkedHotelsMap[key].minPrice) {
-                    unlinkedHotelsMap[key].minPrice = room.locationAndPricing[0].basePrice;
-                }
-                if (room.images) {
-                    unlinkedHotelsMap[key].images.push(...room.images);
-                }
-            }
-        });
-
-        const unlinkedHotels = Object.values(unlinkedHotelsMap);
-        const combined = [...ownerHotels, ...unlinkedHotels];
-
-        res.status(200).json({ success: true, count: combined.length, data: combined });
+        res.status(200).json({ success: true, count: ownerHotels.length, data: ownerHotels });
     } catch (error) {
         next(error);
     }
@@ -129,18 +118,46 @@ export const getRooms = async (req, res, next) => {
         let rooms = [];
 
         if (hotelId) {
-            rooms = await Room.find({
-                $or: [
-                    { hotelId: hotelId },
-                    { _id: hotelId }
-                ]
-            }).populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            const owner = await findOwnerByAnyId(hotelId);
 
-            if (rooms.length === 0) {
-                rooms = await Room.find().populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            const validIds = [hotelId.toString()];
+            const validEmails = [];
+            const validNames = [];
+
+            if (owner) {
+                validIds.push(owner._id.toString());
+                if (Array.isArray(owner.hotels)) {
+                    owner.hotels.forEach(h => {
+                        if (h._id) validIds.push(h._id.toString());
+                        if (h.hotelEmail) validEmails.push(h.hotelEmail);
+                    });
+                }
+                if (owner.email) validEmails.push(owner.email);
+                if (owner.fullName) validNames.push(owner.fullName);
             }
+
+            const queryConditions = [
+                { hotelId: { $in: validIds } },
+                { _id: { $in: validIds } }
+            ];
+
+            validEmails.filter(Boolean).forEach(email => {
+                queryConditions.push({
+                    'contactInfo.email': { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+                });
+            });
+
+            validNames.filter(Boolean).forEach(name => {
+                queryConditions.push({
+                    'contactInfo.contactName': { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+                });
+            });
+
+            rooms = await Room.find({ $or: queryConditions })
+                .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         } else {
-            rooms = await Room.find().populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            rooms = await Room.find()
+                .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         }
 
         const enrichedRooms = rooms.map((room) => {
@@ -173,7 +190,7 @@ export const getRooms = async (req, res, next) => {
 export const getRoomById = async (req, res, next) => {
     try {
         const room = await Room.findById(req.params.id)
-            .populate({ path: 'hotelId', select: 'fullName contactNumber email hotels' });
+            .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
         }
@@ -230,6 +247,83 @@ export const deleteRoom = async (req, res, next) => {
     }
 };
 
+export const checkRoomAvailability = async (req, res, next) => {
+    try {
+        const { roomId, checkIn, checkOut } = req.body;
+
+        if (!roomId || !checkIn || !checkOut) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Room ID, check-in date, and check-out date are required.' 
+            });
+        }
+
+        const room = await Room.findById(roomId);
+        if (!room) {
+            return res.status(404).json({ success: false, message: 'Room not found.' });
+        }
+
+        if (room.roomStatus && room.roomStatus !== 'Available') {
+            return res.status(200).json({ 
+                success: true, 
+                available: false, 
+                reason: `Room is currently marked as ${room.roomStatus}.` 
+            });
+        }
+
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime()) || start >= end) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Invalid date range. Check-out date must be after check-in date.' 
+            });
+        }
+
+        const isOverlapping = (periods) => {
+            if (!Array.isArray(periods)) return false;
+            return periods.some(period => {
+                const pStart = new Date(period.startDate);
+                const pEnd = new Date(period.endDate);
+                return start < pEnd && end > pStart;
+            });
+        };
+
+        if (isOverlapping(room.blockedDates)) {
+            return res.status(200).json({ 
+                success: true, 
+                available: false, 
+                reason: 'Selected dates overlap with blocked dates for this room.' 
+            });
+        }
+
+        if (isOverlapping(room.maintenanceDates)) {
+            return res.status(200).json({ 
+                success: true, 
+                available: false, 
+                reason: 'Selected dates overlap with scheduled maintenance for this room.' 
+            });
+        }
+
+        if (isOverlapping(room.bookingDates)) {
+            return res.status(200).json({ 
+                success: true, 
+                available: false, 
+                reason: 'Selected dates overlap with an existing booking for this room.' 
+            });
+        }
+
+        return res.status(200).json({ 
+            success: true, 
+            available: true, 
+            message: 'Room is available for the selected dates!' 
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // --- Special Package Controllers ---
 
 export const createSpecialPackage = async (req, res, next) => {
@@ -244,7 +338,52 @@ export const createSpecialPackage = async (req, res, next) => {
 
 export const getSpecialPackages = async (req, res, next) => {
     try {
-        const pkgs = await SpecialPackage.find();
+        const { hotelId } = req.query;
+        let pkgs = [];
+
+        if (hotelId) {
+            const owner = await findOwnerByAnyId(hotelId);
+
+            const validIds = [hotelId.toString()];
+            const validEmails = [];
+            const validNames = [];
+
+            if (owner) {
+                validIds.push(owner._id.toString());
+                if (Array.isArray(owner.hotels)) {
+                    owner.hotels.forEach(h => {
+                        if (h._id) validIds.push(h._id.toString());
+                        if (h.hotelEmail) validEmails.push(h.hotelEmail);
+                    });
+                }
+                if (owner.email) validEmails.push(owner.email);
+                if (owner.fullName) validNames.push(owner.fullName);
+            }
+
+            const queryConditions = [
+                { hotelId: { $in: validIds } },
+                { _id: { $in: validIds } }
+            ];
+
+            validEmails.filter(Boolean).forEach(email => {
+                queryConditions.push({
+                    'contactInfo.email': { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+                });
+            });
+
+            validNames.filter(Boolean).forEach(name => {
+                queryConditions.push({
+                    'contactInfo.contactName': { $regex: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+                });
+            });
+
+            pkgs = await SpecialPackage.find({ $or: queryConditions })
+                .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
+        } else {
+            pkgs = await SpecialPackage.find()
+                .populate({ path: 'hotelId', model: User, select: 'fullName contactNumber email hotels' });
+        }
+
         res.status(200).json({ success: true, count: pkgs.length, data: pkgs });
     } catch (error) {
         next(error);

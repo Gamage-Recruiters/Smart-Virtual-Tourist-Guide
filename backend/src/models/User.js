@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import tourismDB from '../configs/tourismDatabase.js';
 
 const userSchema = new mongoose.Schema({
   fullName: {
@@ -155,5 +156,5 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-const User = mongoose.model('User', userSchema);
+const User = tourismDB.model('User', userSchema);
 export default User;
