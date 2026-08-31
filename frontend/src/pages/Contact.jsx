@@ -1,23 +1,54 @@
-import React from 'react';
-import { Phone, Mail, MapPin, Send, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, Mail, MapPin, Send, ChevronDown, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 // IMPORT HERO BACKGROUND
-import heroBg from '../assets/Contact.png'; 
+import heroBg from '../assets/LandingPage/Contact.png'; 
 
 // IMPORT SUPPORT LADY IMAGE
-import supportLady from '../assets/helper.png'; 
+import supportLady from '../assets/LandingPage/helper.png'; 
 
 // IMPORT BACKGROUND DECORATION IMAGE
-import bgDecoration from '../assets/Mask.png';
+import bgDecoration from '../assets/LandingPage/Mask.png';
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  const [status, setStatus] = useState({ loading: false, success: false, error: '' });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus({ loading: true, success: false, error: '' });
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const response = await axios.post(`${backendUrl}/api/contact`, formData);
+      if (response.data.success) {
+        setStatus({ loading: false, success: true, error: '' });
+        setFormData({ fullName: '', email: '', phone: '', subject: '', message: '' });
+        setTimeout(() => setStatus(prev => ({ ...prev, success: false })), 5000);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus({ loading: false, success: false, error: 'Failed to send message. Please try again later.' });
+    }
+  };
+
   return (
     <div className="font-sans bg-white text-gray-800 overflow-x-hidden">
       
       {/* --- HERO SECTION --- */}
       <section className="relative w-full h-[400px] md:h-[500px]">
         <div 
-          className="absolute inset-0 bg-cover bg-center z-0 bg-[url('')]"
+          className="absolute inset-0 bg-cover bg-center z-0"
           style={{ backgroundImage: `url(${heroBg})` }}
         >
           <div className="absolute inset-0 bg-black/30"></div>
@@ -116,15 +147,23 @@ const ContactPage = () => {
             <div className="bg-gradient-to-br from-[#d1eefd] to-[#f2fcff] p-8 rounded-3xl shadow-xl relative">
               <h3 className="text-2xl font-semibold text-gray-800 mb-6">Send Us a Message</h3>
               
-              <form className="flex flex-col gap-4">
+              <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                 <input 
                   type="text" 
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
                   placeholder="Full Name" 
+                  required
                   className="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-400 outline-none bg-white shadow-sm" 
                 />
                 <input 
                   type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="E-mail Address" 
+                  required
                   className="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-400 outline-none bg-white shadow-sm" 
                 />
                 
@@ -136,6 +175,9 @@ const ContactPage = () => {
                   </div>
                   <input 
                     type="tel" 
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     placeholder="Phone Number" 
                     className="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-400 outline-none bg-white shadow-sm" 
                   />
@@ -143,20 +185,32 @@ const ContactPage = () => {
 
                 <input 
                   type="text" 
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
                   placeholder="Subject" 
+                  required
                   className="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-400 outline-none bg-white shadow-sm" 
                 />
                 <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder="Message....." 
                   rows="4"
+                  required
                   className="w-full p-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-400 outline-none bg-white shadow-sm resize-none" 
                 ></textarea>
 
+                {status.error && <p className="text-red-500 text-sm font-medium">{status.error}</p>}
+                {status.success && <p className="text-green-600 text-sm font-medium flex items-center gap-1"><CheckCircle size={16} /> Message sent successfully!</p>}
+
                 <button 
-                  type="button"
-                  className="self-start bg-[#4CB8F6] hover:bg-[#3ba3e0] text-white font-bold py-2 px-8 rounded-full transition-colors shadow-md text-lg"
+                  type="submit"
+                  disabled={status.loading}
+                  className="self-start bg-[#4CB8F6] hover:bg-[#3ba3e0] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-2 px-8 rounded-full transition-colors shadow-md text-lg"
                 >
-                  SEND
+                  {status.loading ? 'SENDING...' : 'SEND'}
                 </button>
               </form>
             </div>

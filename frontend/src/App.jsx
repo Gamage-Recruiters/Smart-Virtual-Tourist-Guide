@@ -12,6 +12,11 @@ import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import AboutUs from './pages/AboutUs';
 import HowItWorks from './pages/HowItWork';
+import Destinations from './pages/Destinations.jsx';
+import ContactUs from './pages/Contact.jsx';
+import AddDestination from './pages/addDestinations';
+import DestinationDetails from './pages/DestinationDetails.jsx';
+import ResultsPage from './pages/ResultsPage.jsx';
 
 import SignupForm from './pages/Tourist/SignupForm1';
 import TravelSafetyInfo from './pages/Tourist/SignupForm2';
@@ -70,7 +75,13 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="how-it-works" element={<HowItWorks />} />
+          <Route path="destinations" element={<Destinations />} />
+          <Route path="contact" element={<ContactUs />} />
+          <Route path="results" element={<ResultsPage />} />
         </Route>
+        <Route path="/add-destination" element={<AddDestination />} />
+        <Route path="/destination-detail" element={<DestinationDetails />} />
+
 
         {/* Auth */}
         <Route path="/login" element={<LoginScreen />} />

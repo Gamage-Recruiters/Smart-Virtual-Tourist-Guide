@@ -15,31 +15,31 @@ import {
 } from 'lucide-react';
 
 // Import your hero background image from assets
-import heroBackground from '../assets/HIW1.png'; // Adjust the path as needed
+import heroBackground from '../assets/LandingPage/HIW1.png'; // Adjust the path as needed
 
 // Import step icons from assets
-import step1Icon from '../assets/HIW2.png'; // Create Account icon
-import step2Icon from '../assets/HIW3.png'; // Choose Destination icon
-import step3Icon from '../assets/HIW4.png'; // Plan Your Trip icon
-import step4Icon from '../assets/HIW5.png'; // Get Suggestions icon
-import step5Icon from '../assets/HIW6.png'; // Start Exploring icon
+import step1Icon from '../assets/LandingPage/HIW2.png'; // Create Account icon
+import step2Icon from '../assets/LandingPage/HIW3.png'; // Choose Destination icon
+import step3Icon from '../assets/LandingPage/HIW4.png'; // Plan Your Trip icon
+import step4Icon from '../assets/LandingPage/HIW5.png'; // Get Suggestions icon
+import step5Icon from '../assets/LandingPage/HIW6.png'; // Start Exploring icon
 
 // Import App showcase background image from assets
-import appShowcaseBg from '../assets/HIW7.png'; // App showcase background image
+import appShowcaseBg from '../assets/LandingPage/HIW7.png'; // App showcase background image
 
 // Import App showcase mockup image (combined laptop and mobile) - without background frame
-import appMockup from '../assets/HIW8.png'; // Combined laptop and mobile mockup image
+import appMockup from '../assets/LandingPage/HIW8.png'; // Combined laptop and mobile mockup image
 
 // Import feature icons for App showcase content
-import realTimeIcon from '../assets/HIW9.png'; // Real Time Updates icon
-import gpsIcon from '../assets/HIW10.png'; // GPS Navigation icon
-import offlineIcon from '../assets/HIW11.png'; // Offline Access icon
+import realTimeIcon from '../assets/LandingPage/HIW9.png'; // Real Time Updates icon
+import gpsIcon from '../assets/LandingPage/HIW10.png'; // GPS Navigation icon
+import offlineIcon from '../assets/LandingPage/HIW11.png'; // Offline Access icon
 
 // Import feature icons for Features section
-import routingIcon from '../assets/HIW12.png'; // Routing Planning icon
-import aiIcon from '../assets/HIW13.png'; // AI Powered icon
-import timeIcon from '../assets/HIW14.png'; // Time Saved icon
-import deviceIcon from '../assets/HIW15.png'; // All Device icon
+import routingIcon from '../assets/LandingPage/HIW12.png'; // Routing Planning icon
+import aiIcon from '../assets/LandingPage/HIW13.png'; // AI Powered icon
+import timeIcon from '../assets/LandingPage/HIW14.png'; // Time Saved icon
+import deviceIcon from '../assets/LandingPage/HIW15.png'; // All Device icon
 
 const SriLankaTourismPage = () => {
   return (

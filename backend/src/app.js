@@ -6,6 +6,8 @@ import authRouter from './routes/authRoutes.js';
 
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 export const app = express();
@@ -20,6 +22,8 @@ app.use(express.json());
 // routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/destinations', destinationRoutes);
 
 // basic routes
 app.get('/', (req, res) => {

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from '../assets/SLFH.jpg'; 
+import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/logo.png'; 
+import logoImage from '../assets/LandingPage/logo.png'; 
 // IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from '../assets/bg4.png'; 
+import bg4Image from '../assets/LandingPage/bg4.png'; 
 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
