@@ -44,6 +44,7 @@ import GuideSignup from './pages/Guide/SignupPage';
 import RenterSignup from './pages/Renter/SignupPage';
 
 import GovernmentSignup from './pages/Government/SignupPage';
+import GovernmentDashboard from './pages/Government/governmentDashboard.jsx';
 
 import ActivityProviderSignup from './pages/ActivityProvider/SignupPage';
 
@@ -57,7 +58,6 @@ import { DriverSignupProvider } from './context/DriverSignupContext';
 import DummyPageTourist from './pages/Tourist/dummyPage';
 import DummyPageRestaurant from './pages/Restuarant/dummyPage';
 import DummyPageGuide from './pages/Guide/dummyPage';
-import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
 import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
@@ -138,7 +138,8 @@ function App() {
         <Route path="/dashboard-Restaurant" element={<DummyPageRestaurant />} />
         <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
         <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
-        <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
+        <Route path="/dashboard-Government" element={<GovernmentDashboard />} />
+        <Route path="/government-dashboard-public" element={<GovernmentDashboard />} />
         <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
         <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
         <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
