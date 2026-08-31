@@ -10,6 +10,7 @@ import ModeSelector from '../components/Direction/ModeSelector';
 import RouteCard from '../components/Direction/RouteCard';
 import AddStopPanel from '../components/Direction/AddStopPanel';
 import { saveFavoritePlace } from '../services/api';
+import ActionToast from '../components/shared/ActionToast';
 import middle from '../assets/middle.png';
 import gpsIcon from '../assets/gpsSearch.png';
 import blueLocationIcon from '../assets/directionCircle.png';
@@ -35,7 +36,7 @@ export default function DirectionPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [addStopOpen, setAddStopOpen] = useState(false);
   const [stopPanelCollapsed, setStopPanelCollapsed] = useState(false);
-  const [actionMessage, setActionMessage] = useState('');
+  const [actionMessage, setActionMessage] = useState(null);
   
   const [originLabel, setOriginLabel] = useState('');
   const [destPlace, setDestPlace] = useState(searchedPlace);
@@ -53,12 +54,7 @@ export default function DirectionPage() {
 
   const destination = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || searchedPlace?.name || destPlace?.displayName || destPlace?.formatted_address?.split(',')[0] || destPlace?.name || '';
 
-  useEffect(() => {
-    if (actionMessage) {
-      const timer = setTimeout(() => setActionMessage(''), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [actionMessage]);
+
 
   const mapContainerRef = useRef(null);
   
@@ -251,14 +247,14 @@ export default function DirectionPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Direction route', text: shareText, url: url || undefined });
-        setActionMessage('Route shared.');
+        setActionMessage({ text: 'Route shared.', type: 'success' });
       } else {
         await navigator.clipboard.writeText(fullText);
-        setActionMessage('Route copied to clipboard.');
+        setActionMessage({ text: 'Route copied to clipboard.', type: 'success' });
       }
     } catch (err) {
-      if (err.name === 'AbortError') setActionMessage('Share cancelled.');
-      else setActionMessage('Failed to share.');
+      if (err.name === 'AbortError') setActionMessage({ text: 'Share cancelled.', type: 'error' });
+      else setActionMessage({ text: 'Failed to share.', type: 'error' });
     }
   };
 
@@ -268,21 +264,21 @@ export default function DirectionPage() {
       try {
         const photoUrls = dest.photo ? [dest.photo] : [];
         await saveFavoritePlace(dest, 'work', null, photoUrls);
-        setActionMessage('Saved');
+        setActionMessage({ text: 'Saved', type: 'success' });
       } catch (error) {
-        setActionMessage('Failed to save route to favorites.');
+        setActionMessage({ text: 'Failed to save route to favorites.', type: 'error' });
       }
     } else {
       const savedRoute = { destination, origin: userLocationRef.current, mode: selectedMode, updatedAt: new Date().toISOString() };
       window.localStorage.setItem('savedDirectionRoute', JSON.stringify(savedRoute));
-      setActionMessage('Saved');
+      setActionMessage({ text: 'Saved', type: 'success' });
     }
   };
 
   const handleStart = () => {
     setShowSearchBar(true);
     appNavigate('start');
-    setActionMessage('Opening start page.');
+    setActionMessage({ text: 'Opening start page.', type: 'success' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -316,12 +312,7 @@ export default function DirectionPage() {
 
   return (
     <div className="relative w-full overflow-hidden bg-[#edf7ff]" style={{ minHeight: '100vh' }}>
-      {actionMessage && (
-        <div style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', background: '#1A73E8', color: '#fff', padding: '12px 24px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 999999, fontWeight: 600, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-          {actionMessage}
-        </div>
-      )}
+      <ActionToast message={actionMessage} onDismiss={() => setActionMessage(null)} />
       <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
         <img src={middle} alt="Ocean background" className="h-full w-full object-cover scale-x-[1.7]" />
       </div>
