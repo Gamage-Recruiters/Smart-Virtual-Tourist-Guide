@@ -164,6 +164,15 @@ export const hotelOwnerAPI = {
   addHotelInfo(hotelData) {
     return apiClient.post('/auth/add-hotel-info', hotelData);
   },
+  getBookingsByHotel(hotelId) {
+    return apiClient.get(`/bookings/hotel/${hotelId}`);
+  },
+  getRevenueSummariesByHotel(hotelId) {
+    return apiClient.get(`/revenue-summary/hotel/${hotelId}`);
+  },
+  syncRevenueSummariesByHotel(hotelId) {
+    return apiClient.post(`/revenue-summary/hotel/${hotelId}/sync`, {});
+  },
 };
 
 /**

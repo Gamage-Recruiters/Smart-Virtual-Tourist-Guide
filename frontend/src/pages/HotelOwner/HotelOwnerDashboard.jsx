@@ -32,7 +32,7 @@ function HotelOwnerDashboard() {
 	}, [])
 	return (
 		<div className="min-h-screen w-full overflow-x-hidden text-slate-800">
-			<div className="mx-auto flex min-h-screen w-auto flex-col gap-6 pt-28">
+			<div className="mx-auto flex min-h-screen w-auto flex-col">
 				<Header hasHotel={hasHotel} />
 
 				<main className="flex flex-1 flex-col gap-6">

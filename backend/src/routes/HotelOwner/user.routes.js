@@ -3,6 +3,13 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
+import tempHotBookSchema from '../../models/HotelOwner/TempHotBook.js';
+import getTestDb from '../../configs/HotelOwner/testDb.js';
+
+const getTempHotBookModel = async () => {
+  const conn = await getTestDb();
+  return conn.models.TempHotBook || conn.model('TempHotBook', tempHotBookSchema.schema);
+};
 
 const router = express.Router();
 
@@ -16,6 +23,26 @@ const getUserIdFromToken = (req) => {
     return null;
   }
 };
+
+// GET /api/users/bookings
+router.get('/bookings', async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const user = await User.findById(userId).select('hotels');
+    if (!user || !user.hotels?.length) {
+      return res.json({ bookings: [] });
+    }
+
+    const hotelSubId = user.hotels[0]._id.toString();
+    const TempHotBook = await getTempHotBookModel();
+    const bookings = await TempHotBook.find({ hotelId: hotelSubId });
+    res.json({ bookings });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // GET /api/users/me
 router.get('/me', async (req, res) => {

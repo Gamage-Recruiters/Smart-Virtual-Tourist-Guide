@@ -10,6 +10,9 @@ import roomRoutes from './routes/HotelOwner/Room.routes.js';
 import specialPackageRoutes from './routes/HotelOwner/specialPackage.routes.js';
 import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.js';
 import userRoutes from './routes/HotelOwner/user.routes.js';
+import tempHotBookRoutes from './routes/HotelOwner/tempHotBook.routes.js';
+import hotelRevenueSummaryRoutes from './routes/HotelOwner/hotelRevenueSummary.routes.js';
+import startBookingSyncScheduler from './jobs/bookingSyncScheduler.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -29,10 +32,11 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==================== DATABASE CONNECTION ====================
 connectDB();
+startBookingSyncScheduler();
 
 // ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
@@ -71,9 +75,11 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
-app.use('/api/packages', specialPackageRoutes);
+app.use('/api/special-packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/bookings', tempHotBookRoutes);
+app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);

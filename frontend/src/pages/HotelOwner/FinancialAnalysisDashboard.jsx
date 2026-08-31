@@ -1,7 +1,6 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import {
   FaSearch, FaDollarSign, FaBed, FaChartLine, FaMoneyBillWave,
-  FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,6 +9,7 @@ import {
 import Header from '../../components/HotelOwner/Header';
 import Footer from '../../components/HotelOwner/Footer';
 import financialanalysis from '../../assets/HotelOwner/financial-page-image.png';
+import { hotelOwnerAPI } from '../../services/api';
 
 // ---- Static demo data -------------------------------------------------
 
@@ -17,63 +17,182 @@ const METRIC_CARDS = [
   {
     icon: FaDollarSign,
     label: 'Total Revenue',
-    value: '$ 45,200',
-    change: '+10.2%',
-    positive: true,
   },
   {
     icon: FaBed,
     label: 'Occupancy Rate',
-    value: '78%',
-    change: '+8.2%',
-    positive: true,
   },
   {
     icon: FaChartLine,
     label: 'Avg Daily Rate',
-    value: '$ 1,780',
-    change: '-8.0%',
-    positive: false,
   },
   {
     icon: FaMoneyBillWave,
     label: 'Revenue Per Available Room (RevPAR)',
-    value: '$ 280',
-    change: '+23.0%',
-    positive: true,
   },
 ];
 
-const REVENUE_VS_EXPENSES = [
-  { month: 'Jan', revenue: 18000, expenses: 6000 },
-  { month: 'Feb', revenue: 21000, expenses: 7200 },
-  { month: 'Mar', revenue: 24500, expenses: 8000 },
-  { month: 'Apr', revenue: 20500, expenses: 6800 },
-  { month: 'May', revenue: 26000, expenses: 8600 },
-  { month: 'Jun', revenue: 25200, expenses: 8100 },
-];
+const ROOM_TYPE_COLORS = ['#3B82F6', '#93C5FD', '#1D4ED8', '#DBEAFE', '#60A5FA'];
 
-const REVENUE_BY_ROOM_TYPE = [
-  { name: 'Deluxe Double Room', value: 38, color: '#3B82F6' },
-  { name: 'Standard Double Room', value: 27, color: '#93C5FD' },
-  { name: 'Family Suite Room', value: 20, color: '#1D4ED8' },
-  { name: 'Superior Villa', value: 15, color: '#DBEAFE' },
-];
+const formatDate = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-GB');
+};
 
-const RECENT_TRANSACTIONS = [
-  { id: 'TRX-001', date: '17/03/2026', guest: 'Kasunika Perel', room: 'Deluxe R16', amount: '$120', status: 'Paid' },
-  { id: 'TRX-002', date: '17/03/2026', guest: 'Andrean Selal', room: 'Family Suite R28', amount: '$45', status: 'Paid' },
-  { id: 'TRX-003', date: '17/03/2026', guest: 'Jeremy Wins', room: 'Deluxe R11', amount: '$230', status: 'Refunded' },
-  { id: 'TRX-004', date: '17/03/2026', guest: 'Nadal Rose', room: 'Deluxe R10', amount: '$120', status: 'Paid', highlighted: true },
-  { id: 'TRX-005', date: '17/03/2026', guest: 'Mavis Rens', room: 'Villa V21', amount: '$46', status: 'Paid' },
-  { id: 'TRX-006', date: '17/03/2026', guest: 'Sawwy Bose', room: 'Family Suite R16', amount: '$720', status: 'Refunded' },
-  { id: 'TRX-007', date: '17/03/2026', guest: 'Winlex Alexander', room: 'Deluxe R03', amount: '$108', status: 'Paid' },
-  { id: 'TRX-008', date: '17/03/2026', guest: 'Nadal Sanca', room: 'Superior Villa SV01', amount: '$420', status: 'Paid' },
-];
+const formatAmount = (amount) => `$${(Number(amount) || 0).toFixed(2)}`;
+
+const formatMetricAmount = (amount) => `$${(Number(amount) || 0).toLocaleString('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})}`;
+
+const getPaymentStatus = (payment, bookingAmount) => {
+  const refundAmount = Number(payment.refundAmount) || 0;
+  const hasRefund = refundAmount > 0
+    || payment.refundReason
+    || payment.refundDate
+    || payment.paymentStatus?.includes('refunded');
+
+  if (!hasRefund) return payment.paymentStatus || 'pending';
+  if (!payment.refundTransactionId) return 'pending-refunded';
+  return refundAmount >= (Number(bookingAmount) || 0) ? 'full-refunded' : 'partial-refunded';
+};
+
+const getMinutesSince = (value) => {
+  if (!value) return null;
+  const updatedAt = new Date(value).getTime();
+  if (Number.isNaN(updatedAt)) return null;
+  return Math.max(0, Math.floor((Date.now() - updatedAt) / 60000));
+};
+
+const toSummaryData = (summaries) => {
+  const sortedSummaries = [...summaries].sort((a, b) => a.month.localeCompare(b.month));
+  const latestSummary = sortedSummaries[sortedSummaries.length - 1];
+  const roomTotals = new Map();
+
+  sortedSummaries.forEach((summary) => {
+    (summary.revenueByRoomType || []).forEach(({ roomType, total }) => {
+      roomTotals.set(roomType, (roomTotals.get(roomType) || 0) + (Number(total) || 0));
+    });
+  });
+
+  return {
+    metrics: latestSummary?.metrics || {},
+    revenueByMonth: sortedSummaries.map((summary) => ({
+      month: new Date(`${summary.month}-01T00:00:00`).toLocaleDateString('en-US', { month: 'short' }),
+      revenue: summary.revenue?.revenue || 0,
+    })),
+    revenueByRoomType: [...roomTotals].map(([name, value], index) => ({
+      name,
+      value,
+      color: ROOM_TYPE_COLORS[index % ROOM_TYPE_COLORS.length],
+    })),
+    updatedAt: summaries.reduce((latest, summary) => (
+      !latest || new Date(summary.updatedAt) > new Date(latest) ? summary.updatedAt : latest
+    ), null),
+  };
+};
+
+const toTransactions = (bookings) => bookings.flatMap((booking) => {
+  const payment = booking.payment || {};
+  if (!payment.payherePaymentId) return [];
+
+  const guest = [booking.customer?.firstName, booking.customer?.lastName]
+    .filter(Boolean)
+    .join(' ') || 'Unknown guest';
+  const room = booking.roomType || booking.roomName || booking.roomNo || '-';
+  const bookingAmount = booking.bookingPrice ?? booking.pricing?.total;
+  const hasRefund = Number(payment.refundAmount) > 0
+    || payment.refundReason
+    || payment.refundDate
+    || payment.paymentStatus?.includes('refunded');
+  const transactions = [{
+    id: payment.payherePaymentId,
+    date: formatDate(payment.paidAt || booking.bookedDate),
+    guest,
+    room,
+    amount: formatAmount(bookingAmount),
+    status: 'paid',
+  }];
+
+  if (hasRefund) {
+    transactions.push({
+      id: payment.refundTransactionId || 'Pending refund',
+      date: formatDate(payment.refundDate),
+      guest,
+      room,
+      amount: formatAmount(payment.refundAmount),
+      status: getPaymentStatus(payment, bookingAmount),
+    });
+  }
+
+  return transactions;
+});
 
 // ---- Main page -----------------------------------------------------------
 
 export default function FinancialAnalysis() {
+  const [transactions, setTransactions] = useState([]);
+  const [revenueByMonth, setRevenueByMonth] = useState([]);
+  const [revenueByRoomType, setRevenueByRoomType] = useState([]);
+  const [metrics, setMetrics] = useState({});
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const [minutesSinceUpdate, setMinutesSinceUpdate] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [transactionsError, setTransactionsError] = useState('');
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const hotelId = userData.hotels?.[0]?._id;
+    if (!hotelId) return;
+
+    const applySummaries = (summaries) => {
+      const summaryData = toSummaryData(summaries);
+      setMetrics(summaryData.metrics);
+      setRevenueByMonth(summaryData.revenueByMonth);
+      setRevenueByRoomType(summaryData.revenueByRoomType);
+      setUpdatedAt(summaryData.updatedAt);
+      setMinutesSinceUpdate(getMinutesSince(summaryData.updatedAt));
+    };
+
+    Promise.all([
+      hotelOwnerAPI.getBookingsByHotel(hotelId),
+      hotelOwnerAPI.getRevenueSummariesByHotel(hotelId),
+    ])
+      .then(([bookingsResponse, summariesResponse]) => {
+        setTransactions(toTransactions(bookingsResponse.bookings || []));
+        applySummaries(summariesResponse.summaries || []);
+      })
+      .catch(() => setTransactionsError('Unable to load transactions.'));
+  }, []);
+
+  useEffect(() => {
+    if (!updatedAt) return undefined;
+    const timer = setInterval(() => setMinutesSinceUpdate(getMinutesSince(updatedAt)), 60000);
+    return () => clearInterval(timer);
+  }, [updatedAt]);
+
+  const handleSync = () => {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const hotelId = userData.hotels?.[0]?._id;
+    if (!hotelId || isSyncing) return;
+
+    setIsSyncing(true);
+    hotelOwnerAPI.syncRevenueSummariesByHotel(hotelId)
+      .then((response) => {
+        const summaryData = toSummaryData(response.summaries || []);
+        setMetrics(summaryData.metrics);
+        setRevenueByMonth(summaryData.revenueByMonth);
+        setRevenueByRoomType(summaryData.revenueByRoomType);
+        setUpdatedAt(summaryData.updatedAt);
+        setMinutesSinceUpdate(getMinutesSince(summaryData.updatedAt));
+      })
+      .catch(() => setTransactionsError('Unable to synchronize financial data.'))
+      .finally(() => setIsSyncing(false));
+  };
+
   return (
     <div className="w-full bg-[#EBF7FF] min-h-screen text-slate-800">
       <Header />
@@ -117,16 +236,36 @@ export default function FinancialAnalysis() {
       <main className="max-w-8xl mx-auto px-4 md:px-8 mt-6 space-y-8">
         {/* Overview Card */}
         <div className="bg-white rounded shadow-md p-6 md:p-10 border border-slate-100">
-          <div className="text-center mb-10">
+          <div className="flex flex-col items-center gap-3 text-center mb-10">
             <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900">Financial Analysis</h3>
             <p className="text-sm md:text-base text-slate-500 mt-2">
               Track Your Property Revenue and Performance Metrics.
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <span className="text-xs text-slate-500">
+                {minutesSinceUpdate === null
+                  ? 'Summary not updated yet'
+                  : `Updated ${minutesSinceUpdate} minute${minutesSinceUpdate === 1 ? '' : 's'} ago`}
+              </span>
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSyncing ? 'Syncing...' : 'Sync Now'}
+              </button>
+            </div>
           </div>
 
           {/* Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
-            {METRIC_CARDS.map(({ icon: Icon, label, value, change, positive }) => (
+            {METRIC_CARDS.map(({ icon: Icon, label }) => {
+              const metricValue = label === 'Total Revenue' ? formatMetricAmount(metrics.totalRevenue)
+                : label === 'Occupancy Rate' ? `${(Number(metrics.occupancyRate) || 0).toFixed(2)}%`
+                  : label === 'Avg Daily Rate' ? formatMetricAmount(metrics.avgDailyRate)
+                    : formatMetricAmount(metrics.revPAR);
+              return (
               <div
                 key={label}
                 className="border border-slate-200 rounded-2xl p-5 hover:shadow-md transition-shadow bg-white"
@@ -135,35 +274,28 @@ export default function FinancialAnalysis() {
                   <span className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                     <Icon className="text-sm" />
                   </span>
-                  <span
-                    className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
-                      positive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                    }`}
-                  >
-                    {positive ? <FaArrowUp className="text-[9px]" /> : <FaArrowDown className="text-[9px]" />}
-                    {change}
-                  </span>
+                  <span className="text-xs font-bold text-slate-400">Live</span>
                 </div>
                 <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
-                <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+                <p className="text-2xl font-extrabold text-slate-900">{metricValue}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Revenue vs Expenses Bar Chart */}
+            {/* Revenue Bar Chart */}
             <div className="border border-slate-200 rounded-2xl p-5">
-              <p className="text-sm font-bold text-slate-800 mb-4">Revenue VS Expenses (Last 6 Months)</p>
+              <p className="text-sm font-bold text-slate-800 mb-4">Revenue (Last 6 Months)</p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={REVENUE_VS_EXPENSES} barGap={4}>
+                  <BarChart data={revenueByMonth} barGap={4}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEF2F6" />
                     <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ fill: '#F1F5F9' }} />
                     <Bar dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Revenue" />
-                    <Bar dataKey="expenses" fill="#BFDBFE" radius={[4, 4, 0, 0]} name="Expenses" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -176,14 +308,14 @@ export default function FinancialAnalysis() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={REVENUE_BY_ROOM_TYPE}
+                      data={revenueByRoomType}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={55}
                       outerRadius={80}
                       paddingAngle={2}
                     >
-                      {REVENUE_BY_ROOM_TYPE.map((entry) => (
+                      {revenueByRoomType.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} stroke="none" />
                       ))}
                     </Pie>
@@ -218,7 +350,7 @@ export default function FinancialAnalysis() {
                 </tr>
               </thead>
               <tbody>
-                {RECENT_TRANSACTIONS.map((t) => (
+                {transactions.map((t) => (
                   <tr
                     key={t.id}
                     className={`border-b border-slate-50 hover:bg-slate-50/60 transition-colors ${
@@ -233,7 +365,7 @@ export default function FinancialAnalysis() {
                     <td className="py-3 pr-4">
                       <span
                         className={`text-xs font-bold ${
-                          t.status === 'Paid' ? 'text-emerald-600' : 'text-rose-600'
+                          t.status === 'paid' ? 'text-emerald-600' : ['full-refunded', 'partial-refunded'].includes(t.status) ? 'text-red-600' : t.status.includes('refunded') ? 'text-amber-600' : 'text-rose-600'
                         }`}
                       >
                         {t.status}
@@ -241,6 +373,13 @@ export default function FinancialAnalysis() {
                     </td>
                   </tr>
                 ))}
+                {!transactions.length && (
+                  <tr>
+                    <td colSpan="6" className="py-6 text-center text-slate-500">
+                      {transactionsError || 'No completed transactions found.'}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

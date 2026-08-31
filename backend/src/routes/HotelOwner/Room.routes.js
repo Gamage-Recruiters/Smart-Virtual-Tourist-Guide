@@ -10,6 +10,7 @@ import {
     deleteRoom,
     addBookingDate,
     updateBookingDate,
+    syncBookings,
 } from '../../controllers/HotelOwner/room.controller.js';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.route('/')
     .get(getAllRooms);
 
 router.patch('/bulk-status', bulkUpdateRoomStatuses);
+router.post('/sync-bookings', syncBookings);
 
 router.route('/:id')
     .get(getRoomById)

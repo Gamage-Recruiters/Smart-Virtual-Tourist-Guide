@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import getTestDb from '../../configs/HotelOwner/testDb.js';
 import roomModelSchema from '../../models/HotelOwner/room.model.js';
+import { syncAllBookingsToRooms } from '../../services/HotelOwner/bookingSync.js';
 
 const getRoomModel = async () => {
   const conn = await getTestDb();
@@ -311,6 +312,18 @@ export const deleteRoom = async (req, res) => {
     }
 };
 
+/**
+ * POST /sync-bookings — full sync of all tempHotBook records into room bookingDates
+ */
+export const syncBookings = async (req, res) => {
+    try {
+        const result = await syncAllBookingsToRooms();
+        return res.status(200).json({ message: 'Sync completed', ...result });
+    } catch (error) {
+        return res.status(500).json({ message: 'Sync failed', error: error.message });
+    }
+};
+
 export default {
     createRoom,
     getAllRooms,
@@ -321,4 +334,5 @@ export default {
     deleteRoom,
     addBookingDate,
     updateBookingDate,
+    syncBookings,
 };
