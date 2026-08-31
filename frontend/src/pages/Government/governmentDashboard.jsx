@@ -1,351 +1,797 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
+import Header from "../../components/Government/Header";
+import Footer from "../../components/Government/Footer";
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+const API_URL =
+  import.meta.env.VITE_GOVERNMENT_DASHBOARD_API_URL ||
+  "/api/dashboard/government";
 
-const AGGREGATED_METRICS_MATRIX = {
-  '7d': [
-    { metric: 'International Arrivals (Air)', current: '14,250', target: '12,000', yieldLKR: '45.8M', status: 'Optimal' },
-    { metric: 'Regional Eco-Lodging Bookings', current: '3,840',  target: '4,000',  yieldLKR: '18.2M', status: 'Nominal' },
-    { metric: 'Digital Heritage Pass Sales',  current: '9,120',  target: '8,500',  yieldLKR: '32.4M', status: 'Optimal' },
-    { metric: 'SME Tour Micro-Transactions', current: '22,600', target: '20,000', yieldLKR: '14.1M', status: 'Optimal' },
-    { metric: 'Cross-Border Transport Passes', current: '5,110',  target: '6,500',  yieldLKR: '8.5M',  status: 'At Risk' },
-  ],
-  '30d': [
-    { metric: 'International Arrivals (Air)', current: '62,400',  target: '55,000',  yieldLKR: '198.4M', status: 'Optimal' },
-    { metric: 'Regional Eco-Lodging Bookings', current: '15,900',  target: '16,000',  yieldLKR: '74.5M',  status: 'Nominal' },
-    { metric: 'Digital Heritage Pass Sales',  current: '38,200',  target: '35,000',  yieldLKR: '134.8M', status: 'Optimal' },
-    { metric: 'SME Tour Micro-Transactions', current: '94,100',  target: '90,000',  yieldLKR: '58.2M',  status: 'Optimal' },
-    { metric: 'Cross-Border Transport Passes', current: '21,400',  target: '26,000',  yieldLKR: '35.1M',  status: 'At Risk' },
-  ],
-  '90d': [
-    { metric: 'International Arrivals (Air)', current: '192,500', target: '180,000', yieldLKR: '612.5M', status: 'Optimal' },
-    { metric: 'Regional Eco-Lodging Bookings', current: '49,200',  target: '48,000',  yieldLKR: '224.1M', status: 'Optimal' },
-    { metric: 'Digital Heritage Pass Sales',  current: '114,800', target: '110,000', yieldLKR: '412.0M', status: 'Optimal' },
-    { metric: 'SME Tour Micro-Transactions', current: '284,000', target: '275,000', yieldLKR: '174.6M', status: 'Optimal' },
-    { metric: 'Cross-Border Transport Passes', current: '68,300',  target: '78,000',  yieldLKR: '110.4M', status: 'Nominal' },
-  ],
+const DEFAULT_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85";
+
+/* -------------------------------------------------------------------------- */
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+const formatNumber = (value) => {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+
+  if (typeof value === "number") {
+    return new Intl.NumberFormat("en-US").format(value);
+  }
+
+  return value;
 };
 
-const REVENUE_BY_SECTOR = [
-  { sector: 'Accommodations & Lodging', valueLKR: '245.8M', pct: 88 },
-  { sector: 'Local Tour Operators & Guides', valueLKR: '134.2M', pct: 64 },
-  { sector: 'Artisan & Cultural Retail', valueLKR: '68.5M',   pct: 38 },
-];
+const getArray = (value) => {
+  return Array.isArray(value) ? value : [];
+};
 
-const ECONOMIC_IMPACT_DISTRIBUTION = [
-  { label: 'SME Direct Yield',   pct: 58 },
-  { label: 'Indirect Supply',    pct: 27 },
-  { label: 'Community Funds',    pct: 15 },
-];
+/* -------------------------------------------------------------------------- */
+/* Reusable Components                                                        */
+/* -------------------------------------------------------------------------- */
 
-const SME_PARTICIPATION_METRICS = [
-  { region: 'Western Province',  registeredSMEs: 1420, activeAds: '92%', impactScore: 'Optimal',  ok: true  },
-  { region: 'Southern Province', registeredSMEs: 980,  activeAds: '74%', impactScore: 'Disrupted', ok: false },
-  { region: 'Central Province',  registeredSMEs: 740,  activeAds: '88%', impactScore: 'Optimal',  ok: true  },
-  { region: 'Eastern Province',  registeredSMEs: 510,  activeAds: '81%', impactScore: 'Nominal',  ok: true  },
-];
-
-const FINANCIAL_ANOMALIES_FEED = [
-  { channel: 'Digital Multi-Vendor Hubs', detail: 'SME payout processing bottleneck flagged; minor transactional delays.', critical: false },
-  { channel: 'Regional Point of Sale (POS)', detail: 'Localized payment gateway outage in coastal zones. Offline backup active.', critical: true },
-  { channel: 'Foreign Exchange Corridors', detail: 'Spread variations exceeding standard thresholds; daily reconciliation ongoing.', critical: false },
-];
-
-const KEY_PERFORMANCE_ITEMS = [
-  { label: 'Aggregated Revenue (YTD)', value: 'LKR 524.1M', sub: '+12.3% vs last phase' },
-  { label: 'Total Aggregated Footfall', value: '108,000',       sub: 'Verified digital footprints' },
-  { label: 'Active SME Providers',     value: '3,650',       sub: '98 active on-boarded today', warn: true },
-  { label: 'Direct Economic Multiplier', value: '1.42x',      sub: 'Per-capita impact coefficient', last: true },
-];
-
-const REPORT_META_LABELS = [
-  { label: 'Primary Data Feed', value: 'Unified Tourism API' },
-  { label: 'SME Share Volume',  value: 'LKR 303.9M Total' },
-  { label: 'Data Quality Index', value: '99.4% Verified' },
-];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Topbar() {
+const Section = ({ title, children }) => {
   return (
-    <div className="h-14 flex items-center px-10 border-b-2 border-black bg-[#0a1931]">
-      <span className="text-[14px] font-semibold text-white tracking-[0.03em] uppercase">
-        Tourism Intelligence & Economic Impact Registry
-      </span>
+    <section className="space-y-5">
+      <div className="flex items-center justify-between rounded-[10px] bg-[#5EC0D0] px-4 py-3 shadow-sm">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[#123047]">
+          {title}
+        </h2>
+
+        <button
+          type="button"
+          className="rounded-[5px] bg-[#087DE7] px-3 py-1.5 text-[10px] font-semibold text-white transition hover:bg-[#066CC8]"
+        >
+          See more
+        </button>
+      </div>
+
+      {children}
+    </section>
+  );
+};
+
+const Card = ({ children, className = "" }) => {
+  return (
+    <div
+      className={`rounded-[18px] border border-[#D5E8F0] bg-gradient-to-b from-white to-[#DCF1F9] shadow-[0_3px_8px_rgba(50,100,120,.12)] ${className}`}
+    >
+      {children}
     </div>
   );
-}
+};
 
-function KpiStrip() {
+const StatCard = ({ icon, value, label, sub }) => {
   return (
-    <div className="grid grid-cols-4 bg-white border border-[#cfdbe7] shadow-sm">
-      {KEY_PERFORMANCE_ITEMS.map((k, i) => (
-        <div key={i} className={`py-5 px-6 ${k.last ? '' : 'border-r border-[#cfdbe7]'}`}>
-          <div className="text-[10px] text-[#4a5e7b] uppercase tracking-[0.08em] mb-2 font-mono font-bold">
-            {k.label}
+    <Card className="flex items-center gap-4 px-5 py-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[6px] bg-[#E6F3F8] text-[23px]">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <div className="text-[24px] font-bold leading-none tracking-[-0.03em] text-[#132C45]">
+          {value}
+        </div>
+
+        <div className="mt-1.5 text-[11px] font-medium leading-tight text-[#294158]">
+          {label}
+        </div>
+
+        {sub && (
+          <div className="mt-1 text-[10px] leading-tight text-[#758593]">
+            {sub}
           </div>
-          <div className={`text-[28px] font-bold tracking-[-0.02em] leading-none ${k.warn ? 'text-black underline decoration-[#1d4ed8] decoration-2' : 'text-[#0a1931]'}`}>
-            {k.value}
-          </div>
-          <div className={`text-[11px] mt-2 font-medium ${k.warn ? 'text-[#1e40af]' : 'text-[#5c7291]'}`}>
-            {k.sub}
-          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+const CardTitle = ({ children }) => {
+  return (
+    <h3 className="text-center text-[12px] font-semibold leading-tight tracking-[-0.01em] text-[#20384E]">
+      {children}
+    </h3>
+  );
+};
+
+const SmallText = ({ children, className = "" }) => {
+  return (
+    <p
+      className={`text-[10px] leading-[1.4] text-[#6D7F8E] ${className}`}
+    >
+      {children}
+    </p>
+  );
+};
+
+const Legend = ({ items }) => {
+  return (
+    <div className="space-y-2.5">
+      {items.map((item, index) => (
+        <div
+          key={item.label || index}
+          className="flex items-center gap-2 text-[10px] leading-tight text-[#354A5D]"
+        >
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full"
+            style={{
+              background: item.color || "#3B82F6",
+            }}
+          />
+
+          <span>{item.label || "Unknown"}</span>
         </div>
       ))}
     </div>
   );
-}
+};
 
-function DataAggregationMatrix({ range, onRangeChange }) {
-  const data = AGGREGATED_METRICS_MATRIX[range];
-  return (
-    <div className="bg-white border border-[#cfdbe7] p-6 shadow-sm flex flex-col justify-between">
-      <div>
-        <div className="flex items-center justify-between text-[11px] text-[#0a1931] uppercase tracking-[0.08em] font-mono font-bold mb-4">
-          <span>Tourism Data Aggregation Matrix</span>
-          <div className="flex border border-[#cfdbe7]">
-            {['7d', '30d', '90d'].map(r => (
-              <button
-                key={r}
-                onClick={() => onRangeChange(r)}
-                className={`px-3 py-1 text-[11px] font-mono font-bold tracking-[0.04em] cursor-pointer transition-colors
-                  ${range === r
-                    ? 'bg-[#0a1931] text-white'
-                    : 'bg-[#f4f8fc] text-[#4a5e7b] hover:bg-[#e2edf7]'
-                  }`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
+/* -------------------------------------------------------------------------- */
+/* Charts                                                                     */
+/* -------------------------------------------------------------------------- */
 
-        <div className="h-65 overflow-y-auto">
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-b-2 border-[#0a1931]">
-                {['Aggregation Stream', 'Volume Count', 'Baseline Target', 'Gross Yield', 'Index'].map((h, i) => (
-                  <th
-                    key={i}
-                    className={`text-[10px] text-[#4a5e7b] font-mono uppercase tracking-[0.07em] font-bold pb-2 ${i > 2 ? 'text-right' : 'text-left'}`}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row, i) => (
-                <tr key={i} className="border-b border-[#e2edf7] hover:bg-[#f8fafc] transition-colors">
-                  <td className="py-3 font-semibold text-black">{row.metric}</td>
-                  <td className="py-3 font-mono text-[11px] text-[#0a1931]">{row.current}</td>
-                  <td className="py-3 font-mono text-[11px] text-[#5c7291]">{row.target}</td>
-                  <td className="py-3 text-right font-mono text-[11px] font-bold text-black">LKR {row.yieldLKR}</td>
-                  <td className="py-3 text-right">
-                    <span className={`inline-block text-[10px] font-mono font-bold px-2 py-0.5 border-2 ${
-                      row.status === 'Optimal' ? 'bg-[#f0fdf4] text-[#166534] border-[#bbf7d0]' :
-                      row.status === 'Nominal' ? 'bg-[#fefce8] text-[#854d0e] border-[#fef08a]' :
-                      'bg-[#fef2f2] text-[#991b1b] border-[#fecaca]'
-                    }`}>
-                      {row.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+const Donut = ({ data, size = 120 }) => {
+  const safeData = getArray(data).filter(
+    (item) => typeof item.value === "number"
+  );
+
+  const total = safeData.reduce((sum, item) => {
+    return sum + item.value;
+  }, 0);
+
+  if (!total) {
+    return (
+      <div
+        className="flex items-center justify-center rounded-full bg-[#DCEBF0] text-[10px] text-[#758593]"
+        style={{
+          width: size,
+          height: size,
+        }}
+      >
+        No data
       </div>
+    );
+  }
 
-      <div className="border-t-2 border-[#0a1931] mt-5 pt-4 grid grid-cols-3 gap-4 bg-[#f4f8fc] p-3 -mx-6 -mb-6">
-        {REPORT_META_LABELS.map((m, i) => (
-          <div key={i} className={i < 2 ? 'border-r border-[#cfdbe7] pr-4' : ''}>
-            <div className="text-[9px] text-[#4a5e7b] uppercase tracking-[0.07em] font-mono font-bold mb-0.5">{m.label}</div>
-            <div className="text-[13px] text-[#0a1931] font-bold">{m.value}</div>
-          </div>
-        ))}
+  let current = 0;
+
+  const gradient = safeData
+    .map((item) => {
+      const start = (current / total) * 100;
+
+      current += item.value;
+
+      const end = (current / total) * 100;
+
+      return `${item.color || "#3B82F6"} ${start}% ${end}%`;
+    })
+    .join(", ");
+
+  return (
+    <div
+      className="relative shrink-0 rounded-full"
+      style={{
+        width: size,
+        height: size,
+        background: `conic-gradient(${gradient})`,
+      }}
+    >
+      <div className="absolute inset-[27px] flex items-center justify-center rounded-full bg-white text-[11px] font-semibold text-[#173149]">
+        {total}%
       </div>
     </div>
   );
-}
+};
 
-function SectorRevenueReporting() {
-  return (
-    <div className="bg-white border border-[#cfdbe7] p-6 shadow-sm">
-      <div className="text-[11px] text-[#0a1931] uppercase tracking-[0.08em] font-mono font-bold mb-4">
-        Sector Revenue Reporting
-      </div>
-      <div className="flex flex-col gap-4">
-        {REVENUE_BY_SECTOR.map((item, i) => (
-          <div key={i}>
-            <div className="flex justify-between text-[12px] mb-1.5 font-medium">
-              <span className="text-black font-semibold">{item.sector}</span>
-              <span className="text-[#0a1931] font-mono text-[11px] font-bold">LKR {item.valueLKR}</span>
-            </div>
-            <div className="h-2 bg-[#e2edf7] rounded-full overflow-hidden">
-              <div className="h-full bg-[#1d4ed8]" style={{ width: `${item.pct}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+const BarChart = ({ data, height = 120 }) => {
+  const safeData = getArray(data).filter(
+    (item) => typeof item.value === "number"
   );
-}
 
-function EconomicImpactMetrics() {
-  return (
-    <div className="bg-white border border-[#cfdbe7] p-6 shadow-sm">
-      <div className="text-[11px] text-[#0a1931] uppercase tracking-[0.08em] font-mono font-bold mb-4">
-        Economic Impact Breakdown
+  if (safeData.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center text-[10px] text-[#758593]"
+        style={{ height }}
+      >
+        No data
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {ECONOMIC_IMPACT_DISTRIBUTION.map((m, i) => (
-          <div key={i} className="bg-[#f4f8fc] border border-[#cfdbe7] px-2 py-3 text-center">
-            <div className="text-[22px] font-bold text-black tracking-[-0.02em] font-mono">{m.pct}%</div>
-            <div className="text-[9px] text-[#4a5e7b] mt-1 uppercase font-mono font-bold tracking-[0.06em]">{m.label}</div>
-          </div>
-        ))}
-      </div>
-    </div>
+    );
+  }
+
+  const max = Math.max(
+    ...safeData.map((item) => item.value),
+    1
   );
-}
 
-function SmeParticipationTelemetry() {
   return (
-    <div className="bg-white border border-[#cfdbe7] p-6 shadow-sm">
-      <div className="text-[11px] text-[#0a1931] uppercase tracking-[0.08em] font-mono font-bold mb-4">
-        SME Participation Matrix
-      </div>
-      <table className="w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-b-2 border-[#0a1931]">
-            {['Province Registry', 'Registered SMEs', 'Adoption Rate', 'Impact Index'].map((h, i) => (
-              <th
-                key={i}
-                className={`text-[10px] text-[#4a5e7b] font-mono uppercase tracking-[0.07em] font-bold pb-2 ${i === 3 ? 'text-right' : 'text-left'}`}
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {SME_PARTICIPATION_METRICS.map((p, i) => (
-            <tr key={i} className={i < SME_PARTICIPATION_METRICS.length - 1 ? 'border-b border-[#e2edf7]' : ''}>
-              <td className="py-2.5 font-semibold text-black">{p.region}</td>
-              <td className="py-2.5 font-mono text-[11px] text-[#0a1931]">{p.registeredSMEs}</td>
-              <td className="py-2.5 text-[#4a5e7b] font-mono text-[11px] font-medium">{p.activeAds}</td>
-              <td className="py-2.5 text-right">
-                <span className="inline-flex items-center gap-1.5 justify-end w-full">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.ok ? 'bg-[#16a34a]' : 'bg-[#dc2626]'}`} />
-                  <span className={`font-mono font-bold text-[11px] ${p.ok ? 'text-black' : 'text-[#991b1b]'}`}>{p.impactScore}</span>
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function FinancialAnomaliesFeed() {
-  return (
-    <div className="bg-[#f8fafc] border border-[#cfdbe7] border-l-4 border-l-black p-6 shadow-sm">
-      <div className="flex items-center justify-between text-[11px] text-[#0a1931] uppercase tracking-[0.08em] font-mono font-bold mb-4">
-        <span>Anomalies & Operational Flags</span>
-        <span className="text-[#b91c1c] font-black">Action Required</span>
-      </div>
-      <div className="flex flex-col gap-2.5">
-        {FINANCIAL_ANOMALIES_FEED.map((inc, i) => (
+    <div
+      className="flex items-end justify-between gap-3"
+      style={{ height }}
+    >
+      {safeData.map((item, index) => (
+        <div
+          key={item.label || index}
+          className="flex h-full flex-1 flex-col items-center justify-end"
+        >
           <div
-            key={i}
-            className={`px-3 py-2.5 bg-white border border-l-[3px] shadow-xs
-              ${inc.critical
-                ? 'border-[#fca5a5] border-l-[#dc2626]'
-                : 'border-[#cfdbe7] border-l-[#0a1931]'
-              }`}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-mono tracking-[0.02em] font-bold text-black">{inc.channel}</span>
-              <span className={`text-[9px] font-mono tracking-[0.06em] font-bold uppercase ${inc.critical ? 'text-[#dc2626]' : 'text-[#0a1931]'}`}>
-                {inc.critical ? '● CRITICAL' : '○ PENDING'}
-              </span>
-            </div>
-            <p className="text-[11px] text-[#4a5e7b] font-medium m-0 leading-relaxed">{inc.detail}</p>
-          </div>
-        ))}
-      </div>
+            className="w-7 rounded-t-[4px]"
+            style={{
+              height: `${Math.max(
+                (item.value / max) * 90,
+                5
+              )}%`,
+              background: item.color || "#3B82F6",
+            }}
+          />
+
+          <span className="mt-2 max-w-[70px] truncate text-center text-[9px] leading-tight text-[#65798A]">
+            {item.label || "Unknown"}
+          </span>
+        </div>
+      ))}
     </div>
   );
-}
+};
 
-// ─── Main Dashboard Page ───────────────────────────────────────────────────────
+const Progress = ({ data }) => {
+  const safeData = getArray(data).filter(
+    (item) => typeof item.value === "number"
+  );
 
-export default function governmentDashboard() {
-  const [range, setRange] = useState('7d');
-
-  const handleExportCSV = () => {
-    const currentMatrixData = AGGREGATED_METRICS_MATRIX[range];
-    
-    const headers = ['Aggregation Stream', 'Volume Count', 'Baseline Target', 'Gross Yield', 'Performance Status'];
-    const rows = currentMatrixData.map(item => [item.metric, item.current, item.target, `LKR ${item.yieldLKR}`, item.status]);
-    
-    const csvContent = [
-      headers.join(','), 
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `tourism_matrix_performance_report_${range}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  if (safeData.length === 0) {
+    return (
+      <p className="text-center text-[10px] text-[#758593]">
+        No data
+      </p>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] text-black font-sans antialiased">
-      <Topbar />
-      <div className="p-8 px-10 flex flex-col gap-6">
-        
-        {/* Metric Header Controller */}
-        <div className="flex justify-between items-center border-b border-[#cfdbe7] pb-4">
-          <h1 className="text-[20px] font-bold text-[#0a1931] tracking-tight">
-            Economic Performance Executive Summary
-          </h1>
-          <button 
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-white border border-[#cfdbe7] hover:border-black hover:bg-[#f4f8fc] text-[#0a1931] text-[11px] font-mono font-bold tracking-[0.04em] uppercase transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="15" y2="3" />
-            </svg>
-            Export Aggregation Data ({range})
-          </button>
+    <div className="space-y-4">
+      {safeData.map((item, index) => (
+        <div
+          key={item.label || index}
+          className="grid grid-cols-[90px_1fr_32px_24px] items-center gap-2"
+        >
+          <span className="truncate text-[10px] leading-tight text-[#3B5062]">
+            {item.label || "Unknown"}
+          </span>
+
+          <div className="h-[8px] overflow-hidden rounded-full bg-[#D3E8EF]">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.max(
+                  0,
+                  Math.min(item.value, 100)
+                )}%`,
+                background: item.color || "#3B82F6",
+              }}
+            />
+          </div>
+
+          <span className="text-right text-[10px] font-semibold text-[#52697B]">
+            {item.value}%
+          </span>
+
+          <span className="text-center text-sm">
+            {item.icon || ""}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Main Dashboard                                                             */
+/* -------------------------------------------------------------------------- */
+
+export default function GovernmentDashboard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(API_URL, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            ...(token
+              ? {
+                  Authorization: `Bearer ${token}`,
+                }
+              : {}),
+          },
+          credentials: "include",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Dashboard request failed with status ${response.status}`
+          );
+        }
+
+        const result = await response.json();
+
+        /*
+         * Your backend can return either:
+         *
+         * {
+         *   data: { ... }
+         * }
+         *
+         * OR directly:
+         *
+         * {
+         *   hero: { ... },
+         *   touristStatistics: { ... }
+         * }
+         *
+         * This supports both.
+         */
+        const dashboardData = result?.data ?? result;
+
+        if (!dashboardData || typeof dashboardData !== "object") {
+          throw new Error(
+            "The server returned invalid dashboard data."
+          );
+        }
+
+        setData(dashboardData);
+      } catch (err) {
+        if (err.name === "AbortError") {
+          return;
+        }
+
+        console.error(
+          "Government dashboard error:",
+          err
+        );
+
+        setError(
+          err.message ||
+            "Unable to load government dashboard data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  /* ---------------------------------------------------------------------- */
+  /* Loading                                                                */
+  /* ---------------------------------------------------------------------- */
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#EAF7FC] font-sans text-[#20384E]">
+        <Header />
+
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <p className="text-sm font-medium text-[#526A7B]">
+            Loading dashboard...
+          </p>
         </div>
 
-        <KpiStrip />
-        
-        <div className="grid grid-cols-[1fr_340px] gap-6">
-          <DataAggregationMatrix range={range} onRangeChange={setRange} />
-          <div className="flex flex-col gap-6">
-            <SectorRevenueReporting />
-            <EconomicImpactMetrics />
+        <Footer />
+      </div>
+    );
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Error                                                                  */
+  /* ---------------------------------------------------------------------- */
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#EAF7FC] font-sans text-[#20384E]">
+        <Header />
+
+        <div className="flex min-h-[70vh] items-center justify-center px-6">
+          <div className="rounded-xl border border-red-200 bg-white p-6 text-center shadow-sm">
+            <h2 className="text-lg font-semibold text-red-600">
+              Unable to load dashboard
+            </h2>
+
+            <p className="mt-2 text-sm text-[#526A7B]">
+              {error}
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-6">
-          <SmeParticipationTelemetry />
-          <FinancialAnomaliesFeed />
-        </div>
+
+        <Footer />
       </div>
+    );
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* No Data                                                                */
+  /* ---------------------------------------------------------------------- */
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-[#EAF7FC] font-sans text-[#20384E]">
+        <Header />
+
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <p className="text-sm font-medium text-[#526A7B]">
+            No dashboard data available.
+          </p>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Data from MongoDB document                                             */
+  /* ---------------------------------------------------------------------- */
+
+  const stats = data.touristStatistics || {};
+  const revenue = data.revenueStatistics || {};
+  const behavior = data.touristBehavior || {};
+  const emergency = data.emergency || {};
+
+  const demographics = getArray(stats.demographics);
+  const countries = getArray(stats.countries);
+
+  const travelModes = getArray(behavior.travelModes);
+  const foodCategories = getArray(
+    behavior.foodCategories
+  );
+
+  const complaints = getArray(
+    emergency.complaints
+  );
+
+  const revenueCategories = getArray(
+    revenue.categories
+  );
+
+  const heroTitle =
+    data.hero?.title || "Government Dashboard";
+
+  const heroImage =
+    data.hero?.background || DEFAULT_HERO_IMAGE;
+
+  /* ---------------------------------------------------------------------- */
+  /* Page                                                                    */
+  /* ---------------------------------------------------------------------- */
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-[#EAF7FC] font-sans text-[#20384E]">
+      <Header />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Hero                                                               */}
+      {/* ------------------------------------------------------------------ */}
+
+      <section
+        className="relative h-[330px] overflow-hidden bg-cover bg-center md:h-[370px]"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              90deg,
+              rgba(0, 38, 58, 0.48) 0%,
+              rgba(0, 38, 58, 0.24) 45%,
+              rgba(0, 38, 58, 0.10) 100%
+            ),
+            url("${heroImage}")
+          `,
+        }}
+      >
+        <div className="relative z-10 mx-auto flex h-full max-w-[1240px] items-end px-5 pb-8">
+          <h1 className="max-w-[650px] font-serif text-[42px] font-semibold italic leading-[1.08] tracking-[-0.03em] text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.4)] md:text-[58px]">
+            {heroTitle}
+          </h1>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-[1240px] space-y-9 px-4 py-8 md:px-6">
+        {/* ---------------------------------------------------------------- */}
+        {/* Tourist Statistics                                               */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Section title="Tourist Statistics">
+          <div className="grid gap-5 md:grid-cols-[.7fr_1fr_1fr]">
+            <div className="space-y-5">
+              <StatCard
+                icon="🧭"
+                value={`${formatNumber(
+                  stats.liveTourists
+                )}+`}
+                label="Live Tourist Count"
+              />
+
+              <StatCard
+                icon="📍"
+                value={`${formatNumber(
+                  stats.arrivals
+                )}+`}
+                label="Arrival Trends"
+                sub={
+                  stats.arrivals != null
+                    ? `Arrive ${formatNumber(
+                        stats.arrivals
+                      )} people per month`
+                    : null
+                }
+              />
+            </div>
+
+            <Card className="p-5">
+              <CardTitle>
+                Age & Gender Demographics
+              </CardTitle>
+
+              <div className="mt-5 flex items-center justify-center gap-6">
+                <Donut data={demographics} />
+
+                <Legend items={demographics} />
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <CardTitle>
+                Most Visited Countries near Sri Lanka
+              </CardTitle>
+
+              <div className="mt-4">
+                <BarChart data={countries} />
+              </div>
+
+              <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2">
+                {countries.map((item, index) => (
+                  <div
+                    key={item.label || index}
+                    className="flex items-center gap-1.5 text-[9px] text-[#53697A]"
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{
+                        background:
+                          item.color || "#3B82F6",
+                      }}
+                    />
+
+                    {item.label || "Unknown"}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </Section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Revenue Statistics                                               */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Section title="Revenue Statistics">
+          <Card className="mx-auto max-w-[720px] p-6">
+            <div className="flex flex-col justify-between gap-6 md:flex-row">
+              <div>
+                <SmallText>
+                  Total Revenue
+                </SmallText>
+
+                <h2 className="mt-1 text-[26px] font-bold leading-none tracking-[-0.03em] text-[#132C45]">
+                  {revenue.totalRevenue || "—"}
+                </h2>
+
+                <SmallText className="mt-2">
+                  {revenue.revenueChange || ""}
+                </SmallText>
+              </div>
+
+              <div className="flex gap-8">
+                <div>
+                  <SmallText>
+                    Last month
+                  </SmallText>
+
+                  <p className="mt-1 text-[16px] font-semibold text-[#294158]">
+                    {revenue.lastMonthGrowth ??
+                      "—"}
+                    %
+                    <span className="ml-1">
+                      📉
+                    </span>
+                  </p>
+                </div>
+
+                <div>
+                  <SmallText>
+                    This month
+                  </SmallText>
+
+                  <p className="mt-1 text-[16px] font-semibold text-[#294158]">
+                    {revenue.thisMonthGrowth ??
+                      "—"}
+                    %
+                    <span className="ml-1">
+                      📈
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-5 md:grid-cols-3">
+              {revenueCategories.map(
+                (item, index) => (
+                  <div
+                    key={item.label || index}
+                    className="rounded-xl p-5 text-center text-white shadow-sm"
+                    style={{
+                      background:
+                        item.color || "#0EA5A4",
+                    }}
+                  >
+                    <p className="text-[10px] font-medium">
+                      {item.label || "Unknown"}
+                    </p>
+
+                    <h3 className="mt-3 text-[20px] font-bold leading-none">
+                      {item.value ?? "—"}
+                    </h3>
+
+                    <p className="mt-2 text-[10px] font-medium">
+                      {item.change || ""}
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+          </Card>
+        </Section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Tourist Behavior                                                 */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Section title="Tourist Behavior & Preferences">
+          <Card className="mx-auto max-w-[560px] p-6">
+            <CardTitle>
+              Most Used Travel Modes
+            </CardTitle>
+
+            <div className="mt-6">
+              <Progress data={travelModes} />
+            </div>
+          </Card>
+
+          <div className="mx-auto grid max-w-[800px] gap-5 md:grid-cols-2">
+            <Card className="p-5">
+              <CardTitle>
+                Most Profited Food Categories
+              </CardTitle>
+
+              <div className="mt-4">
+                <BarChart
+                  data={foodCategories}
+                />
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <CardTitle>
+                Current Satisfaction of Sri Lanka
+              </CardTitle>
+
+              <div className="mt-6 flex items-center justify-around text-center">
+                <div>
+                  <div className="text-[27px] font-bold leading-none tracking-[-0.03em] text-[#132C45]">
+                    {behavior.satisfaction
+                      ?.current ?? "—"}
+
+                    {behavior.satisfaction
+                      ?.current != null
+                      ? "/10"
+                      : ""}
+                  </div>
+
+                  <SmallText className="mt-2">
+                    This Year
+                  </SmallText>
+                </div>
+
+                <div className="text-xl font-light text-[#708291]">
+                  ⇅
+                </div>
+
+                <div>
+                  <div className="text-[27px] font-bold leading-none tracking-[-0.03em] text-[#132C45]">
+                    {behavior.satisfaction
+                      ?.previous ?? "—"}
+
+                    {behavior.satisfaction
+                      ?.previous != null
+                      ? "/10"
+                      : ""}
+                  </div>
+
+                  <SmallText className="mt-2">
+                    Last Year
+                  </SmallText>
+                </div>
+              </div>
+
+              <p className="mt-6 text-center text-[10px] font-medium text-[#2CA5B7]">
+                {behavior.satisfaction
+                  ?.weeklyChange != null
+                  ? `+${behavior.satisfaction.weeklyChange}% from last week`
+                  : "—"}
+              </p>
+            </Card>
+          </div>
+        </Section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Emergency Response                                               */}
+        {/* ---------------------------------------------------------------- */}
+
+        <Section title="Emergency Response">
+          <div className="mx-auto grid max-w-[800px] gap-5 md:grid-cols-2">
+            <Card className="p-5">
+              <CardTitle>
+                Tourist Complaints
+              </CardTitle>
+
+              <div className="mt-6 flex items-center justify-center gap-7">
+                <Donut data={complaints} />
+
+                <Legend items={complaints} />
+              </div>
+            </Card>
+
+            <Card className="flex min-h-[220px] flex-col items-center justify-center p-6 text-center">
+              <div className="text-[38px] leading-none">
+                🛡️
+              </div>
+
+              <div className="mt-3 text-[38px] font-bold leading-none tracking-[-0.03em] text-[#132C45]">
+                {formatNumber(
+                  emergency.safetyIncidents?.total
+                )}
+              </div>
+
+              <p className="mt-3 text-[11px] font-medium text-[#3B5062]">
+                Total Safety Incidents This Month
+              </p>
+
+              <SmallText className="mt-2">
+                {emergency.safetyIncidents
+                  ?.change || ""}
+              </SmallText>
+            </Card>
+          </div>
+        </Section>
+      </main>
+
+      <Footer />
     </div>
   );
 }
