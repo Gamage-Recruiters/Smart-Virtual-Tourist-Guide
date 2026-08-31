@@ -78,11 +78,8 @@ function App() {
         <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
 
 
-        {/* ✅ Default route — change the element to any component for testing */}
-        <Route path="/" element={<LoginScreen />} />
-
         {/* Landing pages */}
-        <Route path="/home" element={<Layout />}>
+        <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="how-it-works" element={<HowItWorks />} />
