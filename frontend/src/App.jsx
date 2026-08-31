@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Explore from './pages/Explore';
-import Direction from './pages/Direction';
+import DirectionPage from './pages/DirectionPage';
+import NavigationPage from './pages/NavigationPage';
 import DirectionOne from './pages/DirectionOne';
 import EtaPage from './pages/EtaPage';
 import SafetyAlertTemplate from './pages/SafetyAlertTemplate';
@@ -42,8 +43,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Explore />} />
                 <Route path="/direction/setup" element={<DirectionOne />} />
-                <Route path="/direction" element={<Direction />} />
-                <Route path="/navigation" element={<Direction showDetailsPanel={false} />} />
+                <Route path="/direction" element={<DirectionPage />} />
+                <Route path="/navigation" element={<NavigationPage />} />
                 <Route path="/eta" element={<EtaPage />} />
                 <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
               </Routes>
