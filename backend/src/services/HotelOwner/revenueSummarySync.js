@@ -37,10 +37,16 @@ const overlapNights = (checkIn, checkOut, monthStart) => {
 const emptySummary = (hotelId, month) => ({
   hotelId,
   month,
-  metrics: { totalRevenue: 0, occupancyRate: 0, avgDailyRate: 0, revPAR: 0 },
+  metrics: { totalRevenue: 0, occupancyRate: 0, avgDailyRate: 0, revPAR: 0, totalBookings: 0 },
   revenue: { revenue: 0 },
   revenueByRoomType: [],
   refunds: [],
+  weeklyBookings: [
+    { week: 'Week 1', bookings: 0 },
+    { week: 'Week 2', bookings: 0 },
+    { week: 'Week 3', bookings: 0 },
+    { week: 'Week 4', bookings: 0 },
+  ],
 });
 
 export const syncRevenueSummaries = async () => {
@@ -88,6 +94,17 @@ export const syncRevenueSummaries = async () => {
       reason: booking.payment.refundReason || '',
       date: booking.payment.refundDate || null,
     } : null;
+
+    const bookedDate = parseDate(booking.bookedDate);
+    if (bookedDate) {
+      const bookedKey = `${hotelId}:${monthKey(bookedDate)}`;
+      const bookedSummary = summaries.get(bookedKey);
+      if (bookedSummary) {
+        bookedSummary.metrics.totalBookings += 1;
+        const weekIndex = Math.min(Math.floor((bookedDate.getUTCDate() - 1) / 7), 3);
+        bookedSummary.weeklyBookings[weekIndex].bookings += 1;
+      }
+    }
 
     months.forEach((month) => {
       const key = `${hotelId}:${monthKey(month)}`;

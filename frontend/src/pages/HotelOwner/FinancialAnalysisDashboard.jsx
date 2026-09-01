@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  FaSearch, FaDollarSign, FaBed, FaChartLine, FaMoneyBillWave,
+  FaSearch, FaDollarSign, FaBed, FaChartLine, FaMoneyBillWave, FaArrowLeft, FaArrowRight,
 } from 'react-icons/fa';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -67,8 +67,30 @@ const getMinutesSince = (value) => {
   return Math.max(0, Math.floor((Date.now() - updatedAt) / 60000));
 };
 
-const toSummaryData = (summaries) => {
+const toSummaryData = (summaries, monthOffset = 0) => {
   const sortedSummaries = [...summaries].sort((a, b) => a.month.localeCompare(b.month));
+  
+  if (sortedSummaries.length === 0) {
+    return {
+      metrics: {},
+      revenueByMonth: [],
+      revenueByRoomType: [],
+      updatedAt: null,
+      monthOffset: 0,
+      totalMonths: 0,
+      allSummaries: sortedSummaries,
+    };
+  }
+
+  // Calculate the start index for the 6 month window
+  const totalMonths = sortedSummaries.length;
+  const maxOffset = Math.max(0, totalMonths - 6);
+  const validOffset = Math.min(Math.max(0, monthOffset), maxOffset);
+  
+  // Get the 6 month window
+  const startIndex = totalMonths - 6 - validOffset;
+  const windowSummaries = sortedSummaries.slice(startIndex, startIndex + 6);
+  
   const latestSummary = sortedSummaries[sortedSummaries.length - 1];
   const roomTotals = new Map();
 
@@ -80,7 +102,7 @@ const toSummaryData = (summaries) => {
 
   return {
     metrics: latestSummary?.metrics || {},
-    revenueByMonth: sortedSummaries.map((summary) => ({
+    revenueByMonth: windowSummaries.map((summary) => ({
       month: new Date(`${summary.month}-01T00:00:00`).toLocaleDateString('en-US', { month: 'short' }),
       revenue: summary.revenue?.revenue || 0,
     })),
@@ -92,6 +114,9 @@ const toSummaryData = (summaries) => {
     updatedAt: summaries.reduce((latest, summary) => (
       !latest || new Date(summary.updatedAt) > new Date(latest) ? summary.updatedAt : latest
     ), null),
+    monthOffset: validOffset,
+    totalMonths,
+    allSummaries: sortedSummaries,
   };
 };
 
@@ -142,6 +167,9 @@ export default function FinancialAnalysis() {
   const [minutesSinceUpdate, setMinutesSinceUpdate] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [transactionsError, setTransactionsError] = useState('');
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [totalMonths, setTotalMonths] = useState(0);
+  const [allSummaries, setAllSummaries] = useState([]);
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -149,12 +177,14 @@ export default function FinancialAnalysis() {
     if (!hotelId) return;
 
     const applySummaries = (summaries) => {
-      const summaryData = toSummaryData(summaries);
+      const summaryData = toSummaryData(summaries, monthOffset);
       setMetrics(summaryData.metrics);
       setRevenueByMonth(summaryData.revenueByMonth);
       setRevenueByRoomType(summaryData.revenueByRoomType);
       setUpdatedAt(summaryData.updatedAt);
       setMinutesSinceUpdate(getMinutesSince(summaryData.updatedAt));
+      setTotalMonths(summaryData.totalMonths);
+      setAllSummaries(summaryData.allSummaries);
     };
 
     Promise.all([
@@ -182,12 +212,14 @@ export default function FinancialAnalysis() {
     setIsSyncing(true);
     hotelOwnerAPI.syncRevenueSummariesByHotel(hotelId)
       .then((response) => {
-        const summaryData = toSummaryData(response.summaries || []);
+        const summaryData = toSummaryData(response.summaries || [], monthOffset);
         setMetrics(summaryData.metrics);
         setRevenueByMonth(summaryData.revenueByMonth);
         setRevenueByRoomType(summaryData.revenueByRoomType);
         setUpdatedAt(summaryData.updatedAt);
         setMinutesSinceUpdate(getMinutesSince(summaryData.updatedAt));
+        setTotalMonths(summaryData.totalMonths);
+        setAllSummaries(summaryData.allSummaries);
       })
       .catch(() => setTransactionsError('Unable to synchronize financial data.'))
       .finally(() => setIsSyncing(false));
@@ -298,6 +330,60 @@ export default function FinancialAnalysis() {
                     <Bar dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Revenue" />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+              {/* Navigation Controls */}
+              <div className="flex items-center justify-between mt-4 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newOffset = monthOffset + 1;
+                    setMonthOffset(newOffset);
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const hotelId = userData.hotels?.[0]?._id;
+                    if (hotelId) {
+                      hotelOwnerAPI.getRevenueSummariesByHotel(hotelId).then((response) => {
+                        const summaryData = toSummaryData(response.summaries || [], newOffset);
+                        setRevenueByMonth(summaryData.revenueByMonth);
+                        setTotalMonths(summaryData.totalMonths);
+                      });
+                    }
+                  }}
+                  disabled={monthOffset >= totalMonths - 6}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaArrowLeft className="text-xs" />
+                  <span>Back</span>
+                </button>
+                <span className="text-sm font-bold text-slate-700">
+                  {allSummaries.length > 0 && (
+                    <>
+                      {allSummaries[Math.max(0, allSummaries.length - 6 - monthOffset)]?.month || '-'}
+                      {' to '}
+                      {allSummaries[Math.min(allSummaries.length - 1, allSummaries.length - 1 - monthOffset)]?.month || '-'}
+                    </>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newOffset = Math.max(0, monthOffset - 1);
+                    setMonthOffset(newOffset);
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const hotelId = userData.hotels?.[0]?._id;
+                    if (hotelId) {
+                      hotelOwnerAPI.getRevenueSummariesByHotel(hotelId).then((response) => {
+                        const summaryData = toSummaryData(response.summaries || [], newOffset);
+                        setRevenueByMonth(summaryData.revenueByMonth);
+                        setTotalMonths(summaryData.totalMonths);
+                      });
+                    }
+                  }}
+                  disabled={monthOffset === 0}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>Forward</span>
+                  <FaArrowRight className="text-xs" />
+                </button>
               </div>
             </div>
 

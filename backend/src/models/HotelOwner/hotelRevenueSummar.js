@@ -8,7 +8,8 @@ const revenueSummarySchema = new mongoose.Schema({
     totalRevenue: { type: Number, default: 0 },   // sum of bookingPrice - refunds
     occupancyRate: { type: Number, default: 0 },  // percentage
     avgDailyRate: { type: Number, default: 0 },   // ADR
-    revPAR: { type: Number, default: 0 }          // Revenue per available room
+    revPAR: { type: Number, default: 0 },        // Revenue per available room
+    totalBookings: { type: Number, default: 0 } 
   },
 
   revenue: {
@@ -28,6 +29,14 @@ const revenueSummarySchema = new mongoose.Schema({
       amount: { type: Number, default: 0 },
       reason: { type: String, default: '' },
       date: { type: Date }
+    }
+  ],
+
+    // ✅ New field for weekly booking trends
+  weeklyBookings: [
+    {
+      week: { type: String },       // e.g., "Week 1", "Week 2"
+      bookings: { type: Number, default: 0 }
     }
   ],
 
