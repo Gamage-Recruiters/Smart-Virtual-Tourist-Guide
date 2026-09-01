@@ -54,12 +54,12 @@ const Header = () => {
           <div className="flex justify-between items-center h-24">
             
             {/* Logo Section - Using Images with increased size */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
               {/* Logo Icon Image - Increased from h-10 to h-14 */}
               <img 
                 src={logoIcon} 
                 alt="Logo" 
-                className="h-30 w-auto object-contain pt-3"
+                className="h-16 sm:h-24 lg:h-30 w-auto object-contain pt-2 sm:pt-3"
                 onClick={() => navigate('/')}
               />
               
@@ -67,12 +67,12 @@ const Header = () => {
               <img 
                 src={logoText} 
                 alt="Smart Virtual Tourism Guide Sri Lanka" 
-                className="h-12 w-auto object-contain"
+                className="h-8 sm:h-10 lg:h-12 w-auto max-w-[150px] sm:max-w-none object-contain"
               />
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+            <div className="hidden lg:flex items-center space-x-1 lg:space-x-2">
               {navItems.map((item) => (
                 <button
                   key={item}
@@ -158,7 +158,7 @@ const Header = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-gray-600 p-2 rounded-lg hover:bg-white/50 transition-colors"
@@ -170,7 +170,7 @@ const Header = () => {
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200 animate-slideDown">
+            <div className="lg:hidden py-4 border-t border-gray-200 animate-slideDown">
               <div className="flex flex-col space-y-2">
                 {navItems.map((item) => (
                   <button

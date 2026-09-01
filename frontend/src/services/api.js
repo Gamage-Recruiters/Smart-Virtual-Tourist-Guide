@@ -1,27 +1,14 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-/**
- * Public headers (no auth)
- */
-const publicHeaders = {
-  'Content-Type': 'application/json',
-};
+const publicHeaders = { 'Content-Type': 'application/json' };
 
-/**
- * Private headers (with JWT if available)
- */
 const privateHeaders = () => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
+  const headers = { 'Content-Type': 'application/json' };
   const token = localStorage.getItem('token');
-
-  if (token && token !== 'null') {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token && token !== 'null' && token !== 'undefined') {
+    headers.Authorization = `Bearer ${token}`;
   }
-
   return headers;
 };
 
@@ -38,105 +25,61 @@ const isPublicRoute = (endpoint = '') => {
   );
 };
 
-/**
- * Core API client
- */
+const statusFallback = {
+  400: 'Please check the submitted information.',
+  401: 'Authentication required.',
+  403: 'Permission denied.',
+  404: 'Requested resource unavailable.',
+  409: 'This action conflicts with an existing record.',
+  500: 'The server could not complete the request.',
+};
+
+const request = async (method, endpoint, data) => {
+  const formData = typeof FormData !== 'undefined' && data instanceof FormData;
+  const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
+  if (formData) delete headers['Content-Type'];
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method,
+      headers,
+      ...(data !== undefined ? { body: formData ? data : JSON.stringify(data) } : {}),
+    });
+  } catch (cause) {
+    console.error(`API ${method} network error:`, cause);
+    const error = new Error('Unable to reach the server. Please check your connection and try again.');
+    error.status = 0;
+    throw error;
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  const payload = response.status === 204
+    ? {}
+    : contentType.includes('application/json')
+      ? await response.json()
+      : { message: await response.text() };
+
+  if (!response.ok) {
+    const error = new Error(payload.message || statusFallback[response.status] || 'The request could not be completed.');
+    error.status = response.status;
+    error.data = payload;
+    if (response.status === 401 && !isPublicRoute(endpoint)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userData');
+      window.dispatchEvent(new Event('auth:expired'));
+    }
+    throw error;
+  }
+  return payload;
+};
+
 const apiClient = {
-  async get(endpoint) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'GET',
-        headers: isPublicRoute(endpoint)
-          ? publicHeaders
-          : privateHeaders(),
-      });
-
-      const json = await response.json();
-
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-
-      return json;
-    } catch (error) {
-      console.error('API GET Error:', error);
-      throw error;
-    }
-  },
-
-  async post(endpoint, data) {
-    try {
-      const isFormData = data instanceof FormData;
-
-      const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
-
-      if (isFormData) {
-        delete headers['Content-Type'];
-      }
-
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers,
-        body: isFormData ? data : JSON.stringify(data),
-      });
-
-      const json = await response.json();
-
-      if (response.status === 401 && !endpoint.startsWith('/auth/login')) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-
-      if (!response.ok) {
-        throw { message: json.message || 'Request failed' };
-      }
-
-      return json;
-    } catch (error) {
-      console.error('API POST Error:', error);
-      throw error;
-    }
-  },
-
-  async put(endpoint, data) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'PUT',
-        headers: isPublicRoute(endpoint)
-          ? publicHeaders
-          : privateHeaders(),
-        body: JSON.stringify(data),
-      });
-
-      const json = await response.json();
-
-      if (!response.ok) {
-        throw { message: json.message || 'Request failed' };
-      }
-
-      return json;
-    } catch (error) {
-      console.error('API PUT Error:', error);
-      throw error;
-    }
-  },
-
-  async delete(endpoint) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'DELETE',
-        headers: isPublicRoute(endpoint)
-          ? publicHeaders
-          : privateHeaders(),
-      });
-
-      return await response.json();
-    } catch (error) {
-      console.error('API DELETE Error:', error);
-      throw error;
-    }
-  },
+  get: (endpoint) => request('GET', endpoint),
+  post: (endpoint, data) => request('POST', endpoint, data),
+  put: (endpoint, data) => request('PUT', endpoint, data),
+  patch: (endpoint, data) => request('PATCH', endpoint, data),
+  delete: (endpoint) => request('DELETE', endpoint),
 };
 
 /**

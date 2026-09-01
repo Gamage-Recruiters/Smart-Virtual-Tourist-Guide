@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { guideAPI } from "../../services/api";
 import Header from "../../components/Guide/Header";
 import Footer from "../../components/Guide/Footer";
 import heroImg from "../../assets/Guide/bg.jpg";
 import useGoogleAuth from "../../hooks/useGoogleAuth";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const GuideSignup = () => {
   const navigate = useNavigate();
+  const { setSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -69,8 +71,7 @@ const GuideSignup = () => {
         throw new Error(response.message || "Registration failed");
       }
 
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("userData", JSON.stringify(response.user));
+      setSession(response.token, response.user);
 
       navigate("/dashboard-Guide");
     } catch (err) {

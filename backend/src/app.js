@@ -1,6 +1,5 @@
 import express, { json, urlencoded } from 'express';
 import { config } from 'dotenv';
-import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,6 +13,13 @@ import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
+import guideRoutes from './routes/guideRoutes.js';
+
+// Activity Provider routes are mounted on this same exported Express app.
+import activityRoutes from './routes/ActivityProvider/activity.routes.js';
+import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
+import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
+import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
 import restaurantRoutes from './routes/restaurant.routes.js';
@@ -38,9 +44,6 @@ app.use(urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// ==================== DATABASE CONNECTION ====================
-connectDB();
 
 // ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
@@ -98,6 +101,15 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/reviews', reviewRoutes);
+
+// Guide marketplace and provider portal routes
+app.use('/api/guides', guideRoutes);
+
+// Activity Provider routes
+app.use('/api/activities', activityRoutes);
+app.use('/api/bookings', activityBookingRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes
