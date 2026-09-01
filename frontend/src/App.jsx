@@ -66,11 +66,23 @@ import DriverSignUp3 from './pages/Driver/SignUpForm3';
 import { DriverSignupProvider } from './context/DriverSignupContext';
 
 // ===== DUMMY / DASHBOARD PAGES =====
-import DummyPageTourist from './pages/Tourist/dummyPage';
-import DummyPageGuide from './pages/Guide/dummyPage';
 import DummyPageGovernment from './pages/Government/dummyPage';
 import DummyPageAdmin from './pages/Admin/dummyPage';
 import DummyPageDriver from './pages/Driver/dummyPage';
+
+// ===== COMPLETE GUIDE SYSTEM =====
+import './features/guides/guide.css';
+import { GuideAdminLayout, TouristGuideLayout } from './features/guides/layouts.jsx';
+import {
+  BookingConfirmedPage, BookingReviewPage, ConfirmBookingPage, GuideBidsPage,
+  GuideProfilePage, MyGuideRequestsPage, PublicGuidesPage, RequestGuidePage,
+  TouristDashboard,
+} from './features/guides/TouristPages.jsx';
+import {
+  GuideDashboardPage, GuideEarningsPage, GuidePackageFormPage, GuidePackagesPage,
+  GuideSettingsPage, MyBidsPage, OpportunitiesPage, ProviderBookingDetailsPage,
+  ProviderBookingsPage,
+} from './features/guides/ProviderPages.jsx';
 
 // ===== VEHICLE ADMIN (from main) =====
 import VehicleAdmin from './pages/vehicleAdminDashboard/vehicleAdminPage';
@@ -145,9 +157,30 @@ function App() {
         />
 
         {/* ===== DASHBOARD ROUTES ===== */}
-        <Route path="/dashboard-Tourist" element={<DummyPageTourist />} />
+        <Route path="/dashboard-Tourist" element={<ProtectedRoute allowedRoles={['tourist_user']}><TouristGuideLayout /></ProtectedRoute>}>
+          <Route index element={<TouristDashboard />} />
+          <Route path="guides" element={<PublicGuidesPage />} />
+          <Route path="guides/request" element={<RequestGuidePage />} />
+          <Route path="guides/requests" element={<MyGuideRequestsPage />} />
+          <Route path="guides/requests/:requestId/bids" element={<GuideBidsPage />} />
+          <Route path="guides/:guideId" element={<GuideProfilePage />} />
+          <Route path="guides/requests/:requestId/confirm/:bidId" element={<ConfirmBookingPage />} />
+          <Route path="guides/bookings/:bookingId" element={<BookingConfirmedPage />} />
+          <Route path="guides/bookings/:bookingId/review" element={<BookingReviewPage />} />
+        </Route>
         <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
-        <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
+        <Route path="/dashboard-Guide" element={<ProtectedRoute allowedRoles={['guide_user']}><GuideAdminLayout /></ProtectedRoute>}>
+          <Route index element={<GuideDashboardPage />} />
+          <Route path="opportunities" element={<OpportunitiesPage />} />
+          <Route path="bids" element={<MyBidsPage />} />
+          <Route path="booking-requests" element={<ProviderBookingsPage />} />
+          <Route path="booking-requests/:bookingId" element={<ProviderBookingDetailsPage />} />
+          <Route path="packages" element={<GuidePackagesPage />} />
+          <Route path="packages/new" element={<GuidePackageFormPage />} />
+          <Route path="packages/:packageId/edit" element={<GuidePackageFormPage />} />
+          <Route path="earnings" element={<GuideEarningsPage />} />
+          <Route path="settings" element={<GuideSettingsPage />} />
+        </Route>
         <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
         <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
         <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
@@ -186,7 +219,7 @@ function App() {
         <Route
           path="/resturent/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['restaurant_user']} loginPath="/resturent/login">
               <ResturentSidebar />
             </ProtectedRoute>
           }

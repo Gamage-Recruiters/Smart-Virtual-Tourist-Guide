@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
 import { auth, firebaseInitialized } from '../configs/firebase.js';
+import GuideProfile from '../models/GuideProfile.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -25,7 +26,6 @@ const generateUsername = async (email) => {
 
 const registerTourist = async (req, res) => {
   try {
-    console.log('Registering tourist request body:', req.body);
     const { fullName, email, password, country, travelType, gender, travelPreferences, healthInfo, emergencyContact } = req.body;
 
     const emailNormalized = email.toLowerCase().trim();
@@ -139,6 +139,7 @@ const addHotelInfo = async (req, res) => {
 };
 
 const registerGuide = async (req, res) => {
+  let createdUser = null;
   try {
     const { fullName, email, password, contactNumber, guideId, dob, gender } = req.body;
 
@@ -161,6 +162,13 @@ const registerGuide = async (req, res) => {
       dob,
       gender
     });
+    createdUser = user;
+
+    await GuideProfile.findOneAndUpdate(
+      { user: user._id },
+      { $setOnInsert: { user: user._id } },
+      { upsert: true, setDefaultsOnInsert: true },
+    );
 
     res.status(201).json({
       success: true,
@@ -179,6 +187,9 @@ const registerGuide = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    if (createdUser?._id) {
+      await User.deleteOne({ _id: createdUser._id }).catch(() => undefined);
+    }
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };

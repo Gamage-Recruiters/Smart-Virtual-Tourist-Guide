@@ -596,7 +596,7 @@
 // };
 
 // export default LoginScreen;
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -605,6 +605,7 @@ import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 // Import social icons from assets (SVG files)
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
@@ -615,6 +616,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setSession } = useAuth();
 
   // Google auth — role=null means backend uses existing user's role
   const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, null);
@@ -654,8 +656,7 @@ const LoginScreen = () => {
 
       // success login
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        setSession(data.token, data.user);
 
         // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);
