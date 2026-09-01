@@ -11,7 +11,7 @@ import {
 import { FiSearch, FiMap, FiMapPin, FiClock, FiUsers, FiPlus, FiEdit3, FiTrash2 } from 'react-icons/fi';
 import { IoRocket } from 'react-icons/io5';
 import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
-import heroBanner from '../../assets/fisherman.png';
+import heroBanner from '../../assets/LandingPage/fisherman.png';
 
 const getImageSrc = (image) =>
   image?.startsWith('http://') || image?.startsWith('https://') || image?.startsWith('data:')

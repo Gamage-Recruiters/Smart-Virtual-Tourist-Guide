@@ -1,10 +1,10 @@
 import { Link, } from 'react-router-dom'; // Add this import
 
 // Import images from your assets folder
-import lotusFlower from '../assets/fbg1.png';
-import mandalaPattern from '../assets/fbg2.png';
-import logoImage from '../assets/HotelOwner/logo.png';
-import sriLankaFlag from '../assets/SLFF.jpg'; // Add your flag image
+import lotusFlower from '../assets/LandingPage/fbg1.png';
+import mandalaPattern from '../assets/LandingPage/fbg2.png';
+import logoImage from '../assets/LandingPage/logo.png';
+import sriLankaFlag from '../assets/LandingPage/SLFF.jpg'; // Add your flag image
 
 const Footer = () => {
   return (

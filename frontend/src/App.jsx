@@ -13,12 +13,16 @@ import ManageCalendar from "./pages/ActivityProvider/ManageCalendar.jsx";
 import ViewRatings from "./pages/ActivityProvider/ViewRatings.jsx";
 import AcceptBookings from "./pages/ActivityProvider/AcceptBookings.jsx";
 
-import Layout from "./components/Layout";
-import HomePage from "./pages/HomePage";
-import AboutUs from "./pages/AboutUs";
-import HowItWorks from "./pages/HowItWork";
-import Destinations from "./pages/Destinations";
-import ContactPage from "./pages/Contact";
+// ===== LANDING PAGES (from main) =====
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import AboutUs from './pages/AboutUs';
+import Destinations from './pages/Destinations';
+import HowItWorks from './pages/HowItWork';
+import ContactUs from './pages/Contact.jsx';
+import AddDestination from './pages/addDestinations';
+import DestinationDetails from './pages/DestinationDetails.jsx';
+import ResultsPage from './pages/ResultsPage.jsx';
 
 import SignupForm from "./pages/Tourist/SignupForm1";
 import TravelSafetyInfo from "./pages/Tourist/SignupForm2";
@@ -109,6 +113,18 @@ function App() {
           {/*                     EXISTING PROJECT                      */}
           {/* ========================================================= */}
 
+        {/* ===== LANDING PAGES (from main) ===== */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutUs />} />
+          <Route path="how-it-works" element={<HowItWorks />} />
+          <Route path="destinations" element={<Destinations />} />
+          <Route path="contact" element={<ContactUs />} />
+          <Route path="results" element={<ResultsPage />} />
+        </Route>
+        <Route path="/add-destination" element={<AddDestination />} />
+        <Route path="/destination-detail" element={<DestinationDetails />} />
+
           {/* Activity Provider */}
           <Route
             path="/activityprovider/dashboard"
@@ -138,15 +154,6 @@ function App() {
             path="/activityprovider/acceptbookings"
             element={<AcceptBookings />}
           />
-
-          {/* Landing pages */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="about" element={<AboutUs />} />
-            <Route path="destinations" element={<Destinations />} />
-            <Route path="how-it-works" element={<HowItWorks />} />
-            <Route path="contact" element={<ContactPage />} />
-          </Route>
 
           {/* Authentication */}
           <Route path="/login" element={<LoginScreen />} />

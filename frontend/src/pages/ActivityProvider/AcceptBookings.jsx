@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
-import heroBanner from '../../assets/safari.png';
+import heroBanner from '../../assets/LandingPage/safari.png';
 import { activityAPI } from '../../services/ActivityProvider/activityAPI';
 
 // eslint-disable-next-line no-unused-vars

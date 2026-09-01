@@ -26,7 +26,12 @@ function Sidebar() {
             active={
               location === "/" ||
               location === "/dashboard-Tourist" ||
-              location.startsWith("/dashboard-Tourist/")
+              (location.startsWith("/dashboard-Tourist/") &&
+                location !== "/dashboard-Tourist/trip-plan" &&
+                location !== "/dashboard-Tourist/direction" &&
+                location !== "/dashboard-Tourist/touristProfile" && 
+                location !== "/safety"
+              )
             }
           />
           <NavItem
@@ -57,7 +62,7 @@ function Sidebar() {
       <div>
         <nav className="border-t border-slate-200">
         
-          <button className="flex items-center gap-4 px-8 pb-6 cursor-pointer transition-colors text-slate-400 hover:text-slate-600 font-semibold"
+          <button className="flex items-center justify-center gap-4 px-8 py-5 cursor-pointer transition-colors text-red-500 hover:text-red-600 font-bold"
           onClick={()=>{
             localStorage.removeItem("token")
             localStorage.removeItem("userData")
@@ -66,7 +71,7 @@ function Sidebar() {
           >
             {" "}
             <span>
-              <LogOut size={20} />
+              <LogOut size={24} />
             </span>
             Logout
           </button>

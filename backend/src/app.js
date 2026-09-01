@@ -13,6 +13,8 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
@@ -93,6 +95,8 @@ app.use('/api/auth', authRoutes);
 
 // Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/destinations', destinationRoutes);
 app.use('/api/safety', safetyRouter);
 
 
