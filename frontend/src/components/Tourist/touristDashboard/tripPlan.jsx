@@ -1,5 +1,5 @@
 import { MapPin, CloudSun, Calendar, Banknote } from "lucide-react";
-import Sigiriya from "../../../assets/Sigiriya.jpg";
+import Sigiriya from "../../../assets/LandingPage/Sigiriya.jpg";
 
 
 function formatDate(dateStr) {
