@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Add this import
+import { Link, } from 'react-router-dom'; // Add this import
 
 // Import images from your assets folder
 import lotusFlower from '../assets/LandingPage/fbg1.png';
