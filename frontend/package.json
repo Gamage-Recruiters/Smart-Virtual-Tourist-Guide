@@ -19,6 +19,7 @@
     "axios": "^1.17.0",
     "browser-image-compression": "^2.0.2",
     "country-list": "^2.4.1",
+    "date-fns": "^4.4.0",
     "dayjs": "^1.11.21",
     "firebase": "^12.14.0",
     "leaflet": "^1.9.4",
