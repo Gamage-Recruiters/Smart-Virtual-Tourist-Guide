@@ -12,7 +12,7 @@ import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.
 import userRoutes from './routes/HotelOwner/user.routes.js';
 import tempHotBookRoutes from './routes/HotelOwner/tempHotBook.routes.js';
 import hotelRevenueSummaryRoutes from './routes/HotelOwner/hotelRevenueSummary.routes.js';
-import startBookingSyncScheduler from './jobs/bookingSyncScheduler.js';
+import startBookingSyncScheduler from './jobs/HotelOwner/bookingSyncScheduler.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
