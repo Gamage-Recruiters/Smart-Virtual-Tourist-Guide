@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useUIContext } from '../contexts/UIContext';
+import { useLocationContext } from '../contexts/LocationContext';
+import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import { useLeafletMap } from '../hooks/useLeafletMap';
 import { useRouting } from '../hooks/useRouting';
@@ -10,7 +12,9 @@ import NavigationControls from '../components/Direction/NavigationControls';
 import { getNavigationMarkerIcon } from '../utils/leafletSetup';
 
 export default function NavigationPage() {
-  const { searchedPlace, userLocation, pendingVehicle, setTitle, setEtaData, setSafetyData, setShowSearchBar } = usePageTitle();
+  const { setTitle, setShowSearchBar } = useUIContext();
+  const { searchedPlace, userLocation } = useLocationContext();
+  const { pendingVehicle, setEtaData, setSafetyData } = useNavigationContext();
   const appNavigate = useAppNavigate();
   const appNavigateRef = useRef(appNavigate);
   const setTitleRef = useRef(setTitle);

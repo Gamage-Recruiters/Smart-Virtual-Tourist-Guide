@@ -4,7 +4,8 @@ import middle from '../assets/middle.png';
 import exploreIcon from '../assets/explore.png';
 import userIcon from '../assets/userIcon.png';
 import directionIcon from '../assets/directionIcon.png';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useUIContext } from '../contexts/UIContext';
+import { useLocationContext } from '../contexts/LocationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import { reverseGeocode, getPlacePhoto, findNearbyPlaces } from '../utils/mapServices';
 import { saveRecentPlace, saveFavoritePlace, fetchHotels } from '../services/api';
@@ -25,7 +26,8 @@ const Explore = () => {
   const userMarkerRef = useRef(null);
   const lastHandledPlaceKeyRef = useRef('');
 
-  const { setShowSearchBar, setOnNavigate, hasSearched, setHasSearched, searchedPlace, setUserLocation, userLocation } = usePageTitle();
+  const { setShowSearchBar, hasSearched, setHasSearched } = useUIContext();
+  const { setOnNavigate, searchedPlace, setUserLocation, userLocation } = useLocationContext();
   const appNavigate = useAppNavigate();
   const [localSearched, setLocalSearched] = useState(false);
   const searched = hasSearched || localSearched;

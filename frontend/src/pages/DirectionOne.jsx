@@ -9,7 +9,8 @@ import locationRed from '../assets/locationRed.png';
 import manIcon from '../assets/manIcon.png';
 import upDown from '../assets/upDown.png';
 import { useLocationSearch } from '../utils/useLocationSearch';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useLocationContext } from '../contexts/LocationContext';
+import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import { geocodeAddress } from '../utils/mapServices';
 import { saveRecentPlace, fetchRecentPlaces } from '../services/api';
@@ -96,7 +97,8 @@ const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
 };
 
 const DirectionOne = () => {
-  const { setSearchedPlace, setUserLocation, setPendingOriginLabel, setPendingVehicle, searchedPlace } = usePageTitle();
+  const { setSearchedPlace, setUserLocation, searchedPlace } = useLocationContext();
+  const { setPendingOriginLabel, setPendingVehicle } = useNavigationContext();
   const appNavigate = useAppNavigate();
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [swapped, setSwapped] = useState(false);

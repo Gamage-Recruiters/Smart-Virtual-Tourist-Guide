@@ -5,7 +5,8 @@ import clockIcon from '../assets/clockIcon.png';
 import busIcon from '../assets/busIcon.png';
 import bikeIcon from '../assets/bikeIcon.png';
 import manIcon from '../assets/manIcon.png';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useLocationContext } from '../contexts/LocationContext';
+import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -62,7 +63,8 @@ const getTrafficLabel = (traffic) => {
 };
 
 const EtaPage = () => {
-  const { etaData, searchedPlace, userLocation } = usePageTitle();
+  const { searchedPlace, userLocation } = useLocationContext();
+  const { etaData } = useNavigationContext();
   const appNavigate = useAppNavigate();
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);

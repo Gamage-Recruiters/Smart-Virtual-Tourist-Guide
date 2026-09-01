@@ -2,13 +2,17 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MapPin, Mic, Search, X } from 'lucide-react';
 import Logo from '../assets/Logo.png';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useUIContext } from '../contexts/UIContext';
+import { useLocationContext } from '../contexts/LocationContext';
+import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import sriflag from '../assets/sriflag.jpg';
 import { searchPlaces, geocodeAddress } from '../utils/mapServices';
 
 export default function Header() {
-  const { title, showSearchBar, navigateToSearch, searchedPlace, etaData } = usePageTitle();
+  const { title, showSearchBar, setHasSearched } = useUIContext();
+  const { navigateToSearch, searchedPlace } = useLocationContext();
+  const { etaData } = useNavigationContext();
   const appNavigate = useAppNavigate();
   const location = useLocation();
   const [query, setQuery] = useState('');
@@ -50,7 +54,8 @@ export default function Header() {
       geometry: { location: { lat: suggestion.lat, lng: suggestion.lng } },
       place_id: suggestion.osm_id,
     });
-  }, [navigateToSearch]);
+    setHasSearched(true);
+  }, [navigateToSearch, setHasSearched]);
 
   const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -63,10 +68,11 @@ export default function Header() {
         formatted_address: result.displayName,
         geometry: { location: { lat: result.lat, lng: result.lng } },
       });
+      setHasSearched(true);
     } else {
       fetchSuggestions(displayName);
     }
-  }, [query, navigateToSearch, fetchSuggestions]);
+  }, [query, navigateToSearch, fetchSuggestions, setHasSearched]);
 
   const handleKeyDown = (e) => {
     if (!suggestions.length) { if (e.key === 'Enter') handleSearch(); return; }

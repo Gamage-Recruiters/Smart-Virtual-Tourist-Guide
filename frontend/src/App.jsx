@@ -8,7 +8,9 @@ import EtaPage from './pages/EtaPage';
 import SafetyAlertTemplate from './pages/SafetyAlertTemplate';
 import Footer from './components/Footer';
 import Header from './components/Header';
-import { PageTitleProvider } from './contexts/PageTitleContext';
+import { LocationProvider } from './contexts/LocationContext';
+import { NavigationProvider } from './contexts/NavigationContext';
+import { UIProvider } from './contexts/UIContext';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -35,7 +37,9 @@ class ErrorBoundary extends React.Component {
 export default function App() {
   return (
     <BrowserRouter>
-      <PageTitleProvider>
+      <LocationProvider>
+        <NavigationProvider>
+          <UIProvider>
         <ErrorBoundary>
           <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Header />
@@ -52,7 +56,9 @@ export default function App() {
             <Footer />
           </div>
         </ErrorBoundary>
-      </PageTitleProvider>
+          </UIProvider>
+        </NavigationProvider>
+      </LocationProvider>
     </BrowserRouter>
   );
 }

@@ -2,14 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Phone } from 'lucide-react';
 import bottomLogo from '../assets/bottomLogo.png';
 import middle from '../assets/middle.png';
-import { usePageTitle } from '../contexts/PageTitleContext';
+import { useUIContext } from '../contexts/UIContext';
+import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import { fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { checkRouteForFlood } from '../utils/floodService';
 import { haversineDistance, formatDistanceCompact as formatDistance } from '../utils/geo';
 
 export default function SafetyAlertTemplate() {
-  const { setTitle, safetyData } = usePageTitle();
+  const { setTitle } = useUIContext();
+  const { safetyData } = useNavigationContext();
   const appNavigate = useAppNavigate();
 
   useEffect(() => {
