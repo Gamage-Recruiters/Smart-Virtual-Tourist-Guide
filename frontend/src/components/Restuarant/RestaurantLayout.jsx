@@ -74,9 +74,11 @@ function Sidebar({ collapsed, onCollapse }) {
   const navigate = useNavigate()
 
   const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userData')
     localStorage.removeItem('restaurantToken')
     localStorage.removeItem('restaurantUser')
-    navigate('/resturent/login')
+    navigate('/')
   }
 
   const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')

@@ -461,7 +461,7 @@ function ResturentRegistrationPage() {
             <p className="text-xs text-slate-500">
               Already have an account?{' '}
               <button
-                onClick={() => navigate('/resturent/login')}
+                onClick={() => navigate('/login')}
                 type="button"
                 className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer"
               >
