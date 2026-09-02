@@ -51,6 +51,9 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
       return;
     }
 
+    const targetHotelId = hotel?._id || hotel?.ownerId || hotel?.id;
+    const targetRoomId = selectedRoom?._id || selectedRoom?.id;
+
     // Validate against selectedRoom model dates & status client-side
     if (selectedRoom) {
       if (selectedRoom.roomStatus && selectedRoom.roomStatus !== 'Available') {
@@ -84,7 +87,6 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
     }
 
     // Verify against backend Room model API
-    const targetRoomId = selectedRoom?._id || selectedRoom?.id;
     if (targetRoomId && !selectedRoom?.isPackage) {
       setChecking(true);
       try {
@@ -113,9 +115,18 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
 
     toast.success("Room is available! Proceeding to checkout...", { icon: '✨' });
 
+    const roomNumVal = selectedRoom?.roomNumber || selectedRoom?.roomNo || 'R1';
+    const roomNameVal = selectedRoom?.roomName || selectedRoom?.name || 'Standard Room';
+
     navigate("/booking-page", {
       state: {
         service: {
+          serviceId: targetHotelId,
+          hotelId: targetHotelId,
+          roomId: targetRoomId,
+          roomNumber: roomNumVal,
+          roomNo: roomNumVal,
+          roomName: roomNameVal,
           image: hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
           name: hotel?.name || "Ocean Breeze Resort",
           location: hotel?.location || "Bentota, Sri Lanka",
@@ -123,8 +134,15 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
           reviews: reviews,
           description: hotel?.description || "Experience luxury hotel stay.",
         },
+        hotelId: targetHotelId,
+        roomId: targetRoomId,
+        roomNumber: roomNumVal,
+        roomNo: roomNumVal,
+        roomName: roomNameVal,
         bookingDetails: [
-          { label: "Room", value: selectedRoom ? selectedRoom.name : "Standard Room" },
+          { label: "Room Name", value: roomNameVal },
+          { label: "Room Number", value: roomNumVal },
+          { label: "Room ID", value: String(targetRoomId || 'N/A') },
           { label: "Check-in", value: hotelData.checkIn },
           { label: "Check-out", value: hotelData.checkOut },
           { label: "Guests", value: hotelData.guests },

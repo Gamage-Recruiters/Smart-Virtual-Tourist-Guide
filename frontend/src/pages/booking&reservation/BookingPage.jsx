@@ -64,8 +64,25 @@ const BookingPage = () => {
             const orderId = `SVTG-${typeCode}-${Date.now()}`;
 
             // Step B: Pre-create booking record in DB
+            const hotelIdVal = location.state?.hotelId || service?.hotelId;
+            const roomIdVal = location.state?.roomId || service?.roomId;
+            const roomNumberVal = location.state?.roomNumber || location.state?.roomNo || service?.roomNumber || service?.roomNo;
+            const roomNameVal = location.state?.roomName || service?.roomName;
+
             const bookingPayload = {
-                service,
+                service: {
+                    ...service,
+                    hotelId: hotelIdVal,
+                    roomId: roomIdVal,
+                    roomNumber: roomNumberVal,
+                    roomNo: roomNumberVal,
+                    roomName: roomNameVal,
+                },
+                hotelId: hotelIdVal,
+                roomId: roomIdVal,
+                roomNumber: roomNumberVal,
+                roomNo: roomNumberVal,
+                roomName: roomNameVal,
                 bookingDetails,
                 pricing,
                 customer: {

@@ -76,8 +76,13 @@ const HotelBooking = () => {
                     : 'http://localhost:5000/api/hotels/rooms';
                 const res = await fetch(url);
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && Array.isArray(data.data)) {
                     setRooms(data.data);
+                    if (data.data.length > 0) {
+                        const firstRoom = data.data[0];
+                        const basePrice = firstRoom.locationAndPricing?.[0]?.basePrice || 20000;
+                        setSelectedRoom((prev) => prev || { id: firstRoom._id, name: firstRoom.roomName, price: basePrice, ...firstRoom });
+                    }
                 } else {
                     setRooms([]);
                 }

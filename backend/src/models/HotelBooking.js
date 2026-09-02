@@ -19,6 +19,7 @@ const hotelBookingSchema = new mongoose.Schema(
     },
     // Hotel & Room Specific Fields
     hotelId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    roomId: { type: String },
     roomNo: { type: String },
     roomName: { type: String },
     checkIn: { type: String },
