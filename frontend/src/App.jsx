@@ -121,9 +121,10 @@ function App() {
           <Route path="destinations" element={<Destinations />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="results" element={<ResultsPage />} />
+        <Route path="/destination-detail" element={<DestinationDetails />} />
+
         </Route>
         <Route path="/add-destination" element={<AddDestination />} />
-        <Route path="/destination-detail" element={<DestinationDetails />} />
 
           {/* Activity Provider */}
           <Route
