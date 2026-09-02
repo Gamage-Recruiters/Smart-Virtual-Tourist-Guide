@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '../../components/Tourist/Header';
-import Footer from '../../components/Tourist/Footer';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -120,21 +118,29 @@ export default function TouristRestaurantsPage() {
 
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-      <div>
-        <Header />
-        
-        {/* Banner Section */}
-        <div className="relative bg-slate-900 text-white py-16 px-4 text-center">
-          <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1544025162-d76694265947?w=1200")' }}></div>
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Explore Sri Lankan Restaurants</h1>
-            <p className="mt-4 text-lg text-slate-300">Discover premium dining spots, authentic local cuisines, and traveler-friendly facilities in Sri Lanka.</p>
+    <div className="min-h-screen bg-[#eef7fd] px-6 py-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Link to="/dashboard-Tourist" className="hover:text-gray-900 transition-colors duration-150">
+            Dashboard
+          </Link>
+          <span>{">"}</span>
+          <span>Restaurants & Food</span>
+        </div>
+
+        {/* Page Header */}
+        <div className="flex justify-between items-start flex-wrap gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Explore Restaurants</h1>
+            <p className="text-gray-600 mt-2">
+              Discover premium dining spots, authentic local cuisines, and traveler-friendly restaurants across Sri Lanka
+            </p>
           </div>
         </div>
 
         {/* Filter and Content Grid */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 grid gap-8 lg:grid-cols-[300px_1fr]">
+        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
           
           {/* Sidebar Filters */}
           <aside className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 h-fit">
@@ -318,7 +324,7 @@ export default function TouristRestaurantsPage() {
                     {filteredRestaurants.map(restaurant => (
                       <article 
                         key={restaurant._id} 
-                        onClick={() => navigate(`/restaurants/${restaurant._id}`)}
+                        onClick={() => navigate(`/dashboard-Tourist/restaurants/${restaurant._id}`)}
                         className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                       >
                         <div className="h-44 bg-slate-200 relative overflow-hidden">
@@ -371,7 +377,7 @@ export default function TouristRestaurantsPage() {
 
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
+

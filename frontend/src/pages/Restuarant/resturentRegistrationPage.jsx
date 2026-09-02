@@ -118,9 +118,9 @@ function ResturentRegistrationPage() {
         return
       }
 
-      // Store token from registration
+      // Store token from registration (use 'restaurantToken' to match what dashboard pages read)
       const token = authData.token
-      localStorage.setItem('token', token)
+      localStorage.setItem('restaurantToken', token)
       localStorage.setItem('restaurantUser', JSON.stringify(authData.user))
 
       // Step 1.5: If a file is selected, upload it to Cloudinary using the new token

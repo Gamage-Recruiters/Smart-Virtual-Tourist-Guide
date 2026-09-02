@@ -109,7 +109,26 @@ app.use('/api/users', userRoutes);
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
 
-// ==================== ERROR HANDLING ====================
+// ==================== RESTAURANT API ROUTES ====================
+// Restaurant profile routes
+app.use('/api/restaurants', restaurantRoutes);
+
+// Menu item routes
+app.use('/api/menu', menuItemRoutes);
+
+// Offer routes
+app.use('/api/offers', offerRoutes);
+
+// Reservation routes
+app.use('/api/reservations', reservationRoutes);
+
+// Review routes
+app.use('/api/reviews', reviewRoutes);
+
+// Image upload route
+app.use('/api/upload', uploadRoutes);
+
+
 // 404 handler for undefined routes
 app.use((req, res) => {
   res.status(404).json({
