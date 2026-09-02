@@ -83,3 +83,57 @@ export const handleNotification = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * POST /api/payments/confirm
+ * Client calls this when PayHere payment completes to mark booking confirmed.
+ */
+export const confirmPaymentByOrderId = async (req, res, next) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: 'orderId is required.' });
+    }
+
+    const allTypes = ['activity', 'driver', 'guide', 'hotel', 'restaurant', 'vehicle'];
+    for (const type of allTypes) {
+      const Model = getBookingModel(type);
+      const booking = await Model.findOne({ 'payment.payhereOrderId': orderId });
+      if (booking) {
+        booking.status = 'confirmed';
+        booking.payment.method = 'payhere';
+        booking.payment.paidAt = new Date();
+        await booking.save();
+        return res.json({ success: true, booking, serviceType: type });
+      }
+    }
+
+    return res.status(404).json({ success: false, message: 'Booking not found for orderId: ' + orderId });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/payments/booking/:orderId
+ * Fetch booking details by PayHere orderId.
+ */
+export const getBookingByOrderId = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const allTypes = ['activity', 'driver', 'guide', 'hotel', 'restaurant', 'vehicle'];
+
+    for (const type of allTypes) {
+      const Model = getBookingModel(type);
+      const booking = await Model.findOne({ 'payment.payhereOrderId': orderId });
+      if (booking) {
+        return res.json({ success: true, booking, serviceType: type });
+      }
+    }
+
+    return res.status(404).json({ success: false, message: 'Booking not found for orderId: ' + orderId });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 //Booking and reservation----------------------------------
 
 import BookingPage from './pages/booking&reservation/BookingPage.jsx'
+import PaymentResultPage from './pages/booking&reservation/PaymentResultPage.jsx'
 import ActivityBooking from './pages/more_details_services_booking/ActivityBooking.jsx'
 import HotelBooking from './pages/more_details_services_booking/HotelBooking.jsx'
 import DriverBooking from './pages/more_details_services_booking/DriverBooking.jsx'
@@ -46,6 +47,7 @@ export default function App() {
       <Routes>
 
         <Route path="/booking-page" element={<BookingPage />} />
+        <Route path="/payment-result" element={<PaymentResultPage />} />
         <Route path="/activity-booking" element={<ActivityBooking />} />
         <Route path="/hotel-booking" element={<HotelBooking />} />
         <Route path="/driver-booking/:id" element={<DriverBooking />} />

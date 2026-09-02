@@ -9,4 +9,11 @@ router.post('/generate-hash', paymentController.generateHash);
 // PayHere server-to-server notification
 router.post('/notify', paymentController.handleNotification);
 
+// Confirm payment status by orderId
+router.post('/confirm', paymentController.confirmPaymentByOrderId);
+
+// Fetch booking by PayHere orderId
+router.get('/booking/:orderId', paymentController.getBookingByOrderId);
+
 export default router;
+

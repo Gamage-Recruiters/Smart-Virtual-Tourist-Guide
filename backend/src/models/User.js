@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import tourismDB from '../configs/tourismDatabase.js';
 
 const userSchema = new mongoose.Schema({
   fullName: {
@@ -37,7 +36,8 @@ const userSchema = new mongoose.Schema({
   },
   contactNumber: {
     type: String,
-    trim: true
+    trim: true,
+    default: ''
   },
   // Tourist specific fields
   country: {
@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema({
         hotelAddress: { type: String, trim: true },
       }
     ],
-    default: undefined
+    default: []
   },
   // Guide specific fields
   guideId: {
@@ -142,7 +142,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
     // Fallback for plain text passwords
     return enteredPassword === this.password;
   }
-  
+
   // Standard bcrypt comparison
   return await bcrypt.compare(enteredPassword, this.password);
 };
@@ -156,5 +156,5 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-const User = tourismDB.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
 export default User;

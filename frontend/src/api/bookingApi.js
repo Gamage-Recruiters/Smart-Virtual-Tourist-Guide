@@ -61,4 +61,28 @@ const generatePayHereHash = async ({ orderId, amount, currency }) => {
   return response.json();
 };
 
-export { submitBooking, getBookings, getBookingById, generatePayHereHash };
+const confirmPaymentByOrderId = async (orderId) => {
+  const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderId }),
+  });
+
+  if (!response.ok) {
+    const err = await parseJsonResponse(response);
+    throw new Error(err.message || 'Failed to confirm payment');
+  }
+
+  return response.json();
+};
+
+const getBookingByOrderId = async (orderId) => {
+  const response = await fetch(`${API_BASE_URL}/payments/booking/${orderId}`);
+  if (!response.ok) {
+    const err = await parseJsonResponse(response);
+    throw new Error(err.message || 'Booking not found');
+  }
+  return response.json();
+};
+
+export { submitBooking, getBookings, getBookingById, generatePayHereHash, confirmPaymentByOrderId, getBookingByOrderId };

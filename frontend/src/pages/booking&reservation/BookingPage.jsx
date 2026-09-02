@@ -50,31 +50,62 @@ const BookingPage = () => {
      * 3. On success → create booking in DB → show confirmation
      */
     const handlePayHereCheckout = async () => {
+        if (!window.payhere) {
+            setSubmitError("PayHere SDK is not loaded. Please refresh the page and try again.");
+            return;
+        }
+
         setIsSubmitting(true);
         setSubmitError("");
 
         try {
-            // Step A: Generate a unique order ID
-            const orderId = `SVTG-VH-${Date.now()}`;
+            // Step A: Generate unique order ID
+            const typeCode = (serviceType || 'booking').substring(0, 3).toUpperCase();
+            const orderId = `SVTG-${typeCode}-${Date.now()}`;
 
-            // Step B: Get hash from backend
+            // Step B: Pre-create booking record in DB
+            const bookingPayload = {
+                service,
+                bookingDetails,
+                pricing,
+                customer: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                },
+                paymentMethod: "payhere",
+                paymentDetails: {
+                    payhereOrderId: orderId,
+                },
+                serviceType: serviceType || 'vehicle',
+            };
+
+            const created = await submitBooking(bookingPayload);
+            const savedBooking = created?.booking || null;
+            setBookingResult(savedBooking);
+
+            // Step C: Get hash from backend
             const hashData = await generatePayHereHash({
                 orderId,
                 amount: totalAmount,
-                currency: pricing.currency || 'LKR',
+                currency: pricing.currency || 'USD',
             });
 
-            // Step C: Build PayHere payment object
+            // Step D: Build PayHere payment object with /payment-result redirect URLs
+            const redirectUrl = `${window.location.origin}/payment-result?order_id=${orderId}&status=success`;
+            const cancelUrl = `${window.location.origin}/payment-result?order_id=${orderId}&status=cancel`;
+
             const payment = {
-                sandbox: true,    // ← SANDBOX MODE for testing
+                sandbox: true,
                 merchant_id: hashData.merchant_id,
-                return_url: 'http://localhost:5173',
-                cancel_url: 'http://localhost:5173',
+                return_url: redirectUrl,
+                cancel_url: cancelUrl,
                 notify_url: 'http://localhost:5000/api/payments/notify',
                 order_id: orderId,
-                items: service.name || 'Vehicle Rental',
+                items: service.name || 'Tourist Service Booking',
                 amount: totalAmount.toFixed(2),
-                currency: pricing.currency || 'LKR',
+                currency: pricing.currency || 'USD',
                 hash: hashData.hash,
                 first_name: formData.firstName,
                 last_name: formData.lastName,
@@ -85,52 +116,26 @@ const BookingPage = () => {
                 country: 'Sri Lanka',
             };
 
-            // Step D: Setup PayHere callbacks
-            window.payhere.onCompleted = async function (completedOrderId) {
-                console.log("Payment completed. OrderID:", completedOrderId);
-
-                try {
-                    // Create confirmed booking in DB
-                    const bookingPayload = {
-                        service,
-                        bookingDetails,
-                        pricing,
-                        customer: {
-                            firstName: formData.firstName,
-                            lastName: formData.lastName,
-                            email: formData.email,
-                            phone: formData.phone,
-                        },
-                        paymentMethod: "payhere",
-                        paymentDetails: {
-                            payhereOrderId: completedOrderId,
-                        },
-                        serviceType: location.state?.serviceType || 'vehicle',
-                    };
-
-                    const response = await submitBooking(bookingPayload);
-                    setBookingResult(response.booking || null);
-                    setCurrentStep(3);
-                } catch (err) {
-                    setSubmitError("Payment succeeded but booking creation failed: " + err.message);
-                }
-
+            // Step E: Setup PayHere callbacks
+            window.payhere.onCompleted = function (completedOrderId) {
+                console.log("Payment completed via JS callback. OrderID:", completedOrderId);
                 setIsSubmitting(false);
+                setCurrentStep(3);
             };
 
             window.payhere.onDismissed = function () {
                 console.log("Payment dismissed by user");
                 setIsSubmitting(false);
-                setSubmitError("Payment was cancelled. Please try again.");
+                setSubmitError("Payment was cancelled. You can try again.");
             };
 
             window.payhere.onError = function (error) {
                 console.error("PayHere error:", error);
                 setIsSubmitting(false);
-                setSubmitError("Payment error: " + error);
+                setSubmitError("Payment error: " + (typeof error === 'object' ? JSON.stringify(error) : error));
             };
 
-            // Step E: Open PayHere popup
+            // Step F: Launch PayHere Popup
             window.payhere.startPayment(payment);
 
         } catch (error) {
