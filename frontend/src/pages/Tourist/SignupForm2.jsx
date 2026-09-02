@@ -96,8 +96,10 @@ const TravelSafetyInfo = () => {
       const travelData = {
         ...signupData,
         travelPreferences: {
-          travelStart: formData.travelStart,
-          travelEnd: formData.travelEnd,
+          // Only include dates when a value is actually selected; empty strings
+          // cause a Mongoose CastError on the Date field → 500 server error.
+          ...(formData.travelStart ? { travelStart: formData.travelStart } : {}),
+          ...(formData.travelEnd   ? { travelEnd:   formData.travelEnd   } : {}),
           budgetRange: {
             min: budgetMin,
             max: budgetMax,
@@ -125,9 +127,61 @@ const TravelSafetyInfo = () => {
       }
 
       localStorage.setItem('token', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
+      localStorage.setItem('userData', JSON.stringify(response.user || signupData));
+      localStorage.setItem('user', JSON.stringify({
+        fullName: signupData.fullName || response.user?.fullName || '',
+        email: signupData.email || response.user?.email || '',
+      }));
+
+      const touristProfile = {
+        fullName: signupData.fullName || response.user?.fullName || '',
+        email: signupData.email || response.user?.email || '',
+        country: signupData.country || '',
+        gender: signupData.gender || '',
+        travelType: signupData.travelType || '',
+        passportNumber: signupData.passportNumber || signupData.passport || '',
+        passport: signupData.passport || signupData.passportNumber || '',
+        startDate: formData.travelStart,
+        endDate: formData.travelEnd,
+        travelStart: formData.travelStart,
+        travelEnd: formData.travelEnd,
+        budget: Number(budgetMax),
+        budgetMax: Number(budgetMax),
+        budgetRange: `LKR ${budgetMin} - LKR ${budgetMax}`,
+        preferences: formData.travelStyle,
+        travelStyle: formData.travelStyle,
+        accommodationType: formData.accommodationType,
+        bloodType: formData.bloodType,
+        medicalCondition: formData.medicalCondition,
+        medicalConditions: formData.medicalCondition,
+        allergies: [],
+        emergencyName: formData.emergencyName,
+        emergencyContactName: formData.emergencyName,
+        emergencyRelationship: formData.emergencyRelationship,
+        relationship: formData.emergencyRelationship,
+        emergencyPhone: formData.emergencyContactNumber,
+        emergencyContactNumber: formData.emergencyContactNumber,
+        emergencyCountry: formData.emergencyCountry,
+        travelPreferences: travelData.travelPreferences,
+        healthInfo: travelData.healthInfo,
+        emergencyContact: travelData.emergencyContact,
+      };
+
+      const tripInfo = {
+        startDate: formData.travelStart,
+        endDate: formData.travelEnd,
+        budgetLKR: Number(budgetMax),
+        budgetRange: `LKR ${budgetMin} - LKR ${budgetMax}`,
+        preferences: formData.travelStyle,
+        travelStyle: formData.travelStyle,
+        accommodationType: formData.accommodationType,
+      };
+
+      localStorage.setItem('touristProfile', JSON.stringify(touristProfile));
+      localStorage.setItem('tripInfo', JSON.stringify(tripInfo));
       localStorage.removeItem('signupData');
-      navigate('/');
+      window.dispatchEvent(new Event('tripInfoUpdated'));
+      navigate('/dashboard-Tourist');
     } catch (error) {
       console.error('Failed to update travel info:', error);
       alert(error.message || 'Failed to save information. Please try again.');

@@ -13,28 +13,42 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
-import restaurantRoutes from './routes/restaurant.routes.js';
+
 import menuItemRoutes from './routes/menuItem.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import reservationRoutes from './routes/reservation.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 
-config();
+import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
+import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
+
+import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
+import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
+import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
+
+import safetyRouter from './routes/Safety/safetyRouter.js';
+
+import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
+
+
+
+
+export const app = express();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const app = express();
 
 // ==================== MIDDLEWARE ====================
-// CORS - only once (removed duplicate)
-app.use(cors());
 
-// Body parsing middleware
-app.use(json());
-app.use(urlencoded({ extended: true }));
+// middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -81,6 +95,10 @@ app.use('/api/auth', authRoutes);
 
 // Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/destinations', destinationRoutes);
+app.use('/api/safety', safetyRouter);
+
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
@@ -90,14 +108,6 @@ app.use('/api/users', userRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
-
-// Restaurant Routes (from Integration-resturent/shakir branch)
-app.use('/api/restaurants', restaurantRoutes);
-app.use('/api/menu', menuItemRoutes);
-app.use('/api/offers', offerRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/reviews', reviewRoutes);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes

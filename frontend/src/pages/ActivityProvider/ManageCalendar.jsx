@@ -4,7 +4,7 @@ import calendarAPI from '../../services/ActivityProvider/calendarAPI.js';
 import { activityAPI } from '../../services/ActivityProvider/activityAPI.js';
 import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar.jsx';
 import EditAvailabilityModal from './EditAvailabilityModal.jsx';
-import heroBanner from '../../assets/hotel.png';
+import heroBanner from '../../assets/LandingPage/hotel.png';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

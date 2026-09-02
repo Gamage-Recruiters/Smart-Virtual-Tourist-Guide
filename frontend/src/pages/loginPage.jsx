@@ -1,6 +1,6 @@
 import { FaFacebookF } from "react-icons/fa";
 import carImage from "../assets/registerVehicle/main_car_image.png";
-import Header from "../components/header";
+import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
