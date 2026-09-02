@@ -17,6 +17,7 @@ import middle from '../assets/middle.png';
 import gpsIcon from '../assets/gpsSearch.png';
 import blueLocationIcon from '../assets/directionCircle.png';
 import { getBlueMarkerIcon, getNavigationMarkerIcon } from '../utils/leafletSetup';
+import { renderPOIPopup } from '../components/shared/LeafletPopups';
 
 export default function DirectionPage() {
   const { setTitle, setHasSearched, setShowSearchBar } = useUIContext();
@@ -300,11 +301,7 @@ export default function DirectionPage() {
     }
 
     const marker = L.marker([lat, lng]).addTo(mapInstanceRef.current)
-      .bindPopup(`<div style="font-family:Inter,sans-serif;font-size:13px;max-width:160px">
-        <strong>${place.name}</strong><br/>
-        <span style="background:#1A73E8;color:white;padding:2px 6px;border-radius:4px;font-size:10px;margin-top:4px;margin-bottom:4px;display:inline-block;">📍 Suggested Stop</span><br/>
-        <span style="color:#6B7280;font-size:11px">${place.vicinity || place.category}</span>
-      </div>`);
+      .bindPopup(renderPOIPopup(place));
 
     marker.__placeId = place.placeId;
     poiMarkersRef.current.push(marker);

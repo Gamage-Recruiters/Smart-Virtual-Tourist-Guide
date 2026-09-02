@@ -55,37 +55,10 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
   }, [setActionMessage]);
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: '60px',
-        right: '60px',
-        top: '-750px',
-        height: '890px',
-        borderRadius: '12px',
-        background: '#D7EEFD',
-        boxShadow: '0 4px 18px rgba(26,115,232,0.12)',
-        padding: '18px 22px',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 20,
-      }}
-    >
+    <div className="user-popup-container collapse-transition">
       {/* User profile header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: '25px' }}>
-        <div
-          style={{
-            width: '70px',
-            height: '70px',
-            borderRadius: '999px',
-            background: '#E5E7EB',
-            overflow: 'hidden',
-            flexShrink: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
+        <div className="popup-header-avatar">
           <img src={user} alt="User" style={{ width: '40%', height: '40%', objectFit: 'cover' }} />
         </div>
         <div style={{ lineHeight: 1.05 }}>
@@ -103,22 +76,7 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: 500, color: '#1F2937', marginBottom: '18px', marginLeft: '65px' }}>
           Save Places
         </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'stretch',
-            justifyContent: 'space-between',
-            gap: '10px',
-            background: '#8CC9F3',
-            borderRadius: '6px',
-            padding: '8px 12px',
-            maxWidth: '100%',
-            boxSizing: 'border-box',
-            marginLeft: '120px',
-            marginRight: '120px',
-            boxShadow: '0 2px 6px rgba(26,115,232,0.10) inset',
-          }}
-        >
+        <div className="popup-tab-container">
           {[
             { key: 'home', label: 'home', icon: true },
             { key: 'work', label: 'work', icon: false },
@@ -133,20 +91,11 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
                 onClick={() => setSelectedTab(tab.key)}
                 onMouseEnter={() => setHoveredTab(tab.key)}
                 onMouseLeave={() => setHoveredTab(null)}
+                className="popup-tab-btn"
                 style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  minHeight: '40px',
-                  border: 'none',
-                  borderRadius: '4px',
                   background: selected ? 'rgba(31,41,55,0.10)' : hovered ? 'rgba(160,219,255,0.55)' : 'transparent',
                   boxShadow: selected ? 'inset 0 0 0 1px rgba(31,41,55,0.12)' : 'none',
-                  color: '#1F2937',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease, box-shadow 0.15s ease',
+                  color: selected || hovered ? 'var(--color-text-main)' : 'var(--color-text-main)',
                 }}
               >
                 {tab.icon && (
@@ -194,8 +143,8 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
                 const viewedLabel = place?.action === 'Got Direction' ? 'Got Direction' : formatViewedAgo(place?.timestamp);
 
                 return (
-                  <div key={place._id} style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-                    <div style={{ width: '102px', height: '102px', borderRadius: '16px', overflow: 'hidden', background: '#E5E7EB', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
+                  <div key={place._id} className="popup-place-card fade-in">
+                    <div className="popup-place-img">
                       {renderRecentPlaceMedia(place)}
                     </div>
 
@@ -209,24 +158,7 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
                         e.stopPropagation();
                         handleRemovePlace(place._id);
                       }}
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        right: '0',
-                        transform: 'translateY(-50%)',
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        background: '#EF4444',
-                        color: '#FFF',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        zIndex: 10,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                      }}
+                      className="popup-remove-btn"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18" />

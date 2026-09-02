@@ -21,18 +21,7 @@ export default function PlaceDetailsPanel({
   if (!searchedPlace) return null;
 
   return (
-    <div style={{
-      position: 'relative',
-      marginLeft: '60px',
-      marginRight: '60px',
-      marginTop: '16px',
-      borderRadius: '10px',
-      overflow: 'hidden',
-      height: 'auto',
-      minHeight: detailsPanelCollapsed ? '80px' : '700px',
-      background: '#D7EEFD',
-      transition: 'min-height 0.3s ease',
-    }}>
+    <div className="panel-container collapse-transition" style={{ minHeight: detailsPanelCollapsed ? '80px' : '700px' }}>
       {/* Save & Share buttons (top right) */}
       {!detailsPanelCollapsed && (
         <div style={{
@@ -43,12 +32,12 @@ export default function PlaceDetailsPanel({
           gap: '12px',
           zIndex: 100,
         }}>
-          <button onClick={handleSaveDestinationToFavorites} style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }} aria-label="Save">
+          <button onClick={handleSaveDestinationToFavorites} className="panel-action-btn" aria-label="Save">
             <svg className="h-6 w-6 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
           </button>
-          <button onClick={handleShareLocation} style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#F1F5F9', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }} aria-label="Share">
+          <button onClick={handleShareLocation} className="panel-action-btn" aria-label="Share">
             <svg className="h-6 w-6 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
@@ -160,22 +149,7 @@ export default function PlaceDetailsPanel({
                     else if (label === 'Save') handleSavePlace();
                     else if (label === 'Share') handleShareLocation();
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '14px 0',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#1A73E8',
-                    color: '#fff',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                  }}
+                  className="panel-main-btn"
                 >
                   {iconSvg}
                   {label}
