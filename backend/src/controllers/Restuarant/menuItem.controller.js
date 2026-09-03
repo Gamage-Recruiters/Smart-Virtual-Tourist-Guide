@@ -1,5 +1,5 @@
-import MenuItem from "../models/menuItem.model.js";
-import Restaurant from "../models/restaurant.model.js";
+import MenuItem from "../../models/Restuarant/menuItem.model.js";
+import Restaurant from "../../models/Restuarant/restaurant.model.js";
 
 const REQUIRED_FIELDS = ["restaurantId", "name", "category", "price"];
 

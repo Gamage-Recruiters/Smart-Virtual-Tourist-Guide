@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "Integration2-/shakir",
+    "Navigation_and_Mapping_Change_API",
+    "feature/final-trip-report-generation",
+    "feature/hotel-dash-next-2",
+    "feature/request-a-guide-main",
+    "integration/review-module-sync",
+    "main",
+    "safety-feature"
+  ],
+  "parent": {
+    "Integration2-/shakir": "main",
+    "Navigation_and_Mapping_Change_API": "main",
+    "feature/final-trip-report-generation": "main",
+    "feature/hotel-dash-next-2": "main",
+    "feature/request-a-guide-main": "main",
+    "integration/review-module-sync": "main",
+    "main": null,
+    "safety-feature": "main"
+  },
+  "order": [
+    "main",
+    "Integration2-/shakir",
+    "Navigation_and_Mapping_Change_API",
+    "feature/final-trip-report-generation",
+    "feature/hotel-dash-next-2",
+    "feature/request-a-guide-main",
+    "integration/review-module-sync",
+    "safety-feature"
+  ]
+}
