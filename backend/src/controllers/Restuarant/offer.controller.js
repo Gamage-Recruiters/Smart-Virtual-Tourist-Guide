@@ -1,5 +1,5 @@
-import Offer from "../models/offer.model.js";
-import Restaurant from "../models/restaurant.model.js";
+import Offer from "../../models/Restuarant/offer.model.js";
+import Restaurant from "../../models/Restuarant/restaurant.model.js";
 
 const REQUIRED_FIELDS = [
   "restaurantId",

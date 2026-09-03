@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Header from '../../components/Tourist/Header';
-import Footer from '../../components/Tourist/Footer';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { reviewAPI } from '../../services/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -384,46 +382,51 @@ export default function TouristRestaurantDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-        <div>
-          <Header />
-          <div className="py-32 text-center text-slate-500 font-semibold">Loading restaurant information...</div>
+      <div className="min-h-screen bg-[#eef7fd] px-6 py-8">
+        <div className="max-w-7xl mx-auto py-32 text-center text-slate-500 font-semibold">
+          Loading restaurant information...
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (!restaurant) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-        <div>
-          <Header />
-          <div className="py-32 text-center text-slate-500 font-semibold">
-            <p>Restaurant not found.</p>
-            <button onClick={() => navigate('/restaurants')} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-              Back to Restaurants
-            </button>
-          </div>
+      <div className="min-h-screen bg-[#eef7fd] px-6 py-8">
+        <div className="max-w-7xl mx-auto py-32 text-center text-slate-500 font-semibold">
+          <p>Restaurant not found.</p>
+          <button onClick={() => navigate('/dashboard-Tourist/restaurants')} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+            Back to Restaurants
+          </button>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-      <div>
-        <Header />
+    <div className="min-h-screen bg-[#eef7fd] px-6 py-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Link to="/dashboard-Tourist" className="hover:text-gray-900 transition-colors duration-150">
+            Dashboard
+          </Link>
+          <span>{">"}</span>
+          <Link to="/dashboard-Tourist/restaurants" className="hover:text-gray-900 transition-colors duration-150">
+            Restaurants
+          </Link>
+          <span>{">"}</span>
+          <span>{restaurant.restaurantName}</span>
+        </div>
 
         {/* Banner Section */}
-        <div className="relative bg-slate-900 text-white py-20 px-4">
+        <div className="relative bg-slate-900 text-white py-14 px-8 rounded-3xl overflow-hidden shadow-lg">
           {restaurant.bannerImage ? (
             <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: `url("${restaurant.bannerImage}")` }}></div>
           ) : (
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-indigo-900 opacity-40"></div>
           )}
-          <div className="relative z-10 max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
               <span className="bg-blue-600 text-white text-xs font-bold uppercase tracking-wider rounded px-2.5 py-1">
                 {restaurant.district}
@@ -652,7 +655,7 @@ export default function TouristRestaurantDetailsPage() {
               </button>
               
               <button
-                onClick={() => navigate('/restaurants')}
+                onClick={() => navigate('/dashboard-Tourist/restaurants')}
                 className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
               >
                 ← All Restaurants
@@ -1095,8 +1098,7 @@ export default function TouristRestaurantDetailsPage() {
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 }
+
