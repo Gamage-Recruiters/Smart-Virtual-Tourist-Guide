@@ -45,7 +45,6 @@ import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
-import errorHandler from './middleware/HotelOwner/errorHandler.js';
 
 config();
 configureCloudinary();
