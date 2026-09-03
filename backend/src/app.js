@@ -101,6 +101,12 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/safety', safetyRouter);
 
+// Tourist Dashboard Routes
+app.use('/api/budget', budgetRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/itinerary', itineraryRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/tourists', touristRoutes);
 // Admin Routes
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
