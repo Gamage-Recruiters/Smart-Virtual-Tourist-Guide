@@ -38,6 +38,10 @@ import safetyRouter from './routes/Safety/safetyRouter.js';
 
 import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
 
+// ===== TRAVEL PACKAGE ROUTE IMPORTS =====
+import packageRoutes from './routes/travelPackage/packageRoutes.js';
+import advertisementRoutes from './routes/travelPackage/advertisementRoutes.js';
+
 
 
 
@@ -54,6 +58,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads/travelPackage', express.static(path.join(__dirname, 'uploads/travelPackage')));
 
 // ==================== DATABASE CONNECTION ====================
 connectDB();
@@ -108,12 +113,16 @@ app.use('/api/admin', adminRoutes);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
-app.use('/api/packages', specialPackageRoutes);
+app.use('/api/hotel-packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
 app.use('/api/users', userRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
+
+// ===== TRAVEL PACKAGE ROUTES =====
+app.use('/api/packages', packageRoutes);
+app.use('/api/advertisements', advertisementRoutes);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler for undefined routes

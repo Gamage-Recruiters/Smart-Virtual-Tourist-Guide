@@ -116,6 +116,15 @@ import BookDriver from "./pages/Driver/bookDriver.jsx";
 import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
 import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
 
+
+// ===== FEATURE/TRAVEL-PACKAGEMENT-MANAGEMENT ROUTES =====
+import AddNewPackage from './pages/travelPackage/AddNewPackage.jsx';
+import SucessPackage from './pages/travelPackage/SucessPackage.jsx';
+import UserPackages from './pages/travelPackage/UserPackages.jsx';
+import AdminPackages from './pages/travelPackage/AdminPackages.jsx';
+import PackageView from './pages/travelPackage/PackageView.jsx';
+import CreateAD from './pages/travelPackage/CreateAD.jsx';
+
 function App() {
   return (
     <SafetyProvider>
@@ -126,7 +135,7 @@ function App() {
           {/* ========================================================= */}
 
         {/* ===== LANDING PAGES (from main) ===== */}
-        <Route path="/" element={<Layout />}>
+        <Route path="/home" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="how-it-works" element={<HowItWorks />} />
@@ -403,6 +412,19 @@ function App() {
             path="/safety/report-success"
             element={<IncidentReportSuccessPage />}
           />
+
+          
+          {/* ===== TRAVEL PACKAGE ROUTES ===== */}
+          {/* Default route for travel packages - you can keep this or remove it */}
+          <Route path="/" element={<TouristDashboard />} />
+      
+          <Route path="/packages/view/:id" element={<PackageView />} />
+          <Route path="/packages/user" element={<UserPackages />} />
+          <Route path="/packages/admin" element={<AdminPackages />} />
+          <Route path="/packages/new" element={<AddNewPackage />} />
+          <Route path="/packages/edit/:id" element={<AddNewPackage />} />
+          <Route path="/packages/success" element={<SucessPackage />} />
+          <Route path="/packages/create-ad" element={<CreateAD />} />
 
           {/* ========================================================= */}
           {/*                    FALLBACK ROUTE                         */}

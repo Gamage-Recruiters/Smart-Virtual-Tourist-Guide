@@ -82,7 +82,7 @@ export default function AddSpecialPackages() {
 
   useEffect(() => {
     if (!editId) return;
-    fetch(`${BASE_URL}/api/packages/${editId}`)
+    fetch(`${BASE_URL}/api/hotel-packages/${editId}`)
       .then((r) => r.json())
       .then(({ package: pkg }) => {
         if (!pkg) return;
@@ -320,7 +320,7 @@ export default function AddSpecialPackages() {
       });
       if (isEditMode) fd.append('keptImages', JSON.stringify(keptImages));
 
-      const url = isEditMode ? `${BASE_URL}/api/packages/${editId}` : `${BASE_URL}/api/packages`;
+      const url = isEditMode ? `${BASE_URL}/api/hotel-packages/${editId}` : `${BASE_URL}/api/hotel-packages`;
       const method = isEditMode ? 'PUT' : 'POST';
       const response = await fetch(url, { method, body: fd });
       const data = await response.json();
