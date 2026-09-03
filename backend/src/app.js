@@ -19,11 +19,11 @@ import errorHandler from './middleware/errorHandler.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
 
-import menuItemRoutes from './routes/menuItem.routes.js';
-import offerRoutes from './routes/offer.routes.js';
+import menuItemRoutes from './routes/Restuarant/menuItem.routes.js';
+import offerRoutes from './routes/Restuarant/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
-import reservationRoutes from './routes/reservation.routes.js';
-import reviewRoutes from './routes/review.routes.js';
+import reservationRoutes from './routes/Restuarant/reservation.routes.js';
+import reviewRoutes from './routes/Restuarant/review.routes.js';
 
 import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
 import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
