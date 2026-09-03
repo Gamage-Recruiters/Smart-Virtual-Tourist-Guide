@@ -16,7 +16,8 @@ const privateHeaders = () => {
     'Content-Type': 'application/json',
   };
 
-  const token = localStorage.getItem('token');
+  // Check both tourist token ('token') and restaurant owner token ('restaurantToken')
+  const token = localStorage.getItem('token') || localStorage.getItem('restaurantToken');
 
   if (token && token !== 'null') {
     headers['Authorization'] = `Bearer ${token}`;
@@ -391,7 +392,8 @@ export const reviewAPI = {
     return apiClient.get(`/reviews/owner/${restaurantId}?page=${page}`);
   },
   replyToReview(reviewId, replyText) {
-    return apiClient.post(`/reviews/${reviewId}/reply`, { reply: replyText });
+    // Backend route: PUT /api/reviews/:reviewId/reply
+    return apiClient.put(`/reviews/${reviewId}/reply`, { reply: replyText });
   },
 };
 

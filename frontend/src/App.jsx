@@ -31,10 +31,20 @@ import LoginScreen from "./pages/Login/LoginScreen";
 import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
 import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
-// ===== FEATURE/ACCOMMODATION-MANAGEMENT ROUTES =====
+// ===== RESTAURANT ROUTES =====
 import RestuarantSignup from "./pages/Restuarant/resturentRegistrationPage.jsx";
+import RestuarantLogin from "./pages/Restuarant/resturentLogingPage.jsx";
 import RestuarantDashboard from "./pages/Restuarant/resturentDashboardPage.jsx";
+import RestuarantMenuPage from "./pages/Restuarant/resturentMenuPage.jsx";
+import RestuarantAddMenuPage from "./pages/Restuarant/resturentAddMenuPage.jsx";
+import RestuarantOfferPage from "./pages/Restuarant/resturentOfferPage.jsx";
+import RestuarantProfilePage from "./pages/Restuarant/resturentProfilePage.jsx";
+import RestuarantReservationPage from "./pages/Restuarant/resturentReservationPage.jsx";
+import RestuarantRevenuePage from "./pages/Restuarant/resturentRevenuePage.jsx";
+import RestuarantReviewPage from "./pages/Restuarant/resturentReviewPage.jsx";
 import TouristRestaurantsPage from "./pages/Restuarant/TouristRestaurantsPage.jsx";
+import TouristRestaurantDetailsPage from "./pages/Tourist/TouristRestaurantDetailsPage.jsx";
+import RestaurantLayout from "./components/Restuarant/RestaurantLayout.jsx";
 import HotelOwnerSignup from "./pages/HotelOwner/SignUp.jsx";
 import HotelInfo from "./pages/HotelOwner/HotelInfo";
 import HotelOwnerDashboard from "./pages/HotelOwner/HotelOwnerDashboard.jsx";
@@ -184,7 +194,10 @@ function App() {
 
           <Route path="/hotel-info" element={<HotelInfo />} />
 
+          {/* ===== RESTAURANT AUTH ROUTES ===== */}
           <Route path="/restuarant" element={<RestuarantSignup />} />
+          <Route path="/resturent/register" element={<RestuarantSignup />} />
+          <Route path="/resturent/login" element={<RestuarantLogin />} />
 
           <Route path="/guide" element={<GuideSignup />} />
 
@@ -252,6 +265,12 @@ function App() {
               path="find-hotel/hotel-details/:id"
               element={<HotelDetails />}
             />
+            {/* Tourist Restaurant / Food routes */}
+            <Route path="restaurants" element={<TouristRestaurantsPage />} />
+            <Route
+              path="restaurants/:id"
+              element={<TouristRestaurantDetailsPage />}
+            />
           </Route>
 
           <Route
@@ -285,10 +304,23 @@ function App() {
             path="/Hotel-Owner-Profile-Settings"
             element={<HotelOwnerProfileSettings />}
           />
-          <Route
-            path="/dashboard-Restaurant"
-            element={<RestuarantDashboard />}
-          />
+          {/* ===== RESTAURANT DASHBOARD WITH SIDEBAR LAYOUT ===== */}
+          <Route path="/resturent/dashboard" element={<RestaurantLayout />}>
+            <Route index element={<RestuarantDashboard />} />
+            <Route path="menu" element={<RestuarantMenuPage />} />
+            <Route path="menu/add" element={<RestuarantAddMenuPage />} />
+            <Route path="menu/edit/:id" element={<RestuarantAddMenuPage />} />
+            <Route path="offers" element={<RestuarantOfferPage />} />
+            <Route path="profile" element={<RestuarantProfilePage />} />
+            <Route path="reservations" element={<RestuarantReservationPage />} />
+            <Route path="revenue" element={<RestuarantRevenuePage />} />
+            <Route path="reviews" element={<RestuarantReviewPage />} />
+          </Route>
+
+          {/* Legacy route kept for backward compatibility */}
+          <Route path="/dashboard-Restaurant" element={<RestaurantLayout />}>
+            <Route index element={<RestuarantDashboard />} />
+          </Route>
 
           <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
 
@@ -392,11 +424,9 @@ function App() {
             path="/safety/report-incident/form"
             element={<Navigate to="/safety/report-incident" replace />}
           />
-           {/* Restuarant */}
-           <Route
-            path="/restaurants"
-            element={<TouristRestaurantsPage />}
-          />
+          {/* ===== TOURIST-FACING RESTAURANT ROUTES ===== */}
+          <Route path="/restaurants" element={<TouristRestaurantsPage />} />
+          <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
 
 
           {/* Report Success */}
