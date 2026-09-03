@@ -135,7 +135,7 @@ function App() {
           {/* ========================================================= */}
 
         {/* ===== LANDING PAGES (from main) ===== */}
-        <Route path="/home" element={<Layout />}>
+        <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutUs />} />
           <Route path="how-it-works" element={<HowItWorks />} />
@@ -415,9 +415,6 @@ function App() {
 
           
           {/* ===== TRAVEL PACKAGE ROUTES ===== */}
-          {/* Default route for travel packages - you can keep this or remove it */}
-          <Route path="/" element={<TouristDashboard />} />
-      
           <Route path="/packages/view/:id" element={<PackageView />} />
           <Route path="/packages/user" element={<UserPackages />} />
           <Route path="/packages/admin" element={<AdminPackages />} />
