@@ -16,6 +16,8 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
+import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
+import adminRoutes from './routes/Admin/adminRoutes.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
 
@@ -105,6 +107,10 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tourists', touristRoutes);
+// Admin Routes
+app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin', adminRoutes);
+
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);

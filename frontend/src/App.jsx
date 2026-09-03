@@ -53,6 +53,18 @@ import GovernmentSignup from "./pages/Government/SignupPage";
 import ActivityProviderSignup from "./pages/ActivityProvider/SignupPage";
 
 import AdminLogin from "./pages/Admin/LoginPage";
+import IntegratedAdminDashboard from "./pages/Admin/AdminDashboard";
+import IntegratedAdminUsers from "./pages/Admin/UserManagement";
+import IntegratedAdminListings from "./pages/Admin/ApproveListings";
+import IntegratedAdminAds from "./pages/Admin/ManageAds";
+import IntegratedAdminCreateAd from "./pages/Admin/CreateAdvertisement";
+import IntegratedAdminAddUser from "./pages/Admin/AddNewAdmin";
+import IntegratedAdminViewDetails from "./pages/Admin/ViewFullDetails";
+import IntegratedAdminLogin from "./pages/Admin/Login";
+import IntegratedAdminEditAd from "./pages/Admin/EditAdvertisement";
+import IntegratedAdminViewAd from "./pages/Admin/ViewAdvertisement";
+import IntegratedAdminAccessDenied from "./pages/Admin/AccessDenied";
+import IntegratedAdminProtectedRoute from "./components/Admin/ProtectedRoute";
 
 import DriverSignUp1 from "./pages/Driver/SignUpForm1";
 import DriverSignUp2 from "./pages/Driver/SignUpForm2";
@@ -121,9 +133,10 @@ function App() {
           <Route path="destinations" element={<Destinations />} />
           <Route path="contact" element={<ContactUs />} />
           <Route path="results" element={<ResultsPage />} />
+        <Route path="/destination-detail" element={<DestinationDetails />} />
+
         </Route>
         <Route path="/add-destination" element={<AddDestination />} />
-        <Route path="/destination-detail" element={<DestinationDetails />} />
 
           {/* Activity Provider */}
           <Route
@@ -184,7 +197,7 @@ function App() {
             element={<ActivityProviderSignup />}
           />
 
-          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/legacy-login" element={<AdminLogin />} />
 
           {/* Driver Signup */}
           <Route
@@ -403,6 +416,93 @@ function App() {
 
             Unknown URLs will go to the existing home page.
           */}
+
+          {/* Integrated Admin routes */}
+          <Route path="/admin/login" element={<IntegratedAdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminDashboard />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminUsers />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users/new"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminAddUser />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/listings"
+            element={
+              <IntegratedAdminProtectedRoute
+                allowedRoles={["Administrator", "Moderator"]}
+              >
+                <IntegratedAdminListings />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/view-details/:id"
+            element={
+              <IntegratedAdminProtectedRoute
+                allowedRoles={["Administrator", "Moderator"]}
+              >
+                <IntegratedAdminViewDetails />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ads"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminAds />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ads/create"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminCreateAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/edit-ad/:id"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminEditAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/view-ad/:id"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminViewAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/access-denied"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Editor"]}>
+                <IntegratedAdminAccessDenied />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
