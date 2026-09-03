@@ -29,9 +29,6 @@ import Drivers_Card from "./components/marketplace/Drivers_Card";
 import Vehicles_Card from "./components/marketplace/Vehicles_Card";
 import Submit_Bids from "./components/bidding/Submit_Bids";
 import Driver_Details from "./components/bidding/Driver_Deatils";
-import Driver_Dashboard from "./components/bidding/Driver_Dashboard";
-import Driver_Request from "./components/bidding/Driver_Request";
-import Driver_Earnings from "./components/bidding/Driver_Earnings";
 import Ride_Details from "./components/bidding/Ride_Details";
 import Driver_Bids from "./components/bidding/Driver_Bids";
 import Guides_Card from "./components/marketplace/Guides_Card";
@@ -67,12 +64,9 @@ export default function App() {
           <Route path="restaurants" element={<Restaurants_Card />} />
           <Route path="activities" element={<Activities_Card />} />
         </Route>
-        {/* Driver Dashboard Routes */}
-        <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
-        <Route path="/driver-request" element={<Driver_Request />} />
+        {/* Bidding Routes */}
         <Route path="/submit-bids" element={<Driver_Bids />} />
         <Route path="/submit-bids/:id" element={<Driver_Bids />} />
-        <Route path="/driver-earnings" element={<Driver_Earnings />} />
         
         {/* Added missing route for other-drivers */}
         <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
