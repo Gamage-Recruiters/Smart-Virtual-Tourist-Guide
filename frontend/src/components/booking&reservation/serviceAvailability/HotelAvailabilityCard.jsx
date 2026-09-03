@@ -117,6 +117,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
 
     const roomNumVal = selectedRoom?.roomNumber || selectedRoom?.roomNo || 'R1';
     const roomNameVal = selectedRoom?.roomName || selectedRoom?.name || 'Standard Room';
+    const roomTypeVal = selectedRoom?.roomType || 'Deluxe Double Room';
 
     navigate("/booking-page", {
       state: {
@@ -127,6 +128,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
           roomNumber: roomNumVal,
           roomNo: roomNumVal,
           roomName: roomNameVal,
+          roomType: roomTypeVal,
           image: hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
           name: hotel?.name || "Ocean Breeze Resort",
           location: hotel?.location || "Bentota, Sri Lanka",
@@ -139,8 +141,10 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
         roomNumber: roomNumVal,
         roomNo: roomNumVal,
         roomName: roomNameVal,
+        roomType: roomTypeVal,
         bookingDetails: [
           { label: "Room Name", value: roomNameVal },
+          { label: "Room Type", value: roomTypeVal },
           { label: "Room Number", value: roomNumVal },
           { label: "Room ID", value: String(targetRoomId || 'N/A') },
           { label: "Check-in", value: hotelData.checkIn },

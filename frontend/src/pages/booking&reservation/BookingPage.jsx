@@ -68,6 +68,7 @@ const BookingPage = () => {
             const roomIdVal = location.state?.roomId || service?.roomId;
             const roomNumberVal = location.state?.roomNumber || location.state?.roomNo || service?.roomNumber || service?.roomNo;
             const roomNameVal = location.state?.roomName || service?.roomName;
+            const roomTypeVal = location.state?.roomType || service?.roomType;
 
             const bookingPayload = {
                 service: {
@@ -77,12 +78,14 @@ const BookingPage = () => {
                     roomNumber: roomNumberVal,
                     roomNo: roomNumberVal,
                     roomName: roomNameVal,
+                    roomType: roomTypeVal,
                 },
                 hotelId: hotelIdVal,
                 roomId: roomIdVal,
                 roomNumber: roomNumberVal,
                 roomNo: roomNumberVal,
                 roomName: roomNameVal,
+                roomType: roomTypeVal,
                 bookingDetails,
                 pricing,
                 customer: {

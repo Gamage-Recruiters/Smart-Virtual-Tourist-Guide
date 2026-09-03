@@ -107,7 +107,7 @@ const buildBookingData = (payload) => {
     baseData.adultCount = adultCnt;
     baseData.childCount = childCnt;
     baseData.guestCountry = payload.guestCountry || extractBookingField(details, 'Country') || 'Sri Lanka';
-    baseData.roomType = payload.roomType || extractBookingField(details, 'Room Type', 'Room') || rawRoom;
+    baseData.roomType = payload.roomType || service?.roomType || extractBookingField(details, 'Room Type') || 'Deluxe Double Room';
     baseData.guests = payload.guests || rawGuestsNum || (adultCnt + childCnt);
     baseData.roomsCount = payload.roomsCount || Number(parseInt(extractBookingField(details, 'Rooms', 'Rooms Count') || '1')) || 1;
   } else if (serviceType === 'restaurant') {
