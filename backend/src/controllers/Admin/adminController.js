@@ -3,7 +3,7 @@ import Admin from '../../models/Admin/Admin.js';
 import Booking from '../../models/ActivityProvider/ActivityBooking.js';
 import Package from '../../models/Admin/Package.js';
 import Advertisement from '../../models/Admin/Advertisement.js';
-import Review from '../../models/review.model.js';
+import Review from '../../models/Restuarant/review.model.js';
 import Room from '../../models/HotelOwner/room.model.js';
 
 

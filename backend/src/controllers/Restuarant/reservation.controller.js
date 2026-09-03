@@ -1,5 +1,5 @@
-import Reservation from "../models/reservation.model.js";
-import Restaurant from "../models/restaurant.model.js";
+import Reservation from "../../models/Restuarant/reservation.model.js";
+import Restaurant from "../../models/Restuarant/restaurant.model.js";
 
 const createReservation = async (req, res) => {
   try {

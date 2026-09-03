@@ -24,12 +24,16 @@ const getInitials = (name) => {
 function ResturentDashboardPage() {
   const navigate = useNavigate()
   const [restaurantData, setRestaurantData] = useState(null)
+  const [profileNotFound, setProfileNotFound] = useState(false)
   const [menuCount, setMenuCount] = useState(0)
   const [activeOffers, setActiveOffers] = useState(0)
   const [reservations, setReservations] = useState([])
   const [revenueData, setRevenueData] = useState({ totalRevenue: 0 })
   const [reviewData, setReviewData] = useState({ averageRating: 0, totalReviews: 0, recentReviews: [] })
   const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(false)
+  const [setupData, setSetupData] = useState({ restaurantName: '', ownerName: '', phone: '', address: '', district: '', registrationNo: '' })
+  const [setupError, setSetupError] = useState('')
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -47,6 +51,7 @@ function ResturentDashboardPage() {
 
         if (matchedRestaurant) {
           setRestaurantData(matchedRestaurant)
+          setProfileNotFound(false)
 
           // Fetch menu items, offers, reservations, revenue, and reviews
           const [menuRes, offersRes, reservRes, revRes, reviewRes] = await Promise.all([
@@ -84,6 +89,9 @@ function ResturentDashboardPage() {
               recentReviews: Array.isArray(revData.reviews) ? revData.reviews.slice(0, 3) : [],
             })
           }
+        } else {
+          // No restaurant profile found for this user — show setup form
+          setProfileNotFound(true)
         }
       } catch (err) {
         console.error('Dashboard fetch error:', err)
@@ -97,7 +105,100 @@ function ResturentDashboardPage() {
 
   const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
 
-  // Calculate today's reservations count
+  // ── Handle profile creation for users who skipped/failed step 2 ──────────
+  const handleSetupProfile = async (e) => {
+    e.preventDefault()
+    setSetupError('')
+    if (!setupData.restaurantName || !setupData.ownerName || !setupData.phone || !setupData.address || !setupData.district || !setupData.registrationNo) {
+      setSetupError('Please fill in all required fields.')
+      return
+    }
+    setCreating(true)
+    try {
+      const token = localStorage.getItem('restaurantToken')
+      const res = await fetch(`${API_BASE}/restaurants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...setupData,
+          email: user.email,
+          tables: {
+            ethereal: { name: 'The Ethereal (full luxury experience)', pricePerPerson: 285, limit: 500 },
+            obsidian: { name: 'Obsidian Terrace (open air sunset dining)', pricePerPerson: 195, limit: 500 },
+          },
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setRestaurantData(data)
+        setProfileNotFound(false)
+      } else {
+        setSetupError(data.message || 'Failed to create profile. Try again.')
+      }
+    } catch {
+      setSetupError('Network error. Please try again.')
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  // ── No-profile state: show inline setup form ─────────────────────────────
+  if (!loading && profileNotFound) {
+    const SRI_LANKA_DISTRICTS = ["Colombo","Gampaha","Kalutara","Kandy","Matale","Nuwara Eliya","Galle","Matara","Hambantota","Jaffna","Kilinochchi","Mannar","Mullaitivu","Vavuniya","Trincomalee","Batticaloa","Ampara","Kurunegala","Puttalam","Anuradhapura","Polonnaruwa","Badulla","Monaragala","Ratnapura","Kegalle"]
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-6">
+        <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 p-8">
+          <div className="mb-6 text-center">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 mb-4">
+              <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Complete Your Restaurant Profile</h2>
+            <p className="mt-1.5 text-sm text-slate-500">Your account is set up. Now add your restaurant details to get started.</p>
+          </div>
+          {setupError && <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-xs text-red-600 font-medium">{setupError}</div>}
+          <form onSubmit={handleSetupProfile} className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">Restaurant Name *</label>
+                <input value={setupData.restaurantName} onChange={e => setSetupData(p => ({ ...p, restaurantName: e.target.value }))} placeholder="e.g. Royal Taste" className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50" />
+              </div>
+              <div>
+                <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">Owner Full Name *</label>
+                <input value={setupData.ownerName} onChange={e => setSetupData(p => ({ ...p, ownerName: e.target.value }))} placeholder="e.g. John Doe" className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">Registration No *</label>
+                <input value={setupData.registrationNo} onChange={e => setSetupData(p => ({ ...p, registrationNo: e.target.value }))} placeholder="e.g. Reg-77382" className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50" />
+              </div>
+              <div>
+                <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">Contact Phone *</label>
+                <input value={setupData.phone} onChange={e => setSetupData(p => ({ ...p, phone: e.target.value }))} placeholder="0774659824" className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50" />
+              </div>
+            </div>
+            <div>
+              <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">Full Address *</label>
+              <input value={setupData.address} onChange={e => setSetupData(p => ({ ...p, address: e.target.value }))} placeholder="123 Restaurant Street, Colombo" className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50" />
+            </div>
+            <div>
+              <label className="block mb-1 text-[10px] font-bold uppercase text-slate-600 tracking-wider">District *</label>
+              <select value={setupData.district} onChange={e => setSetupData(p => ({ ...p, district: e.target.value }))} className="w-full h-9 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 bg-slate-50">
+                <option value="">-- Select District --</option>
+                {SRI_LANKA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <button type="submit" disabled={creating} className="w-full h-10 mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors disabled:opacity-50 cursor-pointer">
+              {creating ? 'Creating Profile...' : 'Create Restaurant Profile'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   const todayStr = new Date().toISOString().split('T')[0]
   const todayReservationsCount = reservations.filter(r => r.date === todayStr).length
 

@@ -1,7 +1,7 @@
-import Review from "../models/review.model.js";
-import Restaurant from "../models/restaurant.model.js";
+import Review from "../../models/Restuarant/review.model.js";
+import Restaurant from "../../models/Restuarant/restaurant.model.js";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../../models/User.js";
 
 /**
  * POST /api/reviews
