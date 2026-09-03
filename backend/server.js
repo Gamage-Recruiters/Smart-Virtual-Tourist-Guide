@@ -1,26 +1,6 @@
 import "dotenv/config";
 import app from "./src/app.js";
 import connectDB from "./src/configs/database.js";
-import { configureCloudinary } from "./src/configs/ActivityProvider/cloudinary.js";
-import activityRoutes from "./src/routes/ActivityProvider/activity.routes.js";
-import activityCalenderRoutes from "./src/routes/ActivityProvider/activityCalender.routes.js";
-import activityBookingRoutes from "./src/routes/ActivityProvider/activityBooking.routes.js";
-import availabilityRoutes from "./src/routes/ActivityProvider/availability.routes.js";
-import serviceRouter from "./src/routes/NavigationAndMapping/serviceRouter.js";
-import favoriteRouter from "./src/routes/NavigationAndMapping/favoriteRouter.js";
-import securityAlertRouter from "./src/routes/NavigationAndMapping/securityAlertRouter.js";
-import incidentRouter from "./src/routes/NavigationAndMapping/incidentRouter.js";
-import hotelRouter from "./src/routes/NavigationAndMapping/hotelRouter.js";
-import safetyRouter from "./src/routes/Safety/safetyRouter.js"
-
-// Configure cloudinary
-configureCloudinary();
-
-// Mount Activity Provider routes
-app.use('/api/activities', activityRoutes);
-app.use('/api/bookings', activityBookingRoutes);
-app.use('/api/availability', availabilityRoutes);
-app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // Mount NavigationAndMapping routes
 app.use('/api/recent-places', serviceRouter);

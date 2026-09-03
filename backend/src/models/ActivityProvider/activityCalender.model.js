@@ -37,16 +37,22 @@ calendarSchema.index({ activityId: 1, date: 1 }, { unique: true });
 calendarSchema.index({ activityId: 1, date: 1, status: 1 });
 
 // Auto-calculate status before save
-calendarSchema.pre('save', function (next) {
-  if (this.isUnavailable) { this.status = 'unavailable'; return next(); }
-  const activeSlots = this.timeSlots.filter((s) => s.isActive);
-  if (activeSlots.length === 0) { this.status = 'unavailable'; return next(); }
-  const totalCapacity = activeSlots.reduce((sum, s) => sum + s.capacity, 0);
-  const totalBooked   = activeSlots.reduce((sum, s) => sum + s.booked, 0);
+calendarSchema.pre('save', function () {
+  if (this.isUnavailable) {
+    this.status = 'unavailable';
+    return;
+  }
+  const slots = Array.isArray(this.timeSlots) ? this.timeSlots : [];
+  const activeSlots = slots.filter((s) => s && s.isActive);
+  if (activeSlots.length === 0) {
+    this.status = 'unavailable';
+    return;
+  }
+  const totalCapacity = activeSlots.reduce((sum, s) => sum + (s.capacity || 0), 0);
+  const totalBooked   = activeSlots.reduce((sum, s) => sum + (s.booked || 0), 0);
   if (totalBooked === 0)               this.status = 'available';
   else if (totalBooked < totalCapacity) this.status = 'pending';
   else                                  this.status = 'fully_booked';
-  next();
 });
 
 export default mongoose.model('Calendar', calendarSchema);
