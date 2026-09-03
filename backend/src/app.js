@@ -99,6 +99,12 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/safety', safetyRouter);
 
+// Tourist Dashboard Routes
+app.use('/api/budget', budgetRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/itineraries', itineraryRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/tourists', touristRoutes);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
