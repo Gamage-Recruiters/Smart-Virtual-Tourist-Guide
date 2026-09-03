@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
-import * as reservationController from "../controllers/reservation.controller.js";
-import { protect } from "../middleware/authMiddleware.js";
+import * as reservationController from "../../controllers/Restuarant/reservation.controller.js";
+import { protect } from "../../middleware/authMiddleware.js";
 
 // Availability check (Public)
 router.get("/availability", reservationController.getAvailability);

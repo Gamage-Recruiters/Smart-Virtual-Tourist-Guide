@@ -1,6 +1,6 @@
 import express from "express";
-import * as menuItemController from "../controllers/menuItem.controller.js";
-import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
+import * as menuItemController from "../../controllers/Restuarant/menuItem.controller.js";
+import { protect, authorizeRoles } from "../../middleware/authMiddleware.js";
 
 const router = express.Router();
 

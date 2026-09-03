@@ -32,8 +32,13 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
       const data = await socialAuthAPI.googleAuth(idToken, role);
 
       // Step 3: Save token + navigate to dashboard or custom route
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      if (data.user.role === 'restaurant_user') {
+        localStorage.setItem('restaurantToken', data.token);
+        localStorage.setItem('restaurantUser', JSON.stringify(data.user));
+      } else {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+      }
       
       if (customRedirect) {
         navigate(customRedirect);
