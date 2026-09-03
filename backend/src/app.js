@@ -14,6 +14,14 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import destinationRoutes from './routes/destinationRoutes.js';
+import safetyRouter from './routes/Safety/safetyRouter.js';
+import serviceRouter from './routes/NavigationAndMapping/serviceRouter.js';
+import favoriteRouter from './routes/NavigationAndMapping/favoriteRouter.js';
+import securityAlertRouter from './routes/NavigationAndMapping/securityAlertRouter.js';
+import incidentRouter from './routes/NavigationAndMapping/incidentRouter.js';
+import hotelRouter from './routes/NavigationAndMapping/hotelRouter.js';
 import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
@@ -24,6 +32,7 @@ config();
 configureCloudinary();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const app = express();
 
 // ==================== MIDDLEWARE ====================
 
@@ -80,6 +89,12 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/safety', safetyRouter);
 
+// Navigation and Mapping Routes
+app.use('/api/recent-places', serviceRouter);
+app.use('/api/favorite-places', favoriteRouter);
+app.use('/api/security-alerts', securityAlertRouter);
+app.use('/api/incidents', incidentRouter);
+app.use('/api/hotels', hotelRouter);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
