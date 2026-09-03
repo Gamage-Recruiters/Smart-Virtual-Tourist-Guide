@@ -84,7 +84,7 @@ const hotelBookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'pending_payment', 'confirmed', 'cancelled', 'payment_failed'],
+      enum: ['pending', 'ok', 'cancelled', 'checked-in', 'checked-out', 'no-show'],
       default: 'pending',
     },
   },
