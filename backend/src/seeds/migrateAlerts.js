@@ -7,7 +7,8 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
-import connectDB from '../config/database.js';
+import connectDB from '../configs/database.js';
+import SecurityAlert from '../models/Safety/SecurityAlert.js';
 
 async function migrate() {
   await connectDB();
