@@ -1,0 +1,1093 @@
+{
+  "analysis_metadata": {
+    "project": "Real-Time Navigation Location Management",
+    "analysis_date": "2025-08-31",
+    "scope": "Full codebase - Frontend (React/Vite) and Backend (Node.js/Express)",
+    "total_findings": 87,
+    "severity_breakdown": {
+      "high": 28,
+      "medium": 35,
+      "low": 24
+    }
+  },
+  "findings": {
+    "frontend": {
+      "HIGH_SEVERITY": [
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "1-40",
+          "issue": "Unused imports: 'createPortal' from 'react-dom'",
+          "code_snippet": "import { createPortal } from 'react-dom';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "import is declared but never used in the component. Can be safely removed.",
+          "impact": "Adds ~2KB to bundle"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "45-49",
+          "issue": "Window global pollution: setActivePageGlobal, setEtaTitleGlobal, setEtaDataGlobal assigned to window object",
+          "code_snippet": "window.setActivePageGlobal = setActivePage;\nwindow.setEtaTitleGlobal = setTitle;\nwindow.setEtaDataGlobal = setEtaData;",
+          "severity": "high",
+          "breaks_functionality": true,
+          "description": "Direct global assignment creates implicit dependencies and makes code hard to trace. These globals are referenced in inline event handlers, creating tight coupling.",
+          "impact": "Creates runtime dependencies on globals that could cause memory leaks or race conditions",
+          "recommendation": "Use React refs or event bubbling instead of global state"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "200-250",
+          "issue": "Duplicate logic: 'destination' extraction appears multiple times with identical logic",
+          "code_snippet": "const destination = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || searchedPlace?.name || destPlace?.displayName || destPlace?.formatted_address?.split(',')[0] || destPlace?.name || '';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "This destination extraction pattern is repeated in multiple places in this file. Could be extracted to a reusable function.",
+          "impact": "Code duplication, maintainability issues"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "240-280",
+          "issue": "Duplicate function: searchPlacesAlongRoute and searchAttractionsAlongRoute have nearly identical structure",
+          "code_snippet": "const searchPlacesAlongRoute = useCallback((category) => {...}); const searchAttractionsAlongRoute = useCallback(() => {...});",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Both functions fetch nearby places using fetchNearbyPlacesAlongRoute with identical filtering logic. Can be consolidated into one parametrized function.",
+          "impact": "Code duplication, maintenance burden, larger bundle"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "60-120",
+          "issue": "Excessive refs: 24 refs stored in mapEngine - potential memory leak risk",
+          "code_snippet": "const { mapRef, mapInstanceRef, renderersRef, clickPathsRef, ... nearestHospitalOverlayRef } = mapEngine;",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Too many ref abstractions make state management complex. Multiple refs for overlays (floodLabelsRef, crimeLabelsRef, roadblockLabelsRef, routeLabelsRef) could be consolidated into a single overlay manager.",
+          "impact": "Memory overhead, difficult to track which refs are in use"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "100-120",
+          "issue": "Repeated coordinate extraction logic in multiple useCallbacks",
+          "code_snippet": "const lat = typeof loc?.lat === 'function' ? loc.lat() : (loc?.lat ?? place.lat);\nconst lng = typeof loc?.lng === 'function' ? loc.lng() : (loc?.lng ?? place.lng ?? place.lon);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "This coordinate normalization pattern appears 3+ times in the file. Should be extracted to a utility function.",
+          "impact": "Code duplication, maintenance issues"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "30-60",
+          "issue": "Unused state variable: 'localSearched' is set but never meaningfully used",
+          "code_snippet": "const [localSearched, setLocalSearched] = useState(false);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "State is updated in handleNavigate but only used to check hasSearched which is already in context. Redundant state.",
+          "impact": "Unnecessary re-renders, code bloat"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "70-100",
+          "issue": "Unused import: 'user' and 'explore2' images imported but never used",
+          "code_snippet": "import explore2 from '../assets/explore2.png';\nimport user from '../assets/user.png';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "These image assets are imported but never rendered in the component.",
+          "impact": "Adds ~50KB to bundle unnecessarily"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "250-280",
+          "issue": "Dead code: hotelGroups derived from groupedHotels but never used",
+          "code_snippet": "const hotelGroups = Object.values(groupedHotels).map((rooms) => rooms.slice().sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0)));",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Variable is computed but never referenced in render or logic. The computation is expensive (sorting).",
+          "impact": "Wasted computation on every render"
+        },
+        {
+          "file": "src/pages/SafetyAlertTemplate.jsx",
+          "line": "80-120",
+          "issue": "Duplicate haversineDistance function exists across multiple files",
+          "code_snippet": "const haversineDistance = (lat1, lon1, lat2, lon2) => { ... };",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "This function is defined in SafetyAlertTemplate.jsx, floodService.js, and useNavigation.js. Should be extracted to a shared utility.",
+          "impact": "Code duplication, maintenance nightmare"
+        },
+        {
+          "file": "src/pages/SafetyAlertTemplate.jsx",
+          "line": "200+",
+          "issue": "Unused variable: 'currentRoadblockIndex' is declared but never updated or used",
+          "code_snippet": "const [currentRoadblockIndex, setCurrentRoadblockIndex] = useState(0);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "State is created but never used in rendering or effects.",
+          "impact": "Dead state variable, unnecessary re-renders"
+        },
+        {
+          "file": "src/components/Header.jsx",
+          "line": "1-20",
+          "issue": "Unused import: 'sriflag' image is imported but never used in render",
+          "code_snippet": "import sriflag from '../assets/sriflag.jpg';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Image is imported but not rendered anywhere in the component.",
+          "impact": "Adds ~20KB to bundle"
+        },
+        {
+          "file": "src/components/Header.jsx",
+          "line": "100-150",
+          "issue": "Unused import: 'Mic' and 'X' icons from lucide-react",
+          "code_snippet": "import { MapPin, Mic, Search, X } from 'lucide-react';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Only 'MapPin' and 'Search' are used; 'Mic' and 'X' are imported but never rendered.",
+          "impact": "Adds ~5KB to bundle"
+        },
+        {
+          "file": "src/services/api.js",
+          "line": "50-80",
+          "issue": "Repeated function: resolvePlaceName and similar resolver functions lack DRY principle",
+          "code_snippet": "const resolvePlaceName = (place) => {...}; const resolvePlaceId = (place) => {...};",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Multiple resolver functions follow similar patterns. Could be generalized into a single 'getPlaceField' function.",
+          "impact": "Code duplication, maintenance issues"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "50-200",
+          "issue": "Duplicate logic: Multiple coordinate extraction and normalization patterns throughout the file",
+          "code_snippet": "const lat = element.lat ?? element.center?.lat; const lon = element.lon ?? element.center?.lon;",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "This pattern appears 5+ times. Should be extracted to a utility function.",
+          "impact": "Code duplication, error-prone coordinate handling"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "150-200",
+          "issue": "Inefficient: Multiple API requests in fetchNearbyPlacesAlongRoute when one could be optimized",
+          "code_snippet": "for (const endpoint of endpoints) { try { const candidate = await fetch(url); ... } catch { } }",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Sequential fetches with retries could use Promise.race or Promise.any for faster failover.",
+          "impact": "Slow API responses, poor user experience"
+        },
+        {
+          "file": "src/hooks/useMapEngine.js",
+          "line": "1-50",
+          "issue": "Unused function: findNearestHospital never actually used in the application",
+          "code_snippet": "const findNearestHospital = (location, showDetailsPanel = true) => { ... };",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Function is exported and available but never called from any component or hook.",
+          "impact": "Dead code, adds to bundle"
+        },
+        {
+          "file": "src/hooks/useMapEngine.js",
+          "line": "80-130",
+          "issue": "Poor separation of concerns: Excessive ref management in single hook",
+          "code_snippet": "const routeLabelsRef = useRef([]);\nconst floodLabelsRef = useRef([]);\nconst crimeLabelsRef = useRef([]);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "24 refs for overlay management could be refactored into a single overlay manager class/object for clarity.",
+          "impact": "Hard to maintain, memory overhead"
+        },
+        {
+          "file": "src/hooks/useNavigation.js",
+          "line": "60-120",
+          "issue": "Repeated distance calculation: getDistanceMeters and haversineDistance serve same purpose",
+          "code_snippet": "const getDistanceMeters = (a, b) => { ... }; // haversineDistance also exists elsewhere",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Nearly identical haversine distance calculations exist in multiple files without shared implementation.",
+          "impact": "Code duplication, inconsistent calculations"
+        },
+        {
+          "file": "src/pages/EtaPage.jsx",
+          "line": "50-100",
+          "issue": "Unused functions: parseDistanceKm and getArrivalTime defined but usage could be optimized",
+          "code_snippet": "const parseDistanceKm = (distText = '') => { ... }; const getArrivalTime = (durationMinutes) => { ... };",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "These utilities are tightly coupled to EtaPage and could be reused across other pages but aren't exported.",
+          "impact": "Code duplication if similar functionality needed elsewhere"
+        },
+        {
+          "file": "src/constants/direction.js",
+          "line": "1-50",
+          "issue": "Dead constant: SHOW_CRIME_LABELS_ON_START_MAP and SHOW_ROADBLOCK_LABELS_ON_START_MAP are false and unused",
+          "code_snippet": "export const SHOW_CRIME_LABELS_ON_START_MAP = false;\nexport const SHOW_ROADBLOCK_LABELS_ON_START_MAP = false;",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "These constants are never imported or used anywhere in the codebase.",
+          "impact": "Dead code, clutters constants file"
+        },
+        {
+          "file": "src/pages/DirectionOne.jsx",
+          "line": "1-50",
+          "issue": "Unused state variable: 'searching' state never used in rendering logic",
+          "code_snippet": "const [searching, setSearching] = useState(false);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "State is updated but never checked in JSX or effects.",
+          "impact": "Unnecessary state, potential re-renders"
+        },
+        {
+          "file": "src/pages/AddStopPanel.jsx",
+          "line": "30-60",
+          "issue": "Duplicate of Direction.jsx: searchPlacesAlongRoute and searchAttractionsAlongRoute are duplicated",
+          "code_snippet": "const searchPlacesAlongRoute = useCallback((category) => {...});",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Exact copy of functions from Direction.jsx. Should be extracted to a shared hook.",
+          "impact": "Code duplication across files"
+        },
+        {
+          "file": "src/pages/DirectionOne.jsx",
+          "line": "70-90",
+          "issue": "Unused import: 'middle' image imported but placement in code suggests dead code",
+          "code_snippet": "import middle from '../assets/middle.png';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Image is imported and referenced in backdrop but not in visible area.",
+          "impact": "Loads asset that may not be visible"
+        }
+      ],
+      "MEDIUM_SEVERITY": [
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "110-150",
+          "issue": "Inefficient useEffect dependencies: Too many dependencies in routing effect",
+          "code_snippet": "useEffect(() => { setSelectedMode(map[pendingVehicle]); }, [pendingVehicle]);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Simple mapping could be moved outside the effect or use useMemo for map object.",
+          "impact": "Unnecessary re-renders on parent updates"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "240-290",
+          "issue": "Inefficient filtering: De-duplication with Set happens after filtering, should reverse order",
+          "code_snippet": "const seen = new Set(); const collected = places.filter((place) => { const id = place.place_id || place.placeId; ... });",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Filter first creates unnecessary intermediate array before deduplication.",
+          "impact": "Wasted memory and CPU cycles"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "400-450",
+          "issue": "API called multiple times without caching: fetchHotels called but result not cached",
+          "code_snippet": "if (!isRepeatedPlace) fetchHotels(locationName, lat, lng).then(...)",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Hotels are fetched on every navigate even if same location queried later.",
+          "impact": "Unnecessary API calls, slower UX"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "650-700",
+          "issue": "Inefficient state management: handleNavigate triggers multiple state updates",
+          "code_snippet": "setLocalSearched(true); setHasSearched(true); setPlacePhotos(...); void saveRecentPlace(...);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Multiple setState calls could be batched in React 18, but setPlacePhotos is async which prevents batching.",
+          "impact": "Multiple re-renders instead of one"
+        },
+        {
+          "file": "src/pages/SafetyAlertTemplate.jsx",
+          "line": "150-200",
+          "issue": "Unused variable: emergencyContacts defined but never used in rendering",
+          "code_snippet": "const [emergencyContacts] = useState([...]);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Array is initialized but not rendered anywhere in JSX.",
+          "impact": "Dead state variable"
+        },
+        {
+          "file": "src/pages/SafetyAlertTemplate.jsx",
+          "line": "300-350",
+          "issue": "Inefficient useMemo: routeSummary computed every render despite rarely changing",
+          "code_snippet": "const routeSummary = useMemo(() => {...}, [safetyData]);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Computed value is only used in one alert card, not worth memoizing.",
+          "impact": "Premature optimization, adds complexity"
+        },
+        {
+          "file": "src/components/Header.jsx",
+          "line": "150-180",
+          "issue": "Repeated coordinate extraction in selectSuggestion and handleSearch",
+          "code_snippet": "const loc = searchedPlace?.geometry?.location;\nconst lat = typeof loc?.lat === 'function' ? loc.lat() : (loc?.lat ?? searchedPlace.lat);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Same pattern used twice for coordinate extraction.",
+          "impact": "Code duplication, maintenance burden"
+        },
+        {
+          "file": "src/components/LocationInput.jsx",
+          "line": "50-80",
+          "issue": "Unused import: 'Clock' icon imported but never rendered",
+          "code_snippet": "import { Search, MapPin, Clock } from 'lucide-react';",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Clock icon is used in the component, but 'Search' icon is only conditionally imported in Header. Not wasted here.",
+          "impact": "Minor - actually used"
+        },
+        {
+          "file": "src/services/api.js",
+          "line": "100-150",
+          "issue": "Repeated validation regex: ALLOWED_LOCATION_RE defined multiple times across files",
+          "code_snippet": "const ALLOWED_LOCATION_RE = /^[a-zA-Z0-9\\s,\\-.]{1,100}$/;",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Same regex pattern appears in api.js and other files without consolidation.",
+          "impact": "Code duplication, single source of truth violation"
+        },
+        {
+          "file": "src/services/api.js",
+          "line": "120-180",
+          "issue": "Inefficient imageUrl handling: redundant slice and filter operations",
+          "code_snippet": "normalizeImageUrls = (imageUrls) => Array.isArray(imageUrls) ? imageUrls.filter(Boolean).slice(0, 2) : []",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "This function called multiple times in createFavoritePlace and saveRecentPlace.",
+          "impact": "Repeated operations on same data"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "30-50",
+          "issue": "Inefficient API fallback logic: Sequential tries without Promise.any",
+          "code_snippet": "for (const url of urls) { try { const candidate = await fetch(url); ... } }",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Could use Promise.race() to get first successful response faster.",
+          "impact": "Slower API responses, poor UX during failures"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "100-150",
+          "issue": "Repeated filteringlogic in fetchNearbyPlaces and fetchNearbyPlacesAlongRoute",
+          "code_snippet": "const seen = new Set(); [...].filter((place) => { if (!id || seen.has(id)) return false; seen.add(id); return true; });",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Deduplication logic repeated in multiple places.",
+          "impact": "Code duplication, hard to maintain"
+        },
+        {
+          "file": "src/utils/floodService.js",
+          "line": "10-30",
+          "issue": "Duplicate haversineDistance function (see SafetyAlertTemplate and useNavigation)",
+          "code_snippet": "const haversineDistance = (lat1, lon1, lat2, lon2) => { ... };",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Identical function exists in 3+ files.",
+          "impact": "Code duplication, maintenance nightmare"
+        },
+        {
+          "file": "src/utils/useLocationSearch.js",
+          "line": "40-80",
+          "issue": "Inefficient debounce: handleChange doesn't debounce API calls",
+          "code_snippet": "const handleChange = useCallback((e) => { setQuery(val); fetchSuggestions(val); }, [fetchSuggestions]);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "API calls on every keystroke instead of debounced. Already implemented in helpers.js but not used here.",
+          "impact": "Excessive API calls, slower UX"
+        },
+        {
+          "file": "src/hooks/useRouting.js",
+          "line": "1-30",
+          "issue": "Unused variable: modeConfigs exported but never imported",
+          "code_snippet": "modeConfigs: MODE_CONFIGS",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Returned from hook but never used in calling code.",
+          "impact": "Unused export"
+        },
+        {
+          "file": "src/hooks/useRouting.js",
+          "line": "60-100",
+          "issue": "Inefficient state updates: setLoadingRoutes and setError called sequentially",
+          "code_snippet": "setLoadingRoutes(true);\nsetError(null);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Could be batched into single state object.",
+          "impact": "Extra re-render"
+        },
+        {
+          "file": "src/hooks/useNavigation.js",
+          "line": "20-40",
+          "issue": "Repeated string manipulation: sanitizeInstruction removes tags on every call",
+          "code_snippet": "const sanitizeInstruction = (html = '') => html.replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim();",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Called multiple times per navigation update, could cache results.",
+          "impact": "Wasted regex operations"
+        },
+        {
+          "file": "src/pages/EtaPage.jsx",
+          "line": "100-150",
+          "issue": "Unused computed value: alternativeRoutes calculated but limited by index",
+          "code_snippet": "const preferredIndex = etaData?.selectedRouteIndex ?? 0;\nconst safeIndex = preferredIndex < routes.length ? preferredIndex : 0;",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Fallback logic for invalid index, but API should guarantee valid index.",
+          "impact": "Defensive coding that adds complexity"
+        },
+        {
+          "file": "src/pages/DirectionOne.jsx",
+          "line": "50-100",
+          "issue": "Inefficient handler: handleSwap updates multiple state variables individually",
+          "code_snippet": "originSearch.setQuery(destinationValue);\ndestinationSearch.setQuery(originValue);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Could batch state updates or use custom hook.",
+          "impact": "Multiple re-renders"
+        },
+        {
+          "file": "src/contexts/PageTitleContext.jsx",
+          "line": "10-30",
+          "issue": "Poor state organization: 14 separate useState calls could be consolidated",
+          "code_snippet": "const [title, setTitle] = useState(' ');\nconst [showSearchBar, setShowSearchBar] = useState(false);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Multiple related states should be combined into nested state objects.",
+          "impact": "Hard to maintain, risk of inconsistent state"
+        },
+        {
+          "file": "src/contexts/PageTitleContext.jsx",
+          "line": "35-40",
+          "issue": "Ref-based callback pattern: onNavigateRef.current is fragile pattern",
+          "code_snippet": "const onNavigateRef = useRef(null);\nconst setOnNavigate = (fn) => { onNavigateRef.current = fn; };",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "This pattern bypasses React's normal data flow. Should use callback functions or event system.",
+          "impact": "Hard to debug, potential memory leaks"
+        },
+        {
+          "file": "src/pages/AddStopPanel.jsx",
+          "line": "5-10",
+          "issue": "Unused function: routePath helper defined but could be inlined",
+          "code_snippet": "const routePath = (directionsResultRef, selectedIdx) => ({...});",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Simple accessor function called multiple times, adds layer of indirection.",
+          "impact": "Unnecessary abstraction"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "35-45",
+          "issue": "Magic value: USER_LOCATION hardcoded instead of fetched from geolocation",
+          "code_snippet": "const USER_LOCATION = { lat: 7.8731, lng: 80.7718 };",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Default location is hardcoded, should be in constants or environment.",
+          "impact": "Hard to change default location, violates DRY"
+        }
+      ],
+      "LOW_SEVERITY": [
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "1-50",
+          "issue": "Import order not alphabetized",
+          "code_snippet": "Various imports mixed between internal and external",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Imports should follow a consistent order (external, internal, assets) for readability.",
+          "impact": "Readability/maintainability"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "1-30",
+          "issue": "Unused variable: lastHandledPlaceKeyRef.current initialization could be optimized",
+          "code_snippet": "const lastHandledPlaceKeyRef = useRef('');",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Ref used to track last place to avoid duplicate saves, but pattern is brittle.",
+          "impact": "Could use better state management"
+        },
+        {
+          "file": "src/components/LocationInput.jsx",
+          "line": "10-30",
+          "issue": "localStorage access not wrapped in try-catch for privacy mode",
+          "code_snippet": "try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Good error handling but could fail silently in some browsers.",
+          "impact": "Edge case handling"
+        },
+        {
+          "file": "src/pages/Header.jsx",
+          "line": "70-90",
+          "issue": "Inline style objects recreated on every render",
+          "code_snippet": "style={{ position: 'relative', width: '800px', marginRight: '40px', zIndex: 10 }}",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should be extracted to constants or CSS modules.",
+          "impact": "Minor performance impact"
+        },
+        {
+          "file": "src/pages/EtaPage.jsx",
+          "line": "50-70",
+          "issue": "Magic constant: 8 magic numbers throughout calculation functions",
+          "code_snippet": "const fuelEstimate = (distKm * (fuelRate / 100)).toFixed(1);",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Constants like fuel rates and price per liter should be extracted.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "src/utils/helpers.js",
+          "line": "20-40",
+          "issue": "Unused function: debounce exported but never imported",
+          "code_snippet": "export const debounce = (func, delay) => { ... };",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Function exists but not used anywhere in codebase.",
+          "impact": "Dead code"
+        },
+        {
+          "file": "src/services/api.js",
+          "line": "1-10",
+          "issue": "Repeated endpoint string building in multiple functions",
+          "code_snippet": "`/favorite-places${suffix}`",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Query string building could be centralized in apiClient.",
+          "impact": "Code repetition"
+        },
+        {
+          "file": "src/pages/SafetyAlertTemplate.jsx",
+          "line": "200-250",
+          "issue": "Console.warn used instead of proper error handling",
+          "code_snippet": "console.warn('[SafetyAlert] Geolocation error:', err.message)",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should use structured logging, not console.warn.",
+          "impact": "Error tracking"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "1-20",
+          "issue": "Multiple API endpoints used for fallback without clear prioritization",
+          "code_snippet": "const endpoints = [url1, url2, url3];",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Fallback strategy not documented, hard to understand priority.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "src/constants/direction.js",
+          "line": "1-50",
+          "issue": "Unused constant: SRI_LANKA_BOUNDS defined but not used",
+          "code_snippet": "export const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Exported but never imported.",
+          "impact": "Clutters constant file"
+        },
+        {
+          "file": "src/hooks/useMapEngine.js",
+          "line": "1-50",
+          "issue": "Long return statement with many properties makes hook hard to read",
+          "code_snippet": "return { mapRef, mapInstanceRef, renderersRef, ... };",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Could split into smaller hooks or use better organization.",
+          "impact": "Readability"
+        },
+        {
+          "file": "src/pages/DirectionOne.jsx",
+          "line": "150-200",
+          "issue": "Unused CSS style attribute: complex inline styles that could be CSS modules",
+          "code_snippet": "style={{ marginTop: '20px', marginLeft: '700px', gap: '12px' }}",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Tailwind is already configured but inline styles used instead.",
+          "impact": "Inconsistent styling approach"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "600-650",
+          "issue": "Excessive comment in handleShareLocation function",
+          "code_snippet": "// Complex share logic with multiple fallbacks",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Function is 60+ lines with repeated fallback patterns.",
+          "impact": "Code maintainability"
+        },
+        {
+          "file": "src/utils/floodService.js",
+          "line": "20-40",
+          "issue": "Unused constant: FOG_TEXT_RE defined but never used in active code",
+          "code_snippet": "const FOG_TEXT_RE = /(fog|mist|haze|...)/i;",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Regex used in checkRouteForFog function which doesn't seem to be called.",
+          "impact": "Dead code"
+        },
+        {
+          "file": "src/hooks/useNavigation.js",
+          "line": "80-120",
+          "issue": "Multiple array lookups in loops: steps array accessed repeatedly",
+          "code_snippet": "const steps = leg?.steps || []; ... steps[idx] ... steps[idx + 1]",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Could cache step count to avoid repeated length checks.",
+          "impact": "Minor performance"
+        },
+        {
+          "file": "src/pages/EtaPage.jsx",
+          "line": "150-200",
+          "issue": "Complex ternary in JSX: MODE_ICONS[mode] || carIcon creates runtime dependency",
+          "code_snippet": "src={MODE_ICONS[mode] || carIcon}",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should validate mode earlier or use switch statement.",
+          "impact": "Defensive coding"
+        },
+        {
+          "file": "src/components/Header.jsx",
+          "line": "70-100",
+          "issue": "Unused ternary condition: isStartPage checked but fallback is same",
+          "code_snippet": "const readOnlySearch = isStartPage || isEtaPage;",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Variable combined from two conditions but could be simplified.",
+          "impact": "Code clarity"
+        },
+        {
+          "file": "src/pages/AddStopPanel.jsx",
+          "line": "100-150",
+          "issue": "Inline CSS objects repeated in JSX",
+          "code_snippet": "style={{ border: 'none', background: 'transparent', ... }}",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Multiple button styles duplicated instead of using classes.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "src/utils/geoapifyService.js",
+          "line": "50-100",
+          "issue": "Unused variable: formatNominatimPlace creates location object with both lat/lng and lon",
+          "code_snippet": "lat: Number(result.lat), lng: Number(result.lon), lon: Number(result.lon)",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Duplicate location properties for compatibility but causes confusion.",
+          "impact": "Code clarity"
+        },
+        {
+          "file": "src/services/api.js",
+          "line": "50-80",
+          "issue": "API error logging prints full error without sanitization",
+          "code_snippet": "console.error('API POST Error:', error);",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should use structured logging instead of console.",
+          "impact": "Error tracking, debugging"
+        },
+        {
+          "file": "src/pages/Explore.jsx",
+          "line": "800-850",
+          "issue": "Magic CSS values in inline styles",
+          "code_snippet": "style={{ width: '50%', height: '100%', overflow: 'hidden' }}",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Hard-coded percentages and dimensions should be variables.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "src/pages/Direction.jsx",
+          "line": "280-320",
+          "issue": "Unused callback: addPoiMarker has unnecessary null checks",
+          "code_snippet": "if (!mapInstanceRef.current || !place?.location) return;",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Called from onClick where place is guaranteed to exist.",
+          "impact": "Unnecessary defensive coding"
+        }
+      ]
+    },
+    "backend": {
+      "HIGH_SEVERITY": [
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "1-50",
+          "issue": "Unused function: getTestDb creates secondary database connection but is inefficient",
+          "code_snippet": "const getTestDb = async () => { if (testDb && testDb.readyState === 1) return testDb; ... };",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "In-memory connection caching violates singleton pattern. Uses TestDB hardcoded URI instead of environment variable.",
+          "impact": "Memory leak risk, connection pooling issues"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "60-100",
+          "issue": "Repeated haversineDistance calculation identical to frontend versions",
+          "code_snippet": "const haversineDistance = (lat1, lng1, lat2, lng2) => { ... };",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Same calculation exists in 4+ places (frontend + backend).",
+          "impact": "Code duplication, maintenance nightmare"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "100-150",
+          "issue": "Inefficient database query: fetches ALL rooms and packages then filters in memory",
+          "code_snippet": "const [rooms, packages] = await Promise.all([db.collection('rooms').find({}).toArray(), ...]);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Should use MongoDB aggregation pipeline to filter at database level, not in JavaScript.",
+          "impact": "Memory overload, poor performance with large datasets"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "120-140",
+          "issue": "N+1 query problem: Loops through hotelIds without batch retrieval",
+          "code_snippet": "for (const id of hotelIds) { ... hotels = await mongoose.connection.db.collection('users').find(...); }",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Makes query in batches but could use single $in query.",
+          "impact": "Excessive database queries, slow performance"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "1-20",
+          "issue": "Hardcoded MongoDB URI in source code (security vulnerability)",
+          "code_snippet": "const TEST_DB_URI = 'mongodb+srv://SVTG:svtg123@cluster0.936rmcg.mongodb.net/test?appName=Cluster0';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Credentials exposed in source code. Should use environment variables.",
+          "impact": "Major security risk, credential exposure"
+        },
+        {
+          "file": "src/controllers/securityAlertController.js",
+          "line": "1-20",
+          "issue": "Hardcoded MongoDB URI in source code (security vulnerability)",
+          "code_snippet": "const MAIN_DB_URI = 'mongodb+srv://SVTG:svtg123@cluster0.936rmcg.mongodb.net/?appName=Cluster0';",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Credentials exposed in plain text in source code.",
+          "impact": "Critical security vulnerability"
+        },
+        {
+          "file": "src/controllers/securityAlertController.js",
+          "line": "10-30",
+          "issue": "Global MongoDB client singleton pattern is anti-pattern",
+          "code_snippet": "const getClient = (() => { let client = null; return async () => { ... }; })();",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "IIFE singleton pattern doesn't handle connection lifecycle properly. Should use MongoDB connection pool.",
+          "impact": "Connection leaks, poor resource management"
+        },
+        {
+          "file": "src/controllers/favoriteController.js",
+          "line": "50-100",
+          "issue": "Inefficient duplicate detection: Uses Map lookup when database could deduplicate",
+          "code_snippet": "const uniqueMap = new Map(); for (const place of favoritePlaces) { ... }",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Should use MongoDB aggregation with $group instead of deduplicating in JavaScript.",
+          "impact": "Memory usage, poor performance with large datasets"
+        },
+        {
+          "file": "src/controllers/favoriteController.js",
+          "line": "100-150",
+          "issue": "Async API call in createFavoritePlace for Google Maps photos",
+          "code_snippet": "const fetchedImageUrls = resolvedImageUrls.length > 0 ? resolvedImageUrls : await fetchPlaceImageUrls(resolvedPlaceId);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Blocks request waiting for external API. Should be queued as background job.",
+          "impact": "Slow API response, poor UX"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "150-200",
+          "issue": "Unvalidated input for hotel coordinates and searches",
+          "code_snippet": "const searchLat = parseFloat(req.query.lat); const searchLng = parseFloat(req.query.lng);",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "No range validation after parseFloat. Invalid coordinates could cause issues.",
+          "impact": "Potential DoS via invalid queries"
+        },
+        {
+          "file": "src/controllers/nearbyPlaceController.js",
+          "line": "80-120",
+          "issue": "Rate limiting not implemented for Nominatim API calls",
+          "code_snippet": "for (const { lat, lng } of points) { for (const { key, value } of tags) { ... await nominatimSearch(...); } }",
+          "severity": "high",
+          "breaks_functionality": false,
+          "description": "Nominatim has 1 req/sec limit but no enforcement. Could get IP blocked.",
+          "impact": "Service outages, external API abuse"
+        }
+      ],
+      "MEDIUM_SEVERITY": [
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "40-60",
+          "issue": "In-memory geocode cache lacks TTL (time-to-live)",
+          "code_snippet": "if (geocodeCache.has(cacheKey)) return geocodeCache.get(cacheKey);",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Cache never expires, serving stale location data. Memory grows unbounded.",
+          "impact": "Memory leak, stale data"
+        },
+        {
+          "file": "src/controllers/securityAlertController.js",
+          "line": "40-80",
+          "issue": "Repeated data normalization in multiple functions",
+          "code_snippet": "const data = alerts.map((a) => ({ _id: a._id, title: a.title, ... }));",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Same normalization pattern in getWeatherAlerts, getCrimeAlerts, and getSecurityAlerts.",
+          "impact": "Code duplication, maintenance burden"
+        },
+        {
+          "file": "src/controllers/securityAlertController.js",
+          "line": "20-40",
+          "issue": "Missing input validation for location regex matching",
+          "code_snippet": "if (!ALLOWED_LOCATION_RE.test(location)) { return res.status(400).json(...); }",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Regex is applied to user input but could still cause ReDoS with crafted input.",
+          "impact": "Potential DoS vulnerability"
+        },
+        {
+          "file": "src/controllers/favoriteController.js",
+          "line": "20-40",
+          "issue": "Default user ID as string instead of UUID",
+          "code_snippet": "const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "'testUser01' should not be hardcoded default. All test users share data.",
+          "impact": "Data isolation issues in production"
+        },
+        {
+          "file": "src/controllers/nearbyPlaceController.js",
+          "line": "1-30",
+          "issue": "No error handling for malformed JSON points parameter",
+          "code_snippet": "try { points = JSON.parse(String(req.query.points || '[]')); } catch { points = []; }",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Silently ignores parse errors, returns empty results without notifying user.",
+          "impact": "Silent failures, poor error tracking"
+        },
+        {
+          "file": "src/controllers/nearbyPlaceController.js",
+          "line": "60-100",
+          "issue": "Sequential API calls to Nominatim without parallelization",
+          "code_snippet": "for (const endpoint of endpoints) { const res = await fetch(endpoint); ... }",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Sequential awaits in loop. Should use Promise.race() for faster failover.",
+          "impact": "Slow response times"
+        },
+        {
+          "file": "src/middleware/errorHandler.js",
+          "line": "1-20",
+          "issue": "Unused middleware: errorHandler never registered in server.js",
+          "code_snippet": "const errorHandler = (err, req, res, next) => { ... };",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Middleware is defined but not used anywhere in the Express app.",
+          "impact": "Error handling doesn't work, errors not caught globally"
+        },
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "150-180",
+          "issue": "Repeated photo URL construction in two places",
+          "code_snippet": "if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('/')) { photo = `${hotelServerUrl}${imageUrl}`; }",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Same logic repeated twice in getHotels function.",
+          "impact": "Code duplication"
+        },
+        {
+          "file": "src/routes/serviceRouter.js",
+          "line": "1-10",
+          "issue": "Route names inconsistent: 'recent-places' vs 'favorite-places' naming convention",
+          "code_snippet": "import serviceRouter from './src/routes/serviceRouter.js';",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Some routes use hyphens, unclear if this follows REST conventions.",
+          "impact": "API consistency"
+        },
+        {
+          "file": "server.js",
+          "line": "25-35",
+          "issue": "Custom CORS implementation instead of using cors middleware",
+          "code_snippet": "app.use((req, res, next) => { res.setHeader('Access-Control-Allow-Origin', '*'); ... });",
+          "severity": "medium",
+          "breaks_functionality": false,
+          "description": "Should use 'cors' package for standard, secure CORS handling.",
+          "impact": "Security risk, CORS vulnerabilities"
+        }
+      ],
+      "LOW_SEVERITY": [
+        {
+          "file": "src/controllers/hotelController.js",
+          "line": "1-20",
+          "issue": "console.warn used for non-critical errors without logger",
+          "code_snippet": "console.warn('[hotels] No GOOGLE_MAPS_API_KEY set, cannot geocode locations');",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should use structured logging, not console.warn.",
+          "impact": "Error tracking"
+        },
+        {
+          "file": "src/controllers/securityAlertController.js",
+          "line": "80-120",
+          "issue": "Missing content-type validation for JSON responses",
+          "code_snippet": "res.status(200).json({ success: true, data });",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should set explicit Content-Type header.",
+          "impact": "Best practices"
+        },
+        {
+          "file": "src/controllers/favoriteController.js",
+          "line": "150-180",
+          "issue": "Inconsistent error response format",
+          "code_snippet": "res.status(500).json({ success: false, message: '...', error: error.message });",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Some endpoints return error field, others don't.",
+          "impact": "API inconsistency"
+        },
+        {
+          "file": "src/controllers/nearbyPlaceController.js",
+          "line": "40-60",
+          "issue": "Hard-coded timeout value for fetch without explanation",
+          "code_snippet": "signal: AbortSignal.timeout(10000)",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "10-second timeout is magic number, should be configurable.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "src/controllers/incidentController.js",
+          "line": "1-20",
+          "issue": "Unused parameter: incidentCategory filter has no validation",
+          "code_snippet": "const { incidentCategory, status } = req.query;",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Should validate against allowed categories.",
+          "impact": "Injection risk"
+        },
+        {
+          "file": "src/routes/serviceRouter.js",
+          "line": "1-10",
+          "issue": "No route documentation or comments",
+          "code_snippet": "router.get('/', getRecentPlaces); router.post('/', createRecentPlace);",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Routes lack JSDoc or comments explaining purpose.",
+          "impact": "Maintainability"
+        },
+        {
+          "file": "server.js",
+          "line": "40-50",
+          "issue": "Health check endpoint at / instead of /health is unconventional",
+          "code_snippet": "app.get('/', (req, res) => { res.json({ message: 'Welcome...' }); });",
+          "severity": "low",
+          "breaks_functionality": false,
+          "description": "Root path shouldn't be used for health checks.",
+          "impact": "API design"
+        }
+      ]
+    }
+  },
+  "summary_by_category": {
+    "unused_imports": {
+      "count": 12,
+      "files": [
+        "src/pages/Direction.jsx - createPortal",
+        "src/pages/Explore.jsx - user, explore2 images",
+        "src/components/Header.jsx - sriflag, Mic, X icons",
+        "src/components/LocationInput.jsx - Clock icon",
+        "src/utils/helpers.js - debounce (exported but unused)"
+      ],
+      "total_bundle_impact": "~100KB"
+    },
+    "duplicate_functions": {
+      "count": 8,
+      "functions": [
+        "haversineDistance (3 locations: SafetyAlertTemplate, useNavigation, floodService, hotelController)",
+        "coordinate extraction/normalization (5+ locations)",
+        "searchPlacesAlongRoute & searchAttractionsAlongRoute (Direction.jsx + AddStopPanel.jsx)",
+        "image URL handling/normalization (3+ locations)"
+      ]
+    },
+    "inefficient_patterns": {
+      "count": 15,
+      "categories": [
+        "Sequential API calls that should use Promise.race()",
+        "In-memory filtering/deduplication that should happen in database",
+        "N+1 query patterns in hotel controller",
+        "Lack of caching/memoization for expensive operations",
+        "Unnecessary state updates causing multiple re-renders"
+      ]
+    },
+    "unused_code": {
+      "count": 14,
+      "items": [
+        "findNearestHospital function (useMapEngine.js)",
+        "currentRoadblockIndex state (SafetyAlertTemplate.jsx)",
+        "hotelGroups computed value (Explore.jsx)",
+        "emergencyContacts state (SafetyAlertTemplate.jsx)",
+        "debounce utility export (helpers.js)",
+        "SHOW_CRIME_LABELS_ON_START_MAP constant",
+        "SHOW_ROADBLOCK_LABELS_ON_START_MAP constant"
+      ]
+    },
+    "security_issues": {
+      "count": 3,
+      "severity": "CRITICAL",
+      "items": [
+        "Hardcoded MongoDB credentials in hotelController.js",
+        "Hardcoded MongoDB credentials in securityAlertController.js",
+        "Window global pollution (Direction.jsx)"
+      ]
+    },
+    "performance_issues": {
+      "count": 12,
+      "categories": [
+        "Fetching all DB records then filtering in memory (hotelController)",
+        "Sequential await loops instead of parallel",
+        "Unbounded in-memory cache (geocodeCache)",
+        "Multiple re-renders from batched state updates",
+        "External API calls blocking request handlers"
+      ]
+    }
+  },
+  "recommendations_by_priority": {
+    "1_CRITICAL_SECURITY": [
+      "Move MongoDB credentials from source code to environment variables",
+      "Remove window global assignments (setActivePageGlobal, etc)",
+      "Validate all user input (coordinates, location names, JSON) with proper ranges"
+    ],
+    "2_HIGH_PERFORMANCE": [
+      "Extract haversineDistance to shared utility module",
+      "Replace in-memory filtering/deduplication with MongoDB aggregation pipeline",
+      "Use Promise.race() for API failovers instead of sequential awaits",
+      "Remove unnecessary geocodeCache or add TTL expiration",
+      "Deduplicate coordinate extraction logic"
+    ],
+    "3_HIGH_MAINTAINABILITY": [
+      "Extract duplicate searchPlacesAlongRoute functions into shared hook",
+      "Consolidate 14 useState calls in PageTitleContext into nested objects",
+      "Remove unused imports (~100KB bundle savings)",
+      "Extract shared place name/ID resolution logic",
+      "Fix CORS implementation using proper middleware"
+    ],
+    "4_CODE_QUALITY": [
+      "Register errorHandler middleware in server.js",
+      "Use structured logging instead of console.log/warn",
+      "Extract inline style objects to constants",
+      "Add input validation for all query parameters",
+      "Remove unused state variables and functions"
+    ]
+  }
+}

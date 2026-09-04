@@ -1,274 +1,208 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-// IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
-// IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/LandingPage/logo.png'; 
-// IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from '../assets/LandingPage/bg4.png'; 
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { MapPin, Mic, Search, X } from 'lucide-react';
+import Logo from '../assets/Logo.png';
+import { usePageTitle } from '../contexts/PageTitleContext';
+import sriflag from '../assets/sriflag.jpg';
+import { fetchAutocompleteSuggestions, geocodeAddress } from '../utils/geoapifyService';
 
+const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };
 
+export default function Header() {
+  const { title, showSearchBar, navigateToSearch, activePage, setActivePage, searchedPlace, etaData } = usePageTitle();
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const containerRef = useRef(null);
 
-const Header = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate();
+  const fetchSuggestions = useCallback(async (input) => {
+    if (!input.trim()) { setSuggestions([]); return; }
+    const results = await fetchAutocompleteSuggestions(input);
+    setSuggestions(results);
+  }, []);
 
-  // Load user data if logged in
-  const userDataRaw = localStorage.getItem('userData');
-  const user = userDataRaw ? JSON.parse(userDataRaw) : null;
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    setActiveIdx(-1);
+    fetchSuggestions(val);
   };
 
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
+  const selectSuggestion = useCallback((prediction) => {
+    const displayName = prediction.displayName || prediction.structured_formatting?.main_text || prediction.name;
+    setQuery(displayName);
+    setSuggestions([]);
+    navigateToSearch(prediction);
+  }, [navigateToSearch]);
+
+  const handleSearch = useCallback(async () => {
+    if (!query.trim()) return;
+    const displayName = query.trim();
+    const result = await geocodeAddress(displayName);
+    if (result) {
+      setSuggestions([]);
+      navigateToSearch(result);
+    } else {
+      fetchSuggestions(displayName);
+    }
+  }, [query, navigateToSearch, fetchSuggestions]);
+
+  const handleKeyDown = (e) => {
+    if (!suggestions.length) { if (e.key === 'Enter') handleSearch(); return; }
+    if (e.key === 'ArrowDown') { setActiveIdx(i => Math.min(i + 1, suggestions.length - 1)); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { setActiveIdx(i => Math.max(i - 1, -1)); e.preventDefault(); }
+    else if (e.key === 'Enter') {
+      const suggestion = suggestions[activeIdx >= 0 ? activeIdx : 0];
+      if (suggestion) selectSuggestion(suggestion);
+      else handleSearch();
+    }
+    else if (e.key === 'Escape') setSuggestions([]);
   };
 
-  const handleNavigation = (path) => {
-    navigate(path);
-    closeSidebar();
-  };
+  useEffect(() => {
+    const handler = (e) => { if (!containerRef.current?.contains(e.target)) setSuggestions([]); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    if (activePage !== 'explore') return;
+
+    const destinationName = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || '';
+    setQuery(destinationName);
+  }, [activePage, searchedPlace]);
+
+  const startPageDestination = searchedPlace?.displayName || searchedPlace?.formatted_address?.split(',')[0] || '';
+  const isStartPage = activePage === 'start';
+  const isEtaPage = activePage === 'eta';
+  const readOnlySearch = isStartPage || isEtaPage;
 
   return (
-    <>
-      <header className="w-full bg-white border-b border-gray-100 py-2 relative z-50">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 flex items-center justify-between">
-          
-          {/* --- Background Image on Right Side --- */}
-          <div 
-            className="absolute right-0 top-0 bottom-0 w-1/3 lg:w-1/4 pointer-events-none hidden lg:block"
-            style={{
-              backgroundImage: `url(${bg4Image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'right center',
-              backgroundRepeat: 'no-repeat',
-              opacity: 1, // Set to 100% opacity
-            }}
-          ></div>
-
-          {/* --- Left: Logo & Title --- */}
-          <div className="flex items-center gap-3 relative z-10">
-            {/* Logo Image - Imported from assets (No round shape) */}
-            <div className="relative w-12 h-12 md:w-16 md:h-16 flex-shrink-0">
-              <img 
-                src={logoImage} 
-                alt="Sri Lanka Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-
-            {/* Text Area */}
-            <div className="flex flex-col items-start">
-              {/* Small Tagline */}
-              <span className="text-[8px] md:text-xs font-bold text-gray-700 tracking-wide mb-0.5">
-                Smart Virtual Tourism Guide
+    <header className="relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible" style={{ borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)', willChange: 'transform' }}>
+      <div className="w-full px-8 flex items-center justify-between h-full">
+        {/* Left: logo + text */}
+        <div className="flex items-center gap-1 h-full relative" style={{ minWidth: '400px' }}>
+          <img src={Logo} alt="Sri Lanka Tourism Logo" className="h-36 w-auto drop-shadow-md absolute -top-3 left-0" style={{ zIndex: 2, transform: 'translateZ(0)' }} />
+          <div className="flex flex-col items-start" style={{ marginLeft: '110px' }}>
+            <span className="font-bold leading-tight" style={{ fontSize: 18, color: '#122E63', fontFamily: "'Inter', sans-serif", fontWeight: 700, letterSpacing: '0.5px' }}>
+              Smart Virtual Tourist Guide
+            </span>
+            <div style={{ display: 'inline-block', marginTop: 2 }}>
+              <span
+                className="font-bold leading-tight whitespace-nowrap"
+                style={{
+                  fontSize: '2.8rem',
+                  letterSpacing: '6px',
+                  fontFamily: "'Inter', sans-serif",
+                  display: 'inline-block',
+                  fontWeight: 800,
+                  backgroundImage: `url(${sriflag})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent',
+                  transform: 'translateZ(0)',
+                  willChange: 'transform',
+                }}
+              >
+                Sri Lanka
               </span>
-              
-              {/* Main Title with Sri Lankan Flag Mask */}
-              <div className="relative">
-                <h1 
-                  className="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-[0.15em] leading-none text-transparent bg-clip-text"
-                  style={{
-                    backgroundImage: `url(${sriLankaFlag})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  Sri Lanka
-                </h1>
-              </div>
             </div>
           </div>
-
-          {/* --- Center: Navigation Links (Desktop) --- */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 relative z-10">
-            <Link to="/" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              Home
-            </Link>
-            <Link to="/about" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              About Us
-            </Link>
-            <Link to="/destinations" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              Destinations
-            </Link>
-            <Link to="/how-it-works" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              How it Works
-            </Link>
-            <Link to="/contact" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              Contact
-            </Link>
-          </nav>
-
-          {/* --- Right: Actions --- */}
-          <div className="flex items-center gap-3 relative z-10">
-            {/* Sign In Button / User Profile */}
-            {user ? (
-              <div className="items-center gap-2 hidden sm:flex">
-                <div className="px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  {user.fullName || user.restaurantName || user.username || 'User'}
-                </div>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('userData');
-                    localStorage.removeItem('restaurantUser');
-                    window.location.reload();
-                  }}
-                  className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
-                Sign in
-              </button>
-            )}
-
-            {/* Language Selector */}
-            <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
-              <span>EN</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-3 w-3" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={toggleSidebar}
-              className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-[#3CB4FF] hover:bg-gray-100 transition-colors"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-6 w-6" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-
         </div>
-      </header>
 
-      {/* --- Mobile Sidebar --- */}
-      <div 
-        className={`fixed inset-0 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:hidden`}
-      >
-        {/* Overlay */}
-        <div 
-          className="absolute inset-0 bg-black bg-opacity-50"
-          onClick={closeSidebar}
-        ></div>
+        {/* Center title */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
+          <h1 className="font-bold text-black text-3xl">{(activePage === 'eta' || activePage === 'explore') ? '' : title}</h1>
+        </div>
 
-        {/* Sidebar Content */}
-        <div className="relative w-64 max-w-[80%] h-full bg-white shadow-xl overflow-y-auto">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <div className="flex items-center gap-2">
-              <img 
-                src={logoImage} 
-                alt="Sri Lanka Logo" 
-                className="w-8 h-8 object-contain"
+        {/* Right: Search Bar */}
+        {showSearchBar && activePage !== 'safety' ? (
+          <div ref={containerRef} style={{ position: 'relative', width: '800px', marginRight: '40px', zIndex: 10 }}>
+            <div
+              className="flex items-center gap-3 px-6 py-4"
+              style={{
+                background: 'linear-gradient(90deg, #FAFDFF 0%, #D8EFFF 100%)',
+                borderRadius: '999px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+              }}
+            >
+              <Search size={22} color="#4B5563" strokeWidth={2} style={{ flexShrink: 0 }} />
+              <input
+                type="text"
+                value={readOnlySearch ? startPageDestination : query}
+                onChange={readOnlySearch ? undefined : handleChange}
+                onKeyDown={readOnlySearch ? undefined : handleKeyDown}
+                placeholder="Search Here"
+                readOnly={readOnlySearch}
+                style={{ padding: '4px 0', flex: 1, fontSize: '16px' }}
+                className="bg-transparent outline-none text-gray-800 placeholder-gray-400 w-full font-medium"
               />
-              <span className="font-bold text-gray-800 text-sm">Sri Lanka</span>
+              {isEtaPage && (
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginRight: '24px' }}>ETA Details</span>
+              )}
+              {isStartPage && etaData && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '8px', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#1A73E8' }}>{etaData.duration}</span>
+                  <span style={{ fontSize: '12px', color: '#374151', fontWeight: 600 }}>{etaData.distance}</span>
+                  <span style={{ fontSize: '11px', color: etaData.traffic === 'Heavy traffic' ? '#e53e3e' : etaData.traffic === 'Moderate traffic' ? '#d69e2e' : '#38a169', fontWeight: 600 }}>{etaData.traffic}</span>
+                </div>
+              )}
+              {!readOnlySearch && query.trim()
+                ? <X size={20} color="#333333" strokeWidth={2.2} style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => { setQuery(''); setSuggestions([]); }} />
+                : <Mic size={20} color="#333333" strokeWidth={2.2} style={{ cursor: 'pointer', flexShrink: 0 }} />
+              }
             </div>
-            <button 
-              onClick={closeSidebar}
-              className="p-1 rounded-md text-gray-700 hover:text-red-600 hover:bg-gray-100 transition-colors"
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-6 w-6" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+
+            {!readOnlySearch && suggestions.length > 0 && (
+              <ul style={{
+                position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                background: '#fff', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                zIndex: 9999, listStyle: 'none', margin: 0, padding: '4px 0',
+                maxHeight: '260px', overflowY: 'auto',
+              }}>
+                {suggestions.map((p, i) => (
+                  <li
+                    key={p.place_id}
+                    onMouseDown={() => selectSuggestion(p)}
+                    onMouseEnter={() => setActiveIdx(i)}
+                    style={{
+                      padding: '10px 16px', cursor: 'pointer', fontSize: '14px', color: '#333',
+                      background: i === activeIdx ? '#EFF6FF' : 'transparent',
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                    }}
+                  >
+                    <MapPin size={14} color="#6B7280" />
+                    <span>
+                      <strong>{p.structured_formatting?.main_text || p.displayName || p.name}</strong>
+                      {p.structured_formatting?.secondary_text && (
+                        <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.structured_formatting.secondary_text}</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-
-          {/* Sidebar Navigation Links */}
-          <nav className="flex flex-col py-2">
-            <Link to="/" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              Home
-            </Link>
-            <Link to="/about" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              About Us
-            </Link>
-            <Link to="/destinations" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              Destinations
-            </Link>
-            <Link to="/how-it-works" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              How it Works
-            </Link>
-            <Link to="/contact" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              Contact
-            </Link>
-            <Link to="/restaurants" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
-              Restaurants
-            </Link>
-          </nav>
-
-          {/* Sidebar Actions */}
-          <div className="p-4 border-t border-gray-200">
-            {user ? (
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[#0075FF] font-bold text-sm">
-                  {user.fullName || user.restaurantName || user.username || 'User'}
-                </span>
-                <button
-                  onClick={() => {
-                    closeSidebar();
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('userData');
-                    localStorage.removeItem('restaurantUser');
-                    window.location.reload();
-                  }}
-                  className="px-3 py-1.5 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 rounded-lg text-xs font-semibold"
+        ) : (
+          <div id="header-search-portal" style={{ width: '880px', margin: '10px 30px', position: 'relative' }}>
+            {activePage === 'directionOne' && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: '100%', paddingRight: '20px' }}>
+                <button 
+                  onClick={() => setActivePage('explore')} 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', pointerEvents: 'auto' }}
+                  aria-label="Go Back"
                 >
-                  Sign out
+                  <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="20" y1="12" x2="4" y2="12" />
+                    <polyline points="10 18 4 12 10 6" />
+                  </svg>
                 </button>
               </div>
-            ) : (
-              <button onClick={() => handleNavigation('/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
-                Sign in
-              </button>
             )}
-            <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">
-              <span>EN</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-3 w-3" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor" 
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
           </div>
-        </div>
+        )}
       </div>
-    </>
+    </header>
   );
-};
-
-export default Header;
+}

@@ -5,7 +5,7 @@ const FOG_TEXT_RE = /(fog|mist|haze|smoke|dust|sand|ash|squall|tornado)/i;
 const WEATHER_ALERT_RADIUS_METERS = 5000;
 
 /**
- * Sample up to `maxSamples` evenly-spaced points from a Google Maps
+ * Sample up to `maxSamples` evenly-spaced points from a navigation route
  * overview_path array.
  */
 function samplePath(path, maxSamples = 5) {
@@ -84,7 +84,7 @@ const findNearestSamplePoint = (alert, sampledPath) => {
 };
 
 /**
- * Check all sampled waypoints along a Google Maps route.
+ * Check all sampled waypoints along a navigation route.
  * Returns { isFlood: boolean, floodPoint: LatLng|null }
  */
 export async function checkRouteForFlood(overviewPath, destination = '') {
@@ -127,7 +127,7 @@ export async function checkRouteForFlood(overviewPath, destination = '') {
 }
 
 /**
- * Check all sampled waypoints along a Google Maps route for fog / low visibility.
+ * Check all sampled waypoints along a navigation route for fog / low visibility.
  * Returns { isFog: boolean, fogPoint: LatLng|null }
  */
 export async function checkRouteForFog(overviewPath) {

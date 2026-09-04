@@ -1,0 +1,142 @@
+import FavoritePlace from '../models/favoritePlace.js';
+
+const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';
+
+const resolveUserId = (req) => {
+	return req.body?.userId || req.query?.userId || DEFAULT_USER_ID;
+};
+
+const resolvePlaceId = (req) => {
+	return req.body?.placeId || req.body?.place_id || req.query?.placeId || req.query?.place_id || null;
+};
+
+const getFavoritePlaces = async (req, res) => {
+	try {
+		const { category } = req.query;
+		const resolvedUserId = resolveUserId(req);
+		const filter = { userId: resolvedUserId };
+		if (category) filter.category = category;
+
+		const favoritePlaces = await FavoritePlace.find(filter)
+			.sort({ timestamp: -1 })
+			.limit(200);
+
+		const uniqueMap = new Map();
+		for (const place of favoritePlaces) {
+			const key = place.placeId || place.name;
+			if (!uniqueMap.has(key)) {
+				uniqueMap.set(key, place);
+			}
+		}
+
+		const deduplicatedPlaces = Array.from(uniqueMap.values());
+
+		res.status(200).json({
+			success: true,
+			count: deduplicatedPlaces.length,
+			data: deduplicatedPlaces,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to fetch favorite places',
+			error: error.message,
+		});
+	}
+};
+
+const createFavoritePlace = async (req, res) => {
+	try {
+		const {
+			name,
+			placeId,
+			category,
+			timestamp,
+		} = req.body;
+
+		const resolvedUserId = resolveUserId(req);
+		const resolvedName = name || req.body.placeName;
+		const resolvedPlaceId = placeId || resolvePlaceId(req);
+		const resolvedCategory = category || 'favorite';
+		
+		if (!resolvedName) {
+			return res.status(400).json({
+				success: false,
+				message: 'name is required',
+			});
+		}
+
+		const lookupQuery = {
+			userId: resolvedUserId,
+			category: resolvedCategory,
+			...(resolvedPlaceId ? { placeId: resolvedPlaceId } : { name: resolvedName }),
+		};
+
+		let existingFavorite = await FavoritePlace.findOne(lookupQuery);
+
+		if (!existingFavorite) {
+			const favoritePlace = await FavoritePlace.create({
+				userId: resolvedUserId,
+				name: resolvedName,
+				placeId: resolvedPlaceId,
+				category: resolvedCategory,
+				timestamp: timestamp || Date.now(),
+			});
+
+			return res.status(201).json({
+				success: true,
+				message: 'Favorite place saved successfully',
+				data: favoritePlace,
+			});
+		}
+
+		const updates = {};
+		if (timestamp && !existingFavorite.timestamp) {
+			updates.timestamp = timestamp;
+		}
+
+		if (Object.keys(updates).length > 0) {
+			await FavoritePlace.updateOne(lookupQuery, { $set: updates });
+		}
+
+		const updatedFavorite = await FavoritePlace.findOne(lookupQuery);
+
+		res.status(200).json({
+			success: true,
+			message: Object.keys(updates).length > 0 ? 'Favorite place updated' : 'Favorite place already exists',
+			data: updatedFavorite || existingFavorite,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to save favorite place',
+			error: error.message,
+		});
+	}
+};
+
+const deleteFavoritePlace = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const deleted = await FavoritePlace.findByIdAndDelete(id);
+		if (!deleted) {
+			return res.status(404).json({
+				success: false,
+				message: 'Favorite place not found',
+			});
+		}
+		res.status(200).json({
+			success: true,
+			message: 'Favorite place removed',
+			data: deleted,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Failed to delete favorite place',
+			error: error.message,
+		});
+	}
+};
+
+export { getFavoritePlaces, createFavoritePlace, deleteFavoritePlace };
