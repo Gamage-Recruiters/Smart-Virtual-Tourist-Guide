@@ -1,42 +1,42 @@
-import SecurityAlert from '../models/SecurityAlert.js';
+import SecurityAlert from '../models/Safety/SecurityAlert.js';
 import logger from './logger.js';
 
 // All 25 administrative districts of Sri Lanka with capital coordinates
 const SRI_LANKA_DISTRICTS = [
   // Western Province
-  { area: 'Colombo',        district: 'Colombo',        lat: 6.9271,  lng: 79.8612 },
-  { area: 'Gampaha',        district: 'Gampaha',        lat: 7.0840,  lng: 80.0098 },
-  { area: 'Kalutara',       district: 'Kalutara',       lat: 6.5854,  lng: 79.9607 },
+  { area: 'Colombo', district: 'Colombo', lat: 6.9271, lng: 79.8612 },
+  { area: 'Gampaha', district: 'Gampaha', lat: 7.0840, lng: 80.0098 },
+  { area: 'Kalutara', district: 'Kalutara', lat: 6.5854, lng: 79.9607 },
   // Central Province
-  { area: 'Kandy',          district: 'Kandy',          lat: 7.2906,  lng: 80.6337 },
-  { area: 'Matale',         district: 'Matale',         lat: 7.4675,  lng: 80.6234 },
-  { area: 'Nuwara Eliya',   district: 'Nuwara Eliya',   lat: 6.9497,  lng: 80.7891 },
+  { area: 'Kandy', district: 'Kandy', lat: 7.2906, lng: 80.6337 },
+  { area: 'Matale', district: 'Matale', lat: 7.4675, lng: 80.6234 },
+  { area: 'Nuwara Eliya', district: 'Nuwara Eliya', lat: 6.9497, lng: 80.7891 },
   // Southern Province
-  { area: 'Galle',          district: 'Galle',          lat: 6.0535,  lng: 80.2210 },
-  { area: 'Matara',         district: 'Matara',         lat: 5.9549,  lng: 80.5550 },
-  { area: 'Hambantota',     district: 'Hambantota',     lat: 6.1429,  lng: 81.1212 },
+  { area: 'Galle', district: 'Galle', lat: 6.0535, lng: 80.2210 },
+  { area: 'Matara', district: 'Matara', lat: 5.9549, lng: 80.5550 },
+  { area: 'Hambantota', district: 'Hambantota', lat: 6.1429, lng: 81.1212 },
   // Northern Province
-  { area: 'Jaffna',         district: 'Jaffna',         lat: 9.6615,  lng: 80.0255 },
-  { area: 'Kilinochchi',    district: 'Kilinochchi',    lat: 9.3803,  lng: 80.3770 },
-  { area: 'Mullaitivu',     district: 'Mullaitivu',     lat: 9.2671,  lng: 80.8142 },
-  { area: 'Mannar',         district: 'Mannar',         lat: 8.9810,  lng: 79.9044 },
-  { area: 'Vavuniya',       district: 'Vavuniya',       lat: 8.7514,  lng: 80.4971 },
+  { area: 'Jaffna', district: 'Jaffna', lat: 9.6615, lng: 80.0255 },
+  { area: 'Kilinochchi', district: 'Kilinochchi', lat: 9.3803, lng: 80.3770 },
+  { area: 'Mullaitivu', district: 'Mullaitivu', lat: 9.2671, lng: 80.8142 },
+  { area: 'Mannar', district: 'Mannar', lat: 8.9810, lng: 79.9044 },
+  { area: 'Vavuniya', district: 'Vavuniya', lat: 8.7514, lng: 80.4971 },
   // Eastern Province
-  { area: 'Trincomalee',    district: 'Trincomalee',    lat: 8.5874,  lng: 81.2152 },
-  { area: 'Batticaloa',     district: 'Batticaloa',     lat: 7.7310,  lng: 81.6747 },
-  { area: 'Ampara',         district: 'Ampara',         lat: 7.2975,  lng: 81.6820 },
+  { area: 'Trincomalee', district: 'Trincomalee', lat: 8.5874, lng: 81.2152 },
+  { area: 'Batticaloa', district: 'Batticaloa', lat: 7.7310, lng: 81.6747 },
+  { area: 'Ampara', district: 'Ampara', lat: 7.2975, lng: 81.6820 },
   // North Western Province
-  { area: 'Kurunegala',     district: 'Kurunegala',     lat: 7.4863,  lng: 80.3623 },
-  { area: 'Puttalam',       district: 'Puttalam',       lat: 8.0362,  lng: 79.8283 },
+  { area: 'Kurunegala', district: 'Kurunegala', lat: 7.4863, lng: 80.3623 },
+  { area: 'Puttalam', district: 'Puttalam', lat: 8.0362, lng: 79.8283 },
   // North Central Province
-  { area: 'Anuradhapura',   district: 'Anuradhapura',   lat: 8.3114,  lng: 80.4037 },
-  { area: 'Polonnaruwa',    district: 'Polonnaruwa',    lat: 7.9403,  lng: 81.0188 },
+  { area: 'Anuradhapura', district: 'Anuradhapura', lat: 8.3114, lng: 80.4037 },
+  { area: 'Polonnaruwa', district: 'Polonnaruwa', lat: 7.9403, lng: 81.0188 },
   // Uva Province
-  { area: 'Badulla',        district: 'Badulla',        lat: 6.9934,  lng: 81.0550 },
-  { area: 'Monaragala',     district: 'Monaragala',     lat: 6.8728,  lng: 81.3507 },
+  { area: 'Badulla', district: 'Badulla', lat: 6.9934, lng: 81.0550 },
+  { area: 'Monaragala', district: 'Monaragala', lat: 6.8728, lng: 81.3507 },
   // Sabaragamuwa Province
-  { area: 'Ratnapura',      district: 'Ratnapura',      lat: 6.6828,  lng: 80.3992 },
-  { area: 'Kegalle',        district: 'Kegalle',        lat: 7.2513,  lng: 80.3464 },
+  { area: 'Ratnapura', district: 'Ratnapura', lat: 6.6828, lng: 80.3992 },
+  { area: 'Kegalle', district: 'Kegalle', lat: 7.2513, lng: 80.3464 },
 ];
 
 /**
@@ -161,14 +161,22 @@ async function syncWeatherAlerts(io) {
 
   for (const place of SRI_LANKA_DISTRICTS) {
     try {
-      const response = await fetch(
+      let response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${place.lat}&lon=${place.lng}&appid=${apiKey}&units=metric`
       );
 
+      // Retry once after 30 seconds if the API call fails
       if (!response.ok) {
-        logger.error(`[AlertSync] API error for ${place.district}: ${response.status}`);
-        errors++;
-        continue;
+        logger.warn(`[AlertSync] API error for ${place.district}: ${response.status} — retrying in 30s...`);
+        await new Promise(resolve => setTimeout(resolve, 30000));
+        response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${place.lat}&lon=${place.lng}&appid=${apiKey}&units=metric`
+        );
+        if (!response.ok) {
+          logger.error(`[AlertSync] Retry failed for ${place.district}: ${response.status}`);
+          errors++;
+          continue;
+        }
       }
 
       const data = await response.json();
@@ -196,7 +204,7 @@ async function syncWeatherAlerts(io) {
           district: place.district,
           location: { type: 'Point', coordinates: [place.lng, place.lat] },
           isActive: true,
-          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
+          expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000),
           createdBy: 'System_OpenWeather',
           source: 'openweather',
           externalId,
@@ -222,7 +230,7 @@ async function syncWeatherAlerts(io) {
             actionUrl: '/safety/weather-alerts',
             location: { type: 'Point', coordinates: [place.lng, place.lat] },
             district: place.district,
-            expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + 3 * 60 * 60 * 1000),
           });
         } catch (notifErr) {
           logger.error(`[AlertSync] Notification failed for ${place.district}:`, notifErr.message);
