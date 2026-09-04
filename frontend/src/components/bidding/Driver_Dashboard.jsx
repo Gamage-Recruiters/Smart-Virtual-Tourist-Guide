@@ -177,7 +177,7 @@ export default function Driver_Dashboard() {
               
               {/* Header */}
               <div className="flex items-center gap-3">
-                <img src={drivers[1].image} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
+                <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
                 <h2 className="font-bold text-lg text-slate-800">Thathsara Theeninda</h2>
               </div>
 
@@ -211,7 +211,7 @@ export default function Driver_Dashboard() {
               {/* Driver Stats */}
               <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <img src={drivers[1].image} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                  <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
                   <div>
                     <h3 className="font-bold text-slate-800">Thathsara Theeninda</h3>
                     <p className="text-xs text-slate-500">experience <span className="font-bold text-slate-700">2 Years</span></p>
@@ -364,6 +364,7 @@ export default function Driver_Dashboard() {
     </div>
   );
 }
+
 
 
 
