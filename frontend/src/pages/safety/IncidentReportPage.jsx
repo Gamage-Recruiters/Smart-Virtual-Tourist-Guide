@@ -134,7 +134,7 @@ export default function IncidentReportPage() {
       payload.append('district', formData.district)
       payload.append('location[lat]', formData.location.lat)
       payload.append('location[lng]', formData.location.lng)
-      
+
       const touristId = getCurrentTouristId()
       if (touristId) {
         payload.append('touristId', touristId)
@@ -189,106 +189,121 @@ export default function IncidentReportPage() {
           </button>
 
           <div className="mx-auto w-full max-w-[650px] rounded-lg border border-[#2367bc] bg-white px-4 py-4 shadow-sm sm:px-6 md:px-7 sm:py-6">
-            <>
-              <h1 className="m-0 mb-6 text-center text-[16px] font-semibold uppercase leading-tight tracking-normal text-black">
-                Online Incident Reporting Form
-              </h1>
-
-              <div className="space-y-3.5 text-[13px] font-bold text-black">
-                <FormSection icon={<FaRegClipboard />} iconClassName="bg-white text-blue-600" title="1.Reporter's Details">
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-16">
-                    <CompactInput label="Full Name" value={formData.reporterName} error={errors.reporterName} onChange={(value) => setField('reporterName', value)} />
-                    <CompactInput label="Contact Number" value={formData.contactNumber} error={errors.contactNumber} onChange={(value) => setField('contactNumber', value)} />
-                  </div>
-                </FormSection>
-
-                <FormSection icon={<MdOutlineReportProblem />} iconClassName="bg-red-500 text-white" title="2. Basic Information (Incident Type & Time)">
-                  <CompactSelect
-                    label="Incident Category"
-                    value={formData.incidentCategory}
-                    error={errors.incidentCategory}
-                    options={categories}
-                    onChange={(value) => setField('incidentCategory', value)}
-                  />
-                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 md:gap-16">
-                    <CompactInput type="date" label="Date & Time" value={formData.incidentDate} error={errors.incidentDate} onChange={(value) => setField('incidentDate', value)} />
-                    <CompactInput type="time" label="Time" value={formData.incidentTime} error={errors.incidentTime} onChange={(value) => setField('incidentTime', value)} />
-                  </div>
-                </FormSection>
-
-                <FormSection icon={<FiMapPin />} iconClassName="bg-amber-400 text-emerald-600" title="3. Location Details">
-                  <CompactSelect label="District" value={formData.district} error={errors.district} options={DISTRICT_NAMES} onChange={selectDistrict} />
-
-                  <div className="mt-3">
-                    <p className="mb-1 text-[12px] font-extrabold">Exact Location</p>
-                    <div className="overflow-hidden rounded-lg bg-sky-100">
-                      <div className="h-[190px]">
-                        <MapContainer
-                          center={formData.location ? [formData.location.lat, formData.location.lng] : [7.8731, 80.7718]}
-                          zoom={formData.location ? 11 : 8}
-                          markers={selectedMarker}
-                          minHeight="190px"
-                          onMapClick={(lat, lng) => setField('location', { lat, lng })}
-                        />
-                      </div>
-                      <div className="bg-white px-4 py-1 text-[10px] leading-tight">
-                        <p className="font-extrabold">Location</p>
-                        <p>Sri Lanka Map</p>
-                      </div>
-                      <button type="button" onClick={useCurrentLocation} className="block w-full bg-[#d8d8d8] px-4 py-1 text-left text-[10px] font-extrabold text-black hover:bg-slate-300">
-                        Set pin on map
-                      </button>
-                    </div>
-                    {errors.location && <p className="mt-1 text-[12px] font-bold text-red-600">{errors.location}</p>}
-                  </div>
-                </FormSection>
-
-                <FormSection icon={<FiCamera />} iconClassName="bg-sky-500 text-amber-500" title="4. Incident Photo (Upload or Capture)">
-                  {photoPreviewUrl ? (
-                    <div className="relative min-h-[130px] overflow-hidden rounded-lg bg-slate-100 shadow-md">
-                      <img src={photoPreviewUrl} alt="Selected incident evidence" className="h-[130px] w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={removeIncidentPhotos}
-                        className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-lg hover:bg-red-50"
-                        aria-label="Remove selected incident photo"
-                      >
-                        <FiTrash2 size={22} />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="block cursor-pointer overflow-hidden rounded-lg bg-gradient-to-b from-[#737373] to-white px-4 py-4 text-white shadow-md">
-                      <span className="text-[10px] font-bold">Image Capture/Upload</span>
-                      <span className="flex min-h-[82px] flex-col items-center justify-center text-center text-black">
-                        <FiCamera size={34} className="text-zinc-700" />
-                        <span className="mt-1 text-[10px] font-extrabold">Upload/ Capture</span>
-                      </span>
-                      <input type="file" accept="image/*" multiple capture="environment" className="sr-only" onChange={(event) => selectIncidentPhotos(event.target.files)} />
-                    </label>
-                  )}
-                  {formData.images.length > 0 && (
-                    <p className="mt-2 truncate text-[11px] font-semibold text-slate-600">
-                      {formData.images.length} file(s): {formData.images.map((file) => file.name).join(', ')}
-                    </p>
-                  )}
-                </FormSection>
-
-                {errors.submit && <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-bold text-red-700">{errors.submit}</p>}
-
-                <div className="grid grid-cols-2 gap-4 sm:gap-8 md:gap-14 px-3 pt-5">
-                  <button type="button" onClick={submitReport} disabled={isSubmitting} className="h-9 rounded-lg bg-[#087af6] px-4 text-[12px] font-extrabold uppercase text-white hover:bg-[#0067d7] disabled:bg-slate-300">
-                    {isSubmitting ? 'Submitting...' : 'Submit Report'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={goToReportsPage}
-                    className="flex h-9 items-center justify-center rounded-lg bg-[#bdbdbd] px-4 text-[12px] font-extrabold uppercase text-white hover:bg-slate-500"
-                  >
-                    Cancel
-                  </button>
-                </div>
+            {!getCurrentTouristId() ? (
+              <div className="text-center py-12">
+                <MdOutlineReportProblem className="mx-auto text-red-500 mb-4" size={48} />
+                <h1 className="mb-3 text-[18px] font-bold text-slate-900 uppercase">Authentication Required</h1>
+                <p className="mb-8 text-[13px] font-semibold text-slate-600">You must be logged in to report an incident or emergency.</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="h-10 rounded-lg bg-[#087af6] px-8 text-[13px] font-extrabold uppercase text-white hover:bg-[#0067d7]"
+                >
+                  Go to Login
+                </button>
               </div>
-            </>
+            ) : (
+              <>
+                <h1 className="m-0 mb-6 text-center text-[16px] font-semibold uppercase leading-tight tracking-normal text-black">
+                  Online Incident Reporting Form
+                </h1>
+
+                <div className="space-y-3.5 text-[13px] font-bold text-black">
+                  <FormSection icon={<FaRegClipboard />} iconClassName="bg-white text-blue-600" title="1.Reporter's Details">
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-16">
+                      <CompactInput label="Full Name" value={formData.reporterName} error={errors.reporterName} onChange={(value) => setField('reporterName', value)} />
+                      <CompactInput label="Contact Number" value={formData.contactNumber} error={errors.contactNumber} onChange={(value) => setField('contactNumber', value)} />
+                    </div>
+                  </FormSection>
+
+                  <FormSection icon={<MdOutlineReportProblem />} iconClassName="bg-red-500 text-white" title="2. Basic Information (Incident Type & Time)">
+                    <CompactSelect
+                      label="Incident Category"
+                      value={formData.incidentCategory}
+                      error={errors.incidentCategory}
+                      options={categories}
+                      onChange={(value) => setField('incidentCategory', value)}
+                    />
+                    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 md:gap-16">
+                      <CompactInput type="date" label="Date & Time" value={formData.incidentDate} error={errors.incidentDate} onChange={(value) => setField('incidentDate', value)} />
+                      <CompactInput type="time" label="Time" value={formData.incidentTime} error={errors.incidentTime} onChange={(value) => setField('incidentTime', value)} />
+                    </div>
+                  </FormSection>
+
+                  <FormSection icon={<FiMapPin />} iconClassName="bg-amber-400 text-emerald-600" title="3. Location Details">
+                    <CompactSelect label="District" value={formData.district} error={errors.district} options={DISTRICT_NAMES} onChange={selectDistrict} />
+
+                    <div className="mt-3">
+                      <p className="mb-1 text-[12px] font-extrabold">Exact Location</p>
+                      <div className="overflow-hidden rounded-lg bg-sky-100">
+                        <div className="h-[190px]">
+                          <MapContainer
+                            center={formData.location ? [formData.location.lat, formData.location.lng] : [7.8731, 80.7718]}
+                            zoom={formData.location ? 11 : 8}
+                            markers={selectedMarker}
+                            minHeight="190px"
+                            onMapClick={(lat, lng) => setField('location', { lat, lng })}
+                          />
+                        </div>
+                        <div className="bg-white px-4 py-1 text-[10px] leading-tight">
+                          <p className="font-extrabold">Location</p>
+                          <p>Sri Lanka Map</p>
+                        </div>
+                        <button type="button" onClick={useCurrentLocation} className="block w-full bg-[#d8d8d8] px-4 py-1 text-left text-[10px] font-extrabold text-black hover:bg-slate-300">
+                          Set pin on map
+                        </button>
+                      </div>
+                      {errors.location && <p className="mt-1 text-[12px] font-bold text-red-600">{errors.location}</p>}
+                    </div>
+                  </FormSection>
+
+                  <FormSection icon={<FiCamera />} iconClassName="bg-sky-500 text-amber-500" title="4. Incident Photo (Upload or Capture)">
+                    {photoPreviewUrl ? (
+                      <div className="relative min-h-[130px] overflow-hidden rounded-lg bg-slate-100 shadow-md">
+                        <img src={photoPreviewUrl} alt="Selected incident evidence" className="h-[130px] w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={removeIncidentPhotos}
+                          className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-lg hover:bg-red-50"
+                          aria-label="Remove selected incident photo"
+                        >
+                          <FiTrash2 size={22} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="block cursor-pointer overflow-hidden rounded-lg bg-gradient-to-b from-[#737373] to-white px-4 py-4 text-white shadow-md">
+                        <span className="text-[10px] font-bold">Image Capture/Upload</span>
+                        <span className="flex min-h-[82px] flex-col items-center justify-center text-center text-black">
+                          <FiCamera size={34} className="text-zinc-700" />
+                          <span className="mt-1 text-[10px] font-extrabold">Upload/ Capture</span>
+                        </span>
+                        <input type="file" accept="image/*" multiple capture="environment" className="sr-only" onChange={(event) => selectIncidentPhotos(event.target.files)} />
+                      </label>
+                    )}
+                    {formData.images.length > 0 && (
+                      <p className="mt-2 truncate text-[11px] font-semibold text-slate-600">
+                        {formData.images.length} file(s): {formData.images.map((file) => file.name).join(', ')}
+                      </p>
+                    )}
+                  </FormSection>
+
+                  {errors.submit && <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-bold text-red-700">{errors.submit}</p>}
+
+                  <div className="grid grid-cols-2 gap-4 sm:gap-8 md:gap-14 px-3 pt-5">
+                    <button type="button" onClick={submitReport} disabled={isSubmitting} className="h-9 rounded-lg bg-[#087af6] px-4 text-[12px] font-extrabold uppercase text-white hover:bg-[#0067d7] disabled:bg-slate-300">
+                      {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goToReportsPage}
+                      className="flex h-9 items-center justify-center rounded-lg bg-[#bdbdbd] px-4 text-[12px] font-extrabold uppercase text-white hover:bg-slate-500"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </main>
