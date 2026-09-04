@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 // Load env from backend root
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-import EmergencyLocation from '../models/EmergencyLocation.js';
+import EmergencyLocation from '../models/Safety/EmergencyLocation.js';
 
 // Original Tourist Police Stations
 const touristPoliceStations = [
