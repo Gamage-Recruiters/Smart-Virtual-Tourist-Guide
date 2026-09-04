@@ -17,6 +17,7 @@ const activityBookingSchema = new mongoose.Schema(
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     activityDate: { type: String },
     timeSlot: { type: String },
     participants: { type: Number, min: 1 },

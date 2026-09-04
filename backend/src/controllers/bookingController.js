@@ -152,17 +152,17 @@ export const getBookings = async (req, res, next) => {
       if (!Model) {
         return res.status(400).json({ success: false, errors: ['Invalid service type.'] });
       }
-      const bookings = await Model.find().sort({ createdAt: -1 });
+      const bookings = await Model.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 });
       return res.json({ success: true, bookings, serviceType });
     }
 
     const [activities, drivers, guides, hotels, restaurants, vehicles] = await Promise.all([
-      ActivityBooking.find().sort({ createdAt: -1 }),
-      DriverBooking.find().sort({ createdAt: -1 }),
-      GuideBooking.find().sort({ createdAt: -1 }),
-      HotelBooking.find().sort({ createdAt: -1 }),
-      RestaurantBooking.find().sort({ createdAt: -1 }),
-      VehicleBooking.find().sort({ createdAt: -1 }),
+      ActivityBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
+      DriverBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
+      GuideBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
+      HotelBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
+      RestaurantBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
+      VehicleBooking.find().populate({ path: 'userId', select: 'fullName email contactNumber role' }).sort({ createdAt: -1 }),
     ]);
 
     const allBookings = [
@@ -189,7 +189,7 @@ export const getBookingById = async (req, res, next) => {
       if (!Model) {
         return res.status(400).json({ success: false, errors: ['Invalid service type.'] });
       }
-      const booking = await Model.findById(req.params.id);
+      const booking = await Model.findById(req.params.id).populate({ path: 'userId', select: 'fullName email contactNumber role' });
       if (!booking) {
         return res.status(404).json({ success: false, message: 'Booking not found.' });
       }
@@ -206,7 +206,7 @@ export const getBookingById = async (req, res, next) => {
     ];
 
     for (const Model of models) {
-      const booking = await Model.findById(req.params.id);
+      const booking = await Model.findById(req.params.id).populate({ path: 'userId', select: 'fullName email contactNumber role' });
       if (booking) {
         return res.json({ success: true, booking });
       }

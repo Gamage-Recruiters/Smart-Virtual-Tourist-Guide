@@ -48,7 +48,10 @@ const buildBookingData = (payload) => {
     paymentStatus: payload.paymentStatus || payload.payment?.paymentStatus || 'pending',
   };
 
+  const extractedUserId = payload.userId || payload.customer?.userId || payload.customer?.id || payload.user?._id || payload.user?.id;
+
   const baseData = {
+    userId: (extractedUserId && String(extractedUserId).length === 24) ? String(extractedUserId) : (extractedUserId || undefined),
     service,
     bookingDetails: details,
     pricing: normalizedPricing,
@@ -88,9 +91,9 @@ const buildBookingData = (payload) => {
       ? Number(payload.childCount)
       : (Number(parseInt(extractBookingField(details, 'Children') || '0')) || 0);
 
-    const extractedHotelId = payload.hotelId || service?.hotelId || service?.ownerId || (service?.serviceId && String(service.serviceId).length === 24 ? String(service.serviceId) : (service?._id && String(service._id).length === 24 ? String(service._id) : undefined));
+    const extractedHotelId = payload.hotelId || service?.hotelId || service?.serviceId;
     const extractedRoomId = payload.roomId || service?.roomId || extractBookingField(details, 'Room ID', 'RoomId', 'Room Id');
-    baseData.hotelId = extractedHotelId && String(extractedHotelId).length === 24 ? extractedHotelId : undefined;
+    baseData.hotelId = (extractedHotelId && String(extractedHotelId).length === 24) ? String(extractedHotelId) : (extractedHotelId || undefined);
     baseData.roomId = (extractedRoomId && extractedRoomId !== 'N/A') ? String(extractedRoomId) : (service?.roomId || service?.serviceId || null);
     const extractedRoomNo = payload.roomNumber || payload.roomNo || service?.roomNumber || service?.roomNo || extractBookingField(details, 'Room Number', 'Room No', 'Room #') || 'R1';
     const extractedRoomName = payload.roomName || service?.roomName || extractBookingField(details, 'Room Name', 'Room') || payload.roomType || rawRoom;

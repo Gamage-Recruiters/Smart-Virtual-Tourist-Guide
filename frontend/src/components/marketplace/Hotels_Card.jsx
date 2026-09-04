@@ -43,7 +43,8 @@ const Hotels_Card = () => {
             });
 
             return {
-              _id: dbHotel._id || dbHotel.ownerId,
+              _id: dbHotel.hotelId || dbHotel._id || dbHotel.ownerId,
+              hotelId: dbHotel.hotelId || dbHotel._id,
               ownerId: dbHotel.ownerId || dbHotel._id,
               name: dbHotel.hotelName || dbHotel.name || 'Unnamed Hotel',
               location: dbHotel.hotelAddress || dbHotel.location || 'Sri Lanka',

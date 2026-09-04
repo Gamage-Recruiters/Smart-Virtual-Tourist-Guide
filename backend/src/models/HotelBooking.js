@@ -17,8 +17,10 @@ const hotelBookingSchema = new mongoose.Schema(
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    // User / Customer Reference
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     // Hotel & Room Specific Fields
-    hotelId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    hotelId: { type: mongoose.Schema.Types.ObjectId },
     roomId: { type: String },
     roomNo: { type: String },
     roomName: { type: String },

@@ -17,6 +17,7 @@ const restaurantBookingSchema = new mongoose.Schema(
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     reservationDate: { type: String },
     reservationTime: { type: String },
     guests: { type: Number, min: 1 },

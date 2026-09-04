@@ -51,7 +51,7 @@ const HotelAvailabilityCard = ({ hotel, selectedRoom }) => {
       return;
     }
 
-    const targetHotelId = hotel?._id || hotel?.ownerId || hotel?.id;
+    const targetHotelId = hotel?.hotelId || hotel?._id || hotel?.ownerId || hotel?.id;
     const targetRoomId = selectedRoom?._id || selectedRoom?.id;
 
     // Validate against selectedRoom model dates & status client-side

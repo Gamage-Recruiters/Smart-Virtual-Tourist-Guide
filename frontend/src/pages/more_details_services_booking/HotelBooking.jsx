@@ -52,7 +52,9 @@ const HotelBooking = () => {
 
     // Hotel details fallback
     const displayHotel = {
-        _id: hotel?._id || hotel?.ownerId,
+        _id: hotel?.hotelId || hotel?._id || hotel?.ownerId,
+        hotelId: hotel?.hotelId || hotel?._id,
+        ownerId: hotel?.ownerId || hotel?._id,
         image: hotel?.image || (hotel?.images && hotel?.images[0]) || "https://images.unsplash.com/photo-1566073771259-6a8506099945",
         images: hotel?.images && hotel?.images.length > 0 ? hotel.images : ["https://images.unsplash.com/photo-1566073771259-6a8506099945", "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9", "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4"],
         name: hotel?.name || hotel?.hotelName || "Ocean Breeze Resort",

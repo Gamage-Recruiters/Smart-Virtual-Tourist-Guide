@@ -64,7 +64,18 @@ const BookingPage = () => {
             const orderId = `SVTG-${typeCode}-${Date.now()}`;
 
             // Step B: Pre-create booking record in DB
+            const getLoggedInUser = () => {
+                try {
+                    const u = localStorage.getItem("user") || localStorage.getItem("renter") || localStorage.getItem("tourist");
+                    if (u) return JSON.parse(u);
+                } catch (e) {
+                    console.error("Error parsing user from localStorage:", e);
+                }
+                return null;
+            };
+            const loggedInUser = getLoggedInUser();
             const hotelIdVal = location.state?.hotelId || service?.hotelId;
+            const userIdVal = location.state?.userId || service?.userId || location.state?.customer?.userId || loggedInUser?._id || loggedInUser?.id;
             const roomIdVal = location.state?.roomId || service?.roomId;
             const roomNumberVal = location.state?.roomNumber || location.state?.roomNo || service?.roomNumber || service?.roomNo;
             const roomNameVal = location.state?.roomName || service?.roomName;
@@ -80,6 +91,7 @@ const BookingPage = () => {
                     roomName: roomNameVal,
                     roomType: roomTypeVal,
                 },
+                userId: userIdVal,
                 hotelId: hotelIdVal,
                 roomId: roomIdVal,
                 roomNumber: roomNumberVal,
@@ -93,6 +105,7 @@ const BookingPage = () => {
                     lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone,
+                    userId: userIdVal,
                 },
                 paymentMethod: "payhere",
                 paymentDetails: {

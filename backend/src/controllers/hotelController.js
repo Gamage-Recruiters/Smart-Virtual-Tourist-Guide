@@ -49,6 +49,7 @@ export const getAllHotels = async (req, res, next) => {
 
             const userObj = user.toObject();
             const primaryHotel = (userObj.hotels && userObj.hotels.length > 0) ? userObj.hotels[0] : {};
+            const hotelId = (primaryHotel && primaryHotel._id) ? primaryHotel._id.toString() : user._id.toString();
 
             let minPrice = null;
             const allAmenities = new Set();
@@ -73,8 +74,9 @@ export const getAllHotels = async (req, res, next) => {
             });
 
             return {
-                _id: user._id,
-                ownerId: user._id,
+                _id: hotelId,
+                hotelId: hotelId,
+                ownerId: user._id.toString(),
                 ownerName: user.fullName,
                 hotelName: primaryHotel.hotelName || `${user.fullName}'s Hotel`,
                 hotelAddress: primaryHotel.hotelAddress || 'Sri Lanka',

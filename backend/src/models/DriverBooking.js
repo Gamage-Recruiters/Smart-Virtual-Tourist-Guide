@@ -17,6 +17,7 @@ const driverBookingSchema = new mongoose.Schema(
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     travelDate: { type: String },
     pickupTime: { type: String },
     pickupLocation: { type: String },
