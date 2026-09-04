@@ -292,7 +292,7 @@ export default function Driver_Request() {
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-100 max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
             <div className="flex-1 space-y-6">
               <div className="flex items-center gap-3">
-                <img src={drivers[1].image} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
+                <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
                 <h2 className="font-bold text-lg text-slate-800">Thathsara Theeninda</h2>
               </div>
             </div>
@@ -305,6 +305,7 @@ export default function Driver_Request() {
     </div>
   );
 }
+
 
 
 
