@@ -4,9 +4,10 @@ import upload from '../../middleware/Safety/uploadMiddleware.js';
 // Auth middleware
 let protect;
 try {
-  const authModule = await import('../middleware/authMiddleware.js');
+  const authModule = await import('../../middleware/authMiddleware.js');
   protect = authModule.protect;
-} catch {
+} catch (error) {
+  console.error("Failed to load authMiddleware:", error);
   protect = (req, res, next) => next();
 }
 

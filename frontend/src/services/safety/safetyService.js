@@ -13,6 +13,18 @@ const unwrapObject = (response) => {
   return response?.data?.data || response?.data || {};
 };
 
+const buildQuery = (params) => {
+  if (!params) return '';
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value);
+    }
+  });
+  const qs = searchParams.toString();
+  return qs ? `?${qs}` : '';
+};
+
 
 // ============================================================
 // Safety Service
@@ -27,8 +39,7 @@ const safetyService = {
   async getPublicIncidents(params = {}) {
     try {
       const response = await apiClient.get(
-        '/safety/incidents/public',
-        { params }
+        `/safety/incidents/public${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -46,8 +57,7 @@ const safetyService = {
   async getIncidents(params = {}) {
     try {
       const response = await apiClient.get(
-        '/incidents',
-        { params }
+        `/safety/incidents${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -65,8 +75,7 @@ const safetyService = {
   async getUserIncidents(params = {}) {
     try {
       const response = await apiClient.get(
-        '/incidents',
-        { params }
+        `/safety/incidents${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -84,7 +93,7 @@ const safetyService = {
   async createIncident(formData) {
     try {
       const response = await apiClient.post(
-        '/incidents',
+        '/safety/incidents',
         formData
       );
 
@@ -103,7 +112,7 @@ const safetyService = {
   async updateIncident(incidentId, updates) {
     try {
       const response = await apiClient.put(
-        `/incidents/${incidentId}`,
+        `/safety/incidents/${incidentId}`,
         updates
       );
 
@@ -122,7 +131,7 @@ const safetyService = {
   async deleteIncident(incidentId) {
     try {
       const response = await apiClient.delete(
-        `/incidents/${incidentId}`
+        `/safety/incidents/${incidentId}`
       );
 
       return unwrapObject(response);
@@ -144,8 +153,7 @@ const safetyService = {
   async getSecurityAlerts(params = {}) {
     try {
       const response = await apiClient.get(
-        '/security-alerts',
-        { params }
+        `/safety/security-alerts${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -220,7 +228,7 @@ const safetyService = {
   async shareLiveLocation(payload) {
     try {
       const response = await apiClient.post(
-        '/location/share',
+        '/safety/location/share',
         payload
       );
 
@@ -243,8 +251,7 @@ const safetyService = {
   async getPoliceStations(params = {}) {
     try {
       const response = await apiClient.get(
-        '/emergency-locations/tourist_police',
-        { params }
+        `/safety/emergency-locations/tourist_police${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -262,8 +269,7 @@ const safetyService = {
   async getHospitals(params = {}) {
     try {
       const response = await apiClient.get(
-        '/emergency-locations/hospitals',
-        { params }
+        `/safety/emergency-locations/hospitals${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -281,8 +287,7 @@ const safetyService = {
   async getLocalPoliceStations(params = {}) {
     try {
       const response = await apiClient.get(
-        '/emergency-locations/local-police',
-        { params }
+        `/safety/emergency-locations/local-police${buildQuery(params)}`
       );
 
       return unwrapList(response);
@@ -304,8 +309,7 @@ const safetyService = {
   async getWeatherData(options = {}) {
     try {
       const response = await apiClient.get(
-        '/weather',
-        { params: options }
+        `/safety/weather${buildQuery(options)}`
       );
 
       return unwrapObject(response);
@@ -327,7 +331,7 @@ const safetyService = {
   async getWeatherAlerts() {
     try {
       const response = await apiClient.get(
-        '/weather/alerts'
+        '/safety/weather/alerts'
       );
 
       return unwrapObject(response);
