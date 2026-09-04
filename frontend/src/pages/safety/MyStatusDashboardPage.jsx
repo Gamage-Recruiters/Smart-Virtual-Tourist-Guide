@@ -20,8 +20,11 @@ export default function MyStatusDashboardPage() {
     async function loadReports() {
       try {
         const touristId = getCurrentTouristId();
-        const params = touristId ? { touristId } : {}
-        const personalData = await safetyService.getIncidents(params)
+        if (!touristId) {
+          if (isMounted) setLoading(false)
+          return
+        }
+        const personalData = await safetyService.getIncidents({ touristId })
         if (isMounted) {
           setMyIncidents(personalData)
         }
@@ -58,10 +61,12 @@ export default function MyStatusDashboardPage() {
         if (parsed && parsed.name) return parsed.name
       }
 
-      const storedUser = localStorage.getItem('user')
+      const storedUser = localStorage.getItem('userData') || localStorage.getItem('user')
       if (storedUser) {
         const parsed = JSON.parse(storedUser)
-        if (parsed && parsed.name) return parsed.name
+        if (parsed) {
+          return parsed.name || parsed.firstName || parsed.username || 'Tourist'
+        }
         if (typeof parsed === 'string') return parsed
       }
 
@@ -81,9 +86,12 @@ export default function MyStatusDashboardPage() {
       if (!touristId) return // Skip until auth is ready
       try {
         const profile = await safetyService.getTouristProfile(touristId)
-        if (isMounted && profile && profile.name) {
-          setTouristProfileName(profile.name)
-          localStorage.setItem('touristProfile', JSON.stringify(profile))
+        if (isMounted && profile) {
+          const fetchedName = profile.name || profile.firstName || profile.username
+          if (fetchedName) {
+            setTouristProfileName(fetchedName)
+            localStorage.setItem('touristProfile', JSON.stringify(profile))
+          }
         }
       } catch (error) {
         console.warn('Could not fetch tourist profile from backend, using localStorage/default fallback:', error)
@@ -183,7 +191,7 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
         })}
         {!loading && incidents.length === 0 && (
           <div className="rounded-lg border border-slate-200 bg-white/80 px-3 py-8 text-center text-xs font-semibold text-slate-600">
-            No submitted incident requests yet.
+            {getCurrentTouristId() ? 'No submitted incident requests yet.' : 'Please log in to view your incident reports.'}
           </div>
         )}
         {loading && (
@@ -246,7 +254,7 @@ function StatusOverviewTable({ incidents, loading, highlightedReferenceNumber, u
             {!loading && incidents.length === 0 && (
               <tr>
                 <td colSpan="5" className="border border-black px-3 py-5 text-center text-xs font-semibold text-slate-600">
-                  No submitted incident requests yet.
+                  {getCurrentTouristId() ? 'No submitted incident requests yet.' : 'Please log in to view your incident reports.'}
                 </td>
               </tr>
             )}

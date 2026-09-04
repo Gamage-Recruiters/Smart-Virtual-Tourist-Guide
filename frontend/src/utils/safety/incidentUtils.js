@@ -4,7 +4,7 @@ export function getIncidentCategory(incident) {
 
 export function getCurrentTouristId() {
   try {
-    const userStr = localStorage.getItem('user');
+    const userStr = localStorage.getItem('userData') || localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
       return user._id || user.id;

@@ -403,37 +403,39 @@ function App() {
           </Route>
 
           {/* Safety Standalone Pages */}
+          <Route element={<Layout />}>
+            {/* Emergency Call */}
+            <Route path="/safety/emergency" element={<EmergencyCallPage />} />
 
-          {/* Emergency Call */}
-          <Route path="/safety/emergency" element={<EmergencyCallPage />} />
+            {/* Navigation Directions */}
+            <Route
+              path="/safety/navigate"
+              element={<NavigationDirectionsPage />}
+            />
 
-          {/* Navigation Directions */}
-          <Route
-            path="/safety/navigate"
-            element={<NavigationDirectionsPage />}
-          />
+            {/* Incident Report */}
+            <Route
+              path="/safety/report-incident"
+              element={<IncidentReportPage />}
+            />
 
-          {/* Incident Report */}
-          <Route
-            path="/safety/report-incident"
-            element={<IncidentReportPage />}
-          />
+            {/* Old report form route */}
+            <Route
+              path="/safety/report-incident/form"
+              element={<Navigate to="/safety/report-incident" replace />}
+            />
 
-          {/* Old report form route */}
-          <Route
-            path="/safety/report-incident/form"
-            element={<Navigate to="/safety/report-incident" replace />}
-          />
-          {/* ===== TOURIST-FACING RESTAURANT ROUTES ===== */}
-          <Route path="/restaurants" element={<TouristRestaurantsPage />} />
-          <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
+            {/* ===== TOURIST-FACING RESTAURANT ROUTES ===== */}
+            <Route path="/restaurants" element={<TouristRestaurantsPage />} />
+            <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
 
 
-          {/* Report Success */}
-          <Route
-            path="/safety/report-success"
-            element={<IncidentReportSuccessPage />}
-          />
+            {/* Report Success */}
+            <Route
+              path="/safety/report-success"
+              element={<IncidentReportSuccessPage />}
+            />
+          </Route>
 
           {/* ========================================================= */}
           {/*                    FALLBACK ROUTE                         */}

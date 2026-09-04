@@ -14,6 +14,7 @@ const incidentSchema = new mongoose.Schema(
     },
     referenceNumber: {
       type: String,
+      unique: true,
       index: true,
     },
     reporterName: {
