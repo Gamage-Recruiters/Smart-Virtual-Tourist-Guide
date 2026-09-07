@@ -17,6 +17,13 @@ const resolvePlaceId = (place) => {
   return place?.place_id || place?.placeId || '';
 };
 
+const resolvePlaceCoord = (place, key) => {
+  const loc = place?.geometry?.location;
+  if (!loc) return undefined;
+  const val = typeof loc[key] === 'function' ? loc[key]() : loc[key];
+  return val != null ? val : undefined;
+};
+
 const resolvePlaceImageUrl = (place) => {
   const photo = place?.photos?.[0];
   if (!photo?.getUrl) return '';
@@ -30,6 +37,7 @@ const resolvePlaceImageUrl = (place) => {
 const ALLOWED_ENDPOINTS = [
   '/recent-places',
   '/favorite-places',
+  '/place-photos',
   '/security-alerts',
   '/security-alerts/weather',
   '/security-alerts/crime',
@@ -114,6 +122,8 @@ export const saveRecentPlace = async (place, action = null, userId, imageUrls = 
     userId,
     placeId: resolvePlaceId(place) || undefined,
     name,
+    lat: resolvePlaceCoord(place, 'lat'),
+    lng: resolvePlaceCoord(place, 'lng'),
     action,
     imageUrl: normalizedImageUrls[0] || undefined,
     imageUrls: normalizedImageUrls.length ? normalizedImageUrls : undefined,
@@ -147,6 +157,8 @@ export const saveFavoritePlace = async (place, category = 'favorite', userId, im
     userId,
     placeId: resolvePlaceId(place) || undefined,
     name,
+    lat: resolvePlaceCoord(place, 'lat'),
+    lng: resolvePlaceCoord(place, 'lng'),
     category,
     imageUrl: normalizedImageUrls[0] || undefined,
     imageUrls: normalizedImageUrls.length ? normalizedImageUrls : undefined,

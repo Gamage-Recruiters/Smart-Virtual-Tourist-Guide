@@ -22,6 +22,8 @@ const favoritePlaceSchema = new mongoose.Schema(
 			default: 'favorite',
 			trim: true,
 		},
+		lat: { type: Number, default: null },
+		lng: { type: Number, default: null },
 		imageUrls: {
 			type: [String],
 			default: [],

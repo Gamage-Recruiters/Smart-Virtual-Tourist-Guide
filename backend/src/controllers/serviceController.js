@@ -19,21 +19,7 @@ const resolvePlaceId = (req) => {
 	return req.body?.placeId || req.body?.place_id || req.query?.placeId || req.query?.place_id || null;
 };
 
-const fetchPlaceImageUrls = async (placeName) => {
-	if (!placeName) return [];
-	const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=400&origin=*`;
-	try {
-		const res = await fetch(url);
-		const data = await res.json();
-		const pages = data?.query?.pages || {};
-		const page = Object.values(pages)[0];
-		const thumb = page?.thumbnail?.source;
-		return thumb ? [thumb] : [];
-	} catch (error) {
-		console.error('Failed to fetch place image urls:', error);
-		return [];
-	}
-};
+
 
 const getRecentPlaces = async (req, res) => {
 	try {
@@ -77,6 +63,8 @@ const createRecentPlace = async (req, res) => {
 			imageUrls,
 			imageUrl,
 			timestamp,
+			lat,
+			lng,
 		} = req.body;
 
 		const resolvedUserId = resolveUserId(req);
@@ -84,8 +72,7 @@ const createRecentPlace = async (req, res) => {
 		const resolvedPlaceId = placeId || resolvePlaceId(req);
 		const resolvedAction = normalizeAction(action);
 		const resolvedImageUrls = normalizeImageUrls(imageUrls || (imageUrl ? [imageUrl] : []));
-		const fetchedImageUrls = resolvedImageUrls.length > 0 ? resolvedImageUrls : await fetchPlaceImageUrls(resolvedName);
-		const imageUrlsToStore = normalizeImageUrls(fetchedImageUrls);
+		const imageUrlsToStore = resolvedImageUrls;
 		const lookupQuery = {
 			userId: resolvedUserId,
 			...(resolvedPlaceId ? { placeId: resolvedPlaceId } : { name: resolvedName }),
@@ -107,6 +94,8 @@ const createRecentPlace = async (req, res) => {
 				userId: resolvedUserId,
 				name: resolvedName,
 				placeId: resolvedPlaceId,
+				lat: lat ?? null,
+				lng: lng ?? null,
 				imageUrls: imageUrlsToStore,
 				imageUrl: imageUrlsToStore[0] || imageUrl || undefined,
 				action: resolvedAction,

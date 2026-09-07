@@ -7,7 +7,7 @@ import directionIcon from '../assets/directionIcon.png';
 import { useUIContext } from '../contexts/UIContext';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
-import { reverseGeocode, getPlacePhoto, findNearbyPlaces } from '../utils/mapServices';
+import { reverseGeocode, getPlacePhotoByLocation, getPlacePhotoByName, findNearbyPlaces } from '../utils/mapServices';
 import { saveRecentPlace, saveFavoritePlace, fetchHotels } from '../services/api';
 import { isInsideSriLanka } from '../utils/geo';
 import { createUserLocationIcon } from '../utils/leafletSetup';
@@ -69,16 +69,18 @@ const Explore = () => {
     setLocalSearched(true);
     setHasSearched(true);
 
-    // Fetch photos using Wikimedia for nearby tourist attractions
-    const placeName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
+    // Fetch photos using Wikimedia Commons Geosearch for nearby tourist attractions
     const nearbyPlaces = await findNearbyPlaces(lat, lng, 5000);
-    const photoPromises = nearbyPlaces.slice(0, 7).map(p => getPlacePhoto(p.name));
+    const photoPromises = nearbyPlaces.slice(0, 7).map(p =>
+      getPlacePhotoByLocation(p.lat, p.lng, 500, p.name)
+    );
     const photoResults = await Promise.all(photoPromises);
     let urls = photoResults.filter(Boolean);
 
     // Also try to get a photo for the searched place itself
-    if (urls.length < 5 && placeName) {
-      const mainPhoto = await getPlacePhoto(placeName);
+    if (urls.length < 5) {
+      const placeName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
+      const mainPhoto = await getPlacePhotoByLocation(lat, lng, 500, placeName);
       if (mainPhoto && !urls.includes(mainPhoto)) {
         urls = [mainPhoto, ...urls].slice(0, 7);
       }
@@ -128,14 +130,14 @@ const Explore = () => {
       } catch { /* keep default */ }
 
       let photoUrls = [];
-      const locationName = placeToSave.name || placeToSave.formatted_address?.split(',').slice(0, 2).join(',') || 'Your Location';
-      const photo = await getPlacePhoto(locationName);
+      const locationName = placeToSave.name || placeToSave.formatted_address?.split(',').slice(0, 2).join(',') || '';
+      const photo = await getPlacePhotoByLocation(userLocation.lat, userLocation.lng, 500, locationName);
       if (photo) photoUrls.push(photo);
 
       if (photoUrls.length === 0) {
         const nearbyPlaces = await findNearbyPlaces(userLocation.lat, userLocation.lng, 5000);
         for (const p of nearbyPlaces.slice(0, 2)) {
-          const url = await getPlacePhoto(p.name);
+          const url = await getPlacePhotoByLocation(p.lat, p.lng, 500, p.name);
           if (url) photoUrls.push(url);
         }
       }
@@ -155,10 +157,13 @@ const Explore = () => {
     }
     try {
       const category = 'favorite';
-      const placeName = searchedPlace.displayName || searchedPlace.formatted_address?.split(',')[0] || searchedPlace.name || '';
+      const loc = searchedPlace.geometry?.location;
+      const destLat = typeof loc?.lat === 'function' ? loc.lat() : loc?.lat;
+      const destLng = typeof loc?.lng === 'function' ? loc.lng() : loc?.lng;
       const photoUrls = [];
-      if (placeName) {
-        const photo = await getPlacePhoto(placeName);
+      if (destLat != null && destLng != null) {
+        const placeName = searchedPlace.displayName || searchedPlace.formatted_address?.split(',')[0] || searchedPlace.name || '';
+        const photo = await getPlacePhotoByLocation(destLat, destLng, 500, placeName);
         if (photo) photoUrls.push(photo);
       }
       await saveFavoritePlace(searchedPlace, category, null, photoUrls);

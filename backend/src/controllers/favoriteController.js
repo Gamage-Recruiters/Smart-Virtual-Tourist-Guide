@@ -15,21 +15,7 @@ const resolvePlaceId = (req) => {
 	return req.body?.placeId || req.body?.place_id || req.query?.placeId || req.query?.place_id || null;
 };
 
-const fetchPlaceImageUrls = async (placeName) => {
-	if (!placeName) return [];
-	const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=400&origin=*`;
-	try {
-		const res = await fetch(url);
-		const data = await res.json();
-		const pages = data?.query?.pages || {};
-		const page = Object.values(pages)[0];
-		const thumb = page?.thumbnail?.source;
-		return thumb ? [thumb] : [];
-	} catch (error) {
-		console.error('Failed to fetch place image urls:', error);
-		return [];
-	}
-};
+
 
 const getFavoritePlaces = async (req, res) => {
 	try {
@@ -75,6 +61,8 @@ const createFavoritePlace = async (req, res) => {
 			imageUrls,
 			imageUrl,
 			timestamp,
+			lat,
+			lng,
 		} = req.body;
 
 		const resolvedUserId = resolveUserId(req);
@@ -90,8 +78,7 @@ const createFavoritePlace = async (req, res) => {
 		}
 
 		const resolvedImageUrls = normalizeImageUrls(imageUrls || (imageUrl ? [imageUrl] : []));
-		const fetchedImageUrls = resolvedImageUrls.length > 0 ? resolvedImageUrls : await fetchPlaceImageUrls(resolvedName);
-		const imageUrlsToStore = normalizeImageUrls(fetchedImageUrls);
+		const imageUrlsToStore = resolvedImageUrls;
 
 		const lookupQuery = {
 			userId: resolvedUserId,
@@ -107,6 +94,8 @@ const createFavoritePlace = async (req, res) => {
 				name: resolvedName,
 				placeId: resolvedPlaceId,
 				category: resolvedCategory,
+				lat: lat ?? null,
+				lng: lng ?? null,
 				imageUrls: imageUrlsToStore,
 				imageUrl: imageUrlsToStore[0] || imageUrl || undefined,
 				timestamp,

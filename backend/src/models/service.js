@@ -17,6 +17,8 @@ const recentPlaceSchema = new mongoose.Schema(
 			default: null,
 			trim: true,
 		},
+		lat: { type: Number, default: null },
+		lng: { type: Number, default: null },
 		imageUrls: {
 			type: [String],
 			default: [],

@@ -6,6 +6,7 @@ import favoriteRouter from './src/routes/favoriteRouter.js';
 import securityAlertRouter from './src/routes/securityAlertRouter.js';
 import incidentRouter from './src/routes/incidentRouter.js';
 import hotelRouter from './src/routes/hotelRouter.js';
+import placePhotoRouter from './src/routes/placePhotoRouter.js';
 
 dotenv.config(); // use values from .env before reading environment variables
 
@@ -39,6 +40,7 @@ app.use('/api/favorite-places', favoriteRouter);
 app.use('/api/security-alerts', securityAlertRouter);
 app.use('/api/incidents', incidentRouter);
 app.use('/api/hotels', hotelRouter);
+app.use('/api/place-photos', placePhotoRouter);
 
 // Start server after MongoDB connects
 const startServer = async () => {

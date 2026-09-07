@@ -3,12 +3,15 @@
  * Replaces all Google Maps API calls with free, no-key-required alternatives.
  *
  * APIs used:
- *   - Photon (komoot)   → Search autocomplete
- *   - Nominatim (OSM)   → Forward & reverse geocoding
- *   - OSRM              → Route calculation
- *   - Overpass (OSM)     → Nearby place search
- *   - Wikimedia Commons  → Place photos
+ *   - Photon (komoot)        → Search autocomplete
+ *   - Nominatim (OSM)        → Forward & reverse geocoding
+ *   - OSRM                   → Route calculation
+ *   - Overpass (OSM)          → Nearby place search
+ *   - Wikimedia Commons       → Place photos (Geosearch by coordinates — primary)
+ *   - Wikipedia pageimages    → Place photos (by title — fallback)
  */
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // ── Photon: Search Autocomplete ──
 export async function searchPlaces(query, limit = 5) {
@@ -77,8 +80,83 @@ export async function findNearbyPlaces(lat, lng, radiusMeters = 5000, types = '"
   }));
 }
 
-// ── Wikimedia: Place Photos ──
-export async function getPlacePhoto(placeName) {
+// ── Wikimedia Commons: Place Photos by Location (Geosearch — Primary) ──
+
+async function resolveCommonsFileUrl(fileTitle) {
+  const url = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const pages = data?.query?.pages || {};
+  const page = Object.values(pages)[0];
+  return page?.imageinfo?.[0]?.thumburl || page?.imageinfo?.[0]?.url || null;
+}
+
+async function checkPhotoCache(lat, lng) {
+  const res = await fetch(`${API_BASE}/place-photos?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.photoUrl || null;
+}
+
+async function storePhotoCache(lat, lng, photoUrl) {
+  await fetch(`${API_BASE}/place-photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lat: parseFloat(lat.toFixed(4)), lng: parseFloat(lng.toFixed(4)), photoUrl }),
+  });
+}
+
+export async function getPlacePhotoByLocation(lat, lng, radius = 500, placeName = null) {
+  // 1. Session storage (instant, same-session dedup)
+  const cacheKey = `wikicommons_${lat.toFixed(4)}_${lng.toFixed(4)}`;
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  // 2. Backend MongoDB cache (cross-session, cross-user)
+  try {
+    const dbCached = await checkPhotoCache(lat, lng);
+    if (dbCached) {
+      sessionStorage.setItem(cacheKey, JSON.stringify(dbCached));
+      return dbCached;
+    }
+  } catch { /* cache miss, continue */ }
+
+  // 3. Commons Geosearch with progressive radius expansion
+  for (const r of [radius, 1500, 3000]) {
+    try {
+      const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lng}&gsradius=${r}&gslimit=5&gsnamespace=6&format=json&origin=*`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const results = data?.query?.geosearch || [];
+      if (!results.length) continue;
+
+      const photoUrl = await resolveCommonsFileUrl(results[0].title);
+      if (photoUrl) {
+        sessionStorage.setItem(cacheKey, JSON.stringify(photoUrl));
+        void storePhotoCache(lat, lng, photoUrl); // fire-and-forget persist
+        return photoUrl;
+      }
+    } catch (error) {
+      console.warn(`Commons geosearch failed at radius ${r}:`, error.message);
+    }
+  }
+
+  // 4. Wikipedia pageimages fallback (named landmarks with no geotagged Commons photos)
+  if (placeName) {
+    const namePhoto = await getPlacePhotoByName(placeName);
+    if (namePhoto) {
+      sessionStorage.setItem(cacheKey, JSON.stringify(namePhoto));
+      void storePhotoCache(lat, lng, namePhoto); // cache the fallback result too
+      return namePhoto;
+    }
+  }
+
+  return null;
+}
+
+// ── Wikipedia: Place Photos by Name (Fallback) ──
+export async function getPlacePhotoByName(placeName) {
   try {
     const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(placeName)}&prop=pageimages&format=json&pithumbsize=800&origin=*`;
     const res = await fetch(url);
@@ -88,7 +166,7 @@ export async function getPlacePhoto(placeName) {
     const page = Object.values(pages)[0];
     return page?.thumbnail?.source || null;
   } catch (error) {
-    console.warn(`Wikimedia photo load failed for ${placeName}:`, error.message);
+    console.warn(`Wikipedia photo load failed for ${placeName}:`, error.message);
     return null;
   }
 }
