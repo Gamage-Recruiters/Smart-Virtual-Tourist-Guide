@@ -11,3 +11,14 @@ export const fetchBudgetAllocation = async (touristId) => {
         return { success: false, message: "Server connection failed." };
     }
 };
+
+export const fetchLatestExpenses = async (touristId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/expenses/${touristId}`);
+        const result = await response.json();
+        return result; 
+    } catch (error) {
+        console.error("fetchLatestExpenses Error:", error);
+        return { success: false, message: "Server connection failed." };
+    }
+};

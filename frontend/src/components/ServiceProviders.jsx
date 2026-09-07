@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchMyBookings } from '../services/bookingService';
 
 const ServiceProviders = ({ userEmail }) => {
-    const TABS = ["All", "Drivers", "Hotels", "Guides", "Restaurants", "Activities"];
+    const TABS = ["All", "Vehicles", "Drivers", "Hotels", "Guides", "Restaurants", "Activities"];
     
     const [allProviders, setAllProviders] = useState([]);
     const [activeTab, setActiveTab] = useState("All");
@@ -14,9 +14,12 @@ const ServiceProviders = ({ userEmail }) => {
             const result = await fetchMyBookings(userEmail);
             if (result.success) {
                 const combined = [
-                    ...result.data.activities.map(a => ({ ...a.service, category: 'Activities' })),
-                    ...result.data.hotels.map(h => ({ ...h.service, category: 'Hotels' })),
-                    ...result.data.vehicles.map(v => ({ ...v.service, category: 'Drivers' }))
+                    ...(result.data.activities || []).map(a => ({ ...a.service, category: 'Activities' })),
+                    ...(result.data.hotels || []).map(h => ({ ...h.service, category: 'Hotels' })),
+                    ...(result.data.vehicles || []).map(v => ({ ...v.service, category: 'Vehicles' })),
+                    ...(result.data.guides || []).map(g => ({ ...g.service, category: 'Guides' })),
+                    ...(result.data.drivers || []).map(d => ({ ...d.service, category: 'Drivers' })),
+                    ...(result.data.restaurants || []).map(r => ({ ...r.service, category: 'Restaurants' }))
                 ];
                 setAllProviders(combined);
             }

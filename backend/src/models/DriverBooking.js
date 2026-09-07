@@ -1,0 +1,83 @@
+import mongoose from 'mongoose';
+
+const pricingItemSchema = new mongoose.Schema({
+  label: { type: String, required: true },
+  amount: { type: Number, required: true, min: 0 },
+});
+
+const driverBookingSchema = new mongoose.Schema(
+  {
+    service: {
+      serviceId: { type: String },
+      name: { type: String, required: true },
+      type: { type: String, default: 'driver' },
+      location: { type: String },
+      image: { type: String },
+      description: { type: String },
+      rating: { type: Number, min: 0, max: 5 },
+      reviews: { type: Number, min: 0 },
+    },
+    travelDate: { type: String },
+    pickupTime: { type: String },
+    pickupLocation: { type: String },
+    destination: { type: String },
+    passengers: { type: Number, min: 1 },
+    bookingDetails: [
+      {
+        label: { type: String, required: true },
+        value: { type: String, required: true },
+      },
+    ],
+    pricing: {
+      currency: { type: String, default: 'USD' },
+      items: [pricingItemSchema],
+      total: { type: Number, required: true, min: 0 },
+    },
+    customer: {
+      firstName: { type: String, required: true },
+      lastName: { type: String, required: true },
+      email: { type: String, required: true },
+      phone: { type: String, required: true },
+    },
+    payment: {
+      method: { type: String, default: 'card' },
+      cardBrand: { type: String },
+      last4: { type: String },
+      expiryDate: { type: String },
+      paidAt: { type: Date },
+      payhereOrderId: { type: String },
+      payherePaymentId: { type: String },
+
+      paymentStatus: {
+        type: String,
+        enum: [
+          'pending', 'paid', 'failed', 'refunded', 'full-refunded', 'partial-refunded', 'pending refunded'
+        ],
+        default: 'pending',
+      },
+
+      refundAmount: { type: Number, default: 0 },
+      refundReason: { type: String },
+      refundDate: { type: Date },
+      refundHistory: [
+        {
+          amount: Number,
+          reason: String,
+          date: Date
+        }
+      ],
+      refundTransactionId: { type: String },
+      cancellationAccountablePerson: { type: String },
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'pending_payment', 'confirmed', 'cancelled', 'payment_failed'],
+      default: 'pending',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export default mongoose.model('DriverBooking', driverBookingSchema);

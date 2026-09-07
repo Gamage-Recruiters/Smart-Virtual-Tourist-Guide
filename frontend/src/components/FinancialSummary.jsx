@@ -1,17 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBudgetAllocation } from '../services/financialSummery';
+import { fetchBudgetAllocation, fetchLatestExpenses } from '../services/financialSummery';
 
-const FinancialSummary = ({ touristId, tripId }) => {
+const FinancialSummary = ({ touristId }) => {
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
         const loadBudget = async () => {
             const result = await fetchBudgetAllocation(touristId);
-            setBudgetData(result.success ? result.data : null); 
+            setBudgetData(result.success ? result.data : null);
             setLoading(false);
         };
-        if (touristId) loadBudget();
+
+        const loadExpenses = async () => {
+            if (!touristId) return;
+            const res = await fetchLatestExpenses(touristId);
+            if (res.success && res.data) {
+
+                const formattedData = res.data.map(item => ({
+                    date: item.date || "Mar 15",
+                    cat: item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : "Activity",
+                    desc: item.name || "N/A",
+                    provider: item.location || "Local Provider",
+                    amountLkr: item.actual_cost > 0 ? item.actual_cost : item.estimated_cost
+                }));
+                setTransactions(formattedData);
+            }
+            setLoading(false);
+        };
+
+        if (touristId) {
+            loadExpenses();
+            loadBudget();
+        }
+
     }, [touristId]);
 
     const data = budgetData || {
@@ -21,11 +44,16 @@ const FinancialSummary = ({ touristId, tripId }) => {
         dailyAllocation: {},
         totalAllocation: {},
         weightsUsed: {},
-        meta: { usd_to_lkr: 1 }
+        meta: { usd_to_lkr: 1, budget_usd: 0 }
     };
 
     const usdRate = data.meta?.usd_to_lkr || 1;
-    
+    const totalBudgetUsd = data.meta?.budget_usd || (data.totalBudgetLKR / usdRate);
+    const remainingUsd = (data.remainingLKR || 0) / usdRate;
+
+    const diffPercentage = totalBudgetUsd > 0 ? Math.round(Math.abs(remainingUsd / totalBudgetUsd) * 100) : 0;
+    const isUnder = remainingUsd >= 0;
+
     const categories = [
         { label: "Accommodation", key: "accommodation", icon: "🏠" },
         { label: "Transportation", key: "transport", icon: "🚗" },
@@ -36,11 +64,8 @@ const FinancialSummary = ({ touristId, tripId }) => {
     ].map(cat => ({
         ...cat,
         spent: (data.totalAllocation?.[cat.key] || 0) / usdRate,
-        pct: (data.weightsUsed?.[cat.key] || 0) * 100,
-        transactions: 0 
+        pct: (data.weightsUsed?.[cat.key] || 0) * 100
     }));
-
-    const transactions = budgetData?.transactions || []; 
 
     if (loading) return <div className="p-10 text-center">Loading...</div>;
 
@@ -48,8 +73,12 @@ const FinancialSummary = ({ touristId, tripId }) => {
         <section className="w-full bg-white pt-6 px-6 pb-0 sm:pt-10 sm:px-10 md:pt-16 md:px-16 lg:pt-20 lg:px-20 mb-0 !mt-0 border-t-0 border-b-0">
             <p className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-wider mb-2">Financial Summary</p>
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-8">
-                <span className="text-3xl sm:text-4xl md:text-[44px] font-black text-gray-900 leading-none">$2,847.50</span>
-                <span className="text-[#2ECC71] text-xs sm:text-sm font-bold">↑ 8% Under budget"</span>
+                <span className="text-3xl sm:text-4xl md:text-[44px] font-black text-gray-900 leading-none">
+                    ${totalBudgetUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className={`text-xs sm:text-sm font-bold ${isUnder ? 'text-[#2ECC71]' : 'text-red-500'}`}>
+                    {isUnder ? `↑ ${diffPercentage}% Under budget` : `↓ ${diffPercentage}% Over budget`}
+                </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-12">
@@ -87,10 +116,10 @@ const FinancialSummary = ({ touristId, tripId }) => {
                                     <td className="px-4 py-3.5 font-bold">{t.cat}</td>
                                     <td className="px-4 py-3.5 text-[#3A5674] font-medium">{t.desc}</td>
                                     <td className="px-4 py-3.5 text-[#527EA6] font-medium">{t.provider}</td>
-                                    <td className="px-4 py-3.5 text-right font-black">{t.amount}</td>
+                                    <td className="px-4 py-3.5 text-right font-black">${((t.amountLkr || 0) / usdRate).toFixed(2)}</td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan="5" className="text-center py-4">No transactions found</td></tr>
+                                <tr><td colSpan="5" className="text-center py-4 text-[#527EA6] font-medium">No transactions found</td></tr>
                             )}
                         </tbody>
                     </table>
