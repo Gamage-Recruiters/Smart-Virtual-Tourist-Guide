@@ -41,6 +41,7 @@ const getWeatherAlerts = async (req, res) => {
         orClauses.push({ district: { $regex: escaped, $options: 'i' } });
         orClauses.push({ region: { $regex: escaped, $options: 'i' } });
         orClauses.push({ title: { $regex: escaped, $options: 'i' } });
+        orClauses.push({ description: { $regex: escaped, $options: 'i' } });
       }
 
       if (orClauses.length > 0) {
@@ -51,22 +52,28 @@ const getWeatherAlerts = async (req, res) => {
     const alerts = await col.find(filter).sort({ isActive: -1, updatedAt: -1, _id: -1 }).toArray();
 
     // Normalise fields for frontend
-    const data = alerts.map((a) => ({
-      _id: a._id,
-      title: a.title,
-      description: a.description,
-      weatherCondition: a.weatherCondition,
-      temperature: a.temperature ?? null,
-      windSpeed: a.windSpeed ?? null,
-      severity: a.severity || 'medium',
-      district: a.district || '',
-      region: a.region || '',
-      location: a.district || a.region || '',
-      latitude: a.location?.coordinates?.[1] ?? (typeof a.location?.lat === 'number' ? a.location.lat : null),
-      longitude: a.location?.coordinates?.[0] ?? (typeof a.location?.lng === 'number' ? a.location.lng : null),
-      isActive: a.isActive ?? true,
-      updatedAt: a.updatedAt || null,
-    }));
+    const data = alerts.map((a) => {
+      // Handle legacy docs where location was stored as a plain string
+      const legacyLocationStr = typeof a.location === 'string' ? a.location : '';
+      const cityName = a.district || a.region || legacyLocationStr || '';
+
+      return {
+        _id: a._id,
+        title: a.title,
+        description: a.description,
+        weatherCondition: a.weatherCondition,
+        temperature: a.temperature ?? null,
+        windSpeed: a.windSpeed ?? null,
+        severity: a.severity || 'medium',
+        district: a.district || legacyLocationStr || '',
+        region: a.region || '',
+        location: cityName,
+        latitude: a.location?.coordinates?.[1] ?? (typeof a.location?.lat === 'number' ? a.location.lat : null),
+        longitude: a.location?.coordinates?.[0] ?? (typeof a.location?.lng === 'number' ? a.location.lng : null),
+        isActive: a.isActive ?? true,
+        updatedAt: a.updatedAt || null,
+      };
+    });
 
     return res.status(200).json({ success: true, data });
   } catch (error) {
@@ -84,16 +91,19 @@ const getCrimeAlerts = async (req, res) => {
 
     const alerts = await col.find(filter).sort({ updatedAt: -1 }).toArray();
 
-    const data = alerts.map((a) => ({
-      _id: a._id,
-      title: a.title,
-      description: a.description,
-      severity: a.severity,
-      location: a.district || a.region || '',
-      latitude: a.location?.coordinates?.[1] ?? null,
-      longitude: a.location?.coordinates?.[0] ?? null,
-      isActive: a.isActive,
-    }));
+    const data = alerts.map((a) => {
+      const legacyLocationStr = typeof a.location === 'string' ? a.location : '';
+      return {
+        _id: a._id,
+        title: a.title,
+        description: a.description,
+        severity: a.severity,
+        location: a.district || a.region || legacyLocationStr || '',
+        latitude: a.location?.coordinates?.[1] ?? (typeof a.latitude === 'number' ? a.latitude : null),
+        longitude: a.location?.coordinates?.[0] ?? (typeof a.longitude === 'number' ? a.longitude : null),
+        isActive: a.isActive,
+      };
+    });
 
     res.status(200).json({ success: true, data });
   } catch (error) {

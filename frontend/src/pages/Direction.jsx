@@ -377,22 +377,29 @@ const Direction = ({ showDetailsPanel = true }) => {
     clearRouteOverlays();
 
     try {
-      const mode = modeKey === 'drive' ? 'drive' : modeKey === 'bike' ? 'bicycle' : modeKey === 'walk' ? 'walk' : 'drive';
-      const data = await fetchRoute(normalizedOrigin, normalizedDestination, mode, true, waypoints);
+      // The OSRM demo server only has the 'driving' profile — it returns identical
+      // data for bike/foot/driving. So we always fetch the driving route and apply
+      // mode-specific time multipliers from MODE_CONFIGS to estimate realistic durations.
+      const apiMode = 'drive';
+
+      const data = await fetchRoute(normalizedOrigin, normalizedDestination, apiMode, true, waypoints);
       if (requestId !== routeRequestIdRef.current) return;
       const sourceRoutes = data?.features || [];
       if (!sourceRoutes.length) throw new Error('No route found between these locations. Try different points.');
+
+      // Apply mode-specific time multiplier (car=1, bike=1.35, transit=1.85, walk=8.5)
+      const timeMultiplier = modeConfig.multiplier || 1;
 
       const result = {
         routes: sourceRoutes.map((feature) => {
           const properties = feature.properties || {};
           const coordinates = feature.geometry?.coordinates || [];
-          const seconds = Number(properties.time || properties.duration || 0);
+          const seconds = Math.round(Number(properties.time || properties.duration || 0) * timeMultiplier);
           const meters = Number(properties.distance || 0);
           const overview_path = coordinates.map(([lng, lat]) => ({ lat, lng }));
           const rawLegs = properties.legs || [];
           const legs = rawLegs.length > 0 ? rawLegs.map((l) => ({
-            duration: { value: l.duration || 0, text: formatCompactDuration((l.duration || 0) / 60) },
+            duration: { value: Math.round((l.duration || 0) * timeMultiplier), text: formatCompactDuration(Math.round((l.duration || 0) * timeMultiplier) / 60) },
             distance: { value: l.distance || 0, text: (l.distance || 0) >= 1000 ? `${((l.distance || 0) / 1000).toFixed(1)} km` : `${Math.round(l.distance || 0)} m` },
             steps: (l.steps || []).map((step) => {
               const coords = step.geometry?.coordinates || [];
@@ -409,7 +416,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                 exit: step.maneuver?.exit,
                 instructions: formattedInstruction,
                 distance: step.distance,
-                duration: { value: step.duration || 0 },
+                duration: { value: Math.round((step.duration || 0) * timeMultiplier) },
                 start_location: startCoord ? { lng: startCoord[0], lat: startCoord[1] } : null,
                 end_location: endCoord ? { lng: endCoord[0], lat: endCoord[1] } : null,
               };
@@ -434,7 +441,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                 exit: step.maneuver?.exit,
                 instructions: formattedInstruction,
                 distance: step.distance,
-                duration: { value: step.duration || 0 },
+                duration: { value: Math.round((step.duration || 0) * timeMultiplier) },
                 start_location: startCoord ? { lng: startCoord[0], lat: startCoord[1] } : null,
                 end_location: endCoord ? { lng: endCoord[0], lat: endCoord[1] } : null,
               };
@@ -534,11 +541,14 @@ const Direction = ({ showDetailsPanel = true }) => {
           checkAndDrawFloodLabel(overviewPath);
         }, 5 * 60 * 1000);
       }
-      // Cache this mode's actual minutes
-      modeMinutesCache.current[modeConfig.key] = routeInfoList[0]?.durationMinutes || 0;
-      if (mode === 'drive') {
-        drivingMinutesRef.current = routeInfoList[0]?.durationMinutes || 0;
-      }
+
+      // Cache this mode's actual minutes and store driving base separately
+      const routeBaseMins = routeInfoList[0]?.durationMinutes || 0;
+      modeMinutesCache.current[modeConfig.key] = routeBaseMins;
+      // Always derive raw driving minutes so other mode tab estimates stay accurate
+      // (we always fetch the driving route, then apply the multiplier)
+      const rawDrivingMins = timeMultiplier > 0 ? Math.round(routeBaseMins / timeMultiplier) : routeBaseMins;
+      drivingMinutesRef.current = rawDrivingMins;
     } catch (routeError) {
       if (requestId !== routeRequestIdRef.current) return;
       setLoadingRoutes(false);

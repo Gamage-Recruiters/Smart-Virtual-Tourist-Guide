@@ -43,18 +43,24 @@ export const useRouting = (mapEngine = {}, pendingVehicle, showDetailsPanel = tr
     }
 
     const requestId = ++routeRequestIdRef.current;
-    const mode = modeKey === 'bike' ? 'bicycle' : modeKey === 'walk' ? 'walk' : 'drive';
+    // Always use driving API — OSRM demo server returns identical data for all profiles
+    const apiMode = 'drive';
+
+    // Apply mode-specific time multiplier (car=1, bike=1.35, transit=1.85, walk=8.5)
+    const modeConfig = MODE_CONFIGS.find((m) => m.key === modeKey) || MODE_CONFIGS[0];
+    const timeMultiplier = modeConfig.multiplier || 1;
+
     setLoadingRoutes(true);
     setError(null);
     activeRoutePairRef.current = { origin: normalizedOrigin, destination: normalizedDestination };
 
     try {
-      const data = await fetchRoute(normalizedOrigin, normalizedDestination, mode, true);
+      const data = await fetchRoute(normalizedOrigin, normalizedDestination, apiMode, true);
       if (requestId !== routeRequestIdRef.current) return;
       const nextRoutes = (data?.features || []).map((feature) => {
         const properties = feature.properties || {};
         const coordinates = feature.geometry?.coordinates || [];
-        const seconds = Number(properties.time || properties.duration || 0);
+        const seconds = Math.round(Number(properties.time || properties.duration || 0) * timeMultiplier);
         const meters = Number(properties.distance || 0);
         const overviewPath = coordinates.map(([lng, lat]) => ({ lat, lng }));
         return {
@@ -82,7 +88,9 @@ export const useRouting = (mapEngine = {}, pendingVehicle, showDetailsPanel = tr
       setRoutes(routeInfo);
       setSelectedIdx(0);
       modeMinutesCache.current[modeKey] = routeInfo[0].durationMinutes;
-      if (modeKey === 'drive') drivingMinutesRef.current = routeInfo[0].durationMinutes;
+      // Always derive raw driving minutes for other mode tab estimates
+      const rawDrivingMins = timeMultiplier > 0 ? Math.round(routeInfo[0].durationMinutes / timeMultiplier) : routeInfo[0].durationMinutes;
+      drivingMinutesRef.current = rawDrivingMins;
       setFallbackMode(false);
     } catch (routeError) {
       if (requestId !== routeRequestIdRef.current) return;

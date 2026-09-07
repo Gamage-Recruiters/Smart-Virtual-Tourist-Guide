@@ -11,7 +11,9 @@ const sampleAlerts = [
     title: 'Weather Alert',
     description: 'Warm and humid conditions. Stay hydrated.',
     isActive: true,
-    location: 'Colombo',
+    district: 'Colombo',
+    region: 'Western Province',
+    location: { type: 'Point', coordinates: [79.8612, 6.9271] },
     temperature: 31,
     feelsLike: 35,
     weatherCondition: 'Partly Cloudy',
@@ -27,7 +29,9 @@ const sampleAlerts = [
     title: 'Weather Alert',
     description: 'Clear skies with mild breeze.',
     isActive: true,
-    location: 'Kandy',
+    district: 'Kandy',
+    region: 'Central Province',
+    location: { type: 'Point', coordinates: [80.6350, 7.2906] },
     temperature: 26,
     feelsLike: 28,
     weatherCondition: 'Clear',
@@ -43,7 +47,9 @@ const sampleAlerts = [
     title: 'Weather Alert',
     description: 'Heavy rain expected. Risk of flooding on low-lying roads.',
     isActive: true,
-    location: 'Galle',
+    district: 'Galle',
+    region: 'Southern Province',
+    location: { type: 'Point', coordinates: [80.2170, 6.0535] },
     temperature: 28,
     feelsLike: 32,
     weatherCondition: 'Heavy Rain',
@@ -62,9 +68,9 @@ const crimeAlerts = [
     description: 'Multiple theft incidents reported. Avoid isolated streets after 8pm.',
     isActive: true,
     category: 'crime',
-    location: 'Pettah, Colombo',
-    latitude: 6.9355,
-    longitude: 79.8506,
+    district: 'Pettah',
+    region: 'Colombo',
+    location: { type: 'Point', coordinates: [79.8506, 6.9355] },
   },
   {
     source: 'police-report',
@@ -72,9 +78,9 @@ const crimeAlerts = [
     description: 'Tourist area — pickpocket incidents reported near the bus stand.',
     isActive: true,
     category: 'crime',
-    location: 'Fort, Colombo',
-    latitude: 6.9344,
-    longitude: 79.8428,
+    district: 'Fort',
+    region: 'Colombo',
+    location: { type: 'Point', coordinates: [79.8428, 6.9344] },
   },
   {
     source: 'police-report',
@@ -82,9 +88,9 @@ const crimeAlerts = [
     description: 'Fake tour guide scams reported in this area. Use verified guides only.',
     isActive: true,
     category: 'crime',
-    location: 'Kandy City Centre',
-    latitude: 7.2906,
-    longitude: 80.6337,
+    district: 'Kandy City Centre',
+    region: 'Kandy',
+    location: { type: 'Point', coordinates: [80.6337, 7.2906] },
   },
   {
     source: 'police-report',
@@ -92,9 +98,9 @@ const crimeAlerts = [
     description: 'Multiple bag snatching incidents after dark. Stay vigilant.',
     isActive: true,
     category: 'crime',
-    location: 'Dehiwala',
-    latitude: 6.8510,
-    longitude: 79.8650,
+    district: 'Dehiwala',
+    region: 'Colombo',
+    location: { type: 'Point', coordinates: [79.8650, 6.8510] },
   },
   {
     source: 'police-report',
@@ -102,9 +108,9 @@ const crimeAlerts = [
     description: 'Vehicle break-ins reported near beach parking areas. Do not leave valuables.',
     isActive: true,
     category: 'crime',
-    location: 'Unawatuna, Galle',
-    latitude: 6.0174,
-    longitude: 80.2490,
+    district: 'Unawatuna',
+    region: 'Galle',
+    location: { type: 'Point', coordinates: [80.2490, 6.0174] },
   },
   {
     source: 'police-report',
@@ -112,9 +118,9 @@ const crimeAlerts = [
     description: 'Poorly lit area with past assault reports. Avoid walking alone at night.',
     isActive: true,
     category: 'crime',
-    location: 'Slave Island, Colombo',
-    latitude: 6.9247,
-    longitude: 79.8558,
+    district: 'Slave Island',
+    region: 'Colombo',
+    location: { type: 'Point', coordinates: [79.8558, 6.9247] },
   },
 ];
 
@@ -128,14 +134,14 @@ const seed = async () => {
 
     const inserted = await SecurityAlert.insertMany(sampleAlerts);
     console.log(`Inserted ${inserted.length} weather alerts:`);
-    inserted.forEach(a => console.log(` - ${a.location}: ${a.temperature}°C, ${a.weatherCondition}`));
+    inserted.forEach(a => console.log(` - ${a.district}: ${a.temperature}°C, ${a.weatherCondition}`));
 
     await SecurityAlert.deleteMany({ category: 'crime' });
     console.log('Cleared existing crime alerts');
 
     const crimeInserted = await SecurityAlert.insertMany(crimeAlerts);
     console.log(`Inserted ${crimeInserted.length} crime alerts:`);
-    crimeInserted.forEach(a => console.log(` - ${a.location}: ${a.title}`));
+    crimeInserted.forEach(a => console.log(` - ${a.district}: ${a.title}`));
 
     await mongoose.disconnect();
     console.log('Done.');
