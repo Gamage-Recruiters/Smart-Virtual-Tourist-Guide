@@ -15,7 +15,7 @@ import User from "../models/User.js";
  * It loads messages in chunks (pagination) to save data and improve speed.
  */
 const getNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
+  const userId = req.user._id;
 
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     return next(
@@ -59,10 +59,6 @@ const getNotifications = catchAsync(async (req, res, next) => {
   const notifications = await Notification.aggregate([
     // 1. Filter Messages
     { $match: { $or: matchCriteria } },
-
-    // 2. Deduplicate (Remove identical messages)
-    { $group: { _id: "$_id", doc: { $first: "$$ROOT" } } },
-    { $replaceRoot: { newRoot: "$doc" } },
 
     // 🚀 CRITICAL PERFORMANCE FIX: Sort & Paginate BEFORE $lookup
     { $sort: { createdAt: -1 } },
@@ -123,7 +119,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
   const { id } = req.params; // The ID of the notification from the URL
 
   // Get user ID from headers (for testing)
-  const userId = req.headers["user-id"];
+  const userId = req.user._id;
 
   if (!userId) {
     return next(
@@ -183,7 +179,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
  * This is useful for displaying the red badge number on the notification bell icon.
  */
 const getUnreadCount = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
+  const userId = req.user._id;
 
   if (!userId) {
     return next(
@@ -207,27 +203,21 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
     }
   }
 
+  const orConditions = [
+    { recipientId: new mongoose.Types.ObjectId(userId) },
+    { recipientRole: userRole },
+    { recipientRole: "ALL" },
+    { scope: "BROADCAST" },
+  ];
+  if (userDivision) orConditions.push({ region: userDivision });
+  if (userDistrict) orConditions.push({ district: userDistrict });
+
   const result = await Notification.aggregate([
     {
       $match: {
-        $or: [
-          { recipientId: new mongoose.Types.ObjectId(userId) },
-          { recipientRole: userRole },
-          { recipientRole: "ALL" },
-          { region: userDivision },
-          { district: userDistrict },
-          { scope: "BROADCAST" },
-        ],
+        $or: orConditions,
       },
     },
-
-    {
-      $group: {
-        _id: "$_id",
-        doc: { $first: "$$ROOT" },
-      },
-    },
-    { $replaceRoot: { newRoot: "$doc" } },
 
     {
       $lookup: {
@@ -281,7 +271,7 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
  */
 
 const markAllAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
+  const userId = req.user._id;
 
   if (!userId) return next(new AppError("User ID required", 400));
 
@@ -334,8 +324,6 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
       },
     },
     { $match: { "readRecord.0": { $exists: false } } },
-
-    { $group: { _id: "$_id" } },
   ]);
 
   if (unreadNotifications.length > 0) {
@@ -369,7 +357,7 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
  */
 
 const clearAllNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.headers["user-id"];
+  const userId = req.user._id;
 
   if (!userId) return next(new AppError("User ID required", 400));
 
@@ -418,7 +406,6 @@ const clearAllNotifications = catchAsync(async (req, res, next) => {
       },
     },
     { $match: { "readRecord.isDeleted": { $ne: true } } },
-    { $group: { _id: "$_id" } },
   ]);
 
   if (publicNotifications.length > 0) {

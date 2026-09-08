@@ -6,7 +6,7 @@ import NotificationList from "./NotificationList";
 // Redux Actions & Selectors
 import { toggleNotificationModal, markAllAsReadLocal } from "../../store/slices/notificationSlice";
 import { selectIsModalOpen } from "../../store/selectors/notificationSelectors";
-import { selectUserId } from "../../store/selectors/authSelectors";
+import { selectAuthToken } from "../../store/selectors/authSelectors";
 
 // React Query & API
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ const NotificationModal = () => {
   const queryClient = useQueryClient();
 
   const isModalOpen = useSelector(selectIsModalOpen);
-  const userId = useSelector(selectUserId);
+  const token = useSelector(selectAuthToken);
 
   const [isMuted, setIsMuted] = useState(
     typeof window !== "undefined" && localStorage.getItem("mute_alerts") === "true",
@@ -32,12 +32,12 @@ const NotificationModal = () => {
   };
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => markAllAsReadApi(userId),
+    mutationFn: () => markAllAsReadApi(token),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
-      const previousNotifications = queryClient.getQueryData(["notifications", userId]);
+      await queryClient.cancelQueries({ queryKey: ["notifications", token] });
+      const previousNotifications = queryClient.getQueryData(["notifications", token]);
 
-      queryClient.setQueryData(["notifications", userId], (oldData) => {
+      queryClient.setQueryData(["notifications", token], (oldData) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -52,11 +52,11 @@ const NotificationModal = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications", userId], context.previousNotifications);
+        queryClient.setQueryData(["notifications", token], context.previousNotifications);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", token] });
     },
   });
 
@@ -66,12 +66,12 @@ const NotificationModal = () => {
   };
 
   const clearAllMutation = useMutation({
-    mutationFn: () => clearAllNotifications(userId),
+    mutationFn: () => clearAllNotifications(token),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
-      const previousNotifications = queryClient.getQueryData(["notifications", userId]);
+      await queryClient.cancelQueries({ queryKey: ["notifications", token] });
+      const previousNotifications = queryClient.getQueryData(["notifications", token]);
 
-      queryClient.setQueryData(["notifications", userId], (oldData) => {
+      queryClient.setQueryData(["notifications", token], (oldData) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -86,11 +86,11 @@ const NotificationModal = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications", userId], context.previousNotifications);
+        queryClient.setQueryData(["notifications", token], context.previousNotifications);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", token] });
     },
   });
 

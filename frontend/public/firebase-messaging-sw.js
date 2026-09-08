@@ -27,4 +27,26 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification.body,
     icon: "/vite.svg",
   };
+
+  // Display the notification in the background
+  self.registration.showNotification(
+    notificationTitle,
+    notificationOptions,
+  );
+});
+
+// Handle clicks on the notification
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if ("focus" in client) return client.focus();
+        }
+        return clients.openWindow("/");
+      }),
+  );
 });

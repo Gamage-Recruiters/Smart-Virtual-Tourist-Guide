@@ -5,7 +5,7 @@ import { Bell, ChevronRight } from "lucide-react";
 
 // Actions & Selectors
 import { markAsReadLocal } from "../../store/slices/notificationSlice";
-import { selectUserId } from "../../store/selectors/authSelectors";
+import { selectAuthToken } from "../../store/selectors/authSelectors";
 
 // Helpers & Components
 import { timeAgo } from "../../utils/timeHelper";
@@ -26,7 +26,7 @@ const NotificationList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState(null);
-  const userId = useSelector(selectUserId);
+  const token = useSelector(selectAuthToken);
 
   const {
     data,
@@ -35,19 +35,19 @@ const NotificationList = () => {
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useNotifications(userId);
+  } = useNotifications(token);
 
   const list = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) || [];
   }, [data]);
 
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId) => markAsReadApi(notificationId, userId),
+    mutationFn: (notificationId) => markAsReadApi(notificationId, token),
     onMutate: async (notificationId) => {
-      await queryClient.cancelQueries({ queryKey: ["notifications", userId] });
-      const previousNotifications = queryClient.getQueryData(["notifications", userId]);
+      await queryClient.cancelQueries({ queryKey: ["notifications", token] });
+      const previousNotifications = queryClient.getQueryData(["notifications", token]);
 
-      queryClient.setQueryData(["notifications", userId], (oldData) => {
+      queryClient.setQueryData(["notifications", token], (oldData) => {
         if (!oldData) return oldData;
         return {
           ...oldData,
@@ -65,11 +65,11 @@ const NotificationList = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications", userId], context.previousNotifications);
+        queryClient.setQueryData(["notifications", token], context.previousNotifications);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", token] });
     },
   });
 

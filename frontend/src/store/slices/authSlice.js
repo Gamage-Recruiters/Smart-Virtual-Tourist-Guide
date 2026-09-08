@@ -5,11 +5,11 @@ const authSlice = createSlice({
   initialState: {
     user: {
       _id: "6a3288a29a73a4c14616ed00",
-      role: "DRIVER",
+      role: "driver_user",
       fullName: "Test Driver",
     },
     token:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzI4OGEyOWE3M2E0YzE0NjE2ZWQwMCIsImlhdCI6MTUxNjIzOTAyMn0.HrtB8Fte0OVtkGovF0K7Xs3Yu--PGSSj35Bhe9iEyFU",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzI4OGEyOWE3M2E0YzE0NjE2ZWQwMCJ9.SEqkrKVqWyJwUTcdrVV2vhpB1pRJlsjCZCMsaohhScw",
     isAuthenticated: true,
   },
   reducers: {

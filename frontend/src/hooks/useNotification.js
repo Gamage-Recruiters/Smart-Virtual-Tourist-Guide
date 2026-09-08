@@ -1,11 +1,11 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchNotificationsApi } from "../api/notificationApi";
 
-export const useNotifications = (userId) => {
+export const useNotifications = (token) => {
   return useInfiniteQuery({
-    queryKey: ["notifications", userId],
+    queryKey: ["notifications", token],
 
-    queryFn: ({ pageParam }) => fetchNotificationsApi(pageParam, 10, userId),
+    queryFn: ({ pageParam }) => fetchNotificationsApi(pageParam, 10, token),
 
     getNextPageParam: (lastPage) => {
       if (lastPage.results === 10) {
@@ -14,7 +14,7 @@ export const useNotifications = (userId) => {
       return undefined;
     },
 
-    enabled: !!userId,
+    enabled: !!token,
     staleTime: 1000 * 60 * 5,
   });
 };

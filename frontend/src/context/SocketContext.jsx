@@ -20,7 +20,7 @@ import {
 } from "../store/selectors/authSelectors";
 
 // Utils & API
-import calculateDistance from "../utils/geoutils";
+import calculateDistance from "../utils/geoUtils";
 import { triggerSafetyFeedback } from "../utils/feedbackHelper";
 import { requestForToken } from "../utils/firebase";
 import { updateFCMTokenApi } from "../api/userApi";

@@ -28,15 +28,17 @@ export const manageRegionalTopics = async (
   const divS = sanitize(division);
   const distS = sanitize(district);
 
-  // 3. Create the list of 5 topics this user should listen to.
+  // 3. Create the list of 6 topics this user should listen to.
   // Includes `topic_role_${role}` so country-wide role pushes
   // (e.g., all drivers) actually reach the user.
+  // Includes `topic_all_users` so BROADCAST pushes reach every user.
   const topics = [
     `topic_div_${divS}`,
     `topic_dist_${distS}`,
     `topic_div_${divS}_role_${role}`,
     `topic_dist_${distS}_role_${role}`,
     `topic_role_${role}`,
+    `topic_all_users`, // <-- MUST ADD THIS
   ];
 
   try {

@@ -11,6 +11,7 @@ const socketAuth = async (socket, next) => {
   try {
     // 1. Get the token from either the 'auth' object or the 'headers'
     const token = socket.handshake.auth.token || socket.handshake.headers.token;
+    console.log("Socket Auth Middleware: Token received:", token);
 
     // Reject connection if no token is provided
     if (!token) {
@@ -23,6 +24,8 @@ const socketAuth = async (socket, next) => {
     // 2. Verify the token using the real JWT_SECRET
     // Previously used jwt.decode() which skipped signature verification,
     // allowing any forged token to impersonate any user.
+    console.log("මගේ JWT SECRET එක තමයි:", process.env.JWT_SECRET);
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Check if the decoded token has the required 'id' field

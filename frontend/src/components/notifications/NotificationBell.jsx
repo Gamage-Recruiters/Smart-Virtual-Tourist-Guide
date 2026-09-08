@@ -7,21 +7,21 @@ import {
   setInitialUnreadCount,
 } from "../../store/slices/notificationSlice";
 import { selectUnreadCount } from "../../store/selectors/notificationSelectors";
-import { selectUserId } from "../../store/selectors/authSelectors";
+import { selectAuthToken } from "../../store/selectors/authSelectors";
 import { fetchUnreadCountApi } from "../../api/notificationApi";
 
 const NotificationBell = () => {
   const dispatch = useDispatch();
-  const userId = useSelector(selectUserId);
+  const token = useSelector(selectAuthToken);
   const unreadCount = useSelector(selectUnreadCount);
 
   const [isBouncing, setIsBouncing] = useState(false);
   const prevCountRef = useRef(0);
 
   const { data: dbResponse } = useQuery({
-    queryKey: ["unreadCount", userId],
-    queryFn: () => fetchUnreadCountApi(userId),
-    enabled: !!userId,
+    queryKey: ["unreadCount", token],
+    queryFn: () => fetchUnreadCountApi(token),
+    enabled: !!token,
     staleTime: 1000 * 60 * 5,
   });
 

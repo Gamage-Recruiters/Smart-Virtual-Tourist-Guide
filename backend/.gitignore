@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Environment variables
 .env
 
@@ -21,7 +21,6 @@ Thumbs.db
 firebase-service-account.json
 
 logs/
-=======
 # Environment variables
 .env
 
@@ -44,4 +43,10 @@ Thumbs.db
 firebase-service-account.json
 
 logs/
->>>>>>> 98fa980d55aa605ed620b716a1165ff2476a4915
+
+.env
+.env.local
+node_modules/
+dist/
+.DS_Store
+*.log

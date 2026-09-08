@@ -106,6 +106,8 @@ notificationSchema.index({ scope: 1, recipientRole: 1, createdAt: -1 }); // For 
 notificationSchema.index({ scope: 1, region: 1, createdAt: -1 }); // For MULTICAST (Region)
 notificationSchema.index({ scope: 1, district: 1, createdAt: -1 }); // For MULTICAST (District)
 notificationSchema.index({ scope: 1, createdAt: -1 }); // For BROADCAST
+notificationSchema.index({ region: 1, createdAt: -1 }); // Standalone for $or { region } queries
+notificationSchema.index({ district: 1, createdAt: -1 }); // Standalone for $or { district } queries
 
 // 3. TTL (Time-To-Live) Index to automatically delete documents when 'expiresAt' time is reached
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
