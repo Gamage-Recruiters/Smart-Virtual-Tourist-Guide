@@ -7,13 +7,15 @@ import { useNavigate } from "react-router-dom";
 import bImage from "../../assets/B.png";
 
 export default function Driver_Dashboard() {
+  const userData = JSON.parse(localStorage.getItem('userData')) || {};
+  const token = localStorage.getItem('token');
   const [drivers, setDrivers] = useState([]);
   const [passengers, setPassengers] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const dRes = await fetch("/api/drivers");
+        const dRes = await fetch("/api/drivers", { headers: { Authorization: `Bearer ${token}` } });
         const dData = await dRes.json();
         if (dData.success && dData.drivers) {
           const formattedDrivers = dData.drivers.map(d => ({
@@ -28,7 +30,7 @@ export default function Driver_Dashboard() {
           setDrivers(formattedDrivers);
         }
 
-        const pRes = await fetch("/api/bookings/type/driver");
+        const pRes = await fetch("/api/bookings/type/driver", { headers: { Authorization: `Bearer ${token}` } });
         const pData = await pRes.json();
         if (pData.success && pData.bookings) {
           const uniqueCustomers = [];
@@ -60,7 +62,7 @@ export default function Driver_Dashboard() {
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [bankDetails, setBankDetails] = useState({
     bankName: "HNB Bank",
-    accountHolder: "Thathsara Theeninda",
+    accountHolder: (userData.name || "Driver"),
     accountNumber: "001-1-7812345-6",
     branch: "Nugegoda",
     accountType: "Savings"
@@ -177,8 +179,8 @@ export default function Driver_Dashboard() {
               
               {/* Header */}
               <div className="flex items-center gap-3">
-                <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
-                <h2 className="font-bold text-lg text-slate-800">Thathsara Theeninda</h2>
+                <img src={(userData.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
+                <h2 className="font-bold text-lg text-slate-800">{userData.name || "Driver"}</h2>
               </div>
 
               {/* Progress Map Graphic */}
@@ -211,9 +213,9 @@ export default function Driver_Dashboard() {
               {/* Driver Stats */}
               <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                  <img src={(userData.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
                   <div>
-                    <h3 className="font-bold text-slate-800">Thathsara Theeninda</h3>
+                    <h3 className="font-bold text-slate-800">{userData.name || "Driver"}</h3>
                     <p className="text-xs text-slate-500">experience <span className="font-bold text-slate-700">2 Years</span></p>
                   </div>
                 </div>
@@ -364,6 +366,7 @@ export default function Driver_Dashboard() {
     </div>
   );
 }
+
 
 
 

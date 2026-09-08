@@ -7,13 +7,15 @@ import { HiOutlineLocationMarker } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 
 export default function Driver_Request() {
+  const userData = JSON.parse(localStorage.getItem('userData')) || {};
+  const token = localStorage.getItem('token');
   const [drivers, setDrivers] = React.useState([]);
   const [passengers, setPassengers] = React.useState([]);
 
   React.useEffect(() => {
     const fetchAdditionalData = async () => {
       try {
-        const dRes = await fetch("/api/drivers");
+        const dRes = await fetch("/api/drivers", { headers: { Authorization: `Bearer ${token}` } });
         const dData = await dRes.json();
         if (dData.success && dData.drivers) {
           const formattedDrivers = dData.drivers.map(d => ({
@@ -28,7 +30,7 @@ export default function Driver_Request() {
           setDrivers(formattedDrivers);
         }
 
-        const pRes = await fetch("/api/bookings/type/driver");
+        const pRes = await fetch("/api/bookings/type/driver", { headers: { Authorization: `Bearer ${token}` } });
         const pData = await pRes.json();
         if (pData.success && pData.bookings) {
           const uniqueCustomers = [];
@@ -292,8 +294,8 @@ export default function Driver_Request() {
           <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-100 max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
             <div className="flex-1 space-y-6">
               <div className="flex items-center gap-3">
-                <img src={"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop"} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
-                <h2 className="font-bold text-lg text-slate-800">Thathsara Theeninda</h2>
+                <img src={(userData.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
+                <h2 className="font-bold text-lg text-slate-800">{userData.name || "Driver"}</h2>
               </div>
             </div>
           </div>
@@ -305,6 +307,7 @@ export default function Driver_Request() {
     </div>
   );
 }
+
 
 
 
