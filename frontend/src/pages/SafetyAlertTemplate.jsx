@@ -472,7 +472,7 @@ export default function SafetyAlertTemplate() {
   const showNationwideSection = !hasActiveRoute || showAllNationwide || routeIncidents.length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 relative overflow-hidden font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-200 relative overflow-hidden font-inter">
       <div className="absolute top-0 left-0 right-0 h-32 overflow-hidden pointer-events-none">
         <img src={bottomLogo} alt="Decorative pattern" className="w-full h-full object-cover opacity-60 scale-x-150" />
       </div>
@@ -522,8 +522,7 @@ export default function SafetyAlertTemplate() {
                   key={alert.id}
                   className={`${
                     isGoodWeather ? 'bg-[#CCF0CC] border border-[#81C784]/30' : 'bg-[#FAF0CC] border border-[#FDE047]/40'
-                  } rounded-xl shadow-sm flex overflow-hidden transition-transform hover:scale-[1.01]`}
-                  style={{ minHeight: '110px' }}
+                  } rounded-xl shadow-sm flex overflow-hidden transition-transform hover:scale-[1.01] min-h-[110px]`}
                 >
                   <div className={`w-[110px] ${isGoodWeather ? 'bg-[#66BB6A]' : 'bg-[#FDD94A]'} flex items-center justify-center flex-shrink-0 p-4`}>
                     {isGoodWeather ? (
@@ -588,7 +587,7 @@ export default function SafetyAlertTemplate() {
                       </div>
                     ) : (
                       /* Clear route banner */
-                      <div className="bg-[#CCF0CC] rounded-xl shadow-sm flex overflow-hidden border border-[#81C784]/30" style={{ minHeight: '100px' }}>
+                      <div className="bg-[#CCF0CC] rounded-xl shadow-sm flex overflow-hidden border border-[#81C784]/30 min-h-[100px]">
                         <div className="w-[100px] bg-[#66BB6A] flex items-center justify-center flex-shrink-0">
                           <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="32" cy="32" r="24" fill="white" fillOpacity="0.3" />
