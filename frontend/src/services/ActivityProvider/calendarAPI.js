@@ -31,7 +31,7 @@ export const calendarAPI = {
   getSummary: (activityId) => request(`/calendar/${activityId}/summary`),
   getDate: (activityId, date) => request(`/calendar/${activityId}/date/${date}`),
   saveDate: (activityId, date, body) => request(`/calendar/${activityId}/date/${date}`, { method: 'POST', body }),
-  markUnavailable: (activityId, date) => request(`/calendar/${activityId}/date/${date}/unavailable`, { method: 'PATCH' }),
+  markUnavailable: (activityId, date, body = {}) => request(`/calendar/${activityId}/date/${date}/unavailable`, { method: 'PATCH', body }),
 };
 
 export default calendarAPI;
