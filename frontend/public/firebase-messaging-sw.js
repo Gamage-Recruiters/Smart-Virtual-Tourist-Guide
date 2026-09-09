@@ -4,13 +4,12 @@ importScripts(
 );
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDifg3vRJTeg_K-hY2ijW3u9JOKoHcK6Dw",
-  authDomain: "svtg-8169f.firebaseapp.com",
-  projectId: "svtg-8169f",
-  storageBucket: "svtg-8169f.firebasestorage.app",
-  messagingSenderId: "706165894251",
-  appId: "1:706165894251:web:2c81767d944fb10208952e",
-  measurementId: "G-TQD7866SLQ",
+  apiKey: "AIzaSyDluUWal5PSKJ4QdyU2MN6p8CD1dvZZvHo",
+  authDomain: "svtg-8eac2.firebaseapp.com",
+  projectId: "svtg-8eac2",
+  storageBucket: "svtg-8eac2.firebasestorage.app",
+  messagingSenderId: "199046139944",
+  appId: "1:199046139944:web:b29ca2b85a429b6b90251d",
 };
 
 firebase.initializeApp(firebaseConfig);

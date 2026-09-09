@@ -6,6 +6,10 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// 1. ADDED: Redux imports
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../store/slices/authSlice";
+
 function RegisterPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -14,7 +18,10 @@ function RegisterPage() {
   const [contact, setContact] = useState("");
   const [confirmedPassword, setConfirmedPassword] = useState("");
 
-  function handleSubmit(e){
+  // 2. ADDED: Initialize dispatch
+  const dispatch = useDispatch();
+
+  function handleSubmit(e) {
     e.preventDefault();
     // check password with confirmed password
     if (password !== confirmedPassword) {
@@ -22,20 +29,32 @@ function RegisterPage() {
       return;
     }
 
-    axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register/renter`, {
-      fullName:name,
-      email,
-      password,
-      contactNumber: contact,
-    }).then((res) => {
-      localStorage.setItem("renterToken", res.data.token);
-      localStorage.setItem("renter", JSON.stringify(res.data.user));
-      toast.success("Login Success")
-      navigate("/vehicle-admin");
-    }).catch((e) => {
-      console.error(e.message);
-      toast.error(e.response?.data?.message || "Error. Try Again!");
-    })
+    axios
+      .post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register/renter`, {
+        fullName: name,
+        email,
+        password,
+        contactNumber: contact,
+      })
+      .then((res) => {
+        localStorage.setItem("renterToken", res.data.token);
+        localStorage.setItem("renter", JSON.stringify(res.data.user));
+
+        // 3. ADDED: Dispatch to Redux authSlice
+        dispatch(
+          loginSuccess({
+            user: res.data.user,
+            token: res.data.token,
+          }),
+        );
+
+        toast.success("Login Success");
+        navigate("/vehicle-admin");
+      })
+      .catch((e) => {
+        console.error(e.message);
+        toast.error(e.response?.data?.message || "Error. Try Again!");
+      });
   }
 
   return (
@@ -86,7 +105,7 @@ function RegisterPage() {
                     <input
                       type="text"
                       placeholder="e.g. Sampath Jayathilaka"
-                      onChange={(e)=> setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -99,7 +118,7 @@ function RegisterPage() {
                     <input
                       type="email"
                       placeholder="name@rent.com"
-                      onChange={(e)=> setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -112,7 +131,7 @@ function RegisterPage() {
                     <input
                       type="text"
                       placeholder="Min. 8 characters"
-                      onChange={(e)=> setContact(e.target.value)}
+                      onChange={(e) => setContact(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -125,7 +144,7 @@ function RegisterPage() {
                     <input
                       type="password"
                       placeholder="Min, 8 characters"
-                      onChange={(e)=> setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -138,7 +157,7 @@ function RegisterPage() {
                     <input
                       type="password"
                       placeholder="Min, 8 characters"
-                      onChange={(e)=> setConfirmedPassword(e.target.value)}
+                      onChange={(e) => setConfirmedPassword(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -206,7 +225,8 @@ function RegisterPage() {
                   <div className="pt-4 space-y-4 text-center">
                     <p className="text-sm text-slate-500 font-medium">
                       Already have an account?{" "}
-                      <button onClick={()=>navigate("/login")}
+                      <button
+                        onClick={() => navigate("/login")}
                         className="text-[#1A73E8] font-bold hover:underline cursor-pointer"
                       >
                         Sign in

@@ -22,7 +22,7 @@ import {
 // Utils & API
 import calculateDistance from "../utils/geoUtils";
 import { triggerSafetyFeedback } from "../utils/feedbackHelper";
-import { requestForToken } from "../utils/firebase";
+import { requestForToken } from "../services/firebase";
 import { updateFCMTokenApi } from "../api/userApi";
 
 const SocketContext = createContext();

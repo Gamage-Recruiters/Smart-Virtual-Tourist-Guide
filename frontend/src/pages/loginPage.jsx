@@ -5,11 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+//ADDED: Redux imports
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../store/slices/authSlice";
 
 export const RenterLoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  //ADDED: Initialize dispatch
+  const dispatch = useDispatch();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -21,12 +26,21 @@ export const RenterLoginPage = () => {
       .then((res) => {
         localStorage.setItem("renterToken", res.data.token);
         localStorage.setItem("renter", JSON.stringify(res.data.user));
-        toast.success("Login Success")
+
+        //ADDED: Dispatch to Redux authSlice
+        dispatch(
+          loginSuccess({
+            user: res.data.user,
+            token: res.data.token,
+          }),
+        );
+
+        toast.success("Login Success");
         navigate("/vehicle-admin");
       })
       .catch((e) => {
         console.error(e.message);
-        toast.error("Error. Try Again!")
+        toast.error("Error. Try Again!");
       });
   }
   return (
