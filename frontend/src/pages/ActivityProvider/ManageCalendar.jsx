@@ -102,51 +102,60 @@ const ManageCalendar = () => {
   }, []);
 
   // ── Fetch month dots ─────────────────────────────────────────────────────────
-  const fetchMonth = useCallback(async () => {
-    if (!currentActivityId) return;
+  const fetchMonth = useCallback(async (actId = currentActivityId, yr = viewYear, mo = viewMonth) => {
+    if (!actId) return;
     try {
-      const res = await calendarAPI.getMonth(currentActivityId, viewYear, viewMonth + 1);
+      const res = await calendarAPI.getMonth(actId, yr, mo + 1);
       const map = {};
-      res.data.data.forEach((e) => { map[e.date] = e.status; });
+      (res.data?.data || []).forEach((e) => { map[e.date] = e.status; });
       setMonthData(map);
     } catch (err) {
       console.error('Failed to fetch month data', err);
+      setMonthData({});
     }
   }, [currentActivityId, viewYear, viewMonth]);
 
   // ── Select a date ────────────────────────────────────────────────────────────
-  const selectDate = useCallback(async (dateStr) => {
-    if (!currentActivityId) return;
+  const selectDate = useCallback(async (dateStr, actId = currentActivityId) => {
+    if (!actId || !dateStr) return;
     setSelectedDate(dateStr);
     setLoadingDate(true);
     try {
-      const res = await calendarAPI.getDate(currentActivityId, dateStr);
-      setDateDetail(res.data.data);
+      const res = await calendarAPI.getDate(actId, dateStr);
+      setDateDetail(res.data?.data || null);
     } catch {
       showToast('Failed to load date details', 'error');
+      setDateDetail(null);
     } finally {
       setLoadingDate(false);
     }
   }, [currentActivityId]);
 
+  // ── Sync calendar details when activity, month, or year changes ──────────────
   useEffect(() => {
-    if (!currentActivityId) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchMonth();
-    const todayStr = toDateString(today.getFullYear(), today.getMonth(), today.getDate());
-    selectDate(todayStr);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentActivityId]);
+    if (!currentActivityId) {
+      setMonthData({});
+      setDateDetail(null);
+      setSummary({ todayBookings: 0, monthActiveDays: 0, earnings: 0 });
+      return;
+    }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchMonth(); }, [fetchMonth]);
+    const now = new Date();
+    const todayStr = toDateString(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDate = selectedDate || todayStr;
 
-  useEffect(() => {
-    if (!currentActivityId) return;
+    if (!selectedDate) {
+      setSelectedDate(todayStr);
+    }
+
+    fetchMonth(currentActivityId, viewYear, viewMonth);
+    selectDate(targetDate, currentActivityId);
+
     calendarAPI.getSummary(currentActivityId)
-      .then((res) => setSummary(res.data.data))
-      .catch(() => { });
-  }, [currentActivityId]);
+      .then((res) => setSummary(res.data?.data || { todayBookings: 0, monthActiveDays: 0, earnings: 0 }))
+      .catch(() => setSummary({ todayBookings: 0, monthActiveDays: 0, earnings: 0 }));
+
+  }, [currentActivityId, viewYear, viewMonth, fetchMonth, selectDate]);
 
   // ── Toggle slot in right panel ──────────────────────────────────────────────
   const toggleSlot = (slotId) => {
@@ -169,7 +178,7 @@ const ManageCalendar = () => {
         notes: dateDetail.notes,
       });
       setDateDetail(res.data.data);
-      fetchMonth();
+      fetchMonth(currentActivityId, viewYear, viewMonth);
       showToast('Changes saved!');
     } catch {
       showToast('Failed to save changes', 'error');
@@ -178,17 +187,22 @@ const ManageCalendar = () => {
     }
   };
 
-  // ── Mark unavailable ─────────────────────────────────────────────────────────
-  const handleMarkUnavailable = async () => {
+  // ── Mark / Toggle unavailable ────────────────────────────────────────────────
+  const handleToggleAvailability = async () => {
     if (!selectedDate || !currentActivityId) return;
     setSaving(true);
+    const isCurrentlyUnavailable = dateDetail?.isUnavailable || selectedStatus === 'unavailable';
+    const targetState = !isCurrentlyUnavailable;
     try {
-      const res = await calendarAPI.markUnavailable(currentActivityId, selectedDate);
+      const res = await calendarAPI.markUnavailable(currentActivityId, selectedDate, {
+        isUnavailable: targetState,
+      });
       setDateDetail(res.data.data);
-      fetchMonth();
-      showToast('Date marked as unavailable');
-    } catch {
-      showToast('Failed to update', 'error');
+      fetchMonth(currentActivityId, viewYear, viewMonth);
+      showToast(targetState ? 'Date marked as unavailable' : 'Date marked as available');
+    } catch (err) {
+      console.error('Failed to update availability', err);
+      showToast(err?.message || 'Failed to update availability', 'error');
     } finally {
       setSaving(false);
     }
@@ -206,7 +220,7 @@ const ManageCalendar = () => {
         notes: dateDetail?.notes || '',
       });
       setDateDetail(res.data.data);
-      fetchMonth();
+      fetchMonth(currentActivityId, viewYear, viewMonth);
       showToast('Availability updated!');
     } catch {
       showToast('Failed to save', 'error');
@@ -231,7 +245,7 @@ const ManageCalendar = () => {
   const goToday = () => {
     setViewYear(today.getFullYear());
     setViewMonth(today.getMonth());
-    selectDate(todayStr);
+    selectDate(todayStr, currentActivityId);
   };
 
   const cells = [];
@@ -286,7 +300,12 @@ const ManageCalendar = () => {
                     </label>
                     <select
                       value={currentActivityId}
-                      onChange={(e) => setCurrentActivityId(e.target.value)}
+                      onChange={(e) => {
+                        const newActivityId = e.target.value;
+                        setCurrentActivityId(newActivityId);
+                        setMonthData({});
+                        setDateDetail(null);
+                      }}
                       className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
                     >
                       {activities.length === 0 ? (
@@ -415,14 +434,19 @@ const ManageCalendar = () => {
                     {selectedDate ? formatDisplayDate(selectedDate) : '—'}
                   </p>
                 </div>
-                {selectedDate && !isPastDate(selectedDate) && (
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${STATUS_CONFIG[selectedStatus].badge}`}>
-                    {STATUS_CONFIG[selectedStatus].label}
+                {selectedDate && isPastDate(selectedDate) ? (
+                  <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                    🔒 Past Date (Read-only)
                   </span>
-                )}
-                {selectedDate && isPastDate(selectedDate) && (
-                  <span className="text-xs font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-400 ring-1 ring-slate-200">
-                    Past
+                ) : selectedDate && (
+                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+                    (dateDetail?.isUnavailable || selectedStatus === 'unavailable')
+                      ? STATUS_CONFIG.unavailable.badge
+                      : (STATUS_CONFIG[selectedStatus]?.badge || STATUS_CONFIG.available.badge)
+                  }`}>
+                    {(dateDetail?.isUnavailable || selectedStatus === 'unavailable')
+                      ? STATUS_CONFIG.unavailable.label
+                      : (STATUS_CONFIG[selectedStatus]?.label || STATUS_CONFIG.available.label)}
                   </span>
                 )}
               </div>
@@ -557,11 +581,20 @@ const ManageCalendar = () => {
                       {/* Actions */}
                       <div className="flex flex-col gap-3">
                         <button
-                          onClick={handleMarkUnavailable}
+                          onClick={handleToggleAvailability}
                           disabled={saving}
-                          className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
+                          className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed ${
+                            (dateDetail?.isUnavailable || selectedStatus === 'unavailable')
+                              ? 'bg-emerald-600 hover:bg-emerald-700'
+                              : 'bg-rose-600 hover:bg-rose-700'
+                          }`}
                         >
-                          Mark Unavailable
+                          {saving
+                            ? 'Updating…'
+                            : (dateDetail?.isUnavailable || selectedStatus === 'unavailable')
+                              ? 'Mark Available'
+                              : 'Mark Unavailable'
+                          }
                         </button>
                         <button
                           onClick={handleSaveChanges}
