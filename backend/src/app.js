@@ -27,6 +27,7 @@ import offerRoutes from './routes/Restuarant/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import reservationRoutes from './routes/Restuarant/reservation.routes.js';
 import reviewRoutes from './routes/Restuarant/review.routes.js';
+import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
 
 import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
 import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';

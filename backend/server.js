@@ -1,7 +1,9 @@
 import "dotenv/config";
 import app from "./src/app.js";
 import connectDB from "./src/configs/database.js";
-
+import cron from "node-cron";
+import logger from "./src/utils/logger.js";
+import { syncWeatherAlerts } from "./src/utils/alertSyncService.js";
 
 // Port
 const PORT = process.env.PORT || 5000;
