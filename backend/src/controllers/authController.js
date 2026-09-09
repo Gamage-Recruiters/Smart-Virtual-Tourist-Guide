@@ -553,32 +553,49 @@ const resetPassword = async (req, res) => {
 
 const updateTravelInfo = async (req, res) => {
   try {
-    const { travelPreferences, healthInfo, emergencyContact } = req.body;
+    const {
+      fullName,
+      contactNumber,
+      vehicleType,
+      vehicleNumber,
+      vehicleColor,
+      nationalIdNumber,
+      licenseNumber,
+      profileImage,
+      vehicleImages,
+      travelPreferences,
+      healthInfo,
+      emergencyContact
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    user.travelPreferences = travelPreferences;
-    user.healthInfo = healthInfo;
-    user.emergencyContact = emergencyContact;
+    if (fullName !== undefined) user.fullName = fullName;
+    if (contactNumber !== undefined) user.contactNumber = contactNumber;
+    if (vehicleType !== undefined) user.vehicleType = vehicleType;
+    if (vehicleNumber !== undefined) user.vehicleNumber = vehicleNumber;
+    if (vehicleColor !== undefined) user.vehicleColor = vehicleColor;
+    if (nationalIdNumber !== undefined || licenseNumber !== undefined) {
+      const val = nationalIdNumber || licenseNumber;
+      user.nationalIdNumber = val;
+      user.licenseNumber = val;
+    }
+    if (profileImage !== undefined) user.profileImage = profileImage;
+    if (vehicleImages !== undefined) user.vehicleImages = vehicleImages;
+
+    if (travelPreferences !== undefined) user.travelPreferences = travelPreferences;
+    if (healthInfo !== undefined) user.healthInfo = healthInfo;
+    if (emergencyContact !== undefined) user.emergencyContact = emergencyContact;
 
     await user.save();
 
     res.json({
       success: true,
-      message: 'Travel safety information updated successfully',
-      user: {
-        _id: user._id,
-        fullName: user.fullName,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        travelPreferences: user.travelPreferences,
-        healthInfo: user.healthInfo,
-        emergencyContact: user.emergencyContact
-      }
+      message: 'Profile updated successfully',
+      user
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

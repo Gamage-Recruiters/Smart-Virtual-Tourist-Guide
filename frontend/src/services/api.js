@@ -197,6 +197,24 @@ export const userAPI = {
   updateProfile(profileData) {
     return apiClient.put('/auth/update-travel-info', profileData);
   },
+
+  async uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    const token = localStorage.getItem('token') || localStorage.getItem('restaurantToken');
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Image upload failed');
+    }
+    return data.imageUrl;
+  },
 };
 
 /**

@@ -5,15 +5,27 @@ import { FaStar, FaCar, FaPhoneAlt, FaMapMarkerAlt, FaRegIdCard } from "react-ic
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import bImage from "../../assets/B.png";
+import { userAPI } from "../../services/api";
 
 export default function Driver_Dashboard() {
-  const userData = JSON.parse(localStorage.getItem('userData')) || {};
+  const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem('userData')) || {});
   const token = localStorage.getItem('token');
   const [drivers, setDrivers] = useState([]);
   const [passengers, setPassengers] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
+      try {
+        const profileRes = await userAPI.getProfile();
+        if (profileRes && (profileRes.user || profileRes.data)) {
+          const u = profileRes.user || profileRes.data.user || profileRes.data;
+          setCurrentUser(u);
+          const currentLocal = JSON.parse(localStorage.getItem('userData') || '{}');
+          localStorage.setItem('userData', JSON.stringify({ ...currentLocal, ...u }));
+        }
+      } catch (err) {
+        console.error("Fetch profile error:", err);
+      }
       try {
         const dRes = await fetch("/api/drivers", { headers: { Authorization: `Bearer ${token}` } });
         const dData = await dRes.json();
@@ -44,11 +56,11 @@ export default function Driver_Dashboard() {
                 from: b.pickupLocation || "Unknown",
                 to: b.destination || "Unknown",
                 review: "It was a very good trip and I was satisfied with his driving",
-                image: b.customer.profileImage || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=100"
+                image: b.customer.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
               });
             }
           });
-          setPassengers(uniqueCustomers);
+          setPassengers(uniqueCustomers); setHasNewRequest(pData.bookings.some(b => b.status.toLowerCase() === 'pending'));
         }
       } catch (err) {
         console.error("Fetch data error:", err);
@@ -58,11 +70,12 @@ export default function Driver_Dashboard() {
   }, []);
 
   const navigate = useNavigate();
+  const [hasNewRequest, setHasNewRequest] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [bankDetails, setBankDetails] = useState({
     bankName: "HNB Bank",
-    accountHolder: (userData.name || "Driver"),
+    accountHolder: (currentUser.fullName || currentUser.name || "Driver"),
     accountNumber: "001-1-7812345-6",
     branch: "Nugegoda",
     accountType: "Savings"
@@ -81,14 +94,7 @@ export default function Driver_Dashboard() {
         <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 drop-shadow-sm mb-4 tracking-wide flex items-center justify-center gap-4">
-            Welcome Mendaka !
-            <button 
-              onClick={() => navigate('/driver-details')}
-              className="text-sm bg-white/50 hover:bg-white/80 p-2 rounded-full transition-colors shadow-sm"
-              title="Edit Profile"
-            >
-              ✏️
-            </button>
+            Welcome {currentUser.fullName || currentUser.name || "Driver"} !
           </h1>
           <p className="text-lg md:text-xl font-medium text-slate-700 drop-shadow-sm mb-8">
             Find and accept new ride requests...
@@ -98,9 +104,11 @@ export default function Driver_Dashboard() {
             className="bg-white/70 hover:bg-white/90 backdrop-blur-md border border-slate-300 text-slate-800 px-8 py-3 rounded-md font-semibold transition-all relative"
           >
             Explore More...
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-bounce">
-              New Request
-            </span>
+            {hasNewRequest && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-bounce">
+                New Request
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -179,8 +187,8 @@ export default function Driver_Dashboard() {
               
               {/* Header */}
               <div className="flex items-center gap-3">
-                <img src={(userData.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
-                <h2 className="font-bold text-lg text-slate-800">{userData.name || "Driver"}</h2>
+                <img src={(currentUser.profileImage || currentUser.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-10 h-10 rounded-full object-cover" />
+                <h2 className="font-bold text-lg text-slate-800">{currentUser.fullName || currentUser.name || "Driver"}</h2>
               </div>
 
               {/* Progress Map Graphic */}
@@ -213,9 +221,9 @@ export default function Driver_Dashboard() {
               {/* Driver Stats */}
               <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <img src={(userData.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                  <img src={(currentUser.profileImage || currentUser.image || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=150&h=150&fit=crop")} alt="Driver" className="w-16 h-16 rounded-full object-cover shadow-sm" />
                   <div>
-                    <h3 className="font-bold text-slate-800">{userData.name || "Driver"}</h3>
+                    <h3 className="font-bold text-slate-800">{currentUser.fullName || currentUser.name || "Driver"}</h3>
                     <p className="text-xs text-slate-500">experience <span className="font-bold text-slate-700">2 Years</span></p>
                   </div>
                 </div>
@@ -313,17 +321,49 @@ export default function Driver_Dashboard() {
               </div>
 
               {/* Vehicle & Documents */}
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 flex items-center justify-center">
-                  {/* Car Placeholder Image */}
-                  <img src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=300" className="w-full h-auto object-cover rounded-lg" alt="Car" />
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vehicle & Documents</span>
+                  <button 
+                    onClick={() => navigate('/driver-details')} 
+                    className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-all"
+                  >
+                    ✏️ Edit Images
+                  </button>
                 </div>
-                <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-500 mb-2">Documents</span>
-                  {/* Document Placeholder Image */}
-                  <div className="flex-1 bg-white border border-slate-200 rounded-lg overflow-hidden relative">
-                     <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=300" className="w-full h-full object-cover opacity-80" alt="ID Card" />
-                     <div className="absolute inset-0 bg-blue-600/10 mix-blend-multiply"></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div 
+                    onClick={() => navigate('/driver-details')}
+                    className="bg-[#F8FBFF] border border-blue-100 hover:border-blue-400 rounded-2xl p-4 flex items-center justify-center cursor-pointer transition-all relative group"
+                    title="Click to edit vehicle images"
+                  >
+                    {/* Car Photo 1 */}
+                    <img 
+                      src={currentUser.vehicleImages?.[0] || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=300"} 
+                      className="w-full h-36 object-cover rounded-lg group-hover:scale-[1.02] transition-transform" 
+                      alt="Vehicle Photo 1" 
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center text-white text-xs font-bold">
+                      Edit Photo 1
+                    </div>
+                  </div>
+                  <div 
+                    onClick={() => navigate('/driver-details')}
+                    className="bg-[#F8FBFF] border border-blue-100 hover:border-blue-400 rounded-2xl p-4 flex flex-col cursor-pointer transition-all relative group"
+                    title="Click to edit vehicle images"
+                  >
+                    <span className="text-[10px] font-bold text-slate-500 mb-2">Documents / Photo 2</span>
+                    {/* Document Photo 2 */}
+                    <div className="flex-1 bg-white border border-slate-200 rounded-lg overflow-hidden relative">
+                       <img 
+                         src={currentUser.vehicleImages?.[1] || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=300"} 
+                         className="w-full h-36 object-cover rounded-lg group-hover:scale-[1.02] transition-transform" 
+                         alt="Vehicle Photo 2 / Document" 
+                       />
+                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                         Edit Photo 2
+                       </div>
+                    </div>
                   </div>
                 </div>
               </div>

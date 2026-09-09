@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Header from "./DriverHeader";
 import bImage from "../../assets/B.png";
 import Footer from "../Footer";
-import { FaStar, FaCar, FaPhoneAlt, FaMapMarkerAlt, FaRegIdCard, FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import { FaStar, FaCar, FaPhoneAlt, FaMapMarkerAlt, FaRegIdCard, FaChevronRight, FaChevronLeft, FaUser } from "react-icons/fa";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 
@@ -44,7 +44,7 @@ export default function Driver_Request() {
                 from: b.pickupLocation || "Unknown",
                 to: b.destination || "Unknown",
                 review: "It was a very good trip and I was satisfied with his driving",
-                image: b.customer.profileImage || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=100"
+                image: b.customer.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
               });
             }
           });
@@ -100,8 +100,12 @@ export default function Driver_Request() {
             
             {/* Avatar Graphic */}
             <div className="absolute -top-16 left-1/2 transform -translate-x-1/2">
-              <div className="w-32 h-32 bg-[#E14335] rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
-                <img src="https://cdn3d.iconscout.com/3d/premium/thumb/pilot-4996168-4159588.png" alt="Driver" className="w-24 h-24 object-contain drop-shadow-md" />
+              <div className="w-32 h-32 bg-slate-200 rounded-full flex items-center justify-center shadow-xl border-4 border-white overflow-hidden">
+                {request?.customer?.profileImage || request?.customer?.image ? (
+                  <img src={request?.customer?.profileImage || request?.customer?.image} alt="Customer" className="w-full h-full object-cover" />
+                ) : (
+                  <FaUser className="text-6xl text-slate-400" />
+                )}
               </div>
             </div>
 
@@ -151,7 +155,7 @@ export default function Driver_Request() {
                 <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-1">
                   <FaPhoneAlt className="text-blue-500" /> Customer Contact
                 </label>
-                <input type="text" readOnly placeholder={loading ? "Loading..." : "Customer/Contact number"} value={request?.customer?.phone || ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
+                <input type="text" readOnly placeholder={loading ? "Loading..." : "Customer/Contact number"} value={request?.customer?.contactNumber || request?.customer?.phone || ""} className="w-full bg-white rounded-full px-5 py-3 text-sm font-medium text-slate-700 outline-none text-center shadow-sm cursor-not-allowed" />
               </div>
             </div>
 
@@ -208,7 +212,7 @@ export default function Driver_Request() {
         <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 drop-shadow-sm mb-4 tracking-wide">
-            Welcome Mendaka !
+            Welcome {userData.fullName || userData.name || "Driver"} !
           </h1>
           <p className="text-lg md:text-xl font-medium text-slate-700 drop-shadow-sm mb-8">
             Now you can book your driver...
