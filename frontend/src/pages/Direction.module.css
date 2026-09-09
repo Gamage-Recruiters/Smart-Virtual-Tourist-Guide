@@ -1,0 +1,301 @@
+.toastMessage {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A73E8;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999999;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backBtn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1200;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.backBtn:hover {
+  background-color: #f1f5f9;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24);
+  transform: scale(1.05);
+}
+
+.backBtn:active {
+  transform: scale(0.95);
+}
+
+.zoomOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.gpsContainer {
+  position: absolute;
+  right: 16px;
+  bottom: 200px;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.gpsBtn {
+  pointer-events: auto;
+  width: 45px;
+  height: 45px;
+  border-radius: 16px;
+  border: none;
+  background: #1A73E8;
+  box-shadow: 0 10px 24px rgba(26, 115, 232, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: absolute;
+  right: 0px;
+  bottom: var(--gps-margin, 8px);
+}
+
+.gpsIcon {
+  width: 25px;
+  height: 25px;
+}
+
+.navBottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 150px;
+  margin-bottom: 150px;
+  gap: 260px;
+}
+
+.detailsPanelWrapper {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.loadingOverlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 99999;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E8F3FF;
+  border-top: 4px solid #1A73E8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loadingText {
+  color: #122E63;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.panelToggleTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  padding: 6px 24px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.panelDrawer {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modeIndicator {
+  height: 3.4px;
+  width: 100%;
+  margin-top: 36px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.modeIndicatorActive {
+  composes: modeIndicator;
+  background: #1A73E8;
+}
+
+.modeSeparator {
+  height: 1.5px;
+  background: #000;
+  margin-top: 1px;
+  margin-bottom: 32px;
+  border-radius: 1px;
+}
+
+.waypointBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #EFF6FF;
+  border: 1px solid #93C5FD;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 12px;
+}
+
+.waypointHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1E40AF;
+  font-weight: 600;
+}
+
+.waypointName {
+  color: #111827;
+}
+
+.waypointDistance {
+  font-size: 11px;
+  color: #3B82F6;
+  font-weight: 500;
+}
+
+.removeWaypointBtn {
+  background: #DBEAFE;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1E40AF;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.errorModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 36px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 99999;
+  max-width: 400px;
+  text-align: center;
+}
+
+.errorTitle {
+  color: #e53e3e;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.errorText {
+  color: #4a5568;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.errorBtn {
+  margin-top: 20px;
+  padding: 10px 24px;
+  background: #1A73E8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.locationPanelPortal {
+  width: 100%;
+  min-height: 150px;
+  z-index: 50;
+  position: absolute;
+  top: -15px;
+  right: 0;
+}
+
+.locationPanelDefault {
+  position: absolute;
+  top: -70px;
+  right: 64px;
+  width: 880px;
+  min-height: 150px;
+  z-index: 50;
+}
+
+.locationPinIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.separatorLine {
+  width: 90%;
+  border: none;
+  border-top: 3px solid #000;
+}
+
+.swapBtn {
+  cursor: pointer;
+}
