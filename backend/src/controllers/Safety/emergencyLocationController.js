@@ -343,7 +343,7 @@ export const updateLocation = async (req, res, next) => {
     const location = await EmergencyLocation.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!location) {

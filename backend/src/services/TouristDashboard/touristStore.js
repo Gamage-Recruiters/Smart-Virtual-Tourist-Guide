@@ -75,7 +75,7 @@ async function saveTouristProfile({ userId, profile }) {
   const savedProfile = await TouristProfile.findOneAndUpdate(
     { userId },
     { $set: { userId, ...profile } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
+    { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
   );
 
   return savedProfile;

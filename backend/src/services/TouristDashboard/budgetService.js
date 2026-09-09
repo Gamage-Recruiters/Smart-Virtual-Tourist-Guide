@@ -121,7 +121,7 @@ async function optimizeBudget({
     await BudgetAllocation.findOneAndUpdate(
       { touristId: userId },
       { touristId: userId, ...allocation },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
   }
 

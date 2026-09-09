@@ -78,4 +78,7 @@ securityAlertSchema.set('toObject', { virtuals: true });
 // 2dsphere index for geospatial "nearby" queries
 securityAlertSchema.index({ location: '2dsphere' });
 
+// Automatically delete the document 5 days (432,000 seconds) after the 'createdAt' time
+securityAlertSchema.index({ createdAt: 1 }, { expireAfterSeconds: 432000 });
+
 export default mongoose.model('SecurityAlert', securityAlertSchema);

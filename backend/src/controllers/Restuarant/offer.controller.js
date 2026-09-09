@@ -146,7 +146,7 @@ const updateOffer = async (req, res) => {
     const offer = await Offer.findByIdAndUpdate(
       req.params.id,
       { ...req.body, startDate, endDate },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     return res.status(200).json(offer);

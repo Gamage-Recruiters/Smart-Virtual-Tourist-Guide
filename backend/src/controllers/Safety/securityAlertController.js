@@ -108,7 +108,7 @@ export const createAlert = async (req, res, next) => {
 export const updateAlert = async (req, res, next) => {
   try {
     const alert = await SecurityAlert.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
 

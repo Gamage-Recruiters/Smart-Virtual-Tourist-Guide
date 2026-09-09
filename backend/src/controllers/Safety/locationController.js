@@ -70,7 +70,7 @@ export const updateSharedLocation = async (req, res, next) => {
     const sharedLocation = await SharedLocation.findOneAndUpdate(
       { shareCode, isActive: true },
       { location: { lat, lng } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!sharedLocation) {
@@ -94,7 +94,7 @@ export const stopSharingLocation = async (req, res, next) => {
     const sharedLocation = await SharedLocation.findOneAndUpdate(
       { shareCode },
       { isActive: false },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!sharedLocation) {
