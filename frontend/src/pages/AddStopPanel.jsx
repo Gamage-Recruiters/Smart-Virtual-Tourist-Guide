@@ -196,42 +196,24 @@ export default function AddStopPanel({
   const categoriesList = ['Restaurant', 'Petrol Station', 'Coffee Shop', 'Supermarket'];
 
   return (
-    <div style={{
-      width: '100%',
-      background: '#D7EEFD',
-      position: 'relative',
-      overflow: 'hidden',
-      maxHeight: stopPanelCollapsed ? '56px' : '2000px',
-      transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-      borderBottom: '2px solid #BAE6FD',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    }}>
+    <div
+      className={styles.panel}
+      style={{ maxHeight: stopPanelCollapsed ? '56px' : '2000px' }}
+    >
       {/* Header row: back button + title + collapse handle */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '12px 24px 6px', gap: '12px' }}>
+      <div className={styles.headerRow}>
         <button
           type="button"
           onClick={onClose}
           aria-label="Back to direction"
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '50%',
-            border: 'none',
-            background: '#ffffff',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
+          className={styles.backBtn}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
 
-        <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '20px', color: '#122E63', flex: 1 }}>
+        <span className={styles.panelTitle}>
           Add stop to your route
         </span>
 
@@ -239,20 +221,7 @@ export default function AddStopPanel({
           type="button"
           onClick={() => setStopPanelCollapsed((c) => !c)}
           aria-label="Collapse add stop panel"
-          style={{
-            border: 'none',
-            background: '#ffffff',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-            transform: stopPanelCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s',
-          }}
+          className={`${styles.collapseBtn} ${stopPanelCollapsed ? styles.collapseBtnRotate : ''}`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
@@ -260,18 +229,10 @@ export default function AddStopPanel({
         </button>
       </div>
 
-      <div style={{ padding: '0 24px 20px' }}>
+      <div className={styles.contentBody}>
         {/* Search bar */}
-        <div ref={stopContainerRef} style={{ position: 'relative', marginTop: '16px', marginBottom: '20px', maxWidth: '480px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            background: '#ffffff',
-            borderRadius: '999px',
-            padding: '10px 18px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-          }}>
+        <div ref={stopContainerRef} className={styles.searchWrap}>
+          <div className={styles.searchInner}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -303,20 +264,13 @@ export default function AddStopPanel({
                 }
               }}
               placeholder="Search along route (e.g., KFC, Keells, Shell)"
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                fontSize: '14px',
-                color: '#1F2937',
-                background: 'transparent',
-              }}
+              className={styles.searchInput}
             />
             {stopQuery && (
               <button
                 type="button"
                 onClick={() => { setStopQuery(''); setStopSuggestions([]); }}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex' }}
+                className={styles.clearBtn}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -327,21 +281,7 @@ export default function AddStopPanel({
           </div>
 
           {stopSuggestions.length > 0 && (
-            <ul style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: 0,
-              right: 0,
-              background: '#ffffff',
-              borderRadius: '12px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-              zIndex: 9999,
-              listStyle: 'none',
-              margin: 0,
-              padding: '6px 0',
-              maxHeight: '220px',
-              overflowY: 'auto',
-            }}>
+            <ul className={styles.suggestionsDropdown}>
               {stopSuggestions.map((place, index) => (
                 <li
                   key={place.place_id || place.placeId || index}
@@ -351,22 +291,13 @@ export default function AddStopPanel({
                     handleSearchSubmit(text);
                   }}
                   onMouseEnter={() => setStopActiveIdx(index)}
-                  style={{
-                    padding: '10px 16px',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    color: '#1F2937',
-                    background: index === stopActiveIdx ? '#EFF6FF' : '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                  }}
+                  className={`${styles.suggestionItem} ${index === stopActiveIdx ? styles.suggestionItemActive : ''}`}
                 >
-                  <span style={{ color: '#1A73E8' }}>📍</span>
+                  <span className="text-[#1A73E8]">📍</span>
                   <div>
                     <strong>{place.structured_formatting?.main_text || place.name}</strong>
                     {place.structured_formatting?.secondary_text && (
-                      <span style={{ color: '#6B7280', marginLeft: '6px', fontSize: '12px' }}>
+                      <span className={styles.secondaryText}>
                         {place.structured_formatting.secondary_text}
                       </span>
                     )}
@@ -378,7 +309,7 @@ export default function AddStopPanel({
         </div>
 
         {/* Category tabs */}
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <div className={styles.categoryTabsRow}>
           {categoriesList.map((category) => {
             const isSelected = activeCategory === category;
             const categoryColor = CATEGORY_COLORS[category] || '#1A73E8';
@@ -387,19 +318,12 @@ export default function AddStopPanel({
                 type="button"
                 key={category}
                 onClick={() => handleSelectCategory(category)}
+                className={styles.categoryTab}
                 style={{
-                  padding: '8px 16px',
-                  borderRadius: '999px',
                   border: isSelected ? `2px solid ${categoryColor}` : '1px solid #93C5FD',
                   background: isSelected ? categoryColor : '#ffffff',
                   color: isSelected ? '#ffffff' : '#122E63',
                   fontWeight: isSelected ? 700 : 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease',
                   boxShadow: isSelected ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
                 }}
               >
@@ -411,11 +335,11 @@ export default function AddStopPanel({
         </div>
 
         {/* Points of Interest title & status */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#122E63' }}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTitle}>
             {activeCategory ? `${activeCategory}s along route` : 'Search results along route'}
             {!poiLoading && poiResults.length > 0 && (
-              <span style={{ fontWeight: 500, fontSize: '13px', color: '#4B5563', marginLeft: '8px' }}>
+              <span className={styles.foundCount}>
                 ({poiResults.length} found)
               </span>
             )}
@@ -423,19 +347,19 @@ export default function AddStopPanel({
         </div>
 
         {poiLoading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 0', color: '#1A73E8', fontWeight: 600 }}>
-            <div style={{ width: '18px', height: '18px', border: '3px solid #BAE6FD', borderTopColor: '#1A73E8', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div className={styles.loadingWrap}>
+            <div className={styles.spinner} />
             <span>Finding places along your route...</span>
           </div>
         )}
 
         {!poiLoading && poiResults.length === 0 && (
-          <div style={{ background: '#ffffff', borderRadius: '12px', padding: '20px', textAlign: 'center', color: '#4B5563', maxWidth: '440px', marginTop: '8px' }}>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🔍</div>
-            <div style={{ fontWeight: 600, color: '#1F2937', marginBottom: '4px' }}>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <div className={styles.emptyTitle}>
               {activeCategory ? `No ${activeCategory.toLowerCase()}s found within 3 km of this route` : 'No matching places found along this route'}
             </div>
-            <div style={{ fontSize: '12px', color: '#6B7280' }}>
+            <div className={styles.emptySubtitle}>
               Try selecting another category above or search a specific location.
             </div>
           </div>
@@ -443,15 +367,7 @@ export default function AddStopPanel({
 
         {/* POI results grid */}
         {!poiLoading && poiResults.length > 0 && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: '16px',
-            maxHeight: '440px',
-            overflowY: 'auto',
-            paddingRight: '4px',
-            paddingBottom: '8px',
-          }}>
+          <div className={styles.poiGrid}>
             {poiResults.map((place) => {
               const placeId = place.placeId || place.place_id;
               const isAdded = addedStopId === placeId;
@@ -464,109 +380,41 @@ export default function AddStopPanel({
                   onClick={() => {
                     addPoiMarker(place, isAdded);
                   }}
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: '12px',
-                    border: isAdded ? '2px solid #059669' : '1px solid #E5E7EB',
-                    boxShadow: isAdded ? '0 4px 14px rgba(5,150,105,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
-                    padding: '14px 16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isAdded) {
-                      e.currentTarget.style.borderColor = categoryColor;
-                      e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.10)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isAdded) {
-                      e.currentTarget.style.borderColor = '#E5E7EB';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-                    }
-                  }}
+                  className={`${styles.poiCard} ${isAdded ? styles.poiCardAdded : ''}`}
                 >
                   <div>
                     {/* Top Row: Category Icon + Place Name + Added Badge */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                        <div style={{
-                          width: '36px',
-                          height: '36px',
-                          borderRadius: '10px',
-                          background: `${categoryColor}15`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '18px',
-                          flexShrink: 0,
-                        }}>
+                    <div className={styles.poiTopRow}>
+                      <div className={styles.poiLeftGroup}>
+                        <div
+                          className={styles.categoryIconBox}
+                          style={{ background: `${categoryColor}15` }}
+                        >
                           {categoryIcon}
                         </div>
-                        <div style={{
-                          fontWeight: 700,
-                          fontSize: '14px',
-                          color: '#111827',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}>
+                        <div className={styles.placeName}>
                           {place.name}
                         </div>
                       </div>
 
                       {isAdded && (
-                        <span style={{
-                          background: '#ECFDF5',
-                          color: '#059669',
-                          border: '1px solid #A7F3D0',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          padding: '2px 8px',
-                          borderRadius: '999px',
-                          flexShrink: 0,
-                        }}>
+                        <span className={styles.addedBadge}>
                           ✓ Added
                         </span>
                       )}
                     </div>
 
                     {/* Address / Vicinity */}
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#6B7280',
-                      marginBottom: '10px',
-                      paddingLeft: '46px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}>
+                    <div className={styles.placeAddress}>
                       {place.vicinity || place.formatted_address || 'Near route'}
                     </div>
                   </div>
 
                   {/* Bottom Row: Distance badge & Add Button */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '8px',
-                    paddingTop: '8px',
-                    borderTop: '1px solid #F3F4F6',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className={styles.poiBottomRow}>
+                    <div className="flex items-center gap-2">
                       {place.distanceFromRouteText && (
-                        <span style={{
-                          background: '#EFF6FF',
-                          color: '#1A73E8',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          padding: '3px 8px',
-                          borderRadius: '6px',
-                        }}>
+                        <span className={styles.distanceBadge}>
                           📍 {place.distanceFromRouteText}
                         </span>
                       )}
@@ -575,17 +423,7 @@ export default function AddStopPanel({
                     <button
                       type="button"
                       onClick={(e) => handleAddStopToRoute(place, e)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        background: isAdded ? '#059669' : '#1A73E8',
-                        color: '#ffffff',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        transition: 'background 0.2s',
-                      }}
+                      className={isAdded ? styles.addStopBtnAdded : styles.addStopBtn}
                     >
                       {isAdded ? '✓ Stop Added' : '+ Add to Route'}
                     </button>
