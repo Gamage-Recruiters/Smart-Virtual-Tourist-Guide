@@ -1,0 +1,275 @@
+.footer {
+  width: 100%;
+  height: 591px;
+  position: relative;
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(160, 219, 255, 1) 100%);
+  color: #22223b;
+  display: flex;
+  backdrop-filter: blur(39.1px);
+  box-shadow: 0px 27px 67.1px -24px rgba(0, 0, 0, 0.25);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  overflow: hidden;
+}
+
+.lotusImage {
+  position: absolute;
+  left: -58px;
+  width: 250.89px;
+  height: 500.98px;
+  object-fit: cover;
+  opacity: 0.4;
+  top: 80px;
+}
+
+.columnsContainer {
+  position: absolute;
+  left: 504px;
+  width: 350px;
+  height: 208.53px;
+  opacity: 1;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.columnWithMargin {
+  display: flex;
+  flex-direction: column;
+  margin-left: 102px;
+}
+
+.columnTitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 153%;
+  letter-spacing: 0;
+  color: #122E63;
+  display: inline-block;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.linkList {
+  margin: 12px 0 0 -2px;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 17px;
+  line-height: 153%;
+  letter-spacing: 0;
+  color: #22223b;
+  list-style: none;
+}
+
+.linkItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.linkItemLast {
+  display: flex;
+  align-items: center;
+}
+
+.bullet {
+  color: #122E63;
+  font-size: 1em;
+  margin-right: 10px;
+}
+
+.link {
+  color: #22223b;
+  text-decoration: none;
+}
+
+.linkNoWrap {
+  color: #22223b;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+}
+
+.contactItemSpaced {
+  display: flex;
+  align-items: center;
+  margin-top: 30px;
+}
+
+.contactIcon {
+  margin-right: 8px;
+}
+
+.contactText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  color: #22223b;
+  white-space: nowrap;
+}
+
+.brandSection {
+  position: absolute;
+  left: 26px;
+  top: 220px;
+  width: 453px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 4;
+}
+
+.logo {
+  width: 165px;
+  height: 205px;
+  margin: 0;
+  object-fit: contain;
+  transform: rotate(0deg);
+  opacity: 1;
+  margin-left: -50px;
+}
+
+.brandInfo {
+  margin-top: -100px;
+  width: 453px;
+  min-height: 77px;
+  color: #22223b;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  opacity: 1;
+}
+
+.brandTitle {
+  font-size: 19px;
+  line-height: 121%;
+  letter-spacing: 0%;
+  color: #122E63;
+  margin-left: -10px;
+  margin-top: 50px;
+}
+
+.flagText {
+  font-size: 2.5rem;
+  letter-spacing: 10px;
+  font-family: 'Inter', sans-serif;
+  display: inline-block;
+  font-weight: 700;
+  background-size: cover;
+  background-position: center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.descriptionBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  opacity: 1;
+  margin-left: 90px;
+  margin-right: auto;
+}
+
+.description {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 15px;
+  color: #22223b;
+  display: block;
+  text-align: left;
+  line-height: 153%;
+  letter-spacing: 0;
+  width: 252px;
+  max-width: 100%;
+}
+
+.descriptionHighlight {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  font-size: 15px;
+  line-height: 153%;
+  letter-spacing: 0;
+}
+
+.socialsList {
+  position: absolute;
+  right: 40px;
+  bottom: -32px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.socialLink {
+  display: inline-flex;
+}
+
+.socialIcon {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.copyright {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 25.43px;
+  opacity: 1;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 137%;
+  letter-spacing: 0%;
+  color: #00AAFF;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.bottomLogoImage {
+  position: absolute;
+  bottom: 0px;
+  right: 10px;
+  width: 680px;
+  height: 1300px;
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}

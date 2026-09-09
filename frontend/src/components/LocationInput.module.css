@@ -1,0 +1,92 @@
+.wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchIcon {
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 6px;
+  margin-right: 500px;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+}
+
+.historyDropdown {
+  composes: dropdown;
+  padding: 8px 0;
+}
+
+.suggestionsDropdown {
+  composes: dropdown;
+  padding: 4px 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.historyItem {
+  padding: 16px 12px 8px 10px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.historyItem:hover {
+  background: #F8FAFC;
+}
+
+.suggestionItem {
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.suggestionItemActive {
+  background: #EFF6FF;
+}
+
+.secondaryText {
+  color: #6B7280;
+  margin-left: 4px;
+}

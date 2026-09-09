@@ -1,0 +1,99 @@
+.rowIcon {
+  width: 48px;
+  height: 48px;
+  margin-right: 10px;
+}
+
+.inputBox {
+  border-radius: 8px;
+  padding: 16px 24px;
+  width: 700px;
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  caret-color: #1A73E8;
+  flex: 1;
+}
+
+.searchIconBtn {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.suggestionsList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 58px;
+  width: 700px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.suggestionItemActive {
+  background: #EFF6FF;
+}
+
+.bullet {
+  color: #6B7280;
+  font-size: 13px;
+}
+
+.secondaryText {
+  color: #6B7280;
+  margin-left: 4px;
+}
+
+.locationInputsContainer {
+  margin-top: 20px;
+  margin-left: 700px;
+  gap: 12px;
+}
+
+.rowsColumn {
+  gap: 20px;
+}
+
+.swapIcon {
+  width: 40px;
+  margin-left: 20px;
+  cursor: pointer;
+  margin-right: 720px;
+}
+
+.vehicleBtn {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 6px;
+  transition: background 0.2s, box-shadow 0.2s;
+  background: transparent;
+}
+
+.vehicleBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.vehicleBtnSelected {
+  background: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 0 0 1px #5d5d61;
+}

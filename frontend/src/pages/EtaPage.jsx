@@ -9,6 +9,7 @@ import { usePageTitle } from '../contexts/PageTitleContext';
 import { fetchRoute } from '../utils/geoapifyService';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import styles from './EtaPage.module.css';
 
 const MODE_ICONS = {
   drive: carIcon,
@@ -283,85 +284,36 @@ const EtaPage = () => {
   }, [alternativeRoutes, selectedRouteIdx, etaData, userLocation, searchedPlace]);
 
   return (
-    <div style={{
-      width: '100%',
-      minHeight: 'calc(100vh - 112px)',
-      maxHeight: 'calc(100vh - 112px)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      backgroundImage: `linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(160, 219, 255, 0.8) 100%), url('${middle}')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center bottom',
-      backgroundRepeat: 'no-repeat',
-      overflowY: 'auto',
-      padding: '8px 24px',
-    }}>
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-evenly',
-        gap: '8px',
-        maxWidth: '960px',
-        margin: '0 auto',
-        width: '100%',
-      }}>
+    <div
+      className={styles.pageContainer}
+      style={{
+        backgroundImage: `linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(160, 219, 255, 0.8) 100%), url('${middle}')`,
+      }}
+    >
+      <div className={styles.contentColumn}>
         
         {/* Top Centered Section: ETA Banner & Map */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '8px',
-          maxWidth: '520px',
-          width: '100%',
-          margin: '0 auto',
-        }}>
+        <div className={styles.topCenteredSection}>
           {/* ETA & Arrival Banner */}
-          <div style={{
-            background: 'linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%)',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-            padding: '8px 20px',
-            width: '100%',
-            textAlign: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <img src={clockIcon} alt="clock" style={{ width: '22px', height: '22px' }} />
-              <span style={{ fontWeight: 700, fontSize: '20px', color: '#111827', fontFamily: "'Inter', sans-serif" }}>
+          <div className={styles.etaBanner}>
+            <div className={styles.etaRow}>
+              <img src={clockIcon} alt="clock" className={styles.etaClockIcon} />
+              <span className={styles.etaTitle}>
                 ETA: {displayDuration}
               </span>
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>
+            <div className={styles.arrivalTime}>
               Arrival: {arrivalTime}
             </div>
           </div>
 
           {/* Map Container (Clean route-only view) */}
-          <div style={{
-            borderRadius: '12px',
-            overflow: 'hidden',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
-            height: '210px',
-            width: '100%',
-            position: 'relative',
-            background: '#e2e8f0',
-          }}>
-            <div ref={mapRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
+          <div className={styles.mapBox}>
+            <div ref={mapRef} className={styles.mapCanvas} />
 
             {loading && (
-              <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(255, 255, 255, 0.65)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                zIndex: 10,
-              }}>
-                <div style={{
-                  background: '#fff', padding: '8px 16px', borderRadius: '6px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontWeight: 600,
-                  color: '#1A73E8', fontSize: '13px',
-                }}>
+              <div className={styles.mapLoadingOverlay}>
+                <div className={styles.mapLoadingBox}>
                   Loading route...
                 </div>
               </div>
@@ -370,52 +322,33 @@ const EtaPage = () => {
         </div>
 
         {/* Increased Width: Fuel & Transport Info Card */}
-        <div style={{
-          background: 'linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%)',
-          borderRadius: '12px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-          padding: '10px 32px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          maxWidth: '920px',
-          width: '100%',
-          margin: '0 auto',
-        }}>
+        <div className={styles.infoCard}>
           <div>
-            <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>Fuel Estimate</div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>
+            <div className={styles.infoLabel}>Fuel Estimate</div>
+            <div className={styles.infoValue}>
               {fuelRate > 0 ? `${fuelEstimate} L` : 'N/A'}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>Estimated Fuel cost</div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>
+            <div className={styles.infoLabel}>Estimated Fuel cost</div>
+            <div className={styles.infoValue}>
               {fuelRate > 0 ? `RS: ${fuelCost}` : 'N/A'}
             </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>Transport Type:</div>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>{MODE_LABELS[mode] || 'Car'}</div>
-            <img src={MODE_ICONS[mode] || carIcon} alt="transport" style={{ width: '22px', height: '22px', objectFit: 'contain', margin: '2px auto 0' }} />
+          <div className={styles.transportBox}>
+            <div className={styles.infoLabel}>Transport Type:</div>
+            <div className={styles.infoValue}>{MODE_LABELS[mode] || 'Car'}</div>
+            <img src={MODE_ICONS[mode] || carIcon} alt="transport" className={styles.transportIcon} />
           </div>
         </div>
 
         {/* Increased Width: Alternative Routes Card */}
         {alternativeRoutes.length > 0 && (
-          <div style={{
-            background: 'linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%)',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-            padding: '10px 32px',
-            maxWidth: '920px',
-            width: '100%',
-            margin: '0 auto',
-          }}>
-            <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: '15px', color: '#111827', marginBottom: '6px' }}>
+          <div className={styles.routesCard}>
+            <div className={styles.routesTitle}>
               Alternative Routes
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className={styles.routesList}>
               {alternativeRoutes.map((route, idx) => {
                 const isSelected = idx === selectedRouteIdx;
                 const isFastest = idx === 0;
@@ -428,22 +361,15 @@ const EtaPage = () => {
                   <div
                     key={idx}
                     onClick={() => setSelectedRouteIdx(idx)}
-                    style={{
-                      fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#111827',
-                      fontWeight: isSelected ? 700 : 500, lineHeight: '1.4',
-                      cursor: 'pointer', padding: '4px 10px', borderRadius: '6px',
-                      background: isSelected ? 'rgba(26, 115, 232, 0.12)' : 'transparent',
-                      transition: 'background 0.15s ease',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    }}
+                    className={isSelected ? styles.routeRowSelected : styles.routeRow}
                   >
                     <div>
-                      <span style={{ fontWeight: 700 }}>Route {idx + 1}:</span>
+                      <span className="font-bold">Route {idx + 1}:</span>
                       <span> {route.duration} ({route.distance})</span>
-                      <span style={{ fontWeight: 600, color: isSelected ? '#1A73E8' : '#6B7280' }}>{tagStr}</span>
+                      <span className={`font-semibold ${isSelected ? 'text-[#1A73E8]' : 'text-[#6B7280]'}`}>{tagStr}</span>
                     </div>
                     {isSelected && (
-                      <span style={{ fontSize: '12px', color: '#1A73E8', fontWeight: 700 }}>Selected</span>
+                      <span className={styles.selectedTag}>Selected</span>
                     )}
                   </div>
                 );
@@ -453,56 +379,18 @@ const EtaPage = () => {
         )}
 
         {/* Action Buttons (Back and Start Navigation) */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '60px',
-          width: '100%',
-          marginTop: '4px',
-          marginBottom: '4px',
-        }}>
+        <div className={styles.actionsRow}>
           <button
             type="button"
             onClick={() => setActivePage && setActivePage('start')}
-            style={{
-              background: '#2B5BA9',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 32px',
-              fontSize: '15px',
-              fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              cursor: 'pointer',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-              minWidth: '140px',
-              transition: 'background 0.15s ease',
-            }}
+            className={styles.actionBtn}
           >
             Back
           </button>
           <button
             type="button"
             onClick={() => setActivePage && setActivePage('start')}
-            style={{
-              background: '#2B5BA9',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 32px',
-              fontSize: '15px',
-              fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
-              cursor: 'pointer',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-              minWidth: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              lineHeight: 1.2,
-              transition: 'background 0.15s ease',
-            }}
+            className={styles.startNavBtn}
           >
             <span>Start</span>
             <span>Navigation</span>
