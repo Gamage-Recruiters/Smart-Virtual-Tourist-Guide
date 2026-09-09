@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import Incident from '../../models/Safety/Incident.js';
 import logger from '../../utils/logger.js';
+import { getNextSequence } from '../../utils/Safety/sequenceUtils.js';
 
 // @desc    Report a new incident
 // @route   POST /api/safety/incidents
@@ -10,8 +11,6 @@ export const createIncident = async (req, res, next) => {
     logger.info('Creating incident with body:', req.body);
     logger.info('Files received:', req.files?.length || 0);
 
-    const sequence = (await Incident.countDocuments()) + 1;
-    
     // Process uploaded images
     const imageUrls = [];
     if (req.files && req.files.length > 0) {
@@ -29,27 +28,47 @@ export const createIncident = async (req, res, next) => {
       throw new Error('Invalid location coordinates');
     }
 
-    const incidentData = {
-      reporterName: req.body.reporterName?.trim(),
-      contactNumber: req.body.contactNumber?.trim(),
-      incidentCategory: req.body.incidentCategory,
-      incidentDate: req.body.incidentDate,
-      incidentTime: req.body.incidentTime,
-      district: req.body.district,
-      location: {
-        lat,
-        lng,
-      },
-      images: imageUrls,
-      touristId: req.user?._id || req.body.touristId,
-      tripId: req.body.tripId || req.body.travelId,
-      referenceNumber:
-        req.body.referenceNumber ||
-        `SRL-${new Date().getFullYear()}-${String(sequence).padStart(4, '0')}`,
-    };
+    let incident;
+    let retries = 2; // Allow up to 2 retries on duplicate keys
+    
+    while (retries > 0) {
+      try {
+        // Generate new sequence atomically
+        const sequence = await getNextSequence('incident');
+        const referenceNumber =
+          req.body.referenceNumber ||
+          `SRL-${new Date().getFullYear()}-${String(sequence).padStart(4, '0')}`;
 
-    logger.info('Creating incident with data:', incidentData);
-    const incident = await Incident.create(incidentData);
+        const incidentData = {
+          reporterName: req.body.reporterName?.trim(),
+          contactNumber: req.body.contactNumber?.trim(),
+          incidentCategory: req.body.incidentCategory,
+          incidentDate: req.body.incidentDate,
+          incidentTime: req.body.incidentTime,
+          district: req.body.district,
+          location: {
+            lat,
+            lng,
+          },
+          images: imageUrls,
+          touristId: req.user?._id || req.body.touristId,
+          tripId: req.body.tripId || req.body.travelId,
+          referenceNumber,
+        };
+
+        logger.info('Creating incident with data:', incidentData);
+        incident = await Incident.create(incidentData);
+        break; // Successfully created, exit retry loop
+      } catch (err) {
+        if (err.code === 11000) {
+          logger.warn('Duplicate referenceNumber detected on creation, retrying...');
+          retries--;
+          if (retries === 0) throw err; // If out of retries, throw the error
+        } else {
+          throw err;
+        }
+      }
+    }
     
     res.status(201).json({ 
       success: true, 

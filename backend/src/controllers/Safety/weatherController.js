@@ -1,5 +1,4 @@
 import logger from '../../utils/logger.js';
-
 import TouristArea from '../../models/Safety/TouristArea.js';
 
 /**
