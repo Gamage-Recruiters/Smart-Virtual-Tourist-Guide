@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { getRoute } from '../utils/mapServices';
 import { getBlueMarkerIcon, getNavigationMarkerIcon, createRouteLabel } from '../utils/leafletSetup';
-import { MODE_CONFIGS, formatCompactDuration, parseDurationToMinutes } from '../utils/routeHelpers';
+import { MODE_CONFIGS, formatCompactDuration, parseDurationToMinutes, formatManeuverInstruction } from '../utils/routeHelpers';
 
 /**
  * Hook that encapsulates OSRM route fetching, route normalization,
@@ -35,6 +35,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
   const [loadingRoutes, setLoadingRoutes] = useState(false);
   const [error, setError] = useState(null);
   const [fallbackMode, setFallbackMode] = useState(false);
+  const [modeDurations, setModeDurations] = useState({});
 
   const routeRequestIdRef = useRef(0);
   const renderersRef = useRef([]);
@@ -180,19 +181,36 @@ export function useRouting(mapInstanceRef, opts = {}) {
 
       const normalizedRoutes = osrmRoutes.map((route) => {
         const distM = route.distance;
-        const durS = route.duration;
+        const durS = modeKey === 'drive' ? route.duration : route.duration * modeConfig.multiplier;
         const durMins = Math.round(durS / 60);
         const distText = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${Math.round(distM)} m`;
         const durText = formatCompactDuration(durMins);
         const overviewPath = (route.geometry?.coordinates || []).map(c => ({ lat: c[1], lng: c[0] }));
-        const steps = (route.steps || []).map(step => ({
-          instructions: step.name ? `${step.maneuver?.type || 'Continue'} on ${step.name}` : (step.maneuver?.type || 'Continue'),
-          maneuver: step.maneuver?.modifier || step.maneuver?.type || '',
-          distance: { value: step.distance, text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m` },
-          duration: { value: step.duration, text: formatCompactDuration(Math.round(step.duration / 60)) },
-          start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
-          end_location: overviewPath[overviewPath.length - 1],
-        }));
+        const steps = (route.steps || []).map((step) => {
+          const instructionText = formatManeuverInstruction(step);
+          return {
+            instructions: instructionText,
+            name: step.name || '',
+            maneuver: {
+              type: step.maneuver?.type || 'turn',
+              modifier: step.maneuver?.modifier || '',
+              instruction: instructionText,
+              location: step.maneuver?.location || null,
+              bearing_after: step.maneuver?.bearing_after,
+              bearing_before: step.maneuver?.bearing_before,
+            },
+            distance: {
+              value: step.distance,
+              text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m`,
+            },
+            duration: {
+              value: step.duration,
+              text: formatCompactDuration(Math.round(step.duration / 60)),
+            },
+            start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
+            end_location: overviewPath[overviewPath.length - 1],
+          };
+        });
         return {
           overview_path: overviewPath,
           legs: [{ distance: { value: distM, text: distText }, duration: { value: durS, text: durText }, steps, start_location: overviewPath[0] || normalizedOrigin, end_location: overviewPath[overviewPath.length - 1] || normalizedDestination }],
@@ -206,7 +224,15 @@ export function useRouting(mapInstanceRef, opts = {}) {
       setFallbackMode(false);
       const routeInfoList = normalizedRoutes.map((r) => {
         const leg = r.legs[0];
-        return { duration: leg.duration?.text || '--', durationMinutes: leg.duration?.value ? Math.round(leg.duration.value / 60) : 0, distance: leg.distance?.text || '--', summary: r.summary, traffic: 'Light traffic' };
+        return {
+          duration: leg.duration?.text || '--',
+          durationMinutes: leg.duration?.value ? Math.round(leg.duration.value / 60) : 0,
+          distance: leg.distance?.text || '--',
+          summary: r.summary,
+          traffic: 'Light traffic',
+          steps: leg.steps || [],
+          overview_path: r.overview_path || [],
+        };
       });
       setRoutes(routeInfoList);
       let shortestIdx = 0; let minDist = Infinity;
@@ -223,6 +249,10 @@ export function useRouting(mapInstanceRef, opts = {}) {
         setEtaData?.({ distance: info.distance, duration: info.duration, durationMinutes: info.durationMinutes, traffic: info.traffic, mode: selectedMode });
       }
       modeMinutesCache.current[modeConfig.key] = routeInfoList[0]?.durationMinutes || 0;
+      setModeDurations((current) => ({
+        ...current,
+        [modeConfig.key]: routeInfoList[0]?.durationMinutes || 0,
+      }));
       if (modeConfig.osrmProfile === 'driving') drivingMinutesRef.current = routeInfoList[0]?.durationMinutes || 0;
 
       return { normalizedRoutes, routeInfoList, shortestIdx };
@@ -245,6 +275,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
     activeRoutePairRef,
     drivingMinutesRef,
     modeMinutesCache,
+    modeDurations,
     routeRequestIdRef,
     clearRouteOverlays,
     drawSelectedRoute,

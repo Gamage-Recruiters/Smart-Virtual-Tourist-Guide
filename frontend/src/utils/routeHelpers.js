@@ -199,3 +199,82 @@ export const describeRoute = (route, idx, allRoutes) => {
  * @returns {string}
  */
 export const sanitizeInstruction = (html = '') => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * Format a turn-by-turn navigation maneuver instruction into human-readable text.
+ * Handles OSRM maneuver types (depart, turn, continue, new name, fork, roundabout, arrive, etc.).
+ * @param {Object} step
+ * @returns {string} e.g. "Turn left onto Galle Road", "Head northwest on Baseline Road"
+ */
+export const formatManeuverInstruction = (step) => {
+  if (!step) return 'Continue on route';
+  if (typeof step === 'string') return step;
+
+  const maneuver = step.maneuver || {};
+  const type = (maneuver.type || '').toLowerCase();
+  const modifier = (maneuver.modifier || '').toLowerCase();
+  const roadName = step.name || '';
+
+  const bearingToCompass = (bearing) => {
+    if (bearing == null || isNaN(bearing)) return '';
+    const directions = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+    const idx = Math.round(((bearing %= 360) < 0 ? bearing + 360 : bearing) / 45) % 8;
+    return directions[idx];
+  };
+
+  if (type === 'arrive') {
+    return 'Arrive at destination';
+  }
+
+  if (type === 'depart') {
+    const dir = bearingToCompass(maneuver.bearing_after);
+    const headText = dir ? `Head ${dir}` : 'Head';
+    return roadName ? `${headText} on ${roadName}` : `${headText} towards destination`;
+  }
+
+  if (type === 'turn') {
+    let dir = 'Turn';
+    if (modifier === 'uturn') dir = 'Make a U-turn';
+    else if (modifier) dir = `Turn ${modifier}`;
+    return roadName ? `${dir} onto ${roadName}` : dir;
+  }
+
+  if (type === 'continue' || type === 'new name') {
+    if (modifier === 'uturn') {
+      return roadName ? `Make a U-turn on ${roadName}` : 'Make a U-turn';
+    }
+    const dir = modifier && modifier !== 'straight' ? `Continue ${modifier}` : 'Continue';
+    return roadName ? `${dir} onto ${roadName}` : `${dir} straight`;
+  }
+
+  if (type === 'fork') {
+    const dir = modifier ? `Keep ${modifier}` : 'Keep moving';
+    return roadName ? `${dir} onto ${roadName}` : dir;
+  }
+
+  if (type === 'end of road') {
+    const dir = modifier ? `Turn ${modifier}` : 'Turn';
+    return roadName ? `${dir} at the end of road onto ${roadName}` : `${dir} at the end of road`;
+  }
+
+  if (type === 'roundabout' || type === 'rotary' || type === 'roundabout turn') {
+    const exitText = maneuver.exit ? ` exit ${maneuver.exit}` : '';
+    return roadName ? `Take roundabout${exitText} onto ${roadName}` : `Enter roundabout${exitText}`;
+  }
+
+  if (type === 'on ramp' || type === 'merge') {
+    return roadName ? `Merge onto ${roadName}` : 'Merge onto route';
+  }
+
+  if (type === 'off ramp') {
+    const dir = modifier ? `Take the ramp on the ${modifier}` : 'Take the exit ramp';
+    return roadName ? `${dir} onto ${roadName}` : dir;
+  }
+
+  if (modifier) {
+    const cap = modifier.charAt(0).toUpperCase() + modifier.slice(1);
+    return roadName ? `${cap} onto ${roadName}` : cap;
+  }
+
+  return roadName ? `Continue on ${roadName}` : 'Continue on route';
+};

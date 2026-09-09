@@ -11,6 +11,7 @@ import { useAppNavigate } from '../hooks/useAppNavigate';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getRoute } from '../utils/mapServices';
+import '../utils/leafletSetup';
 
 const MODE_ICONS = {
   drive: carIcon,
