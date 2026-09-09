@@ -20,9 +20,9 @@ const request = async (path, options = {}) => {
     ...options,
     body,
     headers: isFormData ? options.headers : {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
   });
 
   const data = await response.json().catch(() => ({}));
@@ -41,8 +41,8 @@ export const activityAPI = {
   update: (id, body) => request(`/activities/${id}`, { method: 'PUT', body }),
   delete: (id) => request(`/activities/${id}`, { method: 'DELETE' }),
   publish: (id) => request(`/activities/${id}/publish`, { method: 'PATCH' }),
-  getBookings: (params) => request(`/bookings${buildQueryString(params)}`),
-  updateBookingStatus: (id, status) => request(`/bookings/${id}/status`, {
+  getBookings: (params) => request(`/activity-bookings${buildQueryString(params)}`),
+  updateBookingStatus: (id, status) => request(`/activity-bookings/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   }),
