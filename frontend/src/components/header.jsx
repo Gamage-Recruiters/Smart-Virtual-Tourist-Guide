@@ -4,6 +4,7 @@ import Logo from '../assets/Logo.png';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import sriflag from '../assets/sriflag.jpg';
 import { fetchAutocompleteSuggestions, geocodeAddress } from '../utils/geoapifyService';
+import styles from './Header.module.css';
 
 const SRI_LANKA_BOUNDS = { north: 10.0, south: 5.7, east: 82.1, west: 79.4 };
 
@@ -77,33 +78,19 @@ export default function Header() {
   const readOnlySearch = isStartPage || isEtaPage;
 
   return (
-    <header className="relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible" style={{ borderBottom: '1px solid #F5F7FA', transform: 'translateZ(0)', willChange: 'transform' }}>
+    <header className={`relative z-50 bg-white/90 backdrop-blur-sm shadow-md py-1 h-28 overflow-visible ${styles.header}`}>
       <div className="w-full px-8 flex items-center justify-between h-full">
         {/* Left: logo + text */}
-        <div className="flex items-center gap-1 h-full relative" style={{ minWidth: '400px' }}>
-          <img src={Logo} alt="Sri Lanka Tourism Logo" className="h-36 w-auto drop-shadow-md absolute -top-3 left-0" style={{ zIndex: 2, transform: 'translateZ(0)' }} />
-          <div className="flex flex-col items-start" style={{ marginLeft: '110px' }}>
-            <span className="font-bold leading-tight" style={{ fontSize: 18, color: '#122E63', fontFamily: "'Inter', sans-serif", fontWeight: 700, letterSpacing: '0.5px' }}>
+        <div className={`flex items-center gap-1 h-full relative ${styles.logoArea}`}>
+          <img src={Logo} alt="Sri Lanka Tourism Logo" className={`h-36 w-auto drop-shadow-md absolute -top-3 left-0 ${styles.logoImg}`} />
+          <div className={`flex flex-col items-start ${styles.brandTextWrap}`}>
+            <span className={`font-bold leading-tight ${styles.brandTitle}`}>
               Smart Virtual Tourist Guide
             </span>
-            <div style={{ display: 'inline-block', marginTop: 2 }}>
+            <div className="inline-block mt-0.5">
               <span
-                className="font-bold leading-tight whitespace-nowrap"
-                style={{
-                  fontSize: '2.8rem',
-                  letterSpacing: '6px',
-                  fontFamily: "'Inter', sans-serif",
-                  display: 'inline-block',
-                  fontWeight: 800,
-                  backgroundImage: `url(${sriflag})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  color: 'transparent',
-                  transform: 'translateZ(0)',
-                  willChange: 'transform',
-                }}
+                className={`font-bold leading-tight whitespace-nowrap ${styles.flagText}`}
+                style={{ backgroundImage: `url(${sriflag})` }}
               >
                 Sri Lanka
               </span>
@@ -112,22 +99,15 @@ export default function Header() {
         </div>
 
         {/* Center title */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 1 }}>
+        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none ${styles.centerTitleWrap}`}>
           <h1 className="font-bold text-black text-3xl">{(activePage === 'eta' || activePage === 'explore') ? '' : title}</h1>
         </div>
 
         {/* Right: Search Bar */}
         {showSearchBar && activePage !== 'safety' ? (
-          <div ref={containerRef} style={{ position: 'relative', width: '800px', marginRight: '40px', zIndex: 10 }}>
-            <div
-              className="flex items-center gap-3 px-6 py-4"
-              style={{
-                background: 'linear-gradient(90deg, #FAFDFF 0%, #D8EFFF 100%)',
-                borderRadius: '999px',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
-              }}
-            >
-              <Search size={22} color="#4B5563" strokeWidth={2} style={{ flexShrink: 0 }} />
+          <div ref={containerRef} className={styles.searchWrapper}>
+            <div className={`flex items-center gap-3 px-6 py-4 ${styles.searchBox}`}>
+              <Search size={22} color="#4B5563" strokeWidth={2} className="shrink-0" />
               <input
                 type="text"
                 value={readOnlySearch ? startPageDestination : query}
@@ -135,48 +115,47 @@ export default function Header() {
                 onKeyDown={readOnlySearch ? undefined : handleKeyDown}
                 placeholder="Search Here"
                 readOnly={readOnlySearch}
-                style={{ padding: '4px 0', flex: 1, fontSize: '16px' }}
-                className="bg-transparent outline-none text-gray-800 placeholder-gray-400 w-full font-medium"
+                className={`bg-transparent outline-none text-gray-800 placeholder-gray-400 w-full font-medium ${styles.searchInput}`}
               />
               {isEtaPage && (
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827', marginRight: '24px' }}>ETA Details</span>
+                <span className={styles.etaDetailsLabel}>ETA Details</span>
               )}
               {isStartPage && etaData && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '8px', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#1A73E8' }}>{etaData.duration}</span>
-                  <span style={{ fontSize: '12px', color: '#374151', fontWeight: 600 }}>{etaData.distance}</span>
-                  <span style={{ fontSize: '11px', color: etaData.traffic === 'Heavy traffic' ? '#e53e3e' : etaData.traffic === 'Moderate traffic' ? '#d69e2e' : '#38a169', fontWeight: 600 }}>{etaData.traffic}</span>
+                <div className={styles.etaDataWrap}>
+                  <span className={styles.etaDuration}>{etaData.duration}</span>
+                  <span className={styles.etaDistance}>{etaData.distance}</span>
+                  <span className={`${styles.etaTraffic} ${
+                    etaData.traffic === 'Heavy traffic'
+                      ? styles.etaTrafficHeavy
+                      : etaData.traffic === 'Moderate traffic'
+                        ? styles.etaTrafficModerate
+                        : styles.etaTrafficLight
+                  }`}>
+                    {etaData.traffic}
+                  </span>
                 </div>
               )}
-              {!readOnlySearch && query.trim()
-                ? <X size={20} color="#333333" strokeWidth={2.2} style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => { setQuery(''); setSuggestions([]); }} />
-                : <Mic size={20} color="#333333" strokeWidth={2.2} style={{ cursor: 'pointer', flexShrink: 0 }} />
-              }
+              {!readOnlySearch && query.trim() ? (
+                <X size={20} color="#333333" strokeWidth={2.2} className={styles.iconBtn} onClick={() => { setQuery(''); setSuggestions([]); }} />
+              ) : (
+                <Mic size={20} color="#333333" strokeWidth={2.2} className={styles.iconBtn} />
+              )}
             </div>
 
             {!readOnlySearch && suggestions.length > 0 && (
-              <ul style={{
-                position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                background: '#fff', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                zIndex: 9999, listStyle: 'none', margin: 0, padding: '4px 0',
-                maxHeight: '260px', overflowY: 'auto',
-              }}>
+              <ul className={styles.suggestionsList}>
                 {suggestions.map((p, i) => (
                   <li
                     key={p.place_id}
                     onMouseDown={() => selectSuggestion(p)}
                     onMouseEnter={() => setActiveIdx(i)}
-                    style={{
-                      padding: '10px 16px', cursor: 'pointer', fontSize: '14px', color: '#333',
-                      background: i === activeIdx ? '#EFF6FF' : 'transparent',
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                    }}
+                    className={`${styles.suggestionItem} ${i === activeIdx ? styles.suggestionItemActive : ''}`}
                   >
                     <MapPin size={14} color="#6B7280" />
                     <span>
                       <strong>{p.structured_formatting?.main_text || p.displayName || p.name}</strong>
                       {p.structured_formatting?.secondary_text && (
-                        <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.structured_formatting.secondary_text}</span>
+                        <span className={styles.secondaryText}>{p.structured_formatting.secondary_text}</span>
                       )}
                     </span>
                   </li>
@@ -185,12 +164,12 @@ export default function Header() {
             )}
           </div>
         ) : (
-          <div id="header-search-portal" style={{ width: '880px', margin: '10px 30px', position: 'relative' }}>
+          <div id="header-search-portal" className={styles.searchPortalArea}>
             {activePage === 'directionOne' && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', height: '100%', paddingRight: '20px' }}>
+              <div className={styles.portalBackWrap}>
                 <button 
                   onClick={() => setActivePage('explore')} 
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', pointerEvents: 'auto' }}
+                  className={styles.portalBackBtn}
                   aria-label="Go Back"
                 >
                   <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
