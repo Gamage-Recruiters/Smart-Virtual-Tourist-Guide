@@ -120,7 +120,7 @@ const crimeAlerts = [
 
 const seed = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB_NAME || 'tourismGuideDB' });
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB_NAME || 'test' });
     console.log('Connected to MongoDB');
 
     await SecurityAlert.deleteMany({ category: 'weather' });
