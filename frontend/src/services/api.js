@@ -184,11 +184,17 @@ export const fetchRoadBlockages = async () => {
 
 const ALLOWED_LOCATION_RE = /^[a-zA-Z0-9\s,\-.]{1,100}$/;
 
-export const fetchWeatherAlerts = async (location) => {
-  if (!location) return apiClient.get('/security-alerts/weather');
-  const sanitized = location.replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
-  if (!sanitized || !ALLOWED_LOCATION_RE.test(sanitized)) return { data: [] };
-  return apiClient.get(`/security-alerts/weather?location=${encodeURIComponent(sanitized)}`);
+export const fetchWeatherAlerts = async (location, coordinates) => {
+  if (!location && !coordinates) return apiClient.get('/security-alerts/weather');
+  const sanitized = (location || '').replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
+  if (sanitized && !ALLOWED_LOCATION_RE.test(sanitized)) return { data: [] };
+  const params = new URLSearchParams();
+  if (sanitized) params.set('location', sanitized);
+  if (coordinates?.lat != null && coordinates?.lng != null) {
+    params.set('lat', String(coordinates.lat));
+    params.set('lng', String(coordinates.lng));
+  }
+  return apiClient.get(`/security-alerts/weather?${params.toString()}`);
 };
 
 export const fetchCrimeAlerts = async () => {

@@ -11,6 +11,7 @@ export default function ModeSelector({
   setFallbackMode,
   selectedRoute,
   modeMinutesCache,
+  modeDurations = {},
   drivingMinutesRef,
   baseModeMinutes,
   handleShare,
@@ -40,8 +41,8 @@ export default function ModeSelector({
           const active = mode.key === selectedMode;
           const timeLabel = active
             ? (selectedRoute?.duration || '--')
-            : modeMinutesCache.current[mode.key]
-              ? formatCompactDuration(modeMinutesCache.current[mode.key])
+            : modeDurations[mode.key] || modeMinutesCache.current[mode.key]
+              ? formatCompactDuration(modeDurations[mode.key] || modeMinutesCache.current[mode.key])
               : estimateModeDuration(drivingMinutesRef.current || baseModeMinutes, mode.multiplier);
           return (
             <button

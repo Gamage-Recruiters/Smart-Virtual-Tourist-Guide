@@ -1,12 +1,10 @@
 import { MongoClient } from 'mongodb';
 
-const MAIN_DB_URI = 'mongodb+srv://SVTG:svtg123@cluster0.936rmcg.mongodb.net/?appName=Cluster0';
-
 const getClient = (() => {
   let client = null;
   return async () => {
     if (!client) {
-      client = new MongoClient(MAIN_DB_URI);
+      client = new MongoClient(process.env.MONGODB_URI);
       await client.connect();
     }
     return client;
@@ -19,23 +17,42 @@ const ALLOWED_LOCATION_RE = /^[a-zA-Z0-9\s,\-.]{1,100}$/;
 const getWeatherAlerts = async (req, res) => {
   try {
     const { location } = req.query;
+    const latitude = Number(req.query.lat);
+    const longitude = Number(req.query.lng);
     const client = await getClient();
-    const col = client.db('tourismGuideDB').collection('securityalerts');
+    const col = client.db(process.env.MONGODB_DB_NAME || 'test').collection('securityalerts');
 
     const filter = { weatherCondition: { $exists: true, $ne: null } };
 
-    if (location) {
+    const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+    if (location && !hasCoordinates) {
       if (!ALLOWED_LOCATION_RE.test(location)) {
         return res.status(400).json({ success: false, message: 'Invalid location parameter.' });
       }
-      const exactLocation = `^${location}$`;
+      const searchedLocation = location.split(',')[0].trim();
       filter.$or = [
-        { district: { $regex: exactLocation, $options: 'i' } },
-        { region: { $regex: exactLocation, $options: 'i' } },
+        { district: { $regex: searchedLocation, $options: 'i' } },
+        { region: { $regex: searchedLocation, $options: 'i' } },
       ];
     }
 
-    const alerts = await col.find(filter).sort({ updatedAt: -1 }).toArray();
+    let alerts = await col.find(filter).sort({ updatedAt: -1 }).toArray();
+
+    if (hasCoordinates) {
+      const toRadians = (value) => (value * Math.PI) / 180;
+      const distance = (alert) => {
+        const alertLat = alert.location?.coordinates?.[1] ?? alert.latitude ?? alert.lat;
+        const alertLng = alert.location?.coordinates?.[0] ?? alert.longitude ?? alert.lng ?? alert.lon;
+        if (alertLat == null || alertLng == null) return Infinity;
+        const dLat = toRadians(alertLat - latitude);
+        const dLng = toRadians(alertLng - longitude);
+        const originLat = toRadians(latitude);
+        const targetLat = toRadians(alertLat);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(originLat) * Math.cos(targetLat) * Math.sin(dLng / 2) ** 2;
+        return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      };
+      alerts = alerts.sort((a, b) => distance(a) - distance(b)).slice(0, 1);
+    }
 
     // Normalise fields for frontend
     const data = alerts.map((a) => ({
@@ -47,8 +64,8 @@ const getWeatherAlerts = async (req, res) => {
       windSpeed: a.windSpeed ?? null,
       severity: a.severity,
       location: a.district || a.region || '',
-      latitude: a.location?.coordinates?.[1] ?? null,
-      longitude: a.location?.coordinates?.[0] ?? null,
+      latitude: a.location?.coordinates?.[1] ?? a.latitude ?? a.lat ?? null,
+      longitude: a.location?.coordinates?.[0] ?? a.longitude ?? a.lng ?? a.lon ?? null,
       isActive: a.isActive,
     }));
 
@@ -62,7 +79,7 @@ const getWeatherAlerts = async (req, res) => {
 const getCrimeAlerts = async (req, res) => {
   try {
     const client = await getClient();
-    const col = client.db('tourismGuideDB').collection('securityalerts');
+    const col = client.db(process.env.MONGODB_DB_NAME || 'test').collection('securityalerts');
 
     const filter = { isActive: true, weatherCondition: { $exists: false } };
 
@@ -90,7 +107,7 @@ const getSecurityAlerts = async (req, res) => {
   try {
     const { location } = req.query;
     const client = await getClient();
-    const col = client.db('tourismGuideDB').collection('securityalerts');
+    const col = client.db(process.env.MONGODB_DB_NAME || 'test').collection('securityalerts');
 
     const filter = { isActive: true };
 

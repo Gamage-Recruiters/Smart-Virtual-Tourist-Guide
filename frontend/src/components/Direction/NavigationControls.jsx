@@ -33,7 +33,7 @@ export default function NavigationControls({ onCancel, onSafetyAlert }) {
           position: 'absolute',
           top: '16px',
           left: '16px',
-          zIndex: 50,
+          zIndex: 1100,
           width: '40px',
           height: '40px',
           borderRadius: '50%',

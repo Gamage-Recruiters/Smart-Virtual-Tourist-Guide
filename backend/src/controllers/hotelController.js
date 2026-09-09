@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-const TEST_DB_URI = 'mongodb+srv://SVTG:svtg123@cluster0.936rmcg.mongodb.net/test?appName=Cluster0';
-
 let testDb = null;
 const getTestDb = async () => {
   if (testDb && testDb.readyState === 1) return testDb;
-  const conn = await mongoose.createConnection(TEST_DB_URI).asPromise();
+  const conn = await mongoose.createConnection(process.env.MONGODB_URI, {
+    dbName: process.env.MONGODB_DB_NAME || 'test',
+  }).asPromise();
   testDb = conn;
   return testDb;
 };
@@ -68,7 +68,7 @@ const haversineDistance = (lat1, lng1, lat2, lng2) => {
 
 const RADIUS_KM = 30;
 
-// tourismGuideDB is the default mongoose connection (already connected via connectDB)
+// Use the configured test database for hotel data as well.
 const getHotels = async (req, res) => {
   try {
     const db = await getTestDb();

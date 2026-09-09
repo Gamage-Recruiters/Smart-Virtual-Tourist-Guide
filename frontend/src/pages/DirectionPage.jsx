@@ -281,6 +281,12 @@ export default function DirectionPage() {
   };
 
   const handleStart = () => {
+    const dest = destPlace || searchedPlace;
+    if (dest) {
+      setSearchedPlace(dest);
+      const savedRoute = { destination: dest, origin: userLocationRef.current || userLocation, mode: selectedMode, updatedAt: new Date().toISOString() };
+      window.localStorage.setItem('savedDirectionRoute', JSON.stringify(savedRoute));
+    }
     setShowSearchBar(true);
     appNavigate('start');
     setActionMessage({ text: 'Opening start page.', type: 'success' });
@@ -339,7 +345,6 @@ export default function DirectionPage() {
             </button>
           </div>
         </div>
-
         {addStopOpen && (
           <AddStopPanel
             stopPanelCollapsed={stopPanelCollapsed}
@@ -365,7 +370,7 @@ export default function DirectionPage() {
           <button
             type="button"
             onClick={() => appNavigate('explore')}
-            style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 50, width: '40px', height: '40px', borderRadius: '50%', background: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 1100, width: '40px', height: '40px', borderRadius: '50%', background: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
           </button>
@@ -396,6 +401,7 @@ export default function DirectionPage() {
                     setFallbackMode={routing.setFallbackMode}
                     selectedRoute={routing.routes[routing.selectedIdx] || routing.routes[0]}
                     modeMinutesCache={routing.modeMinutesCache}
+                    modeDurations={routing.modeDurations}
                     drivingMinutesRef={routing.drivingMinutesRef}
                     baseModeMinutes={215}
                     handleShare={handleShare}

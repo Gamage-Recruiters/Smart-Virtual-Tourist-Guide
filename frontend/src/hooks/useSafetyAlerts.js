@@ -1,12 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { createRouteLabel } from '../utils/leafletSetup';
 import { haversineDist } from '../utils/geo';
 import { checkRouteForFlood } from '../utils/floodService';
-import { fetchCrimeAlerts, fetchRoadBlockages } from '../services/api';
+import { fetchCrimeAlerts, fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { getDistanceToPath } from '../utils/geo';
 
-const SHOW_CRIME_LABELS_ON_START_MAP = false;
-const SHOW_ROADBLOCK_LABELS_ON_START_MAP = false;
+const SHOW_CRIME_LABELS_ON_START_MAP = true;
+const SHOW_ROADBLOCK_LABELS_ON_START_MAP = true;
 
 /**
  * Hook that manages safety overlay labels (flood, crime, roadblock, hospital)
@@ -21,6 +21,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
 
   const floodLabelsRef = useRef([]);
   const floodPollRef = useRef(null);
+  const weatherLabelsRef = useRef([]);
   const crimeLabelsRef = useRef([]);
   const crimeAlertsCacheRef = useRef([]);
   const crimeRoutePathRef = useRef([]);
@@ -32,6 +33,11 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
   const clearFloodOverlays = useCallback(() => {
     floodLabelsRef.current.forEach((l) => l.remove());
     floodLabelsRef.current = [];
+  }, []);
+
+  const clearWeatherOverlays = useCallback(() => {
+    weatherLabelsRef.current.forEach((label) => label.remove());
+    weatherLabelsRef.current = [];
   }, []);
 
   const clearCrimeOverlays = useCallback(() => {
@@ -46,6 +52,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
 
   const clearAllSafetyOverlays = useCallback(() => {
     clearFloodOverlays();
+    clearWeatherOverlays();
     clearCrimeOverlays();
     clearRoadblockOverlays();
     if (nearestHospitalOverlayRef.current) {
@@ -56,7 +63,49 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       clearInterval(floodPollRef.current);
       floodPollRef.current = null;
     }
-  }, [clearFloodOverlays, clearCrimeOverlays, clearRoadblockOverlays]);
+  }, [clearFloodOverlays, clearWeatherOverlays, clearCrimeOverlays, clearRoadblockOverlays]);
+
+  const checkAndDrawWeatherLabels = useCallback(async (overviewPath, destination = '', destinationCoords = null) => {
+    if (!mapInstanceRef.current || !overviewPath?.length || showDetailsPanel) return;
+    clearWeatherOverlays();
+
+    try {
+      const response = await fetchWeatherAlerts(destination, destinationCoords);
+      let alerts = Array.isArray(response) ? response : (response?.data || []);
+      if (!alerts.length && destination) {
+        const fallbackResponse = await fetchWeatherAlerts();
+        alerts = Array.isArray(fallbackResponse) ? fallbackResponse : (fallbackResponse?.data || []);
+      }
+
+      const destinationText = destination.toLowerCase();
+      const routeAlerts = alerts.filter((alert) => {
+        const lat = alert.latitude ?? alert.lat;
+        const lng = alert.longitude ?? alert.lng;
+        const alertLocation = (alert.location || '').toLowerCase();
+        const matchesDestination = destinationText && alertLocation && (alertLocation.includes(destinationText) || destinationText.includes(alertLocation));
+        return matchesDestination || (lat != null && lng != null && getDistanceToPath({ lat, lng }, overviewPath) <= 5000);
+      });
+
+      const alertsToRender = routeAlerts.length ? routeAlerts : alerts.slice(0, 1);
+      alertsToRender.forEach((alert) => {
+        const lat = alert.latitude ?? alert.lat;
+        const lng = alert.longitude ?? alert.lng;
+        const labelPosition = lat != null && lng != null ? { lat, lng } : overviewPath[overviewPath.length - 1];
+
+        const condition = alert.weatherCondition || 'Weather alert';
+        const location = alert.location || '';
+        const title = alert.title || `${condition} alert`;
+        const description = alert.description || '';
+        const temperature = alert.temperature != null ? `${Math.round(alert.temperature)}°C` : 'N/A';
+        const windSpeed = alert.windSpeed != null ? `${alert.windSpeed} km/h` : 'N/A';
+        const severity = alert.severity || 'N/A';
+        const html = `<div style="transform:translateY(-72px);min-width:230px;max-width:320px;border-radius:10px;background:#FDE68A;padding:10px 12px;box-shadow:0 3px 8px rgba(0,0,0,.3);color:#111;line-height:1.35;"><div style="font-weight:800;font-size:12px;">${title}</div><div style="font-weight:700;font-size:11px;margin-top:3px;">${condition}${location ? ` · ${location}` : ''}</div><div style="font-size:10px;margin-top:3px;">Temperature: ${temperature} · Wind: ${windSpeed} · Severity: ${severity}</div>${description ? `<div style="font-size:10px;margin-top:4px;white-space:normal;">${description}</div>` : ''}</div>`;
+        weatherLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, labelPosition, html));
+      });
+    } catch (error) {
+      console.warn('[useSafetyAlerts] Failed to fetch weather labels:', error.message);
+    }
+  }, [mapInstanceRef, showDetailsPanel, clearWeatherOverlays]);
 
   const checkAndDrawFloodLabel = useCallback(async (overviewPath, destination) => {
     if (!mapInstanceRef.current || !overviewPath?.length || showDetailsPanel) return;
@@ -191,6 +240,14 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       const res = await fetchCrimeAlerts();
       const alerts = Array.isArray(res) ? res : (res?.data || []);
       crimeAlertsCacheRef.current = alerts;
+      alerts.forEach((alert) => {
+        const lat = alert.latitude ?? alert.lat;
+        const lng = alert.longitude ?? alert.lng;
+        if (lat == null || lng == null || getDistanceToPath({ lat, lng }, overviewPath) > 5000) return;
+        const location = alert.location ? ` · ${alert.location}` : '';
+        const html = `<div style="transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#EF4444;display:flex;align-items:center;justify-content:center;padding:8px 12px;box-shadow:0 3px 8px rgba(127,29,29,.4);"><span style="font-weight:700;font-size:11px;color:#fff;white-space:normal;text-align:center;">${alert.title || 'Security alert'}${location}</span></div>`;
+        crimeLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, { lat, lng }, html));
+      });
     } catch (err) {
       console.warn('[useSafetyAlerts] Failed to fetch crime alerts:', err.message);
     }
@@ -288,6 +345,14 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       const res = await fetchRoadBlockages();
       const incidents = Array.isArray(res) ? res : (res?.incidents || res?.data || []);
       roadblocksCacheRef.current = incidents;
+      incidents.forEach((incident) => {
+        const lat = incident.location?.lat ?? incident.latitude ?? incident.lat;
+        const lng = incident.location?.lng ?? incident.longitude ?? incident.lng;
+        if (lat == null || lng == null || getDistanceToPath({ lat, lng }, overviewPath) > 5000) return;
+        const location = incident.district ? ` · ${incident.district}` : '';
+        const html = `<div style="transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#FACC15;display:flex;align-items:center;justify-content:center;padding:8px 12px;box-shadow:0 3px 8px rgba(161,98,7,.35);"><span style="font-weight:700;font-size:11px;color:#111;white-space:normal;text-align:center;">${incident.incidentCategory || 'Incident'}${location}</span></div>`;
+        roadblockLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, { lat, lng }, html));
+      });
     } catch (err) {
       console.warn('[useSafetyAlerts] Failed to fetch roadblock alerts:', err.message);
     }
@@ -328,15 +393,24 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
     } catch (err) { console.warn('Hospital search failed', err); }
   }, [mapInstanceRef, showDetailsPanel]);
 
-  return {
-    floodDetected,
+  return useMemo(() => ({
     floodPollRef,
     clearAllSafetyOverlays,
+    checkAndDrawWeatherLabels,
     checkAndDrawFloodLabel,
     checkAndDrawCrimeLabels,
     checkAndDrawRoadblockLabels,
     updateNearestCrimeLabel,
     updateNearestRoadblockLabel,
     findNearestHospital,
-  };
+  }), [
+    clearAllSafetyOverlays,
+    checkAndDrawWeatherLabels,
+    checkAndDrawFloodLabel,
+    checkAndDrawCrimeLabels,
+    checkAndDrawRoadblockLabels,
+    updateNearestCrimeLabel,
+    updateNearestRoadblockLabel,
+    findNearestHospital,
+  ]);
 }

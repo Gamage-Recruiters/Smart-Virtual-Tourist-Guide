@@ -20,6 +20,7 @@ export default function SafetyAlertTemplate() {
 
   const routePath = safetyData?.routePath || [];
   const safeDestination = (safetyData?.destination || '').replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
+  const destinationCoords = safetyData?.destinationCoords || null;
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userPos, setUserPos] = useState(null);
@@ -114,8 +115,22 @@ export default function SafetyAlertTemplate() {
         const floodRes = await checkRouteForFlood(routePath, destination);
         const hasFlood = floodRes.isFlood;
 
-        const res = await fetchWeatherAlerts(destination);
-        const data = res?.data || [];
+        const res = await fetchWeatherAlerts(destination, destinationCoords);
+        const weatherAlerts = res?.data || [];
+        const destinationText = destination.toLowerCase();
+        const matchingAlerts = weatherAlerts.filter((alert) => {
+          const alertLocation = (alert.location || '').toLowerCase();
+          return alertLocation && (destinationText.includes(alertLocation) || alertLocation.includes(destinationText));
+        });
+        const nearestAlert = destinationCoords
+          ? weatherAlerts
+            .filter((alert) => alert.latitude != null && alert.longitude != null)
+            .sort((a, b) => (
+              haversineDistance(destinationCoords.lat, destinationCoords.lng, a.latitude, a.longitude)
+              - haversineDistance(destinationCoords.lat, destinationCoords.lng, b.latitude, b.longitude)
+            ))[0]
+          : null;
+        const data = nearestAlert ? [nearestAlert] : (matchingAlerts.length ? [matchingAlerts[0]] : weatherAlerts.slice(0, 1));
         if (!cancelled) {
           if (data.length > 0) {
             setAlerts([buildAlert(data[0], hasFlood)]);
