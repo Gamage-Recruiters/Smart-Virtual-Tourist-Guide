@@ -105,7 +105,7 @@ const updateMenuItem = async (req, res) => {
     const menuItem = await MenuItem.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!menuItem) {

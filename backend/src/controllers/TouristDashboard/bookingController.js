@@ -87,7 +87,7 @@ async function updateBookingStatus(req, res) {
     const booking = await Booking.findOneAndUpdate(
       { _id: id, userId },
       { $set: { status } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!booking) {

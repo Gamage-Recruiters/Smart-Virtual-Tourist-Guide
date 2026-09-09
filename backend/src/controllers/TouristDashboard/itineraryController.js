@@ -64,7 +64,7 @@ async function updateItinerary(req, res) {
     const itinerary = await TripItinerary.findOneAndUpdate(
       { userId },
       { $set: { userId, ...payload } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
     );
 
     return res.status(200).json({ success: true, data: itinerary });

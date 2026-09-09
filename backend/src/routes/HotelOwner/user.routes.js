@@ -40,7 +40,7 @@ router.put('/hotel', async (req, res) => {
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: { 'hotels.0': hotel } },
-      { new: true, upsert: false }
+      { returnDocument: 'after', upsert: false }
     ).select('hotels');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({ message: 'Hotel info updated successfully.', hotels: user.hotels });
@@ -61,7 +61,7 @@ router.put('/profile', async (req, res) => {
     if (contactNumber !== undefined) update.contactNumber = contactNumber;
     if (email !== undefined) update.email = email;
 
-    const user = await User.findByIdAndUpdate(userId, update, { new: true }).select('fullName email contactNumber');
+    const user = await User.findByIdAndUpdate(userId, update, { returnDocument: 'after' }).select('fullName email contactNumber');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json({ message: 'Profile updated successfully.', user });

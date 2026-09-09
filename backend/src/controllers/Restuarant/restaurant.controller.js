@@ -69,7 +69,7 @@ const updateRestaurantProfile = async (req, res) => {
     const restaurant = await Restaurant.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!restaurant) {
@@ -109,7 +109,7 @@ const updateOperatingHours = async (req, res) => {
     const restaurant = await Restaurant.findByIdAndUpdate(
       req.params.id,
       { operatingHours },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!restaurant) {
@@ -136,7 +136,7 @@ const updateBannerImage = async (req, res) => {
     const restaurant = await Restaurant.findByIdAndUpdate(
       req.params.id,
       { bannerImage },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!restaurant) {

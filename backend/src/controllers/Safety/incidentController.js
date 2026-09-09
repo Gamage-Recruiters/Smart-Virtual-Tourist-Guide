@@ -187,7 +187,7 @@ export const getIncidentById = async (req, res, next) => {
 export const updateIncident = async (req, res, next) => {
   try {
     const incident = await Incident.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
 

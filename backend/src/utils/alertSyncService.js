@@ -212,7 +212,7 @@ async function syncWeatherAlerts(io) {
           temperature: Math.round(data.main?.temp || 0),
           windSpeed: Math.round((data.wind?.speed || 0) * 3.6), // m/s → km/h
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       );
       synced++;
 

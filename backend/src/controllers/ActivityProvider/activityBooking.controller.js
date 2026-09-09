@@ -78,7 +78,7 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
           customerPhone: booking.customer?.phone || '',
           status: 'booked',
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       );
 
       // 2. Store / Update in Management Calendar
@@ -180,7 +180,7 @@ export const updateBookingStatus = async (req, res) => {
     const booking = await ActivityBooking.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!booking) {

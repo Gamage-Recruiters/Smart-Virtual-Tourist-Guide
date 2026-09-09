@@ -145,7 +145,7 @@ const saveCalendarDate = async (req, res) => {
     const entry = await Calendar.findOneAndUpdate(
       { activityId, date },
       { activityId, date, timeSlots, isUnavailable: !!isUnavailable, notes: notes || '' },
-      { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
+      { returnDocument: 'after', upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
 
     const bookedTourists = await fetchBookedTourists(activityId, date);
@@ -171,7 +171,7 @@ const markUnavailable = async (req, res) => {
     const entry = await Calendar.findOneAndUpdate(
       { activityId, date },
       { activityId, date, isUnavailable: true, status: 'unavailable' },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     );
 
     const bookedTourists = await fetchBookedTourists(activityId, date);

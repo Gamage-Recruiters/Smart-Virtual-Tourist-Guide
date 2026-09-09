@@ -76,14 +76,14 @@ const updateUserStatus = async (req, res) => {
         }
 
         // 1. Check User collection first
-        let updatedAccount = await User.findByIdAndUpdate(id, { status }, { new: true });
+        let updatedAccount = await User.findByIdAndUpdate(id, { status }, { returnDocument: 'after' });
 
         // 2. If not found in User, check Admin collection
         if (!updatedAccount) {
             if (status === 'Pending') {
                 return res.status(400).json({ success: false, message: 'Admins cannot have Pending status' });
             }
-            updatedAccount = await Admin.findByIdAndUpdate(id, { status }, { new: true });
+            updatedAccount = await Admin.findByIdAndUpdate(id, { status }, { returnDocument: 'after' });
         }
 
         if (!updatedAccount) {
@@ -115,7 +115,7 @@ const updateAdStatus = async (req, res) => {
 
         const { status } = req.body;
 
-        const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { new: true });
+        const updatedAd = await Advertisement.findByIdAndUpdate(id, { status }, { returnDocument: 'after' });
         if (!updatedAd) return res.status(404).json({ success: false, message: 'Ad not found' });
 
         res.status(200).json({ success: true, message: `Ad marked as ${status}`, data: updatedAd });
@@ -170,7 +170,7 @@ const getAdvertisementById = async (req, res) => {
 // Update an existing advertisement
 const updateAdvertisement = async (req, res) => {
     try {
-        const updatedAd = await Advertisement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updatedAd = await Advertisement.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
         if (!updatedAd) {
             return res.status(404).json({ success: false, message: 'Advertisement not found' });
         }

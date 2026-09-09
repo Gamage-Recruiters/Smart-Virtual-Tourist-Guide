@@ -78,7 +78,7 @@ export const updatePackage = async (req, res) => {
         const newImages = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
         body.images = [...keptImages.map(url => url.replace('http://localhost:5000', '')), ...newImages];
 
-        const pkg = await SpecialPackage.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+        const pkg = await SpecialPackage.findByIdAndUpdate(id, body, { returnDocument: 'after', runValidators: true });
         if (!pkg) return res.status(404).json({ message: 'Package not found' });
         return res.status(200).json({ message: 'Package updated successfully', package: pkg });
     } catch (error) {
