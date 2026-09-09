@@ -80,8 +80,22 @@ export function usePOISearch(directionsResultRef, selectedIdx) {
   const fetchStopSuggestions = useCallback(async (input) => {
     if (!input.trim()) { setStopSuggestions([]); return; }
     try {
-      // Use center of Sri Lanka as default bias
-      const results = await searchPlaces(input, { lat: 7.8731, lon: 80.7718 }, 50000, 5);
+      let lat = 7.8;
+      let lon = 80.7;
+
+      const result = directionsResultRef?.current;
+      if (result?.routes?.[selectedIdx]) {
+        const route = result.routes[selectedIdx];
+        const path = route.overview_path || [];
+        if (path.length > 0) {
+          const midPoint = path[Math.floor(path.length / 2)];
+          lat = typeof midPoint.lat === 'function' ? midPoint.lat() : midPoint.lat;
+          lon = typeof midPoint.lng === 'function' ? midPoint.lng() : midPoint.lng;
+        }
+      }
+
+      // Bias search towards route midpoint if available, otherwise center of Sri Lanka
+      const results = await searchPlaces(input, 5, lat, lon);
       const formatted = results.map(r => ({
         place_id: `${r.lat},${r.lon}`,
         description: r.name ? `${r.name}, ${r.address?.city || r.address?.county || r.address?.state || ''}` : r.displayName,

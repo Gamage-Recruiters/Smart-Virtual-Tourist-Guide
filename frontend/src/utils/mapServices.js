@@ -14,19 +14,50 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // ── Photon: Search Autocomplete ──
-export async function searchPlaces(query, limit = 5) {
+// Sri Lanka bounding box: minLon,minLat,maxLon,maxLat
+const SL_BBOX = '79.6,5.9,81.9,9.9';
+
+const TYPE_PRIORITY = {
+  // Tier 1: Tourist attractions (highest priority)
+  attraction: 1, viewpoint: 1, museum: 1, monument: 1, artwork: 1,
+  zoo: 1, theme_park: 1, gallery: 1, castle: 1, ruins: 1,
+  temple: 1, hindu_temple: 1, buddhist_temple: 1, place_of_worship: 1,
+  beach: 1, waterfall: 1, national_park: 1, nature_reserve: 1,
+
+  // Tier 2: Tourism-adjacent (hotels, guesthouses)
+  hotel: 2, guest_house: 2, hostel: 2,
+
+  // Tier 3: Administrative (deprioritized, not excluded)
+  city: 3, town: 3, village: 3, district: 3, state: 3, county: 3,
+};
+
+function getTypePriority(osmValue) {
+  return TYPE_PRIORITY[osmValue] ?? 2.5;
+}
+
+export async function searchPlaces(query, limit = 8, lat = 7.8, lon = 80.7) {
   if (!query?.trim()) return [];
-  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${limit}&lang=en&lat=7.8&lon=80.7`;
+
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${limit * 2}&lang=en&lat=${lat}&lon=${lon}&bbox=${SL_BBOX}`;
+
   const res = await fetch(url);
   const data = await res.json();
-  return (data.features || []).map(f => ({
+
+  const results = (data.features || []).map(f => ({
     name: f.properties.name || f.properties.street || '',
-    displayName: [f.properties.name, f.properties.city, f.properties.state].filter(Boolean).join(', '),
+    displayName: [f.properties.name, f.properties.city, f.properties.state]
+      .filter(Boolean)
+      .join(', '),
     lat: f.geometry.coordinates[1],
     lng: f.geometry.coordinates[0],
     osm_id: f.properties.osm_id,
     type: f.properties.osm_value,
+    priority: getTypePriority(f.properties.osm_value),
   }));
+
+  results.sort((a, b) => a.priority - b.priority);
+
+  return results.slice(0, limit);
 }
 
 // ── Nominatim: Forward Geocoding (name → coords) ──
