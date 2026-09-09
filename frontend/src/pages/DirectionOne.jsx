@@ -12,32 +12,27 @@ import { useLocationSearch } from '../utils/useLocationSearch';
 import { usePageTitle } from '../contexts/PageTitleContext';
 import { geocodeAddress } from '../utils/geoapifyService';
 import { saveRecentPlace, fetchRecentPlaces } from '../services/api';
+import styles from './DirectionOne.module.css';
 
 const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
   return (
     <div ref={search.containerRef} className="relative flex items-center">
-      <img src={icon} alt={placeholder} style={{ width: '48px', height: '48px', marginRight: '10px' }} />
-      <div
-        className="bg-gradient-to-r from-[#FFFFFF] to-[#A0DBFF] shadow text-full text-center font-bold relative"
-        style={{ borderRadius: '8px', padding: '16px 24px', width: '700px', display: 'flex', alignItems: 'center' }}
-      >
+      <img src={icon} alt={placeholder} className={styles.rowIcon} />
+      <div className={`bg-gradient-to-r from-[#FFFFFF] to-[#A0DBFF] shadow text-full text-center font-bold relative ${styles.inputBox}`}>
         <input
           type="text"
           value={search.query}
           onChange={search.handleChange}
           onKeyDown={search.handleKeyDown}
           placeholder={placeholder}
-          className="border-0 bg-transparent text-center font-bold text-gray-800 outline-none"
-          style={{ caretColor: '#1A73E8', flex: 1 }}
-          onFocus={e => e.target.style.setProperty('--placeholder-opacity', '0')}
-          onBlur={e => e.target.style.setProperty('--placeholder-opacity', '0.45')}
+          className={`border-0 bg-transparent text-center font-bold text-gray-800 outline-none ${styles.inputField}`}
         />
         {vehicleIcon && (
           <svg
             onClick={onSearch}
             width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="#1A73E8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            style={{ flexShrink: 0, cursor: 'pointer' }}
+            className={styles.searchIconBtn}
           >
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -46,44 +41,19 @@ const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
       </div>
 
       {search.suggestions.length > 0 && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: '58px',
-            width: '700px',
-            background: '#fff',
-            borderRadius: '10px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-            zIndex: 9999,
-            listStyle: 'none',
-            margin: 0,
-            padding: '4px 0',
-            maxHeight: '220px',
-            overflowY: 'auto',
-          }}
-        >
+        <ul className={styles.suggestionsList}>
           {search.suggestions.map((place, idx) => (
             <li
               key={place.place_id}
               onMouseDown={() => search.confirmPlace(place.place_id, place.structured_formatting.main_text)}
               onMouseEnter={() => search.setActiveIdx(idx)}
-              style={{
-                padding: '9px 14px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                color: '#333',
-                background: idx === search.activeIdx ? '#EFF6FF' : 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
+              className={`${styles.suggestionItem} ${idx === search.activeIdx ? styles.suggestionItemActive : ''}`}
             >
-              <span style={{ color: '#6B7280', fontSize: '13px' }}>•</span>
+              <span className={styles.bullet}>•</span>
               <span>
                 <strong>{place.structured_formatting.main_text}</strong>
                 {place.structured_formatting.secondary_text && (
-                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{place.structured_formatting.secondary_text}</span>
+                  <span className={styles.secondaryText}>{place.structured_formatting.secondary_text}</span>
                 )}
               </span>
             </li>
@@ -169,12 +139,9 @@ const DirectionOne = () => {
       </div>
 
       {/* Location Inputs - left aligned, adjust marginLeft/marginTop/gap values */}
-      <div
-        className="relative z-20 flex items-center"
-        style={{ marginTop: '20px', marginLeft: '700px', gap: '12px' }}
-      >
+      <div className={`relative z-20 flex items-center ${styles.locationInputsContainer}`}>
         {/* Two text box rows */}
-        <div className="flex flex-col" style={{ gap: '20px' }}>
+        <div className={`flex flex-col ${styles.rowsColumn}`}>
           <LocationRow
             icon={directionCircle}
             search={originSearch}
@@ -194,45 +161,27 @@ const DirectionOne = () => {
           src={upDown}
           alt="Swap"
           onClick={handleSwap}
-          style={{ width: '40px', marginLeft: '20px', cursor: 'pointer', marginRight: '720px' }}
+          className={styles.swapIcon}
         />
       </div>
 
       {/* Transport Icons */}
-<div className="relative z-10 flex justify-center gap-32 mt-6 mb-10">
-  {vehicles.map(({ key, src, alt, className }) => (
-    <img
-      key={key}
-      src={src}
-      alt={alt}
-      className={className}
-      onClick={() => {
-        setSelectedVehicle(key);
-        if (destinationSearch.query.trim()) {
-          handleSearch(key);
-        }
-      }}
-      style={{
-        cursor: 'pointer',
-        borderRadius: '4px', // square with slightly rounded corners
-        padding: '6px',
-        transition: 'background 0.2s, box-shadow 0.2s',
-        background: selectedVehicle === key ? 'rgba(0,0,0,0.1)' : 'transparent',
-        boxShadow: selectedVehicle === key ? '0 0 0 1px #5d5d61' : 'none',
-      }}
-      onMouseEnter={(e) => {
-        if (selectedVehicle !== key) {
-          e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; // subtle hover square
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (selectedVehicle !== key) {
-          e.currentTarget.style.background = 'transparent';
-        }
-      }}
-    />
-  ))}
-</div>
+      <div className="relative z-10 flex justify-center gap-32 mt-6 mb-10">
+        {vehicles.map(({ key, src, alt, className }) => (
+          <img
+            key={key}
+            src={src}
+            alt={alt}
+            className={`${className} ${styles.vehicleBtn} ${selectedVehicle === key ? styles.vehicleBtnSelected : ''}`}
+            onClick={() => {
+              setSelectedVehicle(key);
+              if (destinationSearch.query.trim()) {
+                handleSearch(key);
+              }
+            }}
+          />
+        ))}
+      </div>
 
       {/* Recent Section */}
       <div className="relative z-10 w-full max-w-full mt-12 ">
@@ -276,7 +225,7 @@ const DirectionOne = () => {
         </div>
       </div>
     </div>
-    );
+  );
 };
 
 export default DirectionOne;

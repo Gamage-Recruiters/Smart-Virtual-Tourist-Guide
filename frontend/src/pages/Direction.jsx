@@ -35,6 +35,7 @@ import { useMapEngine } from '../hooks/useMapEngine';
 import { useRouting } from '../hooks/useRouting';
 import AddStopPanel from './AddStopPanel';
 import { formatStepInstruction, getManeuverIconType, formatDistance } from '../utils/navigationHelper';
+import styles from './Direction.module.css';
 
 const Direction = ({ showDetailsPanel = true }) => {
   const { searchedPlace, userLocation, setUserLocation, setActivePage, pendingOriginLabel, pendingVehicle, setPendingOriginLabel, setPendingVehicle, setTitle, setEtaData, setSearchedPlace, setSafetyData, setShowSearchBar } = usePageTitle();
@@ -1367,25 +1368,9 @@ const Direction = ({ showDetailsPanel = true }) => {
   const mapHeight = showDetailsPanel ? (addStopOpen ? '450px' : '900px') : 'calc(100vh + 80px)';
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#edf7ff]" style={{ minHeight: '100vh' }}>
+    <div className="relative w-full overflow-hidden bg-[#edf7ff] min-h-screen">
       {actionMessage && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#1A73E8',
-          color: '#fff',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          zIndex: 999999,
-          fontWeight: 600,
-          fontSize: '15px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
+        <div className={styles.toastMessage}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 6L9 17l-5-5" />
           </svg>
@@ -1399,27 +1384,13 @@ const Direction = ({ showDetailsPanel = true }) => {
       <div className="relative z-10 w-full">
         <div className="relative w-full" style={{ height: mapHeight, transition: 'height 0.35s ease' }}>
           <div ref={mapRef} className="h-full w-full shadow-[0_18px_50px_rgba(18,46,99,0.12)]" />
-          {showDetailsPanel && !addStopOpen && (
+          {!addStopOpen && (
             <button
               type="button"
-              onClick={() => setActivePage && setActivePage('explore')}
-              aria-label="Back to explore"
-              style={{
-                position: 'absolute',
-                top: '16px',
-                left: '16px',
-                zIndex: 50,
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                background: '#fff',
-                border: 'none',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
+              onClick={() => setActivePage && setActivePage(showDetailsPanel ? 'explore' : 'direction')}
+              aria-label={showDetailsPanel ? "Back to explore" : "Back to directions"}
+              className={styles.backBtn}
+              style={{ zIndex: 1200 }}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -1428,58 +1399,22 @@ const Direction = ({ showDetailsPanel = true }) => {
           )}
           <div
             ref={zoomOverlayRef}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px',
-              fontWeight: 500,
-              opacity: 0,
-              pointerEvents: 'none',
-              transition: 'opacity 0.3s ease',
-              zIndex: 10,
-            }}
+            className={styles.zoomOverlay}
           >
             Use Ctrl + scroll to zoom the map
           </div>
-          <div
-            className="absolute right-4 z-30"
-            style={{ bottom: '200px', pointerEvents: 'none' }}
-          >
+          <div className={styles.gpsContainer}>
             <button
               type="button"
               onClick={handleGpsSearch}
               aria-label="Use current location"
-              style={{
-                  pointerEvents: 'auto',
-                  width: '45px',
-                  height: '45px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  background: '#1A73E8',
-                  boxShadow: '0 10px 24px rgba(26,115,232,0.28)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  position: 'absolute',        // anchor positioning
-                  right: '0px',                // stick to right corner
-                  bottom: 'var(--gps-margin, 8px)' // adjustable bottom margin
-      
-              }}
+              className={styles.gpsBtn}
             >
-              <img src={gpsIcon} alt="GPS search" style={{ width: '25px', height: '25px' }} />
+              <img src={gpsIcon} alt="GPS search" className={styles.gpsIcon} />
             </button>
           </div>
           {!showDetailsPanel && (
-            <div className="absolute left-1/2 top-6 z-[1000] w-[92%] max-w-[760px] -translate-x-1/2">
+            <div className="absolute left-1/2 top-6 z-[1000] w-[calc(100%-140px)] max-w-[760px] -translate-x-1/2">
               <div className="flex items-center gap-3 sm:gap-4 rounded-2xl bg-white p-3 sm:p-4 shadow-[0_10px_35px_rgba(0,0,0,0.18)] border border-slate-100">
                 {/* Left: Maneuver Icon */}
                 <div className="flex h-[62px] w-[62px] sm:h-[72px] sm:w-[72px] shrink-0 items-center justify-center rounded-xl bg-[#1A73E8] text-white shadow-sm">
@@ -1523,7 +1458,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                     }
                     if (iconType === 'slight_left') {
                       return (
-                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(-25deg)' }}>
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="-rotate-[25deg]">
                           <path d="M12 4l-5 5h3v11h4V9h3l-5-5z" />
                         </svg>
                       );
@@ -1538,7 +1473,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                     }
                     if (iconType === 'slight_right') {
                       return (
-                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(25deg)' }}>
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-[25deg]">
                           <path d="M12 4l-5 5h3v11h4V9h3l-5-5z" />
                         </svg>
                       );
@@ -1607,7 +1542,7 @@ const Direction = ({ showDetailsPanel = true }) => {
 
 
         {!showDetailsPanel && (
-          <div className="flex items-center justify-center" style={{ marginTop: '150px', marginBottom: '150px', gap: '260px' }}>
+          <div className={styles.navBottomRow}>
             <button
               type="button"
               onClick={() => {
@@ -1641,68 +1576,22 @@ const Direction = ({ showDetailsPanel = true }) => {
           currentStop={currentWaypoint}
         />
 
-        {!showDetailsPanel && (
-          <button
-            type="button"
-            onClick={() => setActivePage && setActivePage('direction')}
-            aria-label="Back to direction"
-            style={{
-              position: 'absolute',
-              top: '16px',
-              left: '16px',
-              zIndex: 50,
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: '#fff',
-              border: 'none',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-
-
         {showDetailsPanel && !addStopOpen && (
-          <div style={{ maxWidth: '100%', margin: '0 auto', padding: 0 }}>
+          <div className={styles.detailsPanelWrapper}>
             {/* Loading indicator */}
             {loadingRoutes && (
-              <div style={{
-                position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                background: 'rgba(255, 255, 255, 0.95)', borderRadius: '16px',
-                padding: '24px 32px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                zIndex: 99999, textAlign: 'center',
-              }}>
-                <div style={{
-                  width: '40px', height: '40px', border: '4px solid #E8F3FF',
-                  borderTop: '4px solid #1A73E8', borderRadius: '50%',
-                  animation: 'spin 1s linear infinite', margin: '0 auto 12px',
-                }} />
-                <div style={{ color: '#122E63', fontWeight: 600, fontSize: '14px' }}>
+              <div className={styles.loadingOverlay}>
+                <div className={styles.spinner} />
+                <div className={styles.loadingText}>
                   Finding routes...
                 </div>
-                <style>{
-                  `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`
-                }</style>
               </div>
             )}
             {/* Slide toggle tab */}
             {!panelOpen && (
               <div
                 onClick={() => setPanelOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', background: '#fff', borderRadius: '12px 12px 0 0',
-                  padding: '6px 24px', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
-                  width: 'fit-content', margin: '0 auto',
-                }}
+                className={styles.panelToggleTab}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A73E8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="18 15 12 9 6 15" />
@@ -1710,11 +1599,8 @@ const Direction = ({ showDetailsPanel = true }) => {
               </div>
             )}
             <div
-              style={{
-                overflow: 'hidden',
-                maxHeight: panelOpen ? '1000px' : '0px',
-                transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1)',
-              }}
+              className={styles.panelDrawer}
+              style={{ maxHeight: panelOpen ? '1000px' : '0px' }}
             >
             <div className="overflow-hidden rounded-[1px] border border-white/70 bg-white/95 shadow-[0_30px_80px_rgba(18,46,99,0.18)] backdrop-blur-md">
               <div className="px-5 py-4 sm:px-8">
@@ -1761,14 +1647,14 @@ const Direction = ({ showDetailsPanel = true }) => {
                           <span className="text-medium font-medium text-slate-700 whitespace-nowrap">{timeLabel}</span>
                         </div>
                         {/* thin blue underline on active */}
-                        <div style={{ height: '3.4px', width: '100%', marginTop: '36px', borderRadius: '2px', background: active ? '#1A73E8' : 'transparent' }} />
+                        <div className={active ? styles.modeIndicatorActive : styles.modeIndicator} />
                       </button>
                     );
                   })}
                 </div>
 
                 {/* black line below entire selector row */}
-                <div style={{ height: '1.5px', background: '#000', marginTop: '1px', marginBottom: '32px', borderRadius: '1px' }} />
+                <div className={styles.modeSeparator} />
               </div>
 
               <div className="grid gap-4 px-5 py-5 sm:px-16">
@@ -1792,40 +1678,18 @@ const Direction = ({ showDetailsPanel = true }) => {
                     </div>
 
                     {currentWaypoint && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: '#EFF6FF',
-                        border: '1px solid #93C5FD',
-                        borderRadius: '10px',
-                        padding: '10px 14px',
-                        marginTop: '12px',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1E40AF', fontWeight: 600 }}>
+                      <div className={styles.waypointBox}>
+                        <div className={styles.waypointHeader}>
                           <span>📍 Stop on route:</span>
-                          <span style={{ color: '#111827' }}>{currentWaypoint.name}</span>
+                          <span className={styles.waypointName}>{currentWaypoint.name}</span>
                           {currentWaypoint.distanceFromRouteText && (
-                            <span style={{ fontSize: '11px', color: '#3B82F6', fontWeight: 500 }}>({currentWaypoint.distanceFromRouteText})</span>
+                            <span className={styles.waypointDistance}>({currentWaypoint.distanceFromRouteText})</span>
                           )}
                         </div>
                         <button
                           type="button"
                           onClick={handleRemoveWaypoint}
-                          style={{
-                            background: '#DBEAFE',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '24px',
-                            height: '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: '#1E40AF',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                          }}
+                          className={styles.removeWaypointBtn}
                           title="Remove stop"
                         >
                           ✕
@@ -1869,30 +1733,16 @@ const Direction = ({ showDetailsPanel = true }) => {
       </div>
 
       {error && (
-        <div style={{
-          position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-          background: '#fff', borderRadius: '16px', padding: '24px 36px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 99999,
-          maxWidth: '400px', textAlign: 'center',
-        }}>
-          <div style={{
-            color: '#e53e3e', fontWeight: 600, fontSize: '16px', marginBottom: '16px',
-          }}>
+        <div className={styles.errorModal}>
+          <div className={styles.errorTitle}>
             ⚠️ Route Error
           </div>
-          <div style={{
-            color: '#4a5568', fontSize: '14px', lineHeight: '1.5',
-          }}>
+          <div className={styles.errorText}>
             {error}
           </div>
           <button
             onClick={() => setError(null)}
-            style={{
-              marginTop: '20px', padding: '10px 24px',
-              background: '#1A73E8', color: '#fff',
-              border: 'none', borderRadius: '8px',
-              fontWeight: 600, cursor: 'pointer',
-            }}
+            className={styles.errorBtn}
           >
             OK
           </button>
@@ -1904,15 +1754,17 @@ const Direction = ({ showDetailsPanel = true }) => {
         (() => {
           const content = (
             <div
-              className="p-6 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg"
-              style={document.getElementById('header-search-portal') ? { width: '100%', minHeight: '150px', zIndex: 50, position: 'absolute', top: '-15px', right: 0 } : { position: 'absolute', top:'-70px', right: '64px', width: '880px', minHeight: '150px', zIndex: 50 }}
+              className={`p-6 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg ${
+                document.getElementById('header-search-portal')
+                  ? styles.locationPanelPortal
+                  : styles.locationPanelDefault
+              }`}
             >
               <div className="flex items-center gap-3 pb-4">
                 <img
                   src={swapped ? redPinIcon : blueLocationIcon}
                   alt="Current location"
-                  className="w-5 h-5 shrink-0"
-                  style={{ width: '20px', height: '20px', objectFit: 'contain', display: 'block' }}
+                  className={`shrink-0 ${styles.locationPinIcon}`}
                 />
                 <LocationInput
                   placeholder="Your location"
@@ -1940,14 +1792,13 @@ const Direction = ({ showDetailsPanel = true }) => {
               </div>
               <div className="flex items-center gap-3 py-2">
                 <img src={threeDots} alt="Separator" className="w-7 h-7" />
-                <hr style={{ width: '90%', border: 'none', borderTop: '3px solid #000' }} />
+                <hr className={styles.separatorLine} />
               </div>
               <div className="flex items-center gap-3 pt-4">
                 <img
                   src={swapped ? blueLocationIcon : redPinIcon}
                   alt="Searched location"
-                  className="w-5 h-5 shrink-0"
-                  style={{ width: '20px', height: '20px', objectFit: 'contain', display: 'block' }}
+                  className={`shrink-0 ${styles.locationPinIcon}`}
                 />
                 <LocationInput
                   placeholder={destPlace || searchedPlace ? destination : "Enter destination first"}
@@ -1955,7 +1806,7 @@ const Direction = ({ showDetailsPanel = true }) => {
                   onSelect={onDestSelect}
                 />
               </div>
-              <div className="absolute right-4 top-1/3 z-10" onClick={handleSwap} style={{ cursor: 'pointer' }}>
+              <div className={`absolute right-4 top-1/3 z-10 ${styles.swapBtn}`} onClick={handleSwap}>
                 <img src={upDown} alt="Swap" className="w-6 h-12 object-contain opacity-90" />
               </div>
               <div className="absolute top-3 right-4">

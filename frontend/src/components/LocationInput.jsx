@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, MapPin, Clock } from 'lucide-react';
 import { useLocationSearch } from '../utils/useLocationSearch';
 import { geocodeAddress } from '../utils/geoapifyService';
-
+import styles from './LocationInput.module.css';
 
 const HISTORY_KEY = 'locationSearchHistory';
 
@@ -48,10 +48,10 @@ export default function LocationInput({
   const showSuggestions = allowDropdown && suggestions.length > 0;
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', flex: 1 }}>
-      <div className="flex items-center gap-2 min-w-0" style={{ flex: 1 }}>
+    <div ref={containerRef} className={styles.wrapper}>
+      <div className={styles.row}>
         {icon}
-        <div className="flex items-center min-w-0" style={{ flex: 1 }}>
+        <div className={styles.inputWrap}>
           <input
             type="text"
             value={inputValue}
@@ -61,15 +61,14 @@ export default function LocationInput({
             onFocus={() => setFocused(true)}
             onBlur={() => setTimeout(() => setFocused(false), 150)}
             placeholder={placeholder}
-            className="bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
-            style={{ flex: 1, minWidth: 0 }}
+            className={`bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400 ${styles.textInput}`}
           />
           {!readOnly && staticValue == null && query.trim() && (
             <Search
               size={14}
               color="#6B7280"
               strokeWidth={2}
-              style={{ cursor: 'pointer', flexShrink: 0, marginLeft: '6px' , marginRight: '500px'}}
+              className={styles.searchIcon}
               onClick={handleSearch}
             />
           )}
@@ -78,11 +77,7 @@ export default function LocationInput({
 
       {/* Pre-focus dropdown: history only */}
       {showPrefocus && !showSuggestions && (
-        <ul style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-          background: '#fff', borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-          zIndex: 9999, listStyle: 'none', margin: 0, padding: '8px 0',
-        }}>
+        <ul className={styles.historyDropdown}>
           {history.map((h, i) => (
             <li
               key={i}
@@ -92,10 +87,7 @@ export default function LocationInput({
                   if (place) onSelect({ ...place, displayName: h });
                 });
               }}
-              style={{
-                padding: '16px 12px 8px 10px', cursor: 'pointer', fontSize: '15px', color: '#333',
-                display: 'flex', alignItems: 'center', gap: '8px',
-              }}
+              className={styles.historyItem}
             >
               <Clock size={30} color="#6B7280" />
               <span>{h}</span>
@@ -106,28 +98,19 @@ export default function LocationInput({
 
       {/* API suggestions while typing */}
       {showSuggestions && (
-        <ul style={{
-          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-          background: '#fff', borderRadius: '10px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-          zIndex: 9999, listStyle: 'none', margin: 0, padding: '4px 0',
-          maxHeight: '220px', overflowY: 'auto',
-        }}>
+        <ul className={styles.suggestionsDropdown}>
           {suggestions.map((p, i) => (
             <li
               key={p.place_id}
               onMouseDown={() => confirmPlace(p.place_id, p.structured_formatting?.main_text || p.displayName || p.name)}
               onMouseEnter={() => setActiveIdx(i)}
-              style={{
-                padding: '9px 14px', cursor: 'pointer', fontSize: '13px', color: '#333',
-                background: i === activeIdx ? '#EFF6FF' : 'transparent',
-                display: 'flex', alignItems: 'center', gap: '8px',
-              }}
+              className={`${styles.suggestionItem} ${i === activeIdx ? styles.suggestionItemActive : ''}`}
             >
               <MapPin size={13} color="#6B7280" />
               <span>
                 <strong>{p.structured_formatting?.main_text || p.displayName || p.name}</strong>
                 {p.structured_formatting?.secondary_text && (
-                  <span style={{ color: '#6B7280', marginLeft: 4 }}>{p.structured_formatting.secondary_text}</span>
+                  <span className={styles.secondaryText}>{p.structured_formatting.secondary_text}</span>
                 )}
               </span>
             </li>
