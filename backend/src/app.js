@@ -136,7 +136,7 @@ app.use('/api/vehicle', vehicleRouter);
 
 // Activity Provider Routes
 app.use('/api/activities', activityRoutes);
-app.use('/api/bookings', activityBookingRoutes);
+app.use('/api/activity-bookings', activityBookingRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
