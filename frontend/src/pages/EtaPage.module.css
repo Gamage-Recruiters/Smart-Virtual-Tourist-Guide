@@ -1,0 +1,238 @@
+.pageContainer {
+  width: 100%;
+  min-height: calc(100vh - 112px);
+  max-height: calc(100vh - 112px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  overflow-y: auto;
+  padding: 8px 24px;
+}
+
+.contentColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 8px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.topCenteredSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.etaBanner {
+  background: linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  padding: 8px 20px;
+  width: 100%;
+  text-align: center;
+}
+
+.etaRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.etaClockIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.etaTitle {
+  font-weight: 700;
+  font-size: 20px;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.arrivalTime {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  font-family: 'Inter', sans-serif;
+  margin-top: 2px;
+}
+
+.mapBox {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  height: 210px;
+  width: 100%;
+  position: relative;
+  background: #e2e8f0;
+}
+
+.mapCanvas {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.mapLoadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.mapLoadingBox {
+  background: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  color: #1A73E8;
+  font-size: 13px;
+}
+
+.infoCard {
+  background: linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  padding: 10px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.infoLabel {
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.infoValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'Inter', sans-serif;
+  margin-top: 2px;
+}
+
+.transportBox {
+  text-align: center;
+}
+
+.transportIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  margin: 2px auto 0;
+}
+
+.routesCard {
+  background: linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  padding: 10px 32px;
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.routesTitle {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.routesList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.routeRow {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #111827;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: transparent;
+  transition: background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.routeRowSelected {
+  composes: routeRow;
+  font-weight: 700;
+  background: rgba(26, 115, 232, 0.12);
+}
+
+.selectedTag {
+  font-size: 12px;
+  color: #1A73E8;
+  font-weight: 700;
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  width: 100%;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.actionBtn {
+  background: #2B5BA9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  min-width: 140px;
+  transition: background 0.15s ease;
+}
+
+.actionBtn:hover {
+  background: #1e4585;
+}
+
+.startNavBtn {
+  composes: actionBtn;
+  padding: 8px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}

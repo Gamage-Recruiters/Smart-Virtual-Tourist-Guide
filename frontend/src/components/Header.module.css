@@ -1,0 +1,171 @@
+.header {
+  border-bottom: 1px solid #F5F7FA;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.logoArea {
+  min-width: 400px;
+}
+
+.logoImg {
+  z-index: 2;
+  transform: translateZ(0);
+}
+
+.brandTextWrap {
+  margin-left: 110px;
+}
+
+.brandTitle {
+  font-size: 18px;
+  color: #122E63;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.flagText {
+  font-size: 2.8rem;
+  letter-spacing: 6px;
+  font-family: 'Inter', sans-serif;
+  display: inline-block;
+  font-weight: 800;
+  background-size: cover;
+  background-position: center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.centerTitleWrap {
+  z-index: 1;
+}
+
+.searchWrapper {
+  position: relative;
+  width: 800px;
+  margin-right: 40px;
+  z-index: 10;
+}
+
+.searchBox {
+  background: linear-gradient(90deg, #FAFDFF 0%, #D8EFFF 100%);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput {
+  padding: 4px 0;
+  flex: 1;
+  font-size: 16px;
+}
+
+.etaDetailsLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  margin-right: 24px;
+}
+
+.etaDataWrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.etaDuration {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1A73E8;
+}
+
+.etaDistance {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.etaTraffic {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.etaTrafficHeavy {
+  color: #e53e3e;
+}
+
+.etaTrafficModerate {
+  color: #d69e2e;
+}
+
+.etaTrafficLight {
+  color: #38a169;
+}
+
+.iconBtn {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.suggestionsList {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 9999;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+
+.suggestionItemActive {
+  background: #EFF6FF;
+}
+
+.secondaryText {
+  color: #6B7280;
+  margin-left: 4px;
+}
+
+.searchPortalArea {
+  width: 880px;
+  margin: 10px 30px;
+  position: relative;
+}
+
+.portalBackWrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  padding-right: 20px;
+}
+
+.portalBackBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
