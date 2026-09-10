@@ -5,8 +5,8 @@ let testConn = null;
 const getTestDb = async () => {
   if (testConn) return testConn;
 
-  const uri = process.env.MONGODB_URI_TEST;
-  if (!uri) throw new Error('MONGODB_URI_TEST is not defined in .env');
+  const uri = process.env.MONGODB_URI || process.env.MONGODB_TEST;
+  if (!uri) throw new Error('MONGODB_URI is not defined in .env');
 
   testConn = await mongoose.createConnection(uri).asPromise();
   console.log('Test DB connected');

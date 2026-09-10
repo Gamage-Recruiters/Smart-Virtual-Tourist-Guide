@@ -19,7 +19,9 @@ import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
 import adminRoutes from './routes/Admin/adminRoutes.js';
-
+import tempHotBookRoutes from './routes/HotelOwner/tempHotBook.routes.js';                            
+import hotelRevenueSummaryRoutes from './routes/HotelOwner/hotelRevenueSummary.routes.js';             
+import startBookingSyncScheduler from './jobs/HotelOwner/bookingSyncScheduler.js'; 
 // Restaurant route imports (from Integration-resturent/shakir branch)
 
 import menuItemRoutes from './routes/Restuarant/menuItem.routes.js';
@@ -49,6 +51,7 @@ import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.r
 
 config();
 configureCloudinary();
+startBookingSyncScheduler(); 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -61,7 +64,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images as static files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ==================== DATABASE CONNECTION ====================
 connectDB();
@@ -127,9 +130,11 @@ app.use('/api/hotels', hotelRouter);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
-app.use('/api/packages', specialPackageRoutes);
+app.use('/api/special-packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/temp-bookings', tempHotBookRoutes); 
+app.use('/api/revenue-summary', hotelRevenueSummaryRoutes); 
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);

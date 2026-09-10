@@ -206,9 +206,17 @@ export const hotelOwnerAPI = {
   register(userData) {
     return apiClient.post('/auth/register/hotel-owner', userData);
   },
-
   addHotelInfo(hotelData) {
     return apiClient.post('/auth/add-hotel-info', hotelData);
+  },
+  getBookingsByHotel(hotelId) {
+    return apiClient.get(`/temp-bookings/hotel/${hotelId}`);
+  },
+  getRevenueSummariesByHotel(hotelId) {
+    return apiClient.get(`/revenue-summary/hotel/${hotelId}`);
+  },
+  syncRevenueSummariesByHotel(hotelId) {
+    return apiClient.post(`/revenue-summary/hotel/${hotelId}/sync`, {});
   },
 };
 
@@ -400,4 +408,4 @@ export const reviewAPI = {
 /**
  * Default API client
  */
-export default apiClient;
+export default apiClient;
