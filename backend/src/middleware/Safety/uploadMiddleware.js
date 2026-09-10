@@ -5,9 +5,9 @@ import path from 'path';
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dvnqb7osc',
+  api_key: process.env.CLOUDINARY_API_KEY || '732949338888659',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'Oz4hzhHDewIpkEdj5DiuwlMBVk0',
 });
 
 // Configure storage
@@ -35,3 +35,4 @@ const upload = multer({
 });
 
 export default upload;
+
