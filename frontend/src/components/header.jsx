@@ -25,6 +25,16 @@ const Header = () => {
     setIsSidebarOpen(false);
   };
 
+  const handleProfileClick = () => {
+    if (!user) return;
+    if (user.role === 'driver_user') navigate('/driver-details');
+    else if (user.role === 'tourist_user') navigate('/touristProfile');
+    else if (user.role === 'hotelowner_user') navigate('/hotelowner-dashboard');
+    else if (user.role === 'restaurant_user') navigate('/restaurant-dashboard');
+    else if (user.role === 'guide_user') navigate('/guide-dashboard');
+    else if (user.role === 'renter_user') navigate('/renter-dashboard');
+  };
+
   const handleNavigation = (path) => {
     navigate(path);
     closeSidebar();
@@ -107,7 +117,7 @@ const Header = () => {
             {/* Sign In Button / User Profile */}
             {user ? (
               <div className="items-center gap-2 hidden sm:flex">
-                <div className="px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+                <div onClick={handleProfileClick} className="cursor-pointer px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm hover:bg-blue-100 transition-colors">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   {user.fullName || user.restaurantName || user.username || 'User'}
                 </div>

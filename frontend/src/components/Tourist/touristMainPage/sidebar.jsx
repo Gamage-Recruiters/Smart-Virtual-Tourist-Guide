@@ -7,7 +7,7 @@ import {
   User,
   MapPin,
   LogOut,
-  
+  ShoppingBag,
 } from "lucide-react";
 
 function Sidebar() {
@@ -22,16 +22,9 @@ function Sidebar() {
             icon={<LayoutDashboard size={20} />}
             label="Dashboard"
             navigate="/dashboard-Tourist"
-            //if navigate to dashboard, show active class
             active={
               location === "/" ||
-              location === "/dashboard-Tourist" ||
-              (location.startsWith("/dashboard-Tourist/") &&
-                location !== "/dashboard-Tourist/trip-plan" &&
-                location !== "/dashboard-Tourist/direction" &&
-                location !== "/dashboard-Tourist/touristProfile" && 
-                location !== "/safety"
-              )
+              location === "/dashboard-Tourist"
             }
           />
           <NavItem
@@ -47,9 +40,16 @@ function Sidebar() {
             active={location === "/dashboard-Tourist/direction"}
           />
           <NavItem
+            icon={<ShoppingBag size={20} />}
+            label="Marketplace"
+            navigate="/dashboard-Tourist/marketplace"
+            active={location === "/dashboard-Tourist/marketplace"}
+          />
+          <NavItem
             icon={<ShieldCheck size={20} />}
             label="Safety"
             navigate="/safety"
+            active={location === "/safety"}
           />
           <NavItem
             icon={<User size={20} />}
