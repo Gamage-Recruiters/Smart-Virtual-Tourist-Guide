@@ -33,6 +33,7 @@ import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
 import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
 import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
 import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
+import bidRoutes from './routes/bidRoutes.js';
 
 import safetyRouter from './routes/Safety/safetyRouter.js';
 
@@ -107,6 +108,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tourists', touristRoutes);
+app.use('/api/bids', bidRoutes);
 // Admin Routes
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);

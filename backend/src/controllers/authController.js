@@ -687,6 +687,20 @@ const getMe = async (req, res) => {
   }
 };
 
+// Public route: returns all registered drivers
+const getAllDrivers = async (req, res) => {
+  try {
+    const drivers = await User.find({ role: 'driver_user' }).select('-password');
+    res.status(200).json({
+      success: true,
+      count: drivers.length,
+      drivers
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 export {
   loginUser,
   registerTourist,
@@ -702,5 +716,6 @@ export {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
-  getMe
+  getMe,
+  getAllDrivers
 };
