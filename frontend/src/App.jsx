@@ -87,6 +87,13 @@ import { PageTitleProvider } from "./context/PageTitleContext";
 import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
 import DummyPageDriver from "./pages/Driver/dummyPage";
+import Driver_Dashboard from "./components/Driver/Driver_Dashboard";
+import Driver_Request   from "./components/Driver/Driver_Request";
+import Driver_Earnings  from "./components/Driver/Driver_Earnings";
+import Driver_Bids      from "./components/Driver/Driver_Bids";
+import Submit_Bids      from "./components/Driver/Submit_Bids";
+import Ride_Details     from "./components/Driver/Ride_Details";
+import Driver_Details   from "./components/Driver/Driver_Deatils";
 import DummyPageAdmin from "./pages/Admin/dummyPage";
 
 import VehicleAdmin from "./pages/Renter/vehicleAdminDashboard/vehicleAdminPage";
@@ -125,6 +132,7 @@ import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
 import BookDriver from "./pages/Driver/bookDriver.jsx";
 import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
 import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
+import MarketplacePage from "./pages/Tourist/MarketplacePage.jsx";
 
 function App() {
   return (
@@ -254,6 +262,7 @@ function App() {
               }
             />
             <Route path="touristProfile" element={<TouristProfilePage />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="rent-vehicle" element={<RentVehiclePage />} />
             <Route
               path="rent-vehicle/vehicle-details/:id"
@@ -331,7 +340,14 @@ function App() {
             element={<DummyPageGovernment />}
           />
 
-          <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
+                    <Route path="/dashboard-Driver" element={<Navigate to="/driver-dashboard" replace />} />
+          <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
+          <Route path="/driver-request" element={<Driver_Request />} />
+          <Route path="/driver-earnings" element={<Driver_Earnings />} />
+          <Route path="/driver-bids" element={<Driver_Bids />} />
+          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />`n          <Route path="/other-drivers" element={<Submit_Bids />} />
+          <Route path="/ride-details" element={<Ride_Details />} />
+          <Route path="/driver-details" element={<Driver_Details />} />
 
           <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
 
@@ -544,3 +560,5 @@ function App() {
 }
 
 export default App;
+
+
