@@ -20,16 +20,17 @@ export default function Submit_Bids() {
 
   const driverName = location.state?.driverName || "Kamal";
 
-  // Fetch bids from backend
+  // Fetch bids from backend with auto-hire
   const fetchBids = async () => {
     try {
-      if (!tripId) return;
-      const response = await fetch(`/api/bids/${tripId}`);
+      const currentTripId = tripId || "default";
+      const response = await fetch(`/api/bids/${currentTripId}`);
       const result = await response.json();
-      if (result.success) {
+      if (result.success && result.data) {
         setOtherBids(result.data);
-      } else {
-        console.log(result.message);
+        if (result.autoHiredDriver) {
+          setHiredDriver(result.autoHiredDriver);
+        }
       }
     } catch (error) {
       console.error("Fetch bids error:", error);
@@ -38,8 +39,8 @@ export default function Submit_Bids() {
 
   useEffect(() => {
     fetchBids();
-    // Auto-refresh every 15 seconds
-    const interval = setInterval(fetchBids, 15000);
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchBids, 10000);
     return () => clearInterval(interval);
   }, [tripId]);
 
@@ -53,10 +54,6 @@ export default function Submit_Bids() {
       toast.error("Bid amount must be greater than 0");
       return;
     }
-    if (!tripId) {
-      toast.error("Trip ID not found. Please open this page with a trip ID.");
-      return;
-    }
 
     try {
       setLoading(true);
@@ -64,8 +61,8 @@ export default function Submit_Bids() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tripId,
-          driverName,
+          tripId: tripId || "default",
+          driverName: driverName || "Driver",
           bidAmount: Number(bidAmount),
         }),
       });
@@ -73,6 +70,10 @@ export default function Submit_Bids() {
       if (result.success) {
         toast.success("Bid submitted successfully!");
         setBidAmount("");
+        if (result.autoHiredDriver) {
+          setHiredDriver(result.autoHiredDriver);
+          toast.success(`⚡ Lowest Bid Auto-Assigned to ${result.autoHiredDriver.driverName}!`);
+        }
         fetchBids();
       } else {
         toast.error(result.message || "Bid submit failed");
@@ -93,22 +94,25 @@ export default function Submit_Bids() {
         )
       : null;
 
+  // Auto-assign when bids update
+  useEffect(() => {
+    if (lowestBid && (!hiredDriver || hiredDriver._id !== lowestBid._id)) {
+      setHiredDriver(lowestBid);
+    }
+  }, [lowestBid]);
+
   // Hire the lowest bid driver
   const handleHire = async (bid) => {
     try {
       setHiring(true);
-      // Mark as hired (update driver availability via backend)
       const response = await fetch(`/api/bids/hire/${bid._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "hired" }),
       });
-
-      // Even if backend endpoint doesn't exist yet, show success UI
       setHiredDriver(bid);
       toast.success(`🎉 ${bid.driverName} hired for LKR ${bid.bidAmount.toLocaleString()}!`);
     } catch (error) {
-      // Show success UI anyway (hire stored on frontend until backend hire endpoint added)
       setHiredDriver(bid);
       toast.success(`🎉 ${bid.driverName} hired for LKR ${bid.bidAmount.toLocaleString()}!`);
     } finally {

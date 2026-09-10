@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaCar, FaMoneyBillWave, FaClipboardList, FaUser } from "react-icons/fa";
+import { FaCar, FaMoneyBillWave, FaClipboardList, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { IoCaretBackOutline } from "react-icons/io5";
 
 export default function DriverHeader() {
@@ -14,6 +14,12 @@ export default function DriverHeader() {
     { label: "Earnings",  path: "/driver-earnings",  icon: <FaMoneyBillWave size={14} /> },
     { label: "Profile",   path: "/driver-details",   icon: <FaUser size={14} /> },
   ];
+
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate("/login");
+  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -50,6 +56,15 @@ export default function DriverHeader() {
             {link.label}
           </button>
         ))}
+
+        {/* Logout Button (Right of Profile) */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all text-red-600 hover:bg-red-50 hover:text-red-700"
+        >
+          <FaSignOutAlt size={14} />
+          Logout
+        </button>
       </nav>
 
       {/* Mobile Hamburger */}
@@ -79,6 +94,15 @@ export default function DriverHeader() {
               {link.label}
             </button>
           ))}
+
+          {/* Mobile Logout Button */}
+          <button
+            onClick={() => { handleLogout(); setMenuOpen(false); }}
+            className="w-full flex items-center gap-3 px-6 py-4 text-sm font-bold border-b border-slate-50 text-red-600 hover:bg-red-50 transition-all"
+          >
+            <FaSignOutAlt size={14} />
+            Logout
+          </button>
         </div>
       )}
     </header>
