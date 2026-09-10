@@ -45,6 +45,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  profileImage: {
+    type: String,
+    default: ''
+  },
   // Tourist specific fields
   country: {
     type: String,
@@ -117,6 +121,14 @@ const userSchema = new mongoose.Schema({
     trim: true
   },
   vehicleNumber: {
+    type: String,
+    trim: true
+  },
+  vehicleColor: {
+    type: String,
+    trim: true
+  },
+  nationalIdNumber: {
     type: String,
     trim: true
   },
