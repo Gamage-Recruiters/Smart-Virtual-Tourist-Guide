@@ -1,10 +1,11 @@
-import { useState } from "react";
-import DriverCard from "./DriverCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import DriverCard from "./driverCard";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { driverAPI } from "../../services/api";
 
-const drivers = [
+const defaultSampleDrivers = [
   {
-    id: 1,
+    id: "sample-1",
     name: "Kamal Perera",
     experience: "15 years experience",
     rating: 4.9,
@@ -16,9 +17,8 @@ const drivers = [
     image:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
   },
-
   {
-    id: 2,
+    id: "sample-2",
     name: "Nimal Silva",
     experience: "12 years experience",
     rating: 4.8,
@@ -30,9 +30,8 @@ const drivers = [
     image:
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
   },
-
   {
-    id: 3,
+    id: "sample-3",
     name: "Sunil Fernando",
     experience: "10 years experience",
     rating: 4.7,
@@ -44,143 +43,95 @@ const drivers = [
     image:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
   },
-
-  {
-    id: 4,
-    name: "Ravi Jayawardena",
-    experience: "8 years experience",
-    rating: 4.6,
-    reviews: 68,
-    price: 75,
-    tags: ["English", "Nissan SUV", "AC"],
-    description:
-      "Young and energetic driver specializing in adventure tours and off-the-beaten-path destinations.",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-  },
-
-  {
-    id: 5,
-    name: "Lakshan Wijayasinghe",
-    experience: "14 years experience",
-    rating: 4.8,
-    reviews: 112,
-    price: 90,
-    tags: ["English", "Sinhala", "Toyota Hiace", "AC"],
-    description:
-      "Experienced tour driver specializing in group tours and cultural heritage sites. Spacious vehicle perfect for families.",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-  },
-
-  {
-    id: 6,
-    name: "Dinesh Rodrigues",
-    experience: "9 years experience",
-    rating: 4.7,
-    reviews: 78,
-    price: 65,
-    tags: ["English", "Honda City", "AC"],
-    description:
-      "Friendly and courteous driver with excellent local knowledge. Budget-friendly option for solo travelers and couples.",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-  },
-
-  {
-    id: 7,
-    name: "Chaminda Bandara",
-    experience: "11 years experience",
-    rating: 4.9,
-    reviews: 135,
-    price: 95,
-    tags: ["English", "Tamil", "Sinhala", "Nissan Navara", "AC"],
-    description:
-      "Premium service driver with multilingual abilities. Perfect for business travelers and luxury tours.",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
-  },
-
-  {
-    id: 8,
-    name: "Pradeep Kumar",
-    experience: "7 years experience",
-    rating: 4.5,
-    reviews: 55,
-    price: 60,
-    tags: ["English", "Maruti Swift"],
-    description:
-      "Energetic driver offering affordable rates without compromising on quality service and comfort.",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-  },
-
-  {
-    id: 9,
-    name: "Thushara de Silva",
-    experience: "13 years experience",
-    rating: 4.8,
-    reviews: 98,
-    price: 100,
-    tags: ["English", "German", "French", "Toyota Fortuner", "AC"],
-    description:
-      "Trilingual professional driver ideal for international tourists and corporate events.",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-  },
-
-  {
-    id: 10,
-    name: "Anil Jayasena",
-    experience: "10 years experience",
-    rating: 4.6,
-    reviews: 71,
-    price: 78,
-    tags: ["English", "Sinhala", "Hyundai Santa Fe", "AC"],
-    description:
-      "Reliable driver with extensive experience in both tourist and business travel across Sri Lanka.",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-  },
-
-  {
-    id: 11,
-    name: "Saminda Wijewardena",
-    experience: "16 years experience",
-    rating: 4.9,
-    reviews: 156,
-    price: 110,
-    tags: ["English", "Tamil", "Sinhala", "Mercedes E-Class", "AC"],
-    description:
-      "Senior driver with exceptional service record. Specializes in luxury and executive transport.",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-  },
-
-  {
-    id: 12,
-    name: "Roshan Perera",
-    experience: "9 years experience",
-    rating: 4.7,
-    reviews: 89,
-    price: 72,
-    tags: ["English", "Sinhala", "Honda Accord", "AC"],
-    description:
-      "Professional driver with excellent communication skills and deep knowledge of hidden tourist attractions.",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
-  },
 ];
 
 const DRIVERS_PER_PAGE = 5;
 
-export default function DriverList() {
+export default function DriverList({ filters, sortBy, onResetFilters }) {
+  const [driversList, setDriversList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(drivers.length / DRIVERS_PER_PAGE);
-  
+
+  useEffect(() => {
+    const fetchDriversFromDB = async () => {
+      try {
+        setLoading(true);
+        const response = await driverAPI.getAllDrivers();
+        if (response && response.success && Array.isArray(response.drivers) && response.drivers.length > 0) {
+          const mappedDrivers = response.drivers.map((d, index) => {
+            const vehicle = d.driverDetails?.vehicleName || d.vehicleType || "Vehicle Available";
+            const vehicleNum = d.driverDetails?.vehicleNumber || d.vehicleNumber || "";
+            const phone = d.contactNumber || d.email || "N/A";
+
+            return {
+              id: d._id || index,
+              name: d.fullName || "Registered Driver",
+              experience: d.experience || "Experienced Local Driver",
+              rating: d.rating || 4.9,
+              reviews: d.reviews || 15,
+              price: d.price || 85,
+              tags: [
+                vehicle,
+                vehicleNum ? `No: ${vehicleNum}` : null,
+                d.vehicleColor || null,
+                "AC"
+              ].filter(Boolean),
+              description: d.description || `Registered driver offering safe travel across Sri Lanka. Vehicle: ${vehicle} (${vehicleNum || "Verified"}). Contact: ${phone}.`,
+              image: d.profileImage || d.image || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+            };
+          });
+          setDriversList(mappedDrivers);
+        } else {
+          setDriversList(defaultSampleDrivers);
+        }
+      } catch (error) {
+        console.error("Error fetching drivers from database:", error);
+        setDriversList(defaultSampleDrivers);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDriversFromDB();
+  }, []);
+
+  // Filter Drivers
+  const filteredDrivers = driversList.filter((driver) => {
+    if (filters?.maxPrice && driver.price > filters.maxPrice) {
+      return false;
+    }
+    if (filters?.minRating && driver.rating < filters.minRating) {
+      return false;
+    }
+    if (filters?.vehicleType && filters.vehicleType !== "All Vehicles") {
+      const vTerm = filters.vehicleType.toLowerCase();
+      const matchTag = driver.tags?.some((t) => t.toLowerCase().includes(vTerm));
+      const matchDesc = driver.description?.toLowerCase().includes(vTerm);
+      const matchName = driver.name?.toLowerCase().includes(vTerm);
+      if (!matchTag && !matchDesc && !matchName) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Sort Drivers
+  const sortedDrivers = [...filteredDrivers].sort((a, b) => {
+    if (sortBy === "Highest Rated") return b.rating - a.rating;
+    if (sortBy === "Lowest Price") return a.price - b.price;
+    if (sortBy === "Highest Price") return b.price - a.price;
+    return 0; // Recommended
+  });
+
+  const totalPages = Math.ceil((sortedDrivers.length || 1) / DRIVERS_PER_PAGE);
   const startIndex = (currentPage - 1) * DRIVERS_PER_PAGE;
   const endIndex = startIndex + DRIVERS_PER_PAGE;
-  const currentDrivers = drivers.slice(startIndex, endIndex);
+  const currentDrivers = sortedDrivers.slice(startIndex, endIndex);
+
+  // Reset page when filters/sortBy change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sortBy]);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
@@ -194,59 +145,89 @@ export default function DriverList() {
     setCurrentPage(page);
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-gray-500 font-medium">Loading drivers from database...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <p className="text-gray-600">
-          Showing {currentDrivers.length} of {drivers.length} available drivers
+        <p className="text-gray-600 font-medium text-sm">
+          Showing <strong className="text-slate-900">{sortedDrivers.length}</strong> of <strong className="text-slate-900">{driversList.length}</strong> available drivers
         </p>
-
-        <div className="w-[160px] h-[42px] bg-gray-100 rounded-lg"></div>
       </div>
 
-      {/* Cards */}
-      <div className="space-y-6">
-        {currentDrivers.map((driver) => (
-          <DriverCard
-            key={driver.id}
-            driver={driver}
-          />
-        ))}
-      </div>
+      {/* Empty State when no matching drivers */}
+      {sortedDrivers.length === 0 ? (
+        <div className="bg-white rounded-2xl p-10 text-center border border-slate-100 shadow-sm flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl mb-1">
+            🔍
+          </div>
+          <h3 className="text-xl font-bold text-slate-800">No Drivers Match Your Filters</h3>
+          <p className="text-slate-500 text-sm max-w-md">
+            Try adjusting your price range, vehicle selection, or minimum rating to see more drivers.
+          </p>
+          {onResetFilters && (
+            <button 
+              onClick={onResetFilters}
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-sm cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+      ) : (
+        /* Cards */
+        <div className="space-y-6">
+          {currentDrivers.map((driver) => (
+            <DriverCard
+              key={driver.id}
+              driver={driver}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-3 mt-10">
-        <button 
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-          className="w-10 h-10 border rounded-lg flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft size={18} />
-        </button>
-
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => handlePageClick(page)}
-            className={`w-10 h-10 rounded-lg ${
-              currentPage === page
-                ? "bg-blue-600 text-white"
-                : "border hover:bg-gray-100"
-            }`}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-10">
+          <button 
+            onClick={handlePrevious}
+            disabled={currentPage === 1}
+            className="w-10 h-10 border rounded-lg flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {page}
+            <ChevronLeft size={18} />
           </button>
-        ))}
 
-        <button 
-          onClick={handleNext}
-          disabled={currentPage === totalPages}
-          className="w-10 h-10 border rounded-lg flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronRight size={18} />
-        </button>
-      </div>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageClick(page)}
+              className={`w-10 h-10 rounded-lg ${
+                currentPage === page
+                  ? "bg-blue-600 text-white font-bold"
+                  : "border hover:bg-gray-100 text-slate-700"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button 
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className="w-10 h-10 border rounded-lg flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
