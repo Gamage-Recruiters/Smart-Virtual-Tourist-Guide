@@ -596,7 +596,7 @@
 // };
 
 // export default LoginScreen;
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -654,8 +654,13 @@ const LoginScreen = () => {
 
       // success login
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        if (data.user.role === 'restaurant_user') {
+          localStorage.setItem('restaurantToken', data.token);
+          localStorage.setItem('restaurantUser', JSON.stringify(data.user));
+        } else {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userData', JSON.stringify(data.user));
+        }
 
         // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);

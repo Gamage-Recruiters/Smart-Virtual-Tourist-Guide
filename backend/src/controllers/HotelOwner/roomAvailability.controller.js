@@ -199,7 +199,7 @@ export const saveBlockedDates = async (req, res) => {
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { blockedDates: normalized } },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!doc) return res.status(404).json({ message: 'Room not found' });
 
@@ -232,7 +232,7 @@ export const saveMaintenanceDates = async (req, res) => {
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { maintenanceDates: normalized } },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!doc) return res.status(404).json({ message: 'Room not found' });
 
@@ -252,7 +252,7 @@ export const updateBlockedPeriod = async (req, res) => {
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'blockedDates._id': periodId },
             { $set: { 'blockedDates.$.startDate': normalizeDate(startDate), 'blockedDates.$.endDate': normalizeDate(endDate) } },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!doc) return res.status(404).json({ message: 'Period not found' });
         return res.status(200).json({ message: 'Blocked period updated', blockedDates: doc.blockedDates });
@@ -269,7 +269,7 @@ export const updateMaintenancePeriod = async (req, res) => {
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'maintenanceDates._id': periodId },
             { $set: { 'maintenanceDates.$.startDate': normalizeDate(startDate), 'maintenanceDates.$.endDate': normalizeDate(endDate) } },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!doc) return res.status(404).json({ message: 'Period not found' });
         return res.status(200).json({ message: 'Maintenance period updated', maintenanceDates: doc.maintenanceDates });

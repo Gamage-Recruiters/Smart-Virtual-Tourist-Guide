@@ -133,7 +133,7 @@ export const updateRoom = async (req, res) => {
         body.images = [...keptImages.map(url => url.replace('http://localhost:5000', '')), ...newImages];
 
         const room = await Room.findByIdAndUpdate(id, body, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true,
         });
 
@@ -171,7 +171,7 @@ export const updateRoomStatus = async (req, res) => {
         const room = await Room.findByIdAndUpdate(
             id, 
             { $set: { status } }, 
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!room) {
@@ -240,7 +240,7 @@ export const addBookingDate = async (req, res) => {
         const room = await Room.findByIdAndUpdate(
             id,
             { $push: { bookingDates: { startDate, endDate, note: note || '' } } },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!room) return res.status(404).json({ message: 'Room not found' });
@@ -273,7 +273,7 @@ export const updateBookingDate = async (req, res) => {
         const room = await Room.findOneAndUpdate(
             { _id: id, 'bookingDates._id': bookingId },
             { $set: update },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!room) return res.status(404).json({ message: 'Room or booking not found' });

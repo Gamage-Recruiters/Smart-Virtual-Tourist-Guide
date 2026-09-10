@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { FiSearch, FiFlag, FiThumbsUp, FiThumbsDown, FiChevronDown } from 'react-icons/fi';
 import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
-import heroBanner from '../../assets/nature.png';
+import heroBanner from '../../assets/LandingPage/nature.png';
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_ACTIVITIES = [

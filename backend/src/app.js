@@ -4,6 +4,7 @@ import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { configureCloudinary } from './configs/ActivityProvider/cloudinary.js';
 
 // Import all routes with correct paths
 import roomRoutes from './routes/HotelOwner/Room.routes.js';
@@ -13,34 +14,46 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-//import contactRoutes from './routes/contactRoutes.js';
-//import destinationRoutes from './routes/destinationRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
-//import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
-//import adminRoutes from './routes/Admin/adminRoutes.js';
+import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
+import adminRoutes from './routes/Admin/adminRoutes.js';
 
 // Restaurant route imports (from Integration-resturent/shakir branch)
-import menuItemRoutes from './routes/menuItem.routes.js';
-import offerRoutes from './routes/offer.routes.js';
+import menuItemRoutes from './routes/Restuarant/menuItem.routes.js';
+import offerRoutes from './routes/Restuarant/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
-import reservationRoutes from './routes/reservation.routes.js';
-import reviewRoutes from './routes/review.routes.js';
+import reservationRoutes from './routes/Restuarant/reservation.routes.js';
+import reviewRoutes from './routes/Restuarant/review.routes.js';
+import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
 
-//import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
-//import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
+import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
+import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
 
-//import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
+import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
+import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
+import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
+
+import safetyRouter from './routes/Safety/safetyRouter.js';
+import serviceRouter from './routes/NavigationAndMapping/serviceRouter.js';
+import favoriteRouter from './routes/NavigationAndMapping/favoriteRouter.js';
+import securityAlertRouter from './routes/NavigationAndMapping/securityAlertRouter.js';
+import incidentRouter from './routes/NavigationAndMapping/incidentRouter.js';
+import hotelRouter from './routes/NavigationAndMapping/hotelRouter.js';
+import activityRoutes from './routes/ActivityProvider/activity.routes.js';
+import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
+import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
+import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
+
 // ===== NOTIFICATION ENGINE IMPORTS (OURS) =====
-import notificationRoutes from './routes/notificationRoutes.js';
-import fcmRoutes from './routes/fcmRoutes.js';  
+import engineNotificationRoutes from './routes/notificationRoutes.js';
+import fcmRoutes from './routes/fcmRoutes.js';
 
-// ==============================================
-//import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
+config();
+configureCloudinary();
 
-//import safetyRouter from './routes/Safety/safetyRouter.js';
-//import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
-
-export const app = express();
+const app = express();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -71,11 +84,10 @@ app.get('/', (req, res) => {
       roomAvailability: 'GET /api/room-availability, POST /api/room-availability, PUT /api/room-availability/:id, DELETE /api/room-availability/:id',
       users: 'GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id',
       vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id',
-      restaurants: 'GET /api/restaurants, POST /api/restaurants, PUT /api/restaurants/:id, DELETE /api/restaurants/:id',
-      menu: 'GET /api/menu, POST /api/menu, PUT /api/menu/:id, DELETE /api/menu/:id',
-      offers: 'GET /api/offers, POST /api/offers',
-      reservations: 'GET /api/reservations, POST /api/reservations',
-      reviews: 'GET /api/reviews, POST /api/reviews',
+      activities: 'GET /api/activities, POST /api/activities, PUT /api/activities/:id, DELETE /api/activities/:id, PATCH /api/activities/:id/publish',
+      bookings: 'GET /api/bookings, PATCH /api/bookings/:id/status',
+      availability: 'GET /api/availability, GET /api/availability/date/:date',
+      calendar: 'GET /api/calendar/:activityId/month, GET /api/calendar/:activityId/summary, GET /api/calendar/:activityId/date/:date, POST /api/calendar/:activityId/date/:date, PATCH /api/calendar/:activityId/date/:date/unavailable'
     }
   });
 });
@@ -96,14 +108,27 @@ app.use('/api/auth', authRoutes);
 
 // Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);
-//app.use('/api/contact', contactRoutes);
-//app.use('/api/destinations', destinationRoutes);
-//app.use('/api/safety', safetyRouter);
+app.use('/api/contact', contactRoutes);
+app.use('/api/destinations', destinationRoutes);
+app.use('/api/safety', safetyRouter);
 
+// Tourist Dashboard Routes
+app.use('/api/budget', budgetRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/itinerary', itineraryRoutes);
+// NOTE: /api/notifications (TouristDashboard) is registered AFTER the
+// Notification Engine router in the API Routes section below.
+app.use('/api/tourists', touristRoutes);
 // Admin Routes
-//app.use('/api/admin/auth', adminAuthRoutes);
-//app.use('/api/admin', adminRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin', adminRoutes);
 
+// Navigation and Mapping Routes
+app.use('/api/recent-places', serviceRouter);
+app.use('/api/favorite-places', favoriteRouter);
+app.use('/api/security-alerts', securityAlertRouter);
+app.use('/api/incidents', incidentRouter);
+app.use('/api/hotels', hotelRouter);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);
@@ -114,13 +139,40 @@ app.use('/api/users', userRoutes);
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
 
-// NOTIFICATION ENGINE ROUTES 
-
-app.use('/api/notifications', notificationRoutes);
+// ===== NOTIFICATION ENGINE ROUTES (OURS) — mounted BEFORE TouristDashboard =====
+app.use('/api/notifications', engineNotificationRoutes);
 app.use('/api/user', fcmRoutes);
 
+// Tourist Dashboard notifications (main) — fallback for routes not in engine
+app.use('/api/notifications', notificationRoutes);
+
+// Activity Provider Routes
+app.use('/api/activities', activityRoutes);
+app.use('/api/activity-bookings', activityBookingRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // ==================== ERROR HANDLING ====================
+// ==================== RESTAURANT API ROUTES ====================
+// Restaurant profile routes
+app.use('/api/restaurants', restaurantRoutes);
+
+// Menu item routes
+app.use('/api/menu', menuItemRoutes);
+
+// Offer routes
+app.use('/api/offers', offerRoutes);
+
+// Reservation routes
+app.use('/api/reservations', reservationRoutes);
+
+// Review routes
+app.use('/api/reviews', reviewRoutes);
+
+// Image upload route
+app.use('/api/upload', uploadRoutes);
+
+
 // 404 handler for undefined routes
 app.use((req, res) => {
   res.status(404).json({

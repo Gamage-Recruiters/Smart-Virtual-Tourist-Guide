@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user', 'admin'],
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['Active', 'Suspended', 'Pending'],
+    default: 'Active',
+    index: true
   },
   contactNumber: {
     type: String,

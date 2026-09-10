@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 // IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from "../assets/SLFH.jpg";
+import sriLankaFlag from '../assets/LandingPage/SLFH.jpg';
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from "../assets/HotelOwner/logo.png";
+import logoImage from '../assets/LandingPage/logo.png';
 // IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from "../assets/bg4.png";
+import bg4Image from '../assets/LandingPage/bg4.png';
 
 import NotificationBell from "../components/notifications/NotificationBell";
 
@@ -132,7 +132,7 @@ const Header = () => {
 
             {/* Sign In Button / User Profile */}
             {user ? (
-              <div className="flex items-center gap-2 hidden sm:flex">
+              <div className="items-center gap-2 hidden sm:flex">
                 <div className="px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   {user.fullName ||
@@ -147,7 +147,7 @@ const Header = () => {
                     localStorage.removeItem("restaurantUser");
                     window.location.reload();
                   }}
-                  className="px-4 py-1.5 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-700 font-semibold rounded-lg text-xs transition-all cursor-pointer shadow-sm"
+                  className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
                 >
                   Sign out
                 </button>
