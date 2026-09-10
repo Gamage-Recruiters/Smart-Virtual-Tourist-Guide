@@ -6,7 +6,7 @@ function VehicleAdmin() {
     <div className="flex h-screen w-full bg-[#f8f9fc] overflow-hidden">
       
       {/*The Persistent Sidebar */}
-      <Sidebar/>
+      <Sidebar />
 
       {/*The Dynamic Main Content Area */}
       <main className="flex-1 overflow-y-auto p-8">

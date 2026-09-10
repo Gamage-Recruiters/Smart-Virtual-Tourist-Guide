@@ -37,7 +37,7 @@ export default function ViewCurrentRoomsPackages() {
         const id = deletePackageConfirm;
         setDeletePackageConfirm(null);
         try {
-            const res = await fetch(`http://localhost:5000/api/packages/${id}`, { method: 'DELETE' });
+            const res = await fetch(`http://localhost:5000/api/special-packages/${id}`, { method: 'DELETE' });
             if (res.ok) setPackages((prev) => prev.filter((p) => p._id !== id));
         } catch {}
     };
@@ -58,8 +58,8 @@ export default function ViewCurrentRoomsPackages() {
         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
         const hotelId = userData.hotels?.[0]?._id;
         const url = hotelId
-            ? `http://localhost:5000/api/packages?hotelId=${hotelId}`
-            : 'http://localhost:5000/api/packages';
+            ? `http://localhost:5000/api/special-packages?hotelId=${hotelId}`
+            : 'http://localhost:5000/api/special-packages';
         fetch(url)
             .then((res) => res.json())
             .then((data) => { setPackages(data.packages || []); setPackagesLoading(false); })

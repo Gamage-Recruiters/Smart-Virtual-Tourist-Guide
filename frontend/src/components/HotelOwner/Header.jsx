@@ -21,7 +21,7 @@ export default function Header({ hasHotel = true }) {
   return (
     <header
       className="bg-white/95 backdrop-blur-sm shadow-md py-2 h-28 overflow-visible"
-      style={{ borderBottom: '1px solid #F5F7FA', position: 'fixed', top: 0, left: 0, right: 0, width: '100%', zIndex: 1000 }}
+      style={{ borderBottom: '1px solid #F5F7FA', width: '100%' }}
     >
       <div className="max-w-11xl mx-auto flex items-center justify-between h-full gap-4 px-4">
         {/* Left side: Logo + Title */}
@@ -52,6 +52,7 @@ export default function Header({ hasHotel = true }) {
         {/* Right side: Navigation */}
         <div className="flex items-center gap-4">
           <nav className="hidden lg:flex flex-wrap items-center gap-6 text-sm font-semibold text-slate-800">
+            <button type="button" onClick={() => navigate('/dashboard-HotelOwner')} className="whitespace-nowrap transition hover:text-sky-800 cursor-pointer">Home</button>
             <button type="button" onClick={(e) => handleNavClick(e, '/view-rooms-packages')} className={`whitespace-nowrap transition ${hasHotel ? 'hover:text-sky-800 cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}>Add Rooms &amp; Packages</button>
             <button type="button" onClick={(e) => handleNavClick(e, '/view-availability-calendar')} className={`whitespace-nowrap transition ${hasHotel ? 'hover:text-sky-800 cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}>Calendar</button>
             <button type="button" onClick={(e) => handleNavClick(e, '/manage-availability')} className={`whitespace-nowrap transition ${hasHotel ? 'hover:text-sky-800 cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}>Manage Availability</button>

@@ -13,7 +13,7 @@ import {
 import ActivityProviderSidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
 import { FiCheck, FiClipboard, FiPlus, FiUpload, FiSave, FiX } from 'react-icons/fi';
 import { IoRocket } from 'react-icons/io5';
-import heroBanner from '../../assets/fisherman.png';
+import heroBanner from '../../assets/LandingPage/fisherman.png';
 
 const HERO_IMAGE = heroBanner;
 

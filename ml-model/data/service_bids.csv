@@ -1,0 +1,101 @@
+bid_id,tourist_id,service_type,provider_id,bid_price_lkr,duration_hrs,distance_km,is_anomaly,notes
+B001,T001,tuk_tuk_per_km,D012,75,1.0,5,0,normal
+B002,T001,tuk_tuk_per_km,D034,420,1.0,5,1,overpriced 5x
+B003,T002,hotel_luxury,H001,28000,24,0,0,normal
+B004,T002,hotel_luxury,H009,95000,24,0,1,overpriced 3x
+B005,T003,van_full_day,D005,12000,8,120,0,normal
+B006,T003,van_full_day,D021,58000,8,120,1,overpriced 5x
+B007,T004,tuk_tuk_per_km,D008,65,1.0,4,0,normal
+B008,T004,meal_local,R003,350,1.0,0,0,normal
+B009,T004,meal_local,R018,2800,1.0,0,1,overpriced
+B010,T005,hotel_luxury,H004,32000,24,0,0,normal
+B011,T005,activity_surf,A001,4500,2.0,0,0,normal
+B012,T005,activity_surf,A007,22000,2.0,0,1,overpriced 5x
+B013,T006,tuk_tuk_per_km,D003,55,1.0,6,0,normal
+B014,T006,guide_per_day,G002,5500,8,30,0,normal
+B015,T006,guide_per_day,G015,38000,8,30,1,overpriced 6x
+B016,T007,meal_tourist,R005,1100,1.0,0,0,normal
+B017,T007,meal_fine_dining,R012,3800,1.0,0,0,normal
+B018,T007,meal_fine_dining,R022,18000,1.0,0,1,overpriced 4x
+B019,T008,tuk_tuk_per_km,D007,80,1.0,5,0,normal
+B020,T008,car_full_day,D014,9000,8,80,0,normal
+B021,T008,car_full_day,D029,42000,8,80,1,overpriced
+B022,T009,activity_sigiriya_entry,A002,5000,3.0,0,0,normal fixed price
+B023,T009,hotel_mid,H006,9500,24,0,0,normal
+B024,T009,hotel_mid,H018,44000,24,0,1,overpriced 4x
+B025,T010,hotel_luxury,H002,30000,24,0,0,normal
+B026,T010,activity_whale_watching,A003,6000,4.0,0,0,normal
+B027,T010,activity_whale_watching,A011,28000,4.0,0,1,overpriced 4x
+B028,T011,tuk_tuk_per_km,D011,60,1.0,5,0,normal
+B029,T011,guide_half_day,G004,2800,4,15,0,normal
+B030,T011,guide_half_day,G019,16000,4,15,1,overpriced
+B031,T012,hotel_luxury,H003,35000,24,0,0,normal
+B032,T012,activity_safari,A004,9000,6.0,0,0,normal
+B033,T012,activity_safari,A014,45000,6.0,0,1,overpriced 5x
+B034,T013,tuk_tuk_per_km,D006,70,1.0,4,0,normal
+B035,T013,meal_local,R007,400,1.0,0,0,normal
+B036,T013,hotel_budget,H008,3800,24,0,0,normal
+B037,T013,hotel_budget,H023,22000,24,0,1,overpriced
+B038,T014,meal_tourist,R009,1000,1.0,0,0,normal
+B039,T014,meal_fine_dining,R014,4200,1.0,0,0,normal
+B040,T014,van_half_day,D017,6000,4,60,0,normal
+B041,T014,van_half_day,D031,28000,4,60,1,overpriced
+B042,T015,tuk_tuk_per_km,D002,55,1.0,7,0,normal
+B043,T015,bus_intercity,D025,350,3.0,200,0,normal
+B044,T015,hotel_budget,H010,3500,24,0,0,normal
+B045,T015,activity_cooking_class,A005,3200,3.0,0,0,normal
+B046,T015,activity_cooking_class,A016,14000,3.0,0,1,overpriced 4x
+B047,T016,hotel_luxury,H005,29000,24,0,0,normal
+B048,T016,activity_surf,A006,5200,2.0,0,0,normal
+B049,T016,taxi_airport,D019,3200,1.0,30,0,normal
+B050,T016,taxi_airport,D035,14000,1.0,30,1,overpriced 4x
+B051,T017,hotel_mid,H011,8500,24,0,0,normal
+B052,T017,car_half_day,D022,4500,4,40,0,normal
+B053,T017,meal_tourist,R011,950,1.0,0,0,normal
+B054,T018,hotel_mid,H012,9000,24,0,0,normal
+B055,T018,guide_per_day,G006,5800,8,25,0,normal
+B056,T018,guide_per_day,G021,32000,8,25,1,overpriced
+B057,T019,tuk_tuk_per_km,D004,70,1.0,5,0,normal
+B058,T019,meal_local,R004,380,1.0,0,0,normal
+B059,T019,hotel_budget,H014,4000,24,0,0,normal
+B060,T020,hotel_luxury,H006,33000,24,0,0,normal
+B061,T020,activity_whale_watching,A007,6500,4.0,0,0,normal
+B062,T020,activity_safari,A008,10000,6.0,0,0,normal
+B063,T020,activity_safari,A018,55000,6.0,0,1,overpriced 5x
+B064,T021,hotel_mid,H013,8000,24,0,0,normal
+B065,T021,meal_tourist,R013,1050,1.0,0,0,normal
+B066,T021,van_full_day,D023,13500,8,100,0,normal
+B067,T022,hotel_mid,H015,10000,24,0,0,normal
+B068,T022,activity_sigiriya_entry,A009,5000,3.0,0,0,normal fixed
+B069,T022,guide_per_day,G007,6200,8,35,0,normal
+B070,T022,guide_per_day,G023,35000,8,35,1,overpriced
+B071,T023,tuk_tuk_per_km,D009,60,1.0,4,0,normal
+B072,T023,meal_local,R006,420,1.0,0,0,normal
+B073,T023,hotel_budget,H016,3600,24,0,0,normal
+B074,T024,hotel_luxury,H007,31000,24,0,0,normal
+B075,T024,activity_surf,A010,5000,2.0,0,0,normal
+B076,T024,activity_whale_watching,A011,6800,4.0,0,0,normal
+B077,T024,taxi_airport,D026,3500,1.0,30,0,normal
+B078,T025,meal_fine_dining,R015,3600,1.0,0,0,normal
+B079,T025,meal_fine_dining,R025,19000,1.0,0,1,overpriced
+B080,T025,van_half_day,D027,6200,4,55,0,normal
+B081,T026,tuk_tuk_per_km,D013,65,1.0,5,0,normal
+B082,T026,hotel_budget,H017,3900,24,0,0,normal
+B083,T026,guide_half_day,G009,2900,4,20,0,normal
+B084,T027,hotel_mid,H019,9200,24,0,0,normal
+B085,T027,car_full_day,D028,9500,8,90,0,normal
+B086,T027,car_full_day,D033,48000,8,90,1,overpriced 5x
+B087,T028,tuk_tuk_per_km,D010,55,1.0,6,0,normal
+B088,T028,meal_local,R008,390,1.0,0,0,normal
+B089,T028,hotel_budget,H020,4100,24,0,0,normal
+B090,T029,hotel_luxury,H008,29500,24,0,0,normal
+B091,T029,activity_surf,A012,5500,2.0,0,0,normal
+B092,T029,activity_cooking_class,A013,3500,3.0,0,0,normal
+B093,T030,hotel_mid,H021,8200,24,0,0,normal
+B094,T030,meal_tourist,R016,1100,1.0,0,0,normal
+B095,T030,van_full_day,D030,12500,8,110,0,normal
+B096,T030,van_full_day,D036,62000,8,110,1,overpriced 5x
+B097,T031,tuk_tuk_per_km,D015,70,1.0,5,0,normal
+B098,T031,hotel_budget,H022,3700,24,0,0,normal
+B099,T031,bus_intercity,D032,300,2.5,150,0,normal
+B100,T032,hotel_luxury,H009,34000,24,0,0,normal

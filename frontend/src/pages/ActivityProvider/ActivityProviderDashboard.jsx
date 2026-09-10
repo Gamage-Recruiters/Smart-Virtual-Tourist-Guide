@@ -18,7 +18,7 @@ import {
   FiClock,
   FiUser
 } from 'react-icons/fi';
-import heroBanner from '../../assets/fisherman.png';
+import heroBanner from '../../assets/LandingPage/fisherman.png';
 
 const StatCard = ({ title, value, subtitle, icon, colorBg, colorText }) => (
   <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center justify-between transition hover:shadow-md">

@@ -1,25 +1,122 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import DestinationDetails from './DestinationDetails';
 
 // Import background and foreground images from assets
-import heroBgImage from '../assets/HHPP1.jpg'; 
-import heroFrontImage from '../assets/HP2.png';
-import sriLankaFlag from '../assets/SLFH.jpg'; 
-import coupleImage from '../assets/HP6.png'; 
-import signboardsImage from '../assets/HP5.png'; 
+import heroBgImage from '../assets/LandingPage/HHPP1.jpg'; 
+import heroFrontImage from '../assets/LandingPage/HP2.png';
+import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
+import coupleImage from '../assets/LandingPage/HP6.png'; 
+import signboardsImage from '../assets/LandingPage/HP5.png'; 
 
 // --- IMPORT 4 CATEGORY IMAGES ---
-import catBeach from '../assets/HP7.jpg'; 
-import catBirds from '../assets/HP8.png'; 
-import catCultural from '../assets/HP9.png'; 
-import catMountains from '../assets/HP10.png'; 
+import catBeach from '../assets/LandingPage/HP7.jpg'; 
+import catBirds from '../assets/LandingPage/HP8.png'; 
+import catCultural from '../assets/LandingPage/HP9.png'; 
+import catMountains from '../assets/LandingPage/HP10.png'; 
 
-// --- IMPORT 3 POPULAR DESTINATION IMAGES HERE ---
-// Replace these filenames with your actual image names
-import destYala from '../assets/Yala.jpg'; 
-import destSigiriya from '../assets/Sigiriya.jpg'; 
-import destMirissa from '../assets/mirissa.jpg'; 
+// --- IMPORT FALLBACK DESTINATION IMAGES ---
+import destYala from '../assets/LandingPage/Yala.jpg'; 
+import destSigiriya from '../assets/LandingPage/Sigiriya.jpg'; 
+import destMirissa from '../assets/LandingPage/mirissa.jpg'; 
 
-const App = () => {
+const fallbackDestinations = [
+  {
+    _id: 'fb-1',
+    title: 'Yala Wildlife Safari',
+    heroImage: destYala,
+    priceDisplay: 'Rs. 32,000 / Per Person',
+    price: 32000,
+    durationDisplay: '2 Days',
+    duration: 2,
+    travelersDisplay: '12+ Travelers',
+    travelersCount: 12,
+    rating: 4.8,
+    reviewCount: 128,
+    location: 'Yala National Park',
+    shortDescription: 'Explore the wildlife wonderland of Yala National Park with leopards, elephants, and exotic flora.',
+    features: ['Game Drives', 'Camp Accommodations', 'Professional Naturalist', 'All Park Fees Included']
+  },
+  {
+    _id: 'fb-2',
+    title: 'Sigiriya Cultural Heritage Tour',
+    heroImage: destSigiriya,
+    priceDisplay: 'Rs. 18,500 / Per Person',
+    price: 18500,
+    durationDisplay: '2 Days',
+    duration: 2,
+    travelersDisplay: '10+ Travelers',
+    travelersCount: 10,
+    rating: 4.9,
+    reviewCount: 95,
+    location: 'Sigiriya',
+    shortDescription: 'Climb the ancient Lion Rock fortress and experience the rich cultural marvels of Sri Lanka.',
+    features: ['Guided Rock Climb', 'Frescoes Viewing', 'Village Experience', 'Authentic Sri Lankan Lunch']
+  },
+  {
+    _id: 'fb-3',
+    title: 'Mirissa Beach Escape',
+    heroImage: destMirissa,
+    priceDisplay: 'Rs. 32,000 / Per Person',
+    price: 32000,
+    durationDisplay: '2 Days',
+    duration: 2,
+    travelersDisplay: '15+ Travelers',
+    travelersCount: 15,
+    rating: 4.7,
+    reviewCount: 110,
+    location: 'Mirissa',
+    shortDescription: 'Relax on golden sands, enjoy whale watching, and experience vibrant coastal life in Mirissa.',
+    features: ['Whale Watching Cruise', 'Surfing Lessons', 'Beachfront Stays', 'Sunset Dining']
+  }
+];
+
+const Home = () => {
+  const navigate = useNavigate();
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDestination, setSelectedDestination] = useState(null);
+
+  // Fetch the first 3 destinations added to the database (oldest / 1st added)
+  useEffect(() => {
+    const fetchFirstAddedDestinations = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('http://localhost:5000/api/destinations');
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          // Sort ascending by creation time to get the 3 destinations that were added 1st
+          const firstThree = response.data
+            .slice()
+            .sort((a, b) => new Date(a.createdAt || a._id) - new Date(b.createdAt || b._id))
+            .slice(0, 3);
+          setDestinations(firstThree);
+        } else {
+          setDestinations(fallbackDestinations);
+        }
+      } catch (error) {
+        console.error('Error fetching destinations from backend, using fallback data:', error);
+        setDestinations(fallbackDestinations);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFirstAddedDestinations();
+  }, []);
+
+  const displayDestinations = destinations.length > 0 ? destinations : fallbackDestinations;
+
+  // If a destination was clicked, show DestinationDetails
+  if (selectedDestination) {
+    return (
+      <DestinationDetails
+        destination={selectedDestination}
+        onBack={() => setSelectedDestination(null)}
+      />
+    );
+  }
+
   return (
     <div className="bg-white text-gray-800 min-h-screen relative overflow-x-hidden pb-20">
       
@@ -55,12 +152,16 @@ const App = () => {
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
-              <button className="bg-[#00AAFF] text-white px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl hover:bg-[#145BDA] transition">
-                Start Your Journey
-              </button>
-              <button className="bg-white border border-gray-300 text-gray-700 px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition">
-                Discover Destination
-              </button>
+              <Link to="/login">
+                <button className="bg-[#00AAFF] text-white px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl hover:bg-[#145BDA] transition cursor-pointer">
+                  Start Your Journey
+                </button>
+              </Link>
+              <Link to="/destinations">
+                <button className="bg-white border border-gray-300 text-gray-700 px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl hover:bg-gray-50 transition cursor-pointer">
+                  Discover Destination
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -132,94 +233,116 @@ const App = () => {
         </div>
       </section>
 
-      {/* --- OUR POPULAR DESTINATION --- */}
+      {/* --- OUR POPULAR DESTINATION (FIRST 3 ADDED DESTINATIONS) --- */}
       <section className="py-16 px-4 md:px-8 bg-white relative">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-center md:justify-start items-center gap-4 mb-10 relative">
-            <div className="absolute -left-10 top-0 text-gray-400 transform rotate-45 hidden md:block">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+          <div className="flex justify-between items-center mb-10 relative">
+            <div className="flex items-center gap-4">
+              <div className="text-gray-400 transform rotate-45 hidden md:block">
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold">
+                Our <span className="text-primary">Popular Destinations</span>
+              </h2>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-center w-full md:w-auto">Our <span className="text-primary">Popular Destination</span></h2>
+
+            <Link 
+              to="/destinations" 
+              className="text-[#145BDA] hover:text-blue-700 font-semibold text-sm sm:text-base flex items-center gap-1.5 transition"
+            >
+              View All 
+            </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            
-            {/* Card 1: Yala - Using local import */}
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden group hover:shadow-xl transition relative pb-4">
-              <div 
-                className="h-64 bg-cover bg-center"
-                style={{ backgroundImage: `url(${destYala})` }}
-              >
-                 <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700">⭐ 4.8 (128 Reviews)</div>
-              </div>
-              <div className="p-4 text-center">
-                 <h3 className="font-bold text-lg">Yala Wildlife Safari</h3>
-                 <div className="text-gray-500 text-sm">Rs. 32,000 / Per Person</div>
-                 <div className="mt-2 text-xs text-gray-400 flex justify-center items-center gap-1">
-                    <span>⏱ 2 Days</span>
-                    <span>👥 12+ Travelers</span>
-                 </div>
-                 <div className="mt-2 text-xs text-gray-500">Yala National Park</div>
-              </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="bg-white rounded-3xl p-4 shadow-lg animate-pulse h-96">
+                  <div className="w-full h-64 bg-gray-200 rounded-2xl mb-4"></div>
+                  <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+                  <div className="h-4 bg-gray-100 rounded w-1/2 mx-auto"></div>
+                </div>
+              ))}
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+              {displayDestinations.slice(0, 3).map((dest, idx) => {
+                const cardImg =
+                  dest.heroImage ||
+                  dest.thumbnailImage ||
+                  (dest.images && dest.images[0]) ||
+                  dest.image ||
+                  destYala;
 
-            {/* Card 2: Sigiriya - Using local import */}
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden group hover:shadow-xl transition relative pb-4 transform scale-105 md:z-10 border-2 border-white">
-              <div 
-                className="h-64 bg-cover bg-center"
-                style={{ backgroundImage: `url(${destSigiriya})` }}
-              >
-                 <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700">⭐ 4.9 (95 Reviews)</div>
-              </div>
-              <div className="p-4 text-center">
-                 <h3 className="font-bold text-lg">Sigiriya Cultural Heritage Tour</h3>
-                 <div className="text-gray-500 text-sm">Rs. 18,500 / Per Person</div>
-                 <div className="mt-2 text-xs text-gray-400 flex justify-center items-center gap-1">
-                    <span>⏱ 2 Days</span>
-                    <span>👥 10+ Travelers</span>
-                 </div>
-                 <div className="mt-2 text-xs text-gray-500">Sigiriya</div>
-              </div>
+                const cardPrice =
+                  dest.priceDisplay ||
+                  (dest.price ? `Rs. ${dest.price.toLocaleString()} / Per Person` : 'Contact for Price');
+
+                const cardDuration =
+                  dest.durationDisplay ||
+                  (dest.duration ? `${dest.duration} Days` : '2 Days');
+
+                const cardTravelers =
+                  dest.travelersDisplay ||
+                  (dest.travelersCount ? `${dest.travelersCount}+ Travelers` : '10+ Travelers');
+
+                const cardRating = dest.rating || 4.8;
+                const cardReviews = dest.reviewCount ?? dest.reviews ?? 100;
+
+                return (
+                  <div 
+                    key={dest._id || idx}
+                    onClick={() => setSelectedDestination(dest)}
+                    className="bg-white rounded-3xl shadow-lg overflow-hidden group hover:shadow-2xl transition-all duration-300 relative cursor-pointer transform hover:-translate-y-1.5 flex flex-col justify-between h-full border border-gray-100"
+                  >
+                    <div className="relative h-60 sm:h-64 overflow-hidden shrink-0">
+                      <img 
+                        src={cardImg} 
+                        alt={dest.title} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                      />
+                      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700 shadow-sm flex items-center gap-1">
+                        ⭐ {cardRating} ({cardReviews} Reviews)
+                      </div>
+                    </div>
+                    
+                    <div className="p-5 text-center flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800 line-clamp-1 group-hover:text-[#145BDA] transition-colors">
+                          {dest.title}
+                        </h3>
+                        <div className="text-gray-600 font-semibold text-sm mt-1.5">
+                          {cardPrice}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-gray-50 flex flex-col gap-1.5">
+                        <div className="text-xs text-gray-500 flex justify-center items-center gap-4">
+                          <span>⏱ {cardDuration}</span>
+                          <span>👥 {cardTravelers}</span>
+                        </div>
+                        <div className="text-xs text-gray-400 font-medium line-clamp-1">
+                          {dest.location || 'Sri Lanka'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          )}
 
-            {/* Card 3: Mirissa - Using local import */}
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden group hover:shadow-xl transition relative pb-4">
-              <div 
-                className="h-64 bg-cover bg-center"
-                style={{ backgroundImage: `url(${destMirissa})` }}
-              >
-                 <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold text-gray-700">⭐ 4.7 (110 Reviews)</div>
-              </div>
-              <div className="p-4 text-center">
-                 <h3 className="font-bold text-lg">Mirissa Beach Escape</h3>
-                 <div className="text-gray-500 text-sm">Rs. 32,000 / Per Person</div>
-                 <div className="mt-2 text-xs text-gray-400 flex justify-center items-center gap-1">
-                    <span>⏱ 2 Days</span>
-                    <span>👥 15+ Travelers</span>
-                 </div>
-                 <div className="mt-2 text-xs text-gray-500">Mirissa</div>
-              </div>
-            </div>
-
-            {/* Carousel Arrows (Static) */}
-            <button className="absolute -left-4 top-1/2 -translate-y-1/2 bg-primary text-white w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-blue-600 transition z-20 hidden md:flex">
-               &lt;
-            </button>
-            <button className="absolute -right-4 top-1/2 -translate-y-1/2 bg-primary text-white w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-blue-600 transition z-20 hidden md:flex">
-               &gt;
-            </button>
-          </div>
-
-          {/* Pagination Dots */}
-          <div className="flex justify-center mt-8 gap-2">
-             <div className="w-2 h-2 rounded-full bg-gray-800"></div>
-             <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-             <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+          {/* Attraction Accent Dots */}
+          <div className="flex justify-center items-center mt-10 gap-2.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors"></div>
           </div>
         </div>
       </section>
 
-      {/* --- EXPLORE BY CATEGORY --- */}
+      {/* --- EXPLORE BY CATEGORY (CONNECTED TO CATEGORY SEARCH) --- */}
       <section className="py-16 px-4 md:px-8 bg-white relative">
          <div className="max-w-7xl mx-auto relative">
              <svg className="absolute right-0 -top-20 w-40 h-40 pointer-events-none z-0 hidden" viewBox="0 0 100 100">
@@ -229,38 +352,56 @@ const App = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
              </div>
 
-             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Explore <span className="text-primary">Sri Lanka by Category</span></h2>
+             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+               Explore <span className="text-primary">Sri Lanka by Category</span>
+             </h2>
              
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 h-[400px] md:h-[500px]">
                 {/* Card 1: Beach */}
-                <div className="rounded-2xl overflow-hidden shadow-lg relative group h-full">
-                   <img src={catBeach} alt="Beach" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-8">
-                      <span className="text-white font-medium text-lg">Beach</span>
+                <div 
+                  onClick={() => navigate('/results?category=Beaches')}
+                  className="rounded-2xl overflow-hidden shadow-lg relative group h-full cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                   <img src={catBeach} alt="Beach" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex flex-col items-center justify-end pb-8">
+                      <span className="text-white font-bold text-xl drop-shadow-md">Beach</span>
+                      <span className="text-white/90 text-xs mt-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Explore Destinations →</span>
                    </div>
                 </div>
 
-                {/* Card 2: Birds */}
-                <div className="rounded-2xl overflow-hidden shadow-lg relative group h-full">
-                   <img src={catBirds} alt="Birds" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-8">
-                      <span className="text-white font-medium text-lg">Bird Watching</span>
+                {/* Card 2: Wildlife */}
+                <div 
+                  onClick={() => navigate('/results?category=Wildlife')}
+                  className="rounded-2xl overflow-hidden shadow-lg relative group h-full cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                   <img src={catBirds} alt="Wildlife" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex flex-col items-center justify-end pb-8">
+                      <span className="text-white font-bold text-xl drop-shadow-md">Wildlife</span>
+                      <span className="text-white/90 text-xs mt-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Explore Destinations →</span>
                    </div>
                 </div>
 
                 {/* Card 3: Cultural */}
-                <div className="rounded-2xl overflow-hidden shadow-lg relative group h-full">
-                   <img src={catCultural} alt="Cultural" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-8">
-                      <span className="text-white font-medium text-lg">Cultural</span>
+                <div 
+                  onClick={() => navigate('/results?category=Cultural')}
+                  className="rounded-2xl overflow-hidden shadow-lg relative group h-full cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                   <img src={catCultural} alt="Cultural" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex flex-col items-center justify-end pb-8">
+                      <span className="text-white font-bold text-xl drop-shadow-md">Cultural</span>
+                      <span className="text-white/90 text-xs mt-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Explore Destinations →</span>
                    </div>
                 </div>
 
                 {/* Card 4: Mountains */}
-                <div className="rounded-2xl overflow-hidden shadow-lg relative group h-full">
-                   <img src={catMountains} alt="Mountains" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-8">
-                      <span className="text-white font-medium text-lg">Mountains</span>
+                <div 
+                  onClick={() => navigate('/results?category=Mountains')}
+                  className="rounded-2xl overflow-hidden shadow-lg relative group h-full cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                   <img src={catMountains} alt="Mountains" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex flex-col items-center justify-end pb-8">
+                      <span className="text-white font-bold text-xl drop-shadow-md">Mountains</span>
+                      <span className="text-white/90 text-xs mt-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">Explore Destinations →</span>
                    </div>
                 </div>
              </div>
@@ -279,4 +420,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default Home;

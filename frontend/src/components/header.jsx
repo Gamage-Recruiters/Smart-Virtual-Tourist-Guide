@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from '../assets/SLFH.jpg'; 
+import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/HotelOwner/logo.png'; 
+import logoImage from '../assets/LandingPage/logo.png'; 
 // IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from '../assets/bg4.png'; 
+import bg4Image from '../assets/LandingPage/bg4.png'; 
 
 
 
@@ -13,12 +13,26 @@ const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Load user data if logged in
+  const userDataRaw = localStorage.getItem('userData');
+  const user = userDataRaw ? JSON.parse(userDataRaw) : null;
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    if (!user) return;
+    if (user.role === 'driver_user') navigate('/driver-details');
+    else if (user.role === 'tourist_user') navigate('/touristProfile');
+    else if (user.role === 'hotelowner_user') navigate('/hotelowner-dashboard');
+    else if (user.role === 'restaurant_user') navigate('/restaurant-dashboard');
+    else if (user.role === 'guide_user') navigate('/guide-dashboard');
+    else if (user.role === 'renter_user') navigate('/renter-dashboard');
   };
 
   const handleNavigation = (path) => {
@@ -100,10 +114,30 @@ const Header = () => {
 
           {/* --- Right: Actions --- */}
           <div className="flex items-center gap-3 relative z-10">
-            {/* Sign In Button */}
-            <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
-              Sign in
-            </button>
+            {/* Sign In Button / User Profile */}
+            {user ? (
+              <div className="items-center gap-2 hidden sm:flex">
+                <div onClick={handleProfileClick} className="cursor-pointer px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm hover:bg-blue-100 transition-colors">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  {user.fullName || user.restaurantName || user.username || 'User'}
+                </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userData');
+                    localStorage.removeItem('restaurantUser');
+                    window.location.reload();
+                  }}
+                  className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
+                Sign in
+              </button>
+            )}
 
             {/* Language Selector */}
             <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
@@ -197,13 +231,36 @@ const Header = () => {
             <Link to="/contact" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
               Contact
             </Link>
+            <Link to="/restaurants" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
+              Restaurants
+            </Link>
           </nav>
 
           {/* Sidebar Actions */}
           <div className="p-4 border-t border-gray-200">
-            <button onClick={() => handleNavigation('/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
-              Sign in
-            </button>
+            {user ? (
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[#0075FF] font-bold text-sm">
+                  {user.fullName || user.restaurantName || user.username || 'User'}
+                </span>
+                <button
+                  onClick={() => {
+                    closeSidebar();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('userData');
+                    localStorage.removeItem('restaurantUser');
+                    window.location.reload();
+                  }}
+                  className="px-3 py-1.5 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 rounded-lg text-xs font-semibold"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => handleNavigation('/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
+                Sign in
+              </button>
+            )}
             <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">
               <span>EN</span>
               <svg 

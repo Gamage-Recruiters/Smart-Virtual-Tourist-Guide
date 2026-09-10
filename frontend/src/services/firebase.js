@@ -10,12 +10,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: 'consent' });
+// Only initialize Firebase if real config is available
+const isFirebaseConfigured =
+  firebaseConfig.apiKey && firebaseConfig.apiKey !== 'placeholder';
+
+let auth = null;
+let googleProvider = null;
+
+if (isFirebaseConfigured) {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+}
+
+export { auth, googleProvider };
 
 export const signInWithGoogle = async () => {
+  if (!isFirebaseConfigured || !auth) {
+    throw new Error('Google sign-in is not configured yet. Please contact the administrator.');
+  }
   const result = await signInWithPopup(auth, googleProvider);
   const idToken = await result.user.getIdToken();
   return { idToken, user: result.user };

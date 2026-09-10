@@ -36,15 +36,45 @@ const ALL_MONTHS = [
 
 // Maps backend status strings to Tailwind classes used across the page
 const STATUS_CELL_STYLES = {
-  'Available': 'bg-green-100 text-green-700',
+  'Available':     'bg-green-100 text-green-700',
   'Non Available': 'bg-rose-100 text-rose-700 font-bold',
-  'Maintenance': 'bg-slate-200 text-slate-500',
+  'Maintenance':   'bg-blue-100 text-blue-700 font-bold',
+  'Booked':        'bg-purple-100 text-purple-700 font-bold',
 };
 
 const STATUS_GRID_STYLES = {
-  'Available': 'bg-[#D9F8E4] text-slate-500',
+  'Available':     'bg-[#D9F8E4] text-slate-500',
   'Non Available': 'bg-[#F8D9D9] text-rose-700',
-  'Maintenance': 'bg-[#E2E8F0] text-slate-500',
+  'Maintenance':   'bg-blue-200 text-blue-800',
+  'Booked':        'bg-purple-200 text-purple-800',
+};
+
+const parseDateOnly = (value) => {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : NaN;
+};
+
+const buildBookedDays = (bookings, roomName, monthNum, yearNum) => {
+  const booked = new Set();
+  const monthStart = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+  const monthEnd   = new Date(Date.UTC(yearNum, monthNum - 1, new Date(yearNum, monthNum, 0).getDate()));
+  for (const b of bookings) {
+    if (b.roomName !== roomName || b.status === 'cancelled') continue;
+    const startTime = parseDateOnly(b.checkIn);
+    const checkoutTime = parseDateOnly(b.checkOut);
+    if (Number.isNaN(startTime) || Number.isNaN(checkoutTime) || checkoutTime <= startTime) continue;
+
+    // Bookings use a half-open interval: check-in is booked, checkout is free.
+    const lastNightTime = checkoutTime - (24 * 60 * 60 * 1000);
+    if (lastNightTime < monthStart.getTime() || startTime > monthEnd.getTime()) continue;
+    const cursor = new Date(Math.max(startTime, monthStart.getTime()));
+    const last   = new Date(Math.min(lastNightTime, monthEnd.getTime()));
+    while (cursor <= last) {
+      booked.add(cursor.getUTCDate());
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+  }
+  return booked;
 };
 
 export default function ViewRoomAvailabilityCalendar() {
@@ -62,8 +92,21 @@ export default function ViewRoomAvailabilityCalendar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedRoom, setSelectedRoom] = useState(null); // { roomNumber, adults, children }
+  const [bookings, setBookings] = useState([]);
+  const [popupMonthIdx, setPopupMonthIdx] = useState(0);
+  const [popupDays, setPopupDays] = useState([]);
 
   const hotelId = JSON.parse(localStorage.getItem('userData') || '{}').hotels?.[0]?._id || '';
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch(`${BASE_URL}/api/users/bookings`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => setBookings(data.bookings || []))
+      .catch(() => {});
+  }, []);
 
   const { label: selectedMonthLabel, days: selectedDays } = ALL_MONTHS[selectedMonthIdx];
 
@@ -121,6 +164,22 @@ export default function ViewRoomAvailabilityCalendar() {
       .catch(() => {});
   };
 
+  const openPopup = (room) => {
+    setPopupMonthIdx(selectedMonthIdx);
+    setPopupDays(room.days);
+    setPopupRoom(room);
+  };
+
+  useEffect(() => {
+    if (!popupRoom) return;
+    const month = popupMonthIdx + 1;
+    const year = 2026;
+    fetch(`${BASE_URL}/api/room-availability/room/${popupRoom.roomId}?month=${month}&year=${year}`)
+      .then(r => r.json())
+      .then(data => setPopupDays(data.days || []))
+      .catch(() => {});
+  }, [popupRoom, popupMonthIdx]);
+
   return (
     <div className="w-full bg-[#EBF7FF] min-h-screen text-slate-800">
       {/* Calendar Popup Modal */}
@@ -134,24 +193,42 @@ export default function ViewRoomAvailabilityCalendar() {
               <button onClick={() => setPopupRoom(null)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">✖</button>
             </div>
             <div className="flex justify-between items-center text-sm font-bold text-slate-700 mb-3 px-1">
-              <span>{selectedMonthLabel}</span>
-              <div className="flex gap-2 text-slate-400"><FaChevronLeft /><FaChevronRight /></div>
+              <span>{ALL_MONTHS[popupMonthIdx].label}</span>
+              <div className="flex gap-2 text-slate-400">
+                <button
+                  onClick={() => setPopupMonthIdx(i => Math.max(0, i - 1))}
+                  disabled={popupMonthIdx === 0}
+                  className="hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                ><FaChevronLeft /></button>
+                <button
+                  onClick={() => setPopupMonthIdx(i => Math.min(ALL_MONTHS.length - 1, i + 1))}
+                  disabled={popupMonthIdx === ALL_MONTHS.length - 1}
+                  className="hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                ><FaChevronRight /></button>
+              </div>
             </div>
             <div className="grid grid-cols-7 text-center text-xs font-bold text-slate-400 mb-2">
               {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <span key={d}>{d}</span>)}
             </div>
             <div className="grid grid-cols-7 text-center text-sm gap-1">
-              {[...Array(ALL_MONTHS[selectedMonthIdx].startDay)].map((_, i) => <div key={`blank-${i}`} />)}
-              {popupRoom.days.map((d) => (
-                <div key={d.day} className={`py-1.5 rounded transition-colors ${STATUS_CELL_STYLES[d.status] || STATUS_CELL_STYLES['Available']}`}>
-                  {d.day}
-                </div>
-              ))}
+              {[...Array(ALL_MONTHS[popupMonthIdx].startDay)].map((_, i) => <div key={`blank-${i}`} />)}
+              {(() => {
+                const bookedDays = buildBookedDays(bookings, popupRoom.roomName, popupMonthIdx + 1, 2026);
+                return popupDays.map((d) => {
+                  const status = bookedDays.has(d.day) ? 'Booked' : d.status;
+                  return (
+                    <div key={d.day} className={`py-1.5 rounded transition-colors ${STATUS_CELL_STYLES[status] || STATUS_CELL_STYLES['Available']}`}>
+                      {d.day}
+                    </div>
+                  );
+                });
+              })()}
             </div>
             <div className="mt-5 flex items-center gap-4 text-xs text-slate-600">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-green-200 inline-block" /> Available</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-200 inline-block" /> Non Available</span>
-              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-slate-200 inline-block" /> Maintenance</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-blue-200 inline-block" /> Maintenance</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-purple-200 inline-block" /> Booked</span>
             </div>
           </div>
         </div>
@@ -282,9 +359,15 @@ export default function ViewRoomAvailabilityCalendar() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-8 h-4 border-2 border-slate-900 rounded-full relative inline-block">
-                    <span className="w-2.5 h-2.5 bg-white border border-slate-400 rounded-full absolute top-1/2 left-1 -translate-y-1/2" />
+                    <span className="w-2.5 h-2.5 bg-blue-300 rounded-full absolute top-1/2 left-1 -translate-y-1/2" />
                   </span>
                   <span>Maintenance</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-8 h-4 border-2 border-slate-900 rounded-full relative inline-block">
+                    <span className="w-2.5 h-2.5 bg-purple-300 rounded-full absolute top-1/2 left-1 -translate-y-1/2" />
+                  </span>
+                  <span>Booked</span>
                 </div>
               </div>
             </div>
@@ -301,17 +384,26 @@ export default function ViewRoomAvailabilityCalendar() {
                 <p className="text-center text-sm text-slate-500 py-10">No rooms found for this room type.</p>
               ) : (
                 <div className="grid grid-cols-5 gap-4">
-                  {rooms.map((room) => (
-                    <div
-                      key={room.roomId}
-                      onClick={() => handleRoomClick(room)}
-                      className={`aspect-square flex items-center justify-center text-lg font-medium cursor-pointer transition-all ${STATUS_GRID_STYLES[room.currentStatus] || STATUS_GRID_STYLES['Available']} ${
-                        selectedRoom?.roomNumber === room.roomNumber ? 'ring-2 ring-offset-1 ring-slate-700 scale-105' : 'hover:scale-105'
-                      }`}
-                    >
-                      {room.roomNumber}
-                    </div>
-                  ))}
+                  {rooms.map((room) => {
+                    const today = new Date();
+                    const todayDay = today.getUTCDate();
+                    const todayMonth = today.getUTCMonth() + 1;
+                    const todayYear = today.getUTCFullYear();
+                    const isCurrentMonth = (selectedMonthIdx + 1) === todayMonth && todayYear === 2026;
+                    const todayDayData = isCurrentMonth ? room.days?.find(d => d.day === todayDay) : null;
+                    const gridStatus = todayDayData ? todayDayData.status : (room.days?.[0]?.status || 'Available');
+                    return (
+                      <div
+                        key={room.roomId}
+                        onClick={() => handleRoomClick(room)}
+                        className={`aspect-square flex items-center justify-center text-lg font-medium cursor-pointer transition-all ${STATUS_GRID_STYLES[gridStatus] || STATUS_GRID_STYLES['Available']} ${
+                          selectedRoom?.roomNumber === room.roomNumber ? 'ring-2 ring-offset-1 ring-slate-700 scale-105' : 'hover:scale-105'
+                        }`}
+                      >
+                        {room.roomNumber}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -346,7 +438,7 @@ export default function ViewRoomAvailabilityCalendar() {
           rooms.map((room) => (
             <div
               key={room.roomId}
-              onClick={() => setPopupRoom(room)}
+              onClick={() => openPopup(room)}
               className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all cursor-pointer hover:ring-2 hover:ring-sky-300"
             >
               <p className="text-[11px] font-black text-slate-800 mb-2 tracking-tight flex items-center gap-1.5 border-b border-slate-50 pb-1.5">
@@ -362,11 +454,17 @@ export default function ViewRoomAvailabilityCalendar() {
                 </div>
                 <div className="grid grid-cols-7 text-center text-[8px] gap-0.5">
                   {[...Array(ALL_MONTHS[selectedMonthIdx].startDay)].map((_, i) => <div key={`blank-${i}`} />)}
-                  {room.days.map((d) => (
-                    <div key={d.day} className={`py-0.5 rounded-xs transition-colors ${STATUS_CELL_STYLES[d.status] || STATUS_CELL_STYLES['Available']}`}>
-                      {d.day}
-                    </div>
-                  ))}
+                  {(() => {
+                    const bookedDays = buildBookedDays(bookings, room.roomName, selectedMonthIdx + 1, 2026);
+                    return room.days.map((d) => {
+                      const status = bookedDays.has(d.day) ? 'Booked' : d.status;
+                      return (
+                        <div key={d.day} className={`py-0.5 rounded-xs transition-colors ${STATUS_CELL_STYLES[status] || STATUS_CELL_STYLES['Available']}`}>
+                          {d.day}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>

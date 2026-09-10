@@ -69,6 +69,11 @@ const registerTourist = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    // Mongoose CastError (e.g. empty string for a Date field) or
+    // ValidationError should be a 400, not a 500.
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: `Invalid data: ${error.message}` });
+    }
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
@@ -115,7 +120,7 @@ const registerHotelOwner = async (req, res) => {
 
 const addHotelInfo = async (req, res) => {
   try {
-    const { hotelName, hotelRegistrationNo, hotelEmail, hotelRegisteredYear, hotelContactNumber } = req.body;
+    const { hotelName, hotelRegistrationNo, hotelEmail,hotelAddress, hotelRegisteredYear, hotelContactNumber } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -125,7 +130,7 @@ const addHotelInfo = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    user.hotels.push({ hotelName, hotelRegistrationNo, hotelEmail, hotelRegisteredYear, hotelContactNumber });
+    user.hotels.push({ hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelRegisteredYear, hotelContactNumber });
     await user.save();
 
     res.status(201).json({
@@ -548,32 +553,49 @@ const resetPassword = async (req, res) => {
 
 const updateTravelInfo = async (req, res) => {
   try {
-    const { travelPreferences, healthInfo, emergencyContact } = req.body;
+    const {
+      fullName,
+      contactNumber,
+      vehicleType,
+      vehicleNumber,
+      vehicleColor,
+      nationalIdNumber,
+      licenseNumber,
+      profileImage,
+      vehicleImages,
+      travelPreferences,
+      healthInfo,
+      emergencyContact
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    user.travelPreferences = travelPreferences;
-    user.healthInfo = healthInfo;
-    user.emergencyContact = emergencyContact;
+    if (fullName !== undefined) user.fullName = fullName;
+    if (contactNumber !== undefined) user.contactNumber = contactNumber;
+    if (vehicleType !== undefined) user.vehicleType = vehicleType;
+    if (vehicleNumber !== undefined) user.vehicleNumber = vehicleNumber;
+    if (vehicleColor !== undefined) user.vehicleColor = vehicleColor;
+    if (nationalIdNumber !== undefined || licenseNumber !== undefined) {
+      const val = nationalIdNumber || licenseNumber;
+      user.nationalIdNumber = val;
+      user.licenseNumber = val;
+    }
+    if (profileImage !== undefined) user.profileImage = profileImage;
+    if (vehicleImages !== undefined) user.vehicleImages = vehicleImages;
+
+    if (travelPreferences !== undefined) user.travelPreferences = travelPreferences;
+    if (healthInfo !== undefined) user.healthInfo = healthInfo;
+    if (emergencyContact !== undefined) user.emergencyContact = emergencyContact;
 
     await user.save();
 
     res.json({
       success: true,
-      message: 'Travel safety information updated successfully',
-      user: {
-        _id: user._id,
-        fullName: user.fullName,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        travelPreferences: user.travelPreferences,
-        healthInfo: user.healthInfo,
-        emergencyContact: user.emergencyContact
-      }
+      message: 'Profile updated successfully',
+      user
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
@@ -698,6 +720,20 @@ const getMe = async (req, res) => {
   }
 };
 
+// Public route: returns all registered drivers
+const getAllDrivers = async (req, res) => {
+  try {
+    const drivers = await User.find({ role: 'driver_user' }).select('-password');
+    res.status(200).json({
+      success: true,
+      count: drivers.length,
+      drivers
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 export {
   loginUser,
   registerTourist,
@@ -714,5 +750,6 @@ export {
   updateRenterInfo,
   addHotelInfo,
   googleAuth,
-  getMe
+  getMe,
+  getAllDrivers
 };
