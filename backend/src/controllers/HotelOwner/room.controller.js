@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import getTestDb from '../../configs/HotelOwner/testDb.js';
 import roomModelSchema from '../../models/HotelOwner/room.model.js';
+import { syncAllBookingsToRooms } from '../../services/HotelOwner/bookingSync.js';
 
 const getRoomModel = async () => {
   const conn = await getTestDb();
@@ -133,7 +134,7 @@ export const updateRoom = async (req, res) => {
         body.images = [...keptImages.map(url => url.replace('http://localhost:5000', '')), ...newImages];
 
         const room = await Room.findByIdAndUpdate(id, body, {
-            returnDocument: 'after',
+            new: true,
             runValidators: true,
         });
 
@@ -171,7 +172,7 @@ export const updateRoomStatus = async (req, res) => {
         const room = await Room.findByIdAndUpdate(
             id, 
             { $set: { status } }, 
-            { returnDocument: 'after', runValidators: true }
+            { new: true, runValidators: true }
         );
 
         if (!room) {
@@ -240,7 +241,7 @@ export const addBookingDate = async (req, res) => {
         const room = await Room.findByIdAndUpdate(
             id,
             { $push: { bookingDates: { startDate, endDate, note: note || '' } } },
-            { returnDocument: 'after', runValidators: true }
+            { new: true, runValidators: true }
         );
 
         if (!room) return res.status(404).json({ message: 'Room not found' });
@@ -273,7 +274,7 @@ export const updateBookingDate = async (req, res) => {
         const room = await Room.findOneAndUpdate(
             { _id: id, 'bookingDates._id': bookingId },
             { $set: update },
-            { returnDocument: 'after', runValidators: true }
+            { new: true, runValidators: true }
         );
 
         if (!room) return res.status(404).json({ message: 'Room or booking not found' });
@@ -311,6 +312,18 @@ export const deleteRoom = async (req, res) => {
     }
 };
 
+/**
+ * POST /sync-bookings — full sync of all HotelBooking records into room bookingDates
+ */
+export const syncBookings = async (req, res) => {
+    try {
+        const result = await syncAllBookingsToRooms();
+        return res.status(200).json({ message: 'Sync completed', ...result });
+    } catch (error) {
+        return res.status(500).json({ message: 'Sync failed', error: error.message });
+    }
+};
+
 export default {
     createRoom,
     getAllRooms,
@@ -321,4 +334,5 @@ export default {
     deleteRoom,
     addBookingDate,
     updateBookingDate,
+    syncBookings,
 };
