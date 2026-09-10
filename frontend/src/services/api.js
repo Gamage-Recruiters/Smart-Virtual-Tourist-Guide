@@ -291,6 +291,9 @@ export const driverAPI = {
       userData
     );
   },
+  getAllDrivers() {
+    return apiClient.get('/auth/drivers');
+  },
 };
 
 /**
