@@ -35,21 +35,25 @@ const daysInMonth = (month, year) => new Date(year, month, 0).getDate();
 
 
 /**
- * Build a day-keyed lookup for a given month from blockedDates + maintenanceDates.
- * Returns: { [dayNumber]: { status: 'Non Available'|'Maintenance', periodId } }
+ * Build a day-keyed lookup for a given month from blockedDates + maintenanceDates + bookingDates.
+ * Returns: { [dayNumber]: { status: 'Non Available'|'Maintenance'|'Booked', periodId } }
  */
-const buildDayLookup = (blockedDates, maintenanceDates, monthNum, yearNum, totalDays) => {
+const buildDayLookup = (blockedDates, maintenanceDates, bookingDates, monthNum, yearNum, totalDays) => {
     const lookup = {};
     const monthStart = new Date(Date.UTC(yearNum, monthNum - 1, 1));
     const monthEnd   = new Date(Date.UTC(yearNum, monthNum - 1, totalDays));
 
-    const applyPeriods = (periods, status) => {
+    const applyPeriods = (periods, status, endExclusive = false) => {
         for (const period of periods) {
             const pStart = normalizeDate(period.startDate);
             const pEnd   = normalizeDate(period.endDate);
-            if (pEnd < monthStart || pStart > monthEnd) continue;
+            if (!pStart || !pEnd || pEnd < pStart) continue;
+            const lastBookableDate = endExclusive
+                ? new Date(pEnd.getTime() - 24 * 60 * 60 * 1000)
+                : pEnd;
+            if (lastBookableDate < monthStart || pStart > monthEnd) continue;
             const cursor = new Date(Math.max(pStart.getTime(), monthStart.getTime()));
-            const end    = new Date(Math.min(pEnd.getTime(), monthEnd.getTime()));
+            const end    = new Date(Math.min(lastBookableDate.getTime(), monthEnd.getTime()));
             while (cursor <= end) {
                 lookup[cursor.getUTCDate()] = { status, periodId: period._id };
                 cursor.setUTCDate(cursor.getUTCDate() + 1);
@@ -59,6 +63,7 @@ const buildDayLookup = (blockedDates, maintenanceDates, monthNum, yearNum, total
 
     applyPeriods(blockedDates,     'Non Available');
     applyPeriods(maintenanceDates, 'Maintenance');
+    applyPeriods(bookingDates,     'Booked', true);
     return lookup;
 };
 
@@ -92,9 +97,10 @@ export const getMonthlyCalendar = async (req, res) => {
         );
 
         const roomsCalendar = rooms.map((room) => {
-            const blocked = room.blockedDates     || [];
-            const maint   = room.maintenanceDates || [];
-            const lookup  = buildDayLookup(blocked, maint, monthNum, yearNum, totalDays);
+            const blocked  = room.blockedDates     || [];
+            const maint    = room.maintenanceDates || [];
+            const booked   = room.bookingDates     || [];
+            const lookup   = buildDayLookup(blocked, maint, booked, monthNum, yearNum, totalDays);
 
             let currentStatus = 'Available';
             if (isInPeriod(maint))        currentStatus = 'Maintenance';
@@ -114,6 +120,7 @@ export const getMonthlyCalendar = async (req, res) => {
                 currentStatus,
                 blockedDates:     blocked,
                 maintenanceDates: maint,
+                bookingDates:     booked,
                 days,
             };
         });
@@ -148,9 +155,10 @@ export const getRoomCalendar = async (req, res) => {
         const Room = await getRoomModel();
         const doc = await Room.findById(roomId);
         if (!doc) return res.status(404).json({ message: 'Room not found' });
-        const blocked = doc.blockedDates     || [];
-        const maint   = doc.maintenanceDates || [];
-        const lookup  = buildDayLookup(blocked, maint, monthNum, yearNum, totalDays);
+        const blocked  = doc.blockedDates     || [];
+        const maint    = doc.maintenanceDates || [];
+        const booked   = doc.bookingDates     || [];
+        const lookup   = buildDayLookup(blocked, maint, booked, monthNum, yearNum, totalDays);
 
         const days = [];
         for (let day = 1; day <= totalDays; day++) {
@@ -199,7 +207,7 @@ export const saveBlockedDates = async (req, res) => {
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { blockedDates: normalized } },
-            { returnDocument: 'after' }
+            { new: true }
         );
         if (!doc) return res.status(404).json({ message: 'Room not found' });
 
@@ -232,7 +240,7 @@ export const saveMaintenanceDates = async (req, res) => {
         const doc = await Room.findByIdAndUpdate(
             roomId,
             { $set: { maintenanceDates: normalized } },
-            { returnDocument: 'after' }
+            { new: true }
         );
         if (!doc) return res.status(404).json({ message: 'Room not found' });
 
@@ -252,7 +260,7 @@ export const updateBlockedPeriod = async (req, res) => {
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'blockedDates._id': periodId },
             { $set: { 'blockedDates.$.startDate': normalizeDate(startDate), 'blockedDates.$.endDate': normalizeDate(endDate) } },
-            { returnDocument: 'after' }
+            { new: true }
         );
         if (!doc) return res.status(404).json({ message: 'Period not found' });
         return res.status(200).json({ message: 'Blocked period updated', blockedDates: doc.blockedDates });
@@ -269,7 +277,7 @@ export const updateMaintenancePeriod = async (req, res) => {
         const doc = await Room.findOneAndUpdate(
             { _id: roomId, 'maintenanceDates._id': periodId },
             { $set: { 'maintenanceDates.$.startDate': normalizeDate(startDate), 'maintenanceDates.$.endDate': normalizeDate(endDate) } },
-            { returnDocument: 'after' }
+            { new: true }
         );
         if (!doc) return res.status(404).json({ message: 'Period not found' });
         return res.status(200).json({ message: 'Maintenance period updated', maintenanceDates: doc.maintenanceDates });
