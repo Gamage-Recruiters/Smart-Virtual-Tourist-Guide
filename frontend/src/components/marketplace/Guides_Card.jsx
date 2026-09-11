@@ -76,9 +76,13 @@ const defaultGuidesData = [
 
 const Guides_Card = () => {
   const { t } = useTranslation();
+  const [allGuides, setAllGuides] = useState([]);
   const [guidesData, setGuidesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [budget, setBudget] = useState(30000);
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const itemsPerPage = 6;
   const navigate = useNavigate();
 
@@ -87,14 +91,17 @@ const Guides_Card = () => {
       try {
         const response = await fetch('http://localhost:5000/api/guides');
         const data = await response.json();
-        if (data.success) {
+        if (data.success && data.data.length > 0) {
+          setAllGuides(data.data);
           setGuidesData(data.data);
         } else {
-          setGuidesData(defaultGuidesData); // fallback
+          setAllGuides(defaultGuidesData);
+          setGuidesData(defaultGuidesData);
         }
       } catch (error) {
         console.error('Error fetching guides:', error);
-        setGuidesData(defaultGuidesData); // fallback
+        setAllGuides(defaultGuidesData);
+        setGuidesData(defaultGuidesData);
       } finally {
         setLoading(false);
       }
@@ -103,9 +110,59 @@ const Guides_Card = () => {
     fetchGuides();
   }, []);
 
+  // Dynamic filter effect
+  useEffect(() => {
+    let filtered = allGuides;
+
+    if (budget > 0) {
+      filtered = filtered.filter((guide) => {
+        const numPrice = typeof guide.price === 'number'
+          ? guide.price
+          : Number(String(guide.price || '0').replace(/[^0-9]/g, ''));
+        return numPrice === 0 || numPrice <= budget;
+      });
+    }
+
+    if (selectedLanguages.length > 0) {
+      filtered = filtered.filter((guide) =>
+        selectedLanguages.some((lang) => (guide.languages || []).includes(lang))
+      );
+    }
+
+    if (selectedRatings.length > 0) {
+      filtered = filtered.filter((guide) => {
+        const ratingFloor = Math.floor(guide.rating || 5);
+        return selectedRatings.includes(ratingFloor);
+      });
+    }
+
+    setGuidesData(filtered);
+    setCurrentPage(1);
+  }, [budget, selectedLanguages, selectedRatings, allGuides]);
+
+  const handleLanguageToggle = (lang) => {
+    setSelectedLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+    );
+  };
+
+  const handleRatingToggle = (rating) => {
+    setSelectedRatings((prev) =>
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
+    );
+  };
+
+  const handleReset = () => {
+    setBudget(30000);
+    setSelectedLanguages([]);
+    setSelectedRatings([]);
+  };
+
   if (loading) {
     return <div className="min-h-screen bg-[#EBF1FF] flex items-center justify-center">Loading guides...</div>;
   }
+
+  const budgetPercentage = Math.min(Math.max(((budget - 3000) / 27000) * 100, 0), 100);
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -123,20 +180,30 @@ const Guides_Card = () => {
               <span>{t("sidebar.budgetGuardian")}</span>
             </div>
             <span className="text-gray-400 text-[10px] block font-bold tracking-wider">{t("sidebar.availableFunds")}</span>
-            <div className="flex items-baseline space-x-1 mb-4">
-              <span className="text-2xl font-black text-gray-900">145,000</span>
-              <span className="text-xs font-bold text-gray-700">LKR</span>
-            </div>
-            <div className="mb-4">
-              <div className="flex justify-between text-xs font-bold mb-1">
-                <span className="text-gray-500">{t("sidebar.tripProgress")}</span>
-                <span className="text-[#1E40AF]">65% {t("sidebar.used")}</span>
+            <div className="flex flex-col mb-4 mt-1">
+              <div className="flex items-baseline space-x-1 mb-2">
+                <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
+                <span className="text-xs font-bold text-gray-700">LKR</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-[#1E40AF] h-2 rounded-full" style={{ width: '65%' }}></div>
+              <input 
+                type="range" 
+                min="3000" 
+                max="30000" 
+                step="1000"
+                value={budget} 
+                onChange={(e) => setBudget(Number(e.target.value))}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${budgetPercentage}%, #E5E7EB ${budgetPercentage}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>3k</span>
+                <span>30k</span>
               </div>
             </div>
-            <button className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors">
+            <button 
+              onClick={handleReset}
+              className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors"
+            >
               {t("sidebar.manageBudget")}
             </button>
           </div>
@@ -145,30 +212,21 @@ const Guides_Card = () => {
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters")}</h3>
-              <button className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
-            </div>
-            
-            {/* Price Filter */}
-            <div className="mb-6">
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Price Range (LKR)</label>
-              <div className="h-1 bg-gray-200 rounded-lg relative mb-2 mt-4">
-                <div className="absolute h-1 bg-blue-600 rounded-lg left-0 right-0"></div>
-                <div className="absolute w-4 h-4 bg-white border-2 border-blue-600 rounded-full -top-1.5 left-0"></div>
-                <div className="absolute w-4 h-4 bg-white border-2 border-blue-600 rounded-full -top-1.5 right-0"></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-400 font-bold">
-                <span>3k</span>
-                <span>30k+</span>
-              </div>
+              <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
             </div>
 
             {/* Languages Filter */}
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Languages</label>
               <div className="space-y-2">
-                {['English', 'German', 'Russian', 'Japanese'].map((lang) => (
+                {['English', 'German', 'French', 'Japanese'].map((lang) => (
                   <label key={lang} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
+                    <input 
+                      type="checkbox" 
+                      checked={selectedLanguages.includes(lang)}
+                      onChange={() => handleLanguageToggle(lang)}
+                      className="rounded text-blue-600 w-4 h-4" 
+                    />
                     <span>{lang}</span>
                   </label>
                 ))}
@@ -179,10 +237,26 @@ const Guides_Card = () => {
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating")}</label>
               <div className="space-y-2">
-                <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" defaultChecked className="rounded text-blue-600 w-4 h-4" />
-                    <span className="text-yellow-400 text-sm">★★★★★</span>
+                {[5, 4].map((star) => (
+                  <label key={star} className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedRatings.includes(star)}
+                        onChange={() => handleRatingToggle(star)}
+                        className="rounded text-blue-600 w-4 h-4" 
+                      />
+                      <span className="text-yellow-400 text-sm">
+                        {star === 5 ? '★★★★★' : '★★★★☆'}
+                      </span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
                   </div>
                   <span className="text-gray-400">(94)</span>
                 </label>

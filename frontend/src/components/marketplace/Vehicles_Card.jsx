@@ -55,6 +55,8 @@ const Vehicles_Card = () => {
     fetchVehicles();
   }, []);
 
+  const [selectedRatings, setSelectedRatings] = useState([]);
+
   // Filter Logic
   useEffect(() => {
     let filtered = allVehicles;
@@ -67,15 +69,34 @@ const Vehicles_Card = () => {
     // Simple category type filter
     if (selectedType !== 'All') {
       if (selectedType === 'Luxury SUV') {
-        filtered = filtered.filter(v => v.type.toLowerCase().includes('suv'));
+        filtered = filtered.filter(v => (v.type || '').toLowerCase().includes('suv'));
       } else if (selectedType === 'Budget') {
         filtered = filtered.filter(v => v.price <= 6000);
       }
     }
 
+    if (selectedRatings.length > 0) {
+      filtered = filtered.filter((v) => {
+        const ratingFloor = Math.floor(v.rating || 5);
+        return selectedRatings.includes(ratingFloor);
+      });
+    }
+
     setVehiclesData(filtered);
     setCurrentPage(1); // reset pagination when filters change
-  }, [budget, selectedType, allVehicles]);
+  }, [budget, selectedType, selectedRatings, allVehicles]);
+
+  const handleRatingToggle = (rating) => {
+    setSelectedRatings((prev) =>
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
+    );
+  };
+
+  const handleReset = () => {
+    setBudget(50000);
+    setSelectedType('All');
+    setSelectedRatings([]);
+  };
 
   return (
     <div className="min-h-screen bg-[#EBF1FF] font-sans text-gray-800 p-6">
@@ -116,30 +137,38 @@ const Vehicles_Card = () => {
                 <span>50k</span>
               </div>
             </div>
+            <button 
+              onClick={handleReset}
+              className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors"
+            >
+              {t("sidebar.manageBudget")}
+            </button>
           </div>
 
           {/* Filters Card */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters")}</h3>
+              <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
             </div>
             <div>
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating")}</label>
               <div className="space-y-2">
-                <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" defaultChecked className="rounded text-blue-600 w-4 h-4" />
-                    <span className="text-yellow-400 text-sm">★★★★★</span>
-                  </div>
-                  <span className="text-gray-400">(128)</span>
-                </label>
-                <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
-                    <span className="text-yellow-400 text-sm">★★★★☆</span>
-                  </div>
-                  <span className="text-gray-400">(84)</span>
-                </label>
+                {[5, 4].map((star) => (
+                  <label key={star} className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedRatings.includes(star)}
+                        onChange={() => handleRatingToggle(star)}
+                        className="rounded text-blue-600 w-4 h-4" 
+                      />
+                      <span className="text-yellow-400 text-sm">
+                        {star === 5 ? '★★★★★' : '★★★★☆'}
+                      </span>
+                    </div>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
