@@ -215,11 +215,32 @@ const Guides_Card = () => {
               <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
             </div>
 
+            {/* Price Range Filter Slider */}
+            <div className="mb-6">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                Price Range (LKR): {budget.toLocaleString()} LKR
+              </label>
+              <input 
+                type="range" 
+                min="3000" 
+                max="30000" 
+                step="1000"
+                value={budget} 
+                onChange={(e) => setBudget(Number(e.target.value))}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
+                style={{ background: `linear-gradient(to right, #1E40AF ${budgetPercentage}%, #E5E7EB ${budgetPercentage}%)` }}
+              />
+              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
+                <span>3k</span>
+                <span>30k+</span>
+              </div>
+            </div>
+
             {/* Languages Filter */}
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Languages</label>
               <div className="space-y-2">
-                {['English', 'German', 'French', 'Japanese'].map((lang) => (
+                {['English', 'German', 'Russian', 'Japanese'].map((lang) => (
                   <label key={lang} className="flex items-center space-x-2 text-xs font-medium text-gray-600 cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -250,23 +271,9 @@ const Guides_Card = () => {
                         {star === 5 ? '★★★★★' : '★★★★☆'}
                       </span>
                     </div>
+                    <span className="text-gray-400">({star === 5 ? '94' : '42'})</span>
                   </label>
                 ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-                  </div>
-                  <span className="text-gray-400">(94)</span>
-                </label>
-                <label className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
-                  <div className="flex items-center space-x-2">
-                    <input type="checkbox" className="rounded text-blue-600 w-4 h-4" />
-                    <span className="text-yellow-400 text-sm">★★★★☆</span>
-                  </div>
-                  <span className="text-gray-400">(42)</span>
-                </label>
               </div>
             </div>
           </div>
