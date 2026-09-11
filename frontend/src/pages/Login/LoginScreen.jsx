@@ -656,7 +656,12 @@ const LoginScreen = () => {
 
       // success login
       if (data.token) {
-        setSession(data.token, data.user);
+        if (data.user.role === 'restaurant_user') {
+          localStorage.setItem('restaurantToken', data.token);
+          localStorage.setItem('restaurantUser', JSON.stringify(data.user));
+        } else {
+          setSession(data.token, data.user);
+        }
 
         // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);

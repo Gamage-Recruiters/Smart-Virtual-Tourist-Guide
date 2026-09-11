@@ -49,11 +49,25 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
     }
 
     if (!activity && booking.service?.name) {
+      const escapedName = booking.service.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       activity = await Activity.findOne({
-        title: { $regex: new RegExp(`^${booking.service.name.trim()}$`, 'i') },
+        title: { $regex: new RegExp(`^${escapedName}$`, 'i') },
       });
+      if (!activity) {
+        activity = await Activity.findOne({
+          title: { $regex: new RegExp(escapedName, 'i') },
+        });
+      }
       if (activity) {
         activityId = activity._id;
+      }
+    }
+
+    if (!activityId) {
+      const fallbackActivity = await Activity.findOne();
+      if (fallbackActivity) {
+        activityId = fallbackActivity._id;
+        activity = fallbackActivity;
       }
     }
 
@@ -69,7 +83,7 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
         {
           bookingId: booking._id,
           activityId: activityId || null,
-          serviceName: booking.service?.name || 'Activity',
+          serviceName: booking.service?.name || activity?.title || 'Activity',
           date: bookingDate,
           timeSlot: timeSlotStr,
           participants,
@@ -78,7 +92,7 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
           customerPhone: booking.customer?.phone || '',
           status: 'booked',
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
       );
 
       // 2. Store / Update in Management Calendar
@@ -180,7 +194,7 @@ export const updateBookingStatus = async (req, res) => {
     const booking = await ActivityBooking.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!booking) {

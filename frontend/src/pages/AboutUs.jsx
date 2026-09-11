@@ -1,10 +1,10 @@
 import React from 'react';
-import heroBg from '../assets/abg.jpg';
-import flagImg from '../assets/sri lanka flag.png';
-import leftImage1 from '../assets/abg0.png';
-import leftImage2 from '../assets/abg2.png';
-import missionBg from '../assets/mbg.png';
-import missionBgRight from '../assets/mbgr.png';
+import heroBg from '../assets/LandingPage/abg.jpg';
+import flagImg from '../assets/LandingPage/sri lanka flag.png';
+import leftImage1 from '../assets/LandingPage/abg0.png';
+import leftImage2 from '../assets/LandingPage/abg2.png';
+import missionBg from '../assets/LandingPage/mbg.png';
+import missionBgRight from '../assets/LandingPage/mbgr.png';
 
 // IMPORT YOUR SVG ICONS HERE
 import routingIcon from '../assets/svg/route.svg';
