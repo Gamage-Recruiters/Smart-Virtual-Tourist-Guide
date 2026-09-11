@@ -133,11 +133,7 @@ export default function Submit_Bids() {
 
       {/* Main */}
       <div className="relative z-10 flex flex-col flex-1">
-        <div className="w-full">
-          <Header />
-        </div>
-
-        <div className="flex-1 flex items-center justify-center w-full px-4 py-10 mt-32">
+        <div className="flex-1 flex items-center justify-center w-full px-4 py-6">
           <div className="w-full max-w-2xl space-y-5">
 
             {/* Hired Banner */}
@@ -338,10 +334,6 @@ export default function Submit_Bids() {
             </div>
 
           </div>
-        </div>
-
-        <div className="w-full mt-auto">
-          <Footer />
         </div>
       </div>
     </div>

@@ -86,9 +86,7 @@ export default function Driver_Details() {
       </div>
 
       <div className="relative z-10 flex flex-col flex-1">
-        <Header />
-
-        <div className="flex-1 flex items-center justify-center w-full px-4 py-10 mt-40">
+        <div className="flex-1 flex items-center justify-center w-full px-4 py-6">
           <div className="w-full max-w-3xl bg-white/95 backdrop-blur-md rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] p-8 md:p-10 border border-blue-400">
             
             {/* Form Grid */}
@@ -287,8 +285,6 @@ export default function Driver_Details() {
             </div>
           </div>
         </div>
-
-        <Footer />
       </div>
     </div>
   );

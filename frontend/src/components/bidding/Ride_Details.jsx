@@ -167,13 +167,8 @@ export default function Ride_Details() {
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-[#E5F3FD]/70 to-[#E5F3FD] backdrop-blur-[3px]"></div>
       </div>
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 w-full z-20">
-        <Header />
-      </div>
-
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-4 pt-32 pb-16 gap-6">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-4 pt-6 pb-16 gap-6">
 
         {/* Leaflet Map Card */}
         <div className="w-full max-w-xl bg-white rounded-[24px] p-2 shadow-2xl border border-white overflow-hidden">
@@ -417,8 +412,6 @@ export default function Ride_Details() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -261,9 +261,7 @@ export default function Driver_Bids() {
       </div>
 
       <div className="relative z-10 flex flex-col flex-1">
-        <Header />
-
-        <div className="flex-1 flex items-center justify-center w-full px-4 py-10 mt-40">
+        <div className="flex-1 flex items-center justify-center w-full px-4 py-6">
           <div className="w-full max-w-3xl space-y-6">
 
             {/* === MAP CARD === */}
@@ -575,8 +573,6 @@ export default function Driver_Bids() {
             </div>
           </div>
         </div>
-
-        <Footer />
       </div>
     </div>
   );
