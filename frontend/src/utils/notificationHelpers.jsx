@@ -1,4 +1,3 @@
-import React from "react";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -13,29 +12,27 @@ import {
 } from "lucide-react";
 
 export const getCategoryIcon = (category) => {
-  const iconProps = { className: "w-5 h-5" };
-
   switch (category) {
     case "SAFETY":
-      return <AlertTriangle {...iconProps} />;
+      return AlertTriangle;
     case "BOOKING":
-      return <CalendarCheck {...iconProps} />;
+      return CalendarCheck;
     case "BID":
-      return <Gavel {...iconProps} />;
+      return Gavel;
     case "PAYMENT":
-      return <CreditCard {...iconProps} />;
+      return CreditCard;
     case "ACCOUNT":
-      return <UserCircle {...iconProps} />;
+      return UserCircle;
     case "REVIEW":
-      return <Star {...iconProps} />;
+      return Star;
     case "INQUIRY":
-      return <HelpCircle {...iconProps} />;
+      return HelpCircle;
     case "BUDGET":
-      return <Wallet {...iconProps} />;
+      return Wallet;
     case "SYSTEM":
-      return <Settings {...iconProps} />;
+      return Settings;
     default:
-      return <Bell {...iconProps} />;
+      return Bell;
   }
 };
 

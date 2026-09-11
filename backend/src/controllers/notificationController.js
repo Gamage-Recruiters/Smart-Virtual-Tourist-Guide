@@ -118,8 +118,8 @@ const getNotifications = catchAsync(async (req, res, next) => {
 const markAsRead = catchAsync(async (req, res, next) => {
   const { id } = req.params; // The ID of the notification from the URL
 
-  // Get user ID from headers (for testing)
-  const userId = req.user._id;
+  // Get the current logged-in user's ID and safely convert it to a string
+  const userId = (req.user._id || req.user.id)?.toString();
 
   if (!userId) {
     return next(
@@ -140,10 +140,16 @@ const markAsRead = catchAsync(async (req, res, next) => {
     return next(new AppError("No notification found with that ID", 404));
   }
 
-  // If it's a private message, simply update the 'isRead' boolean
+  // If it's a private message sent only to this user (UNICAST)
   if (notification.scope === "UNICAST") {
-    // Security check: ensure the user owns this message
-    if (notification.recipientId.toString() !== userId) {
+    // Get the owner's ID and convert it to a string for accurate comparison.
+    // We check both 'recipientId' and 'userId' to support older database records.
+    const targetUserId = (
+      notification.recipientId || notification.userId
+    )?.toString();
+
+    // Security check: Make sure the logged-in user is the actual owner of this notification
+    if (targetUserId !== userId) {
       logger.warn(
         ` Unauthorized read attempt by User ${userId} on Notif ${id}`,
       );
@@ -151,11 +157,13 @@ const markAsRead = catchAsync(async (req, res, next) => {
         new AppError("Unauthorized access to this notification", 403),
       );
     }
+
+    // Update the read status and save it to the database
     notification.isRead = true;
     await notification.save();
   } else {
-    // If it's a public message, add a new record to the ReadStatus collection
-    // 'upsert: true' creates a new record if it doesn't exist
+    // If it's a public message, keep track of who read it in a separate collection.
+    // 'upsert: true' creates a new record if it doesn't exist yet.
     await NotificationReadStatus.updateOne(
       { notificationId: id, userId },
       { $setOnInsert: { readAt: new Date() } },
@@ -338,11 +346,11 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
       },
     }));
 
-      await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
-        (e) => {
-          console.error("Error in bulkWrite for markAllAsRead:", e.message);
-        },
-      );
+    await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
+      (e) => {
+        console.error("Error in bulkWrite for markAllAsRead:", e.message);
+      },
+    );
   }
 
   res.status(200).json({

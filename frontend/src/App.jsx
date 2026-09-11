@@ -89,6 +89,7 @@ import DummyPageDriver from "./pages/Driver/dummyPage";
 
 // ===== Notification =====
 import GlobalNotificationUI from "./components/notifications/GlobalNotificationUI";
+//import NotificationModal from "./components/notifications/NotificationModal.jsx";
 
 // ============================================================
 // BRANCH ADDITIONS
@@ -152,7 +153,6 @@ function App() {
       <GlobalNotificationUI />
 
       <Routes>
-
         {/* ========================================================= */}
         {/*                  MAIN BRANCH ROUTES                       */}
         {/* ========================================================= */}
@@ -163,30 +163,18 @@ function App() {
           element={<ActivityProviderDashboard />}
         />
 
-        <Route
-          path="/activityprovider/activities"
-          element={<ActivityList />}
-        />
+        <Route path="/activityprovider/activities" element={<ActivityList />} />
 
-        <Route
-          path="/activityprovider/activities/new"
-          element={<Activity />}
-        />
+        <Route path="/activityprovider/activities/new" element={<Activity />} />
 
         <Route
           path="/activityprovider/activities/edit/:id"
           element={<Activity />}
         />
 
-        <Route
-          path="/activityprovider/calendar"
-          element={<ManageCalendar />}
-        />
+        <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
 
-        <Route
-          path="/activityprovider/viewratings"
-          element={<ViewRatings />}
-        />
+        <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
 
         <Route
           path="/activityprovider/acceptbookings"
@@ -204,77 +192,38 @@ function App() {
 
         {/* ===== BRANCH ADDITIONS ===== */}
         <Route path="/results" element={<ResultsPage />} />
-        <Route
-          path="/destination-detail"
-          element={<DestinationDetails />}
-        />
-        <Route
-          path="/add-destination"
-          element={<AddDestination />}
-        />
+        <Route path="/destination-detail" element={<DestinationDetails />} />
+        <Route path="/add-destination" element={<AddDestination />} />
 
         {/* ===== AUTH ROUTES ===== */}
         <Route path="/login" element={<LoginScreen />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordScreen />}
-        />
+        <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
 
-        <Route
-          path="/create-password"
-          element={<NewPasswordCreate />}
-        />
+        <Route path="/create-password" element={<NewPasswordCreate />} />
 
         {/* ===== SIGNUP FLOWS ===== */}
         <Route path="/tourist" element={<SignupForm />} />
 
-        <Route
-          path="/travel-safety"
-          element={<TravelSafetyInfo />}
-        />
+        <Route path="/travel-safety" element={<TravelSafetyInfo />} />
 
-        <Route
-          path="/hotel-owner"
-          element={<HotelOwnerSignup />}
-        />
+        <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
 
-        <Route
-          path="/hotel-info"
-          element={<HotelInfo />}
-        />
+        <Route path="/hotel-info" element={<HotelInfo />} />
 
-        <Route
-          path="/guide"
-          element={<GuideSignup />}
-        />
+        <Route path="/guide" element={<GuideSignup />} />
 
-        <Route
-          path="/renter"
-          element={<RenterSignup />}
-        />
+        <Route path="/renter" element={<RenterSignup />} />
 
-        <Route
-          path="/government"
-          element={<GovernmentSignup />}
-        />
+        <Route path="/government" element={<GovernmentSignup />} />
 
-        <Route
-          path="/activity-provider"
-          element={<ActivityProviderSignup />}
-        />
+        <Route path="/activity-provider" element={<ActivityProviderSignup />} />
 
         {/* MAIN /admin kept unchanged */}
-        <Route
-          path="/admin"
-          element={<AdminLogin />}
-        />
+        <Route path="/admin" element={<AdminLogin />} />
 
         {/* Branch restaurant legacy signup route */}
-        <Route
-          path="/restuarant"
-          element={<ResturentRegistrationPage />}
-        />
+        <Route path="/restuarant" element={<ResturentRegistrationPage />} />
 
         {/* ===== DRIVER SIGNUP ===== */}
         <Route
@@ -307,38 +256,24 @@ function App() {
         {/* ===== MAIN DASHBOARD ROUTES ===== */}
         <Route
           path="/dashboard-Tourist"
-          element={<DummyPageTourist />}
+          // element={<DummyPageTourist />}
+          element={<TouristDashboard />}
         />
 
-        <Route
-          path="/dashboard-HotelOwner"
-          element={<HotelOwnerDashboard />}
-        />
+        <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
 
-        <Route
-          path="/dashboard-Guide"
-          element={<DummyPageGuide />}
-        />
+        <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
 
         {/* <Route
           path="/dashboard-Renter"
           element={<VehicleAdmin />}
         /> */}
 
-        <Route
-          path="/dashboard-Government"
-          element={<DummyPageGovernment />}
-        />
+        <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
 
-        <Route
-          path="/dashboard-Driver"
-          element={<DummyPageDriver />}
-        />
+        <Route path="/dashboard-Driver" element={<DummyPageDriver />} />
 
-        <Route
-          path="/dashboard-Admin"
-          element={<DummyPageAdmin />}
-        />
+        <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
 
         <Route
           path="/dashboard-ActivityProvider"
@@ -375,25 +310,13 @@ function App() {
           element={<ViewCurrentRoomsPackages />}
         />
 
-        <Route
-          path="/add-room-package"
-          element={<AddRoomPage />}
-        />
+        <Route path="/add-room-package" element={<AddRoomPage />} />
 
-        <Route
-          path="/edit-room/:id"
-          element={<AddRoomPage />}
-        />
+        <Route path="/edit-room/:id" element={<AddRoomPage />} />
 
-        <Route
-          path="/add-special-package"
-          element={<AddSpecialPackages />}
-        />
+        <Route path="/add-special-package" element={<AddSpecialPackages />} />
 
-        <Route
-          path="/edit-package/:id"
-          element={<AddSpecialPackages />}
-        />
+        <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
 
         <Route
           path="/manage-availability"
@@ -405,20 +328,14 @@ function App() {
           element={<ViewRoomAvailabilityCalenderPage />}
         />
 
-        <Route
-          path="/view-reservations"
-          element={<ViewRoomReservation />}
-        />
+        <Route path="/view-reservations" element={<ViewRoomReservation />} />
 
         <Route
           path="/financial-analysis"
           element={<FinancialAnalysisDashboard />}
         />
 
-        <Route
-          path="/dashboard"
-          element={<HotelOwnerDashboard />}
-        />
+        <Route path="/dashboard" element={<HotelOwnerDashboard />} />
 
         <Route
           path="/Hotel-Owner-Profile-Settings"
@@ -426,10 +343,7 @@ function App() {
         />
 
         {/* ===== TOURIST RESTAURANT PAGES ===== */}
-        <Route
-          path="/restaurants"
-          element={<TouristRestaurantsPage />}
-        />
+        <Route path="/restaurants" element={<TouristRestaurantsPage />} />
 
         <Route
           path="/restaurants/:id"
@@ -437,10 +351,7 @@ function App() {
         />
 
         {/* ===== RESTAURANT MANAGEMENT ===== */}
-        <Route
-          path="/resturent/login"
-          element={<ResturentLogingPage />}
-        />
+        <Route path="/resturent/login" element={<ResturentLogingPage />} />
 
         <Route
           path="/resturent/register"
@@ -455,50 +366,23 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route
-            index
-            element={<ResturentDashboardPage />}
-          />
+          <Route index element={<ResturentDashboardPage />} />
 
-          <Route
-            path="menu"
-            element={<ResturentMenuPage />}
-          />
+          <Route path="menu" element={<ResturentMenuPage />} />
 
-          <Route
-            path="menu/add"
-            element={<ResturentAddMenuPage />}
-          />
+          <Route path="menu/add" element={<ResturentAddMenuPage />} />
 
-          <Route
-            path="menu/edit/:id"
-            element={<ResturentAddMenuPage />}
-          />
+          <Route path="menu/edit/:id" element={<ResturentAddMenuPage />} />
 
-          <Route
-            path="reservation"
-            element={<ResturentReservationPage />}
-          />
+          <Route path="reservation" element={<ResturentReservationPage />} />
 
-          <Route
-            path="offers"
-            element={<ResturentOfferPage />}
-          />
+          <Route path="offers" element={<ResturentOfferPage />} />
 
-          <Route
-            path="reviews"
-            element={<ResturentReviewPage />}
-          />
+          <Route path="reviews" element={<ResturentReviewPage />} />
 
-          <Route
-            path="revenue"
-            element={<ResturentRevenuePage />}
-          />
+          <Route path="revenue" element={<ResturentRevenuePage />} />
 
-          <Route
-            path="profile"
-            element={<ResturentProfilePage />}
-          />
+          <Route path="profile" element={<ResturentProfilePage />} />
         </Route>
 
         {/* ========================================================= */}
@@ -508,10 +392,7 @@ function App() {
         {/* These are separate paths because /dashboard-Tourist
             already exists in MAIN and must not be changed. */}
 
-        <Route
-          path="/tourist-trip-plan"
-          element={<TripPlanningPage />}
-        />
+        <Route path="/tourist-trip-plan" element={<TripPlanningPage />} />
 
         <Route
           path="/tourist-direction"
@@ -522,30 +403,18 @@ function App() {
           }
         />
 
-        <Route
-          path="/tourist-profile"
-          element={<TouristProfilePage />}
-        />
+        <Route path="/tourist-profile" element={<TouristProfilePage />} />
 
-        <Route
-          path="/rent-vehicle"
-          element={<RentVehiclePage />}
-        />
+        <Route path="/rent-vehicle" element={<RentVehiclePage />} />
 
         <Route
           path="/rent-vehicle/vehicle-details/:id"
           element={<VehicleDetailsPage />}
         />
 
-        <Route
-          path="/book-driver"
-          element={<BookDriver />}
-        />
+        <Route path="/book-driver" element={<BookDriver />} />
 
-        <Route
-          path="/find-hotel"
-          element={<FindHotelPage />}
-        />
+        <Route path="/find-hotel" element={<FindHotelPage />} />
 
         <Route
           path="/find-hotel/hotel-details/:id"
@@ -553,14 +422,8 @@ function App() {
         />
 
         {/* Branch restaurant legacy dashboard */}
-        <Route
-          path="/dashboard-Restaurant"
-          element={<RestaurantLayout />}
-        >
-          <Route
-            index
-            element={<ResturentDashboardPage />}
-          />
+        <Route path="/dashboard-Restaurant" element={<RestaurantLayout />}>
+          <Route index element={<ResturentDashboardPage />} />
         </Route>
 
         {/* ========================================================= */}
@@ -575,75 +438,37 @@ function App() {
             </SafetyProvider>
           }
         >
-          <Route
-            index
-            element={<PublicIncidentsPage />}
-          />
+          <Route index element={<PublicIncidentsPage />} />
 
-          <Route
-            path="alerts"
-            element={<SecurityAlertsPage />}
-          />
+          <Route path="alerts" element={<SecurityAlertsPage />} />
 
           <Route
             path="security-alerts"
-            element={
-              <Navigate
-                to="/safety/alerts"
-                replace
-              />
-            }
+            element={<Navigate to="/safety/alerts" replace />}
           />
 
-          <Route
-            path="my-incidents"
-            element={<MyStatusDashboardPage />}
-          />
+          <Route path="my-incidents" element={<MyStatusDashboardPage />} />
 
           <Route
             path="my-reports"
-            element={
-              <Navigate
-                to="/safety/my-incidents"
-                replace
-              />
-            }
+            element={<Navigate to="/safety/my-incidents" replace />}
           />
 
           <Route
             path="status-dashboard"
-            element={
-              <Navigate
-                to="/safety/my-incidents"
-                replace
-              />
-            }
+            element={<Navigate to="/safety/my-incidents" replace />}
           />
 
-          <Route
-            path="public-analytics"
-            element={<IncidentTrackingPage />}
-          />
+          <Route path="public-analytics" element={<IncidentTrackingPage />} />
 
           <Route
             path="analytics"
-            element={
-              <Navigate
-                to="/safety/public-analytics"
-                replace
-              />
-            }
+            element={<Navigate to="/safety/public-analytics" replace />}
           />
 
-          <Route
-            path="public-incidents"
-            element={<PublicIncidentsPage />}
-          />
+          <Route path="public-incidents" element={<PublicIncidentsPage />} />
 
-          <Route
-            path="weather"
-            element={<WeatherAlertsPage />}
-          />
+          <Route path="weather" element={<WeatherAlertsPage />} />
         </Route>
 
         {/* ===== SAFETY STANDALONE PAGES ===== */}
@@ -677,12 +502,7 @@ function App() {
 
         <Route
           path="/safety/report-incident/form"
-          element={
-            <Navigate
-              to="/safety/report-incident"
-              replace
-            />
-          }
+          element={<Navigate to="/safety/report-incident" replace />}
         />
 
         <Route
@@ -698,10 +518,7 @@ function App() {
         {/*                   INTEGRATED ADMIN                       */}
         {/* ========================================================= */}
 
-        <Route
-          path="/admin/login"
-          element={<IntegratedAdminLogin />}
-        />
+        <Route path="/admin/login" element={<IntegratedAdminLogin />} />
 
         {/* Main already owns /admin.
             Therefore Integrated Admin dashboard is exposed
@@ -710,9 +527,7 @@ function App() {
         <Route
           path="/admin/integrated"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminDashboard />
             </IntegratedAdminProtectedRoute>
           }
@@ -721,9 +536,7 @@ function App() {
         <Route
           path="/admin/users"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminUsers />
             </IntegratedAdminProtectedRoute>
           }
@@ -732,9 +545,7 @@ function App() {
         <Route
           path="/admin/users/new"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminAddUser />
             </IntegratedAdminProtectedRoute>
           }
@@ -744,10 +555,7 @@ function App() {
           path="/admin/listings"
           element={
             <IntegratedAdminProtectedRoute
-              allowedRoles={[
-                "Administrator",
-                "Moderator",
-              ]}
+              allowedRoles={["Administrator", "Moderator"]}
             >
               <IntegratedAdminListings />
             </IntegratedAdminProtectedRoute>
@@ -758,10 +566,7 @@ function App() {
           path="/admin/view-details/:id"
           element={
             <IntegratedAdminProtectedRoute
-              allowedRoles={[
-                "Administrator",
-                "Moderator",
-              ]}
+              allowedRoles={["Administrator", "Moderator"]}
             >
               <IntegratedAdminViewDetails />
             </IntegratedAdminProtectedRoute>
@@ -771,9 +576,7 @@ function App() {
         <Route
           path="/admin/ads"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminAds />
             </IntegratedAdminProtectedRoute>
           }
@@ -782,9 +585,7 @@ function App() {
         <Route
           path="/admin/ads/create"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminCreateAd />
             </IntegratedAdminProtectedRoute>
           }
@@ -793,9 +594,7 @@ function App() {
         <Route
           path="/admin/edit-ad/:id"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminEditAd />
             </IntegratedAdminProtectedRoute>
           }
@@ -804,9 +603,7 @@ function App() {
         <Route
           path="/admin/view-ad/:id"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Administrator"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
               <IntegratedAdminViewAd />
             </IntegratedAdminProtectedRoute>
           }
@@ -815,21 +612,17 @@ function App() {
         <Route
           path="/admin/access-denied"
           element={
-            <IntegratedAdminProtectedRoute
-              allowedRoles={["Editor"]}
-            >
+            <IntegratedAdminProtectedRoute allowedRoles={["Editor"]}>
               <IntegratedAdminAccessDenied />
             </IntegratedAdminProtectedRoute>
           }
         />
 
         {/* ===== 404 FALLBACK ===== */}
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      <NotificationModal />
     </>
   );
 }

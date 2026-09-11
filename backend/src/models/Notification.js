@@ -92,7 +92,7 @@ const notificationSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // --- INDEXES (For Performance Optimization) ---
@@ -126,7 +126,7 @@ notificationSchema.pre("save", async function () {
 
       if (!userExists) {
         throw new Error(
-          `Recipient User with ID ${this.recipientId} does not exist.`,
+          `Recipient User with ID ${this.recipientId} does not exist.`
         );
       }
     }
@@ -147,4 +147,5 @@ notificationSchema.pre("save", async function () {
   }
 });
 
-export default mongoose.model("Notification", notificationSchema);
+export default mongoose.models.Notification ||
+  mongoose.model("Notification", notificationSchema);

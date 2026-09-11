@@ -1,7 +1,8 @@
 import TripItinerary from "../../models/TouristDashboard/TripItinerary.js";
 import TouristProfile from "../../models/TouristDashboard/TouristProfile.js";
 import Booking from "../../models/TouristDashboard/Booking.js";
-import Notification from "../../models/TouristDashboard/Notification.js";
+//import Notification from "../../models/TouristDashboard/Notification.js";
+  import Notification from "../../models/Notification.js";
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/itinerary
@@ -89,7 +90,8 @@ async function generateFinalReport(req, res) {
       TouristProfile.findOne({ userId }).lean(),
       TripItinerary.findOne({ userId }).lean(),
       Booking.find({ userId }).sort({ dateTime: 1 }).lean(),
-      Notification.find({ userId }).sort({ createdAt: -1 }).lean(),
+      
+      Notification.find({ recipientId: userId }).sort({ createdAt: -1 }).lean(),
     ]);
 
     // Budget summary

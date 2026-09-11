@@ -44,7 +44,10 @@ const NotificationBell = () => {
 
   return (
     <button
-      onClick={() => dispatch(toggleNotificationModal(true))}
+      onClick={() => {
+        console.log("Button clicked!");
+        dispatch(toggleNotificationModal(true));
+      }}
       aria-label={`Notifications, ${unreadCount} unread`}
       className="relative p-2 text-[#111111] hover:bg-[#F4F9FF] hover:text-[#111111] rounded-[12px] transition-colors duration-200 focus:outline-none"
     >

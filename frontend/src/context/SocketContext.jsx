@@ -107,10 +107,29 @@ export const SocketProvider = ({ children }) => {
         }
 
         dispatch(addRealtimeNotification(notification));
-        queryClient.invalidateQueries({ queryKey: ["notifications", user?._id] });
+
+        queryClient.setQueryData(["notifications", token], (oldData) => {
+          if (!oldData || !oldData.pages) return oldData;
+
+          const newPages = [...oldData.pages];
+          if (newPages.length > 0) {
+            newPages[0] = {
+              ...newPages[0],
+              data: [notification, ...newPages[0].data],
+            };
+          }
+          return {
+            ...oldData,
+            pages: newPages,
+          };
+        });
+
+        dispatch(addRealtimeNotification(notification));
+        queryClient.invalidateQueries({ queryKey: ["notifications", token] });
       };
 
       socket.on("connect", handleConnect);
+      8;
       socket.on("disconnect", handleDisconnect);
       socket.on("connect_error", handleConnectError);
       socket.on("reconnect_attempt", handleReconnectAttempt);
@@ -125,7 +144,12 @@ export const SocketProvider = ({ children }) => {
             const { latitude, longitude } = position.coords;
 
             if (lastLat && lastLng) {
-              const dist = calculateDistance(lastLat, lastLng, latitude, longitude);
+              const dist = calculateDistance(
+                lastLat,
+                lastLng,
+                latitude,
+                longitude,
+              );
               if (dist < 50) return;
             }
 

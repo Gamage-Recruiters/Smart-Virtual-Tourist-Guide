@@ -1,48 +1,49 @@
 import express from "express";
 const router = express.Router();
 import { protect } from "../../middleware/authMiddleware.js";
+
+// Import the functions from the new central notification controller
 import {
   getNotifications,
-  markAllRead,
-  markOneRead,
-  createNotification,
-  deleteNotification,
-} from "../../controllers/TouristDashboard/notificationController.js";
+  markAsRead,
+  getUnreadCount,
+  markAllAsRead,
+  clearAllNotifications,
+} from "../../controllers/notificationController.js"; 
 
-// All notification routes require authentication
+// Protect all routes below. Only logged-in users can access these endpoints.
 router.use(protect);
 
 /**
  * GET /api/notifications
- * Returns all notifications for the authenticated user (newest first).
- * Optional query: ?unread=true  (returns only unread)
+ * Fetch notifications for the logged-in user.
+ * Supports pagination and location-based filtering.
  */
 router.get("/", getNotifications);
 
 /**
- * POST /api/notifications
- * Create a new notification.
- * Body: { type, title, message, actionUrl, userId? }
+ * GET /api/notifications/unread-count
+ * Get the total number of unread notifications.
+ * Useful for displaying the red badge number on the notification bell icon.
  */
-router.post("/", createNotification);
+router.get("/unread-count", getUnreadCount);
 
 /**
  * PATCH /api/notifications/read-all
- * Mark every notification for the authenticated user as read.
- * (Must be declared before /:id to avoid "read-all" being treated as an id)
+ * Mark all notifications as "read" for the current user at once.
  */
-router.patch("/read-all", markAllRead);
+router.patch("/read-all", markAllAsRead);
 
 /**
  * PATCH /api/notifications/:id/read
- * Mark a single notification as read.
+ * Mark a single specific notification as "read" when the user clicks on it.
  */
-router.patch("/:id/read", markOneRead);
+router.patch("/:id/read", markAsRead);
 
 /**
- * DELETE /api/notifications/:id
- * Delete a single notification.
+ * DELETE /api/notifications/clear-all
+ * Clear or delete all notifications for the current user.
  */
-router.delete("/:id", deleteNotification);
+router.delete("/clear-all", clearAllNotifications);
 
 export default router;

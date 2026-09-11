@@ -99,7 +99,7 @@ const NotificationList = () => {
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto p-4 custom-scrollbar" onScroll={handleScroll}>
+    <div className="w-full h-full p-4 overflow-y-auto custom-scrollbar" onScroll={handleScroll}>
       {isLoading && (
         <div className="flex flex-col gap-3">
           {[...Array(6)].map((_, i) => (
@@ -111,6 +111,9 @@ const NotificationList = () => {
       <div className="flex flex-col gap-3">
         {list.map((notification) => {
           const isExpanded = expandedId === notification._id;
+          
+          const Icon = getCategoryIcon(notification.category);
+
           return (
             <div
               key={notification._id}
@@ -123,11 +126,11 @@ const NotificationList = () => {
             >
               <div className="flex items-start">
                 <div className={`shrink-0 p-2.5 rounded-full mr-4 ${getIconColor(notification.priority)}`}>
-                  {getCategoryIcon(notification.category)}
+                  <Icon className="w-5 h-5" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
+                  <div className="flex items-start justify-between mb-1">
                     <h4
                       className={`text-sm pr-2 transition-all truncate ${
                         isExpanded
@@ -145,7 +148,7 @@ const NotificationList = () => {
                         {timeAgo(notification.createdAt)}
                       </span>
                       {!notification.isRead && (
-                        <span className="relative flex h-2 w-2">
+                        <span className="relative flex w-2 h-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E53935] opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E53935]"></span>
                         </span>
@@ -193,7 +196,7 @@ const NotificationList = () => {
       )}
 
       {!hasNextPage && list.length > 0 && (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <span className="px-4 py-1.5 rounded-full bg-[#F4F9FF] text-[10px] font-semibold text-[#111111]/70 tracking-widest uppercase">
             End of updates
           </span>

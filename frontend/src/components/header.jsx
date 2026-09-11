@@ -8,7 +8,7 @@ import logoImage from '../assets/LandingPage/logo.png';
 import bg4Image from '../assets/LandingPage/bg4.png';
 
 import NotificationBell from "../components/notifications/NotificationBell";
-
+import NotificationModal from "../components/notifications/NotificationModal"; 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -32,11 +32,11 @@ const Header = () => {
 
   return (
     <>
-      <header className="w-full bg-white border-b border-gray-100 py-2 relative z-50">
+      <header className="relative z-50 w-full py-2 bg-white border-b border-gray-100">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 flex items-center justify-between">
           {/* --- Background Image on Right Side --- */}
           <div
-            className="absolute right-0 top-0 bottom-0 w-1/3 lg:w-1/4 pointer-events-none hidden lg:block"
+            className="absolute top-0 bottom-0 right-0 hidden w-1/3 pointer-events-none lg:w-1/4 lg:block"
             style={{
               backgroundImage: `url(${bg4Image})`,
               backgroundSize: "cover",
@@ -47,13 +47,13 @@ const Header = () => {
           ></div>
 
           {/* --- Left: Logo & Title --- */}
-          <div className="flex items-center gap-3 relative z-10">
+          <div className="relative z-10 flex items-center gap-3">
             {/* Logo Image - Imported from assets (No round shape) */}
-            <div className="relative w-12 h-12 md:w-16 md:h-16 flex-shrink-0">
+            <div className="relative flex-shrink-0 w-12 h-12 md:w-16 md:h-16">
               <img
                 src={logoImage}
                 alt="Sri Lanka Logo"
-                className="w-full h-full object-contain"
+                className="object-contain w-full h-full"
               />
             </div>
 
@@ -83,7 +83,7 @@ const Header = () => {
           </div>
 
           {/* --- Center: Navigation Links (Desktop) --- */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 relative z-10">
+          <nav className="relative z-10 items-center hidden space-x-6 md:flex lg:space-x-8">
             <Link
               to="/"
               className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors"
@@ -123,18 +123,20 @@ const Header = () => {
           </nav>
 
           {/* --- Right: Actions --- */}
-          <div className="flex items-center gap-3 relative z-10">
-            {user && (
-              <div className="flex items-center gap-4">
-                <NotificationBell />
-              </div>
-            )}
+          <div className="relative z-10 flex items-center gap-3">
+              {user && (
+                <div className="flex items-center gap-4">
+                  <NotificationBell />
+
+                  {/* //<NotificationModal /> */}
+                </div>
+              )}
 
             {/* Sign In Button / User Profile */}
             {user ? (
-              <div className="items-center gap-2 hidden sm:flex">
+              <div className="items-center hidden gap-2 sm:flex">
                 <div className="px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   {user.fullName ||
                     user.restaurantName ||
                     user.username ||
@@ -162,11 +164,11 @@ const Header = () => {
             )}
 
             {/* Language Selector */}
-            <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
+            <div className="flex items-center hidden gap-1 text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900 sm:flex">
               <span>EN</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3"
+                className="w-3 h-3"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -187,7 +189,7 @@ const Header = () => {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
+                className="w-6 h-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -202,7 +204,11 @@ const Header = () => {
             </button>
           </div>
         </div>
+
+        {/* //{user && <NotificationModal />} */}
+        
       </header>
+      
 
       {/* --- Mobile Sidebar --- */}
       <div
@@ -222,17 +228,17 @@ const Header = () => {
               <img
                 src={logoImage}
                 alt="Sri Lanka Logo"
-                className="w-8 h-8 object-contain"
+                className="object-contain w-8 h-8"
               />
-              <span className="font-bold text-gray-800 text-sm">Sri Lanka</span>
+              <span className="text-sm font-bold text-gray-800">Sri Lanka</span>
             </div>
             <button
               onClick={closeSidebar}
-              className="p-1 rounded-md text-gray-700 hover:text-red-600 hover:bg-gray-100 transition-colors"
+              className="p-1 text-gray-700 transition-colors rounded-md hover:text-red-600 hover:bg-gray-100"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
+                className="w-6 h-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -319,16 +325,16 @@ const Header = () => {
             ) : (
               <button
                 onClick={() => handleNavigation("/login")}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3"
+                className="w-full px-4 py-2 mb-3 text-sm font-medium text-white transition-colors bg-blue-600 rounded-md shadow-sm hover:bg-blue-700"
               >
                 Sign in
               </button>
             )}
-            <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">
+            <div className="flex items-center justify-center gap-1 text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900">
               <span>EN</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-3 w-3"
+                className="w-3 h-3"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

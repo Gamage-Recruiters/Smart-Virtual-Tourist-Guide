@@ -4,23 +4,31 @@ import { X, CheckCheck, Volume2, VolumeX, Trash2 } from "lucide-react";
 import NotificationList from "./NotificationList";
 
 // Redux Actions & Selectors
-import { toggleNotificationModal, markAllAsReadLocal } from "../../store/slices/notificationSlice";
+import {
+  toggleNotificationModal,
+  markAllAsReadLocal,
+} from "../../store/slices/notificationSlice";
 import { selectIsModalOpen } from "../../store/selectors/notificationSelectors";
 import { selectAuthToken } from "../../store/selectors/authSelectors";
 
 // React Query & API
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { markAllAsReadApi, clearAllNotifications } from "../../api/notificationApi";
+import {
+  markAllAsReadApi,
+  clearAllNotifications,
+} from "../../api/notificationApi";
 
 const NotificationModal = () => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const isModalOpen = useSelector(selectIsModalOpen);
+  console.log("🔴 Modal State in UI:", isModalOpen);
   const token = useSelector(selectAuthToken);
 
   const [isMuted, setIsMuted] = useState(
-    typeof window !== "undefined" && localStorage.getItem("mute_alerts") === "true",
+    typeof window !== "undefined" &&
+      localStorage.getItem("mute_alerts") === "true",
   );
 
   const toggleMute = () => {
@@ -35,7 +43,10 @@ const NotificationModal = () => {
     mutationFn: () => markAllAsReadApi(token),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications", token] });
-      const previousNotifications = queryClient.getQueryData(["notifications", token]);
+      const previousNotifications = queryClient.getQueryData([
+        "notifications",
+        token,
+      ]);
 
       queryClient.setQueryData(["notifications", token], (oldData) => {
         if (!oldData) return oldData;
@@ -52,7 +63,10 @@ const NotificationModal = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications", token], context.previousNotifications);
+        queryClient.setQueryData(
+          ["notifications", token],
+          context.previousNotifications,
+        );
       }
     },
     onSettled: () => {
@@ -69,7 +83,10 @@ const NotificationModal = () => {
     mutationFn: () => clearAllNotifications(token),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications", token] });
-      const previousNotifications = queryClient.getQueryData(["notifications", token]);
+      const previousNotifications = queryClient.getQueryData([
+        "notifications",
+        token,
+      ]);
 
       queryClient.setQueryData(["notifications", token], (oldData) => {
         if (!oldData) return oldData;
@@ -86,7 +103,10 @@ const NotificationModal = () => {
     },
     onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
-        queryClient.setQueryData(["notifications", token], context.previousNotifications);
+        queryClient.setQueryData(
+          ["notifications", token],
+          context.previousNotifications,
+        );
       }
     },
     onSettled: () => {
@@ -99,6 +119,7 @@ const NotificationModal = () => {
     clearAllMutation.mutate();
   };
 
+  console.log("Modal State in Redux: ", isModalOpen);
   if (!isModalOpen) return null;
 
   return (
@@ -115,7 +136,10 @@ const NotificationModal = () => {
       >
         <div className="flex justify-between items-center p-4 border-b border-[#F4F9FF] bg-[#FFFFFF] flex-shrink-0">
           <div className="flex items-center gap-3">
-            <h2 id="modal-title" className="text-lg font-semibold text-[#111111]">
+            <h2
+              id="modal-title"
+              className="text-lg font-semibold text-[#111111]"
+            >
               Notifications
             </h2>
 
@@ -147,7 +171,11 @@ const NotificationModal = () => {
               }`}
               title={isMuted ? "Unmute Alerts" : "Mute Alerts"}
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              {isMuted ? (
+                <VolumeX className="w-4 h-4" />
+              ) : (
+                <Volume2 className="w-4 h-4" />
+              )}
             </button>
 
             <button
@@ -160,7 +188,7 @@ const NotificationModal = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col relative">
+        <div className="relative flex flex-col flex-1 overflow-hidden">
           <NotificationList />
         </div>
       </div>

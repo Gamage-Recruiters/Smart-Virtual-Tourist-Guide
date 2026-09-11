@@ -1,13 +1,14 @@
 import logger from '../utils/logger.js';
 
 const errorHandler = (err, req, res, next) => {
-  let status = err.status || err.statusCode || 500;
+  let statusCode = err.statusCode || 500; 
+  let statusText = err.status || 'error'; 
   let message = err.message || 'Internal Server Error';
   let details = null;
 
   // Handle Mongoose Validation Errors
   if (err.name === 'ValidationError') {
-    status = 400;
+    statusCode = 400;
     message = 'Validation Error';
     details = Object.values(err.errors).map((e) => ({
       field: e.path,
@@ -15,26 +16,25 @@ const errorHandler = (err, req, res, next) => {
     }));
   }
 
-  // Handle Mongoose Cast Errors
   if (err.name === 'CastError') {
-    status = 400;
+    statusCode = 400;
     message = `Invalid ${err.path}: ${err.value}`;
   }
 
   // Handle Multer errors
   if (err.name === 'MulterError') {
-    status = 400;
+    statusCode = 400;
     message = err.message;
     if (err.code === 'LIMIT_FILE_SIZE') {
       message = 'File size exceeds maximum limit of 5MB';
     }
   }
 
-  logger.error(`${status} - ${message}`, err);
+  logger.error(`${statusCode} - ${message}`, err);
 
-  res.status(status).json({
+  res.status(statusCode).json({
     success: false,
-    status,
+    status: statusText, 
     message,
     ...(details && { details }),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),

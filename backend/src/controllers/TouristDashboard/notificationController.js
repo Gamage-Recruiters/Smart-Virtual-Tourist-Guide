@@ -1,4 +1,5 @@
 import Notification from "../../models/TouristDashboard/Notification.js";
+import Notification from "../../models/Notification.js";
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/notifications
@@ -39,12 +40,19 @@ async function markAllRead(req, res) {
   try {
     const userId = req.user.id;
 
-    await Notification.updateMany({ userId, isRead: false }, { $set: { isRead: true } });
+    await Notification.updateMany(
+      { userId, isRead: false },
+      { $set: { isRead: true } },
+    );
 
-    return res.status(200).json({ success: true, message: "All notifications marked as read." });
+    return res
+      .status(200)
+      .json({ success: true, message: "All notifications marked as read." });
   } catch (err) {
     console.error("[notificationController] markAllRead error:", err);
-    return res.status(500).json({ message: "Failed to mark notifications as read." });
+    return res
+      .status(500)
+      .json({ message: "Failed to mark notifications as read." });
   }
 }
 
@@ -60,7 +68,7 @@ async function markOneRead(req, res) {
     const notification = await Notification.findOneAndUpdate(
       { _id: id, userId },
       { $set: { isRead: true } },
-      { returnDocument: 'after' }
+      { returnDocument: "after" },
     );
 
     if (!notification) {
@@ -70,7 +78,9 @@ async function markOneRead(req, res) {
     return res.status(200).json({ success: true, data: notification });
   } catch (err) {
     console.error("[notificationController] markOneRead error:", err);
-    return res.status(500).json({ message: "Failed to mark notification as read." });
+    return res
+      .status(500)
+      .json({ message: "Failed to mark notification as read." });
   }
 }
 
@@ -90,7 +100,9 @@ async function createNotification(req, res) {
     const targetUserId = bodyUserId || req.user.id;
 
     if (!type || !title || !message) {
-      return res.status(400).json({ message: "type, title, and message are required." });
+      return res
+        .status(400)
+        .json({ message: "type, title, and message are required." });
     }
 
     const ALLOWED_TYPES = ["warning", "info", "safety"];
@@ -124,13 +136,18 @@ async function deleteNotification(req, res) {
     const userId = req.user.id;
     const { id } = req.params;
 
-    const notification = await Notification.findOneAndDelete({ _id: id, userId });
+    const notification = await Notification.findOneAndDelete({
+      _id: id,
+      userId,
+    });
 
     if (!notification) {
       return res.status(404).json({ message: "Notification not found." });
     }
 
-    return res.status(200).json({ success: true, message: "Notification deleted." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Notification deleted." });
   } catch (err) {
     console.error("[notificationController] deleteNotification error:", err);
     return res.status(500).json({ message: "Failed to delete notification." });
