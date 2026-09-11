@@ -215,27 +215,6 @@ const Guides_Card = () => {
               <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
             </div>
 
-            {/* Price Range Filter Slider */}
-            <div className="mb-6">
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                Price Range (LKR): {budget.toLocaleString()} LKR
-              </label>
-              <input 
-                type="range" 
-                min="3000" 
-                max="30000" 
-                step="1000"
-                value={budget} 
-                onChange={(e) => setBudget(Number(e.target.value))}
-                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#1E40AF]"
-                style={{ background: `linear-gradient(to right, #1E40AF ${budgetPercentage}%, #E5E7EB ${budgetPercentage}%)` }}
-              />
-              <div className="flex justify-between text-xs text-gray-400 font-bold mt-2">
-                <span>3k</span>
-                <span>30k+</span>
-              </div>
-            </div>
-
             {/* Languages Filter */}
             <div className="mb-6">
               <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">Languages</label>
