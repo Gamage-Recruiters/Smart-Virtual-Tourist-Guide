@@ -29,7 +29,7 @@ import {
   updateMyGuideProfile,
   updateProviderBookingStatus,
   withdrawBid,
-} from '../controllers/guideController.js';
+} from '../controllers/Guide/guideController.js';
 
 const router = express.Router();
 const touristOnly = [protect, authorizeRoles('tourist_user')];

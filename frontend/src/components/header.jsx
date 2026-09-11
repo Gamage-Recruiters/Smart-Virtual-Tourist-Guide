@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from '../assets/SLFH.jpg'; 
+import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/HotelOwner/logo.png'; 
+import logoImage from '../assets/LandingPage/logo.png'; 
 // IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from '../assets/bg4.png'; 
+import bg4Image from '../assets/LandingPage/bg4.png'; 
 
 
 
@@ -23,6 +23,16 @@ const Header = () => {
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    if (!user) return;
+    if (user.role === 'driver_user') navigate('/driver-details');
+    else if (user.role === 'tourist_user') navigate('/touristProfile');
+    else if (user.role === 'hotelowner_user') navigate('/hotelowner-dashboard');
+    else if (user.role === 'restaurant_user') navigate('/restaurant-dashboard');
+    else if (user.role === 'guide_user') navigate('/guide-dashboard');
+    else if (user.role === 'renter_user') navigate('/renter-dashboard');
   };
 
   const handleNavigation = (path) => {
@@ -100,17 +110,14 @@ const Header = () => {
             <Link to="/contact" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
               Contact
             </Link>
-            <Link to="/restaurants" className="text-gray-800 font-semibold text-sm lg:text-base hover:text-[#3CB4FF] transition-colors">
-              Restaurants
-            </Link>
           </nav>
 
           {/* --- Right: Actions --- */}
           <div className="flex items-center gap-3 relative z-10">
             {/* Sign In Button / User Profile */}
             {user ? (
-              <div className="flex items-center gap-2 hidden sm:flex">
-                <div className="px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+              <div className="items-center gap-2 hidden sm:flex">
+                <div onClick={handleProfileClick} className="cursor-pointer px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm hover:bg-blue-100 transition-colors">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   {user.fullName || user.restaurantName || user.username || 'User'}
                 </div>
@@ -121,7 +128,7 @@ const Header = () => {
                     localStorage.removeItem('restaurantUser');
                     window.location.reload();
                   }}
-                  className="px-4 py-1.5 border border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-700 font-semibold rounded-lg text-xs transition-all cursor-pointer shadow-sm"
+                  className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
                 >
                   Sign out
                 </button>

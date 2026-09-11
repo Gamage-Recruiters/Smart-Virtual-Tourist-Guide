@@ -1,14 +1,28 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-const publicHeaders = { 'Content-Type': 'application/json' };
+/**
+ * Public headers (no auth)
+ */
+const publicHeaders = {
+  'Content-Type': 'application/json',
+};
 
+/**
+ * Private headers (with JWT if available)
+ */
 const privateHeaders = () => {
-  const headers = { 'Content-Type': 'application/json' };
-  const token = localStorage.getItem('token');
-  if (token && token !== 'null' && token !== 'undefined') {
-    headers.Authorization = `Bearer ${token}`;
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // Check both tourist token ('token') and restaurant owner token ('restaurantToken')
+  const token = localStorage.getItem('token') || localStorage.getItem('restaurantToken');
+
+  if (token && token !== 'null') {
+    headers['Authorization'] = `Bearer ${token}`;
   }
+
   return headers;
 };
 
@@ -25,61 +39,172 @@ const isPublicRoute = (endpoint = '') => {
   );
 };
 
-const statusFallback = {
-  400: 'Please check the submitted information.',
-  401: 'Authentication required.',
-  403: 'Permission denied.',
-  404: 'Requested resource unavailable.',
-  409: 'This action conflicts with an existing record.',
-  500: 'The server could not complete the request.',
-};
-
-const request = async (method, endpoint, data) => {
-  const formData = typeof FormData !== 'undefined' && data instanceof FormData;
-  const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
-  if (formData) delete headers['Content-Type'];
-
-  let response;
-  try {
-    response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method,
-      headers,
-      ...(data !== undefined ? { body: formData ? data : JSON.stringify(data) } : {}),
-    });
-  } catch (cause) {
-    console.error(`API ${method} network error:`, cause);
-    const error = new Error('Unable to reach the server. Please check your connection and try again.');
-    error.status = 0;
-    throw error;
-  }
-
-  const contentType = response.headers.get('content-type') || '';
-  const payload = response.status === 204
-    ? {}
-    : contentType.includes('application/json')
-      ? await response.json()
-      : { message: await response.text() };
-
-  if (!response.ok) {
-    const error = new Error(payload.message || statusFallback[response.status] || 'The request could not be completed.');
-    error.status = response.status;
-    error.data = payload;
-    if (response.status === 401 && !isPublicRoute(endpoint)) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
-      window.dispatchEvent(new Event('auth:expired'));
-    }
-    throw error;
-  }
-  return payload;
-};
-
+/**
+ * Core API client
+ */
 const apiClient = {
-  get: (endpoint) => request('GET', endpoint),
-  post: (endpoint, data) => request('POST', endpoint, data),
-  put: (endpoint, data) => request('PUT', endpoint, data),
-  patch: (endpoint, data) => request('PATCH', endpoint, data),
-  delete: (endpoint) => request('DELETE', endpoint),
+  /**
+   * GET request
+   */
+  async get(endpoint) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'GET',
+        headers: isPublicRoute(endpoint)
+          ? publicHeaders
+          : privateHeaders(),
+      });
+
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API GET Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST request
+   */
+  async post(endpoint, data) {
+    try {
+      const isFormData = data instanceof FormData;
+
+      const headers = isPublicRoute(endpoint)
+        ? { ...publicHeaders }
+        : privateHeaders();
+
+      if (isFormData) {
+        delete headers['Content-Type'];
+      }
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: isFormData ? data : JSON.stringify(data),
+      });
+
+      const json = await response.json();
+
+      if (
+        response.status === 401 &&
+        !endpoint.startsWith('/auth/login')
+      ) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Request failed',
+        };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API POST Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * PUT request
+   */
+  async put(endpoint, data) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'PUT',
+        headers: isPublicRoute(endpoint)
+          ? publicHeaders
+          : privateHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Request failed',
+        };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API PUT Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * PATCH request
+   */
+  async patch(endpoint, data) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'PATCH',
+        headers: isPublicRoute(endpoint)
+          ? publicHeaders
+          : privateHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Request failed',
+        };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API PATCH Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * DELETE request
+   */
+  async delete(endpoint) {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'DELETE',
+        headers: isPublicRoute(endpoint)
+          ? publicHeaders
+          : privateHeaders(),
+      });
+
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Delete request failed',
+        };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API DELETE Error:', error);
+      throw error;
+    }
+  },
 };
 
 /**
@@ -89,11 +214,21 @@ export const userAPI = {
   register(userData) {
     return apiClient.post('/auth/register/tourist', userData);
   },
+
   login(credentials) {
     return apiClient.post('/auth/login', credentials);
   },
+
   updateTravelInfo(travelData) {
     return apiClient.put('/auth/update-travel-info', travelData);
+  },
+
+  getProfile() {
+    return apiClient.get('/auth/me');
+  },
+
+  updateProfile(profileData) {
+    return apiClient.put('/auth/update-travel-info', profileData);
   },
 };
 
@@ -106,6 +241,15 @@ export const hotelOwnerAPI = {
   },
   addHotelInfo(hotelData) {
     return apiClient.post('/auth/add-hotel-info', hotelData);
+  },
+  getBookingsByHotel(hotelId) {
+    return apiClient.get(`/temp-bookings/hotel/${hotelId}`);
+  },
+  getRevenueSummariesByHotel(hotelId) {
+    return apiClient.get(`/revenue-summary/hotel/${hotelId}`);
+  },
+  syncRevenueSummariesByHotel(hotelId) {
+    return apiClient.post(`/revenue-summary/hotel/${hotelId}/sync`, {});
   },
 };
 
@@ -137,11 +281,14 @@ export const renterAPI = {
 };
 
 /**
- * ACTIVITY PROVIDER APIs (from main)
+ * ACTIVITY PROVIDER APIs
  */
 export const activityProviderAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/activity-provider', userData);
+    return apiClient.post(
+      '/auth/register/activity-provider',
+      userData
+    );
   },
 };
 
@@ -150,16 +297,22 @@ export const activityProviderAPI = {
  */
 export const governmentAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/government', userData);
+    return apiClient.post(
+      '/auth/register/government',
+      userData
+    );
   },
 };
 
 /**
- * DRIVER APIs (from main)
+ * DRIVER APIs
  */
 export const driverAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/driver', userData);
+    return apiClient.post(
+      '/auth/register/driver',
+      userData
+    );
   },
 };
 
@@ -168,96 +321,124 @@ export const driverAPI = {
  */
 export const socialAuthAPI = {
   googleAuth(idToken, role) {
-    return apiClient.post('/auth/google', { idToken, role });
+    return apiClient.post('/auth/google', {
+      idToken,
+      role,
+    });
   },
 };
 
-// ==================== RESTAURANT-SPECIFIC APIs (from Integration-resturent/shakir) ====================
-
 /**
- * Private headers using restaurantToken (for restaurant dashboard calls)
+ * NAVIGATION & MAPPING APIs
  */
-const restaurantPrivateHeaders = () => {
-  const headers = {
-    'Content-Type': 'application/json',
+export const fetchRecentPlaces = async (userId, limit) => {
+  const params = new URLSearchParams();
+  if (userId) params.append('userId', userId);
+  if (limit) params.append('limit', limit);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/recent-places${queryString}`);
+};
+
+export const saveRecentPlace = async (place, action = null, userId = null, imageUrls = []) => {
+  if (!place) return;
+  const name = place.displayName || place.name || place.formatted_address?.split(',')[0] || '';
+  const placeId = place.place_id || place.placeId || '';
+  const body = {
+    name,
+    placeId,
+    action,
+    imageUrls,
+    ...(userId ? { userId } : {}),
   };
-  const token = localStorage.getItem('restaurantToken');
-  if (token && token !== 'null') {
-    headers['Authorization'] = `Bearer ${token}`;
+  return apiClient.post('/recent-places', body);
+};
+
+export const deleteRecentPlace = async (placeId) => {
+  if (!placeId) {
+    throw new Error('Place ID is required');
   }
-  return headers;
+  return apiClient.delete(`/recent-places/${placeId}`);
+};
+
+export const fetchFavoritePlaces = async (userId, category) => {
+  const params = new URLSearchParams();
+  if (userId) params.append('userId', userId);
+  if (category) params.append('category', category);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/favorite-places${queryString}`);
+};
+
+export const saveFavoritePlace = async (place, category = 'favorite', userId = null, imageUrls = []) => {
+  if (!place) return;
+  const name = place.displayName || place.name || place.formatted_address?.split(',')[0] || 'Saved Place';
+  const placeId = place.place_id || place.placeId || '';
+  const body = {
+    name,
+    placeId,
+    category,
+    imageUrls,
+    ...(userId ? { userId } : {}),
+  };
+  return apiClient.post('/favorite-places', body);
+};
+
+export const deleteFavoritePlace = async (placeId) => {
+  if (!placeId) {
+    throw new Error('Place ID is required');
+  }
+  return apiClient.delete(`/favorite-places/${placeId}`);
+};
+
+export const fetchHotels = async (location, lat, lng) => {
+  const params = new URLSearchParams();
+  if (location) params.append('location', location);
+  if (lat !== undefined && lat !== null) params.append('lat', lat);
+  if (lng !== undefined && lng !== null) params.append('lng', lng);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/hotels${queryString}`);
+};
+
+export const fetchCrimeAlerts = async () => {
+  return apiClient.get('/security-alerts/crime');
+};
+
+export const fetchRoadBlockages = async () => {
+  return apiClient.get('/incidents/public');
+};
+
+export const fetchWeatherAlerts = async (location) => {
+  const params = new URLSearchParams();
+  if (location) params.append('location', location);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/security-alerts/weather${queryString}`);
 };
 
 /**
- * REVIEW APIs (Restaurant feature)
+ * REVIEWS API
  */
 export const reviewAPI = {
-  /** Get reviews + stats for a restaurant (public, with optional auth for user review) */
-  async getRestaurantReviews(restaurantId, page = 1) {
-    try {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = localStorage.getItem('token');
-      if (token && token !== 'null') {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const response = await fetch(
-        `${API_BASE_URL}/reviews/restaurant/${restaurantId}?page=${page}`,
-        { method: 'GET', headers }
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('API GET Reviews Error:', error);
-      throw error;
-    }
+  getRestaurantReviews(restaurantId, page = 1) {
+    return apiClient.get(`/reviews/restaurant/${restaurantId}?page=${page}`);
   },
-
-  /** Create a review */
   createReview(data) {
     return apiClient.post('/reviews', data);
   },
-
-  /** Update own review */
-  updateReview(reviewId, data) {
-    return apiClient.put(`/reviews/${reviewId}`, data);
+  updateReview(id, data) {
+    return apiClient.put(`/reviews/${id}`, data);
   },
-
-  /** Delete own review */
-  deleteReview(reviewId) {
-    return apiClient.delete(`/reviews/${reviewId}`);
+  deleteReview(id) {
+    return apiClient.delete(`/reviews/${id}`);
   },
-
-  /** Restaurant owner: reply to a review */
-  async replyToReview(reviewId, reply) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}/reply`, {
-        method: 'PUT',
-        headers: restaurantPrivateHeaders(),
-        body: JSON.stringify({ reply }),
-      });
-      const json = await response.json();
-      if (!response.ok) {
-        throw { message: json.message || 'Request failed' };
-      }
-      return json;
-    } catch (error) {
-      console.error('API Reply Error:', error);
-      throw error;
-    }
+  getOwnerReviews(restaurantId, page = 1) {
+    return apiClient.get(`/reviews/owner/${restaurantId}?page=${page}`);
   },
-
-  /** Restaurant owner: get all reviews for own restaurant (dashboard) */
-  async getOwnerReviews(restaurantId, page = 1) {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/reviews/owner/${restaurantId}?page=${page}`,
-        { method: 'GET', headers: restaurantPrivateHeaders() }
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('API GET Owner Reviews Error:', error);
-      throw error;
-    }
+  replyToReview(reviewId, replyText) {
+    // Backend route: PUT /api/reviews/:reviewId/reply
+    return apiClient.put(`/reviews/${reviewId}/reply`, { reply: replyText });
   },
 };
 
+/**
+ * Default API client
+ */
 export default apiClient;
