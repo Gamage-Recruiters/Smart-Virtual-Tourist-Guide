@@ -1,226 +1,113 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Filter, ChevronLeft, ChevronRight, Bookmark } from "lucide-react";
 import { VehicleCard } from "../../components/Renter/vehicleCard";
-import { FilterInput } from "../../components/Renter/filterInput";
 import { PaginationButton } from "../../components/Renter/paginationButton";
 import { useNavigate } from "react-router-dom";
-
-const allVehicles = [
-  {
-    id: 1,
-    name: "Honda Civic",
-    tag: "Luxury",
-    rating: "4.8",
-    type: "Sedan",
-    transmission: "Automatic",
-    price: 80,
-    seats: 5,
-    airBags: 4,
-    fuelType: "Petrol",
-    fullInsurance: true,
-    priceWithDriver: 130,
-    image: [
-      "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 2,
-    name: "Toyota Fortuner",
-    tag: "Popular",
-    rating: "4.9",
-    type: "SUV",
-    transmission: "Automatic",
-    price: 120,
-    seats: 7,
-    airBags: 6,
-    fuelType: "Diesel",
-    fullInsurance: true,
-    priceWithDriver: 170,
-    image: [
-      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 3,
-    name: "Suzuki Alto",
-    tag: "Budget",
-    rating: "4.3",
-    type: "Hatchback",
-    transmission: "Manual",
-    price: 35,
-    seats: 4,
-    airBags: 2,
-    fuelType: "Petrol",
-    fullInsurance: false,
-    priceWithDriver: 80,
-    image: [
-      "https://images.unsplash.com/photo-1567808291548-fc3ee04dbac0?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1542282088-fe8426682b8f?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1525609004556-c46c7d6cf0a3?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 4,
-    name: "Mitsubishi Montero",
-    tag: "Popular",
-    rating: "4.6",
-    type: "SUV",
-    transmission: "Automatic",
-    price: 110,
-    seats: 7,
-    airBags: 6,
-    fuelType: "Diesel",
-    fullInsurance: true,
-    priceWithDriver: 160,
-    image: [
-      "https://images.unsplash.com/photo-1541199695279-f99df8e2b5e3?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 5,
-    name: "Mercedes-Benz E-Class",
-    tag: "Luxury",
-    rating: "5.0",
-    type: "Sedan",
-    transmission: "Automatic",
-    price: 160,
-    seats: 5,
-    airBags: 8,
-    fuelType: "Petrol",
-    fullInsurance: true,
-    priceWithDriver: 220,
-    image: [
-      "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&q=80&w=800",
-    ]
-  },
-  {
-    id: 6,
-    name: "Toyota Aqua",
-    tag: "Budget",
-    rating: "4.5",
-    type: "Hatchback",
-    transmission: "Automatic",
-    price: 45,
-    seats: 5,
-    airBags: 2,
-    fuelType: "Hybrid",
-    fullInsurance: true,
-    priceWithDriver: 95,
-    image: [
-      "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1621007947382-0ef0402896d4?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1514316454349-750a7fd3da3a?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 7,
-    name: "Nissan X-Trail",
-    tag: "Popular",
-    rating: "4.7",
-    type: "SUV",
-    transmission: "Automatic",
-    price: 95,
-    seats: 5,
-    airBags: 4,
-    fuelType: "Hybrid",
-    fullInsurance: true,
-    priceWithDriver: 145,
-    image: [
-      "https://images.unsplash.com/photo-1566274360936-692e0df18903?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1579058917765-17409548aa41?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 8,
-    name: "Audi A6",
-    tag: "Luxury",
-    rating: "4.9",
-    type: "Sedan",
-    transmission: "Automatic",
-    price: 140,
-    seats: 5,
-    airBags: 6,
-    fuelType: "Petrol",
-    fullInsurance: true,
-    priceWithDriver: 195,
-    image: [
-      "https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1542346156-443882314bb8?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 9,
-    name: "Perodua Axia",
-    tag: "Budget",
-    rating: "4.4",
-    type: "Hatchback",
-    transmission: "Automatic",
-    price: 38,
-    seats: 5,
-    airBags: 2,
-    fuelType: "Petrol",
-    fullInsurance: false,
-    priceWithDriver: 85,
-    image: [
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1486496146582-9ffcd0b2b2b7?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1562141961-b5d1855d7cb0?auto=format&fit=crop&q=80&w=800"
-    ]
-  },
-  {
-    id: 10,
-    name: "Honda Vezel",
-    tag: "Popular",
-    rating: "4.6",
-    type: "SUV",
-    transmission: "Automatic",
-    price: 75,
-    seats: 5,
-    airBags: 4,
-    fuelType: "Hybrid",
-    fullInsurance: true,
-    priceWithDriver: 125,
-    image: [
-      "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=800"
-    ]
-  }
-];
+import axios from "axios";
 
 export const RentVehiclePage = () => {
   const navigate = useNavigate();
+  const [allVehicles, setAllVehicles] = useState([]);
+  const [filteredVehicles, setFilteredVehicles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filter input states
+  const [selectedFuelType, setSelectedFuelType] = useState("all");
+  const [selectedTransmission, setSelectedTransmission] = useState("all");
+  const [selectedPriceOrder, setSelectedPriceOrder] = useState("all");
+
+  const resolveApiUrl = (path = "") => {
+    const base = (
+      import.meta.env.VITE_BACKEND_URL ||
+      import.meta.env.VITE_API_BASE_URL ||
+      "http://localhost:5000/api"
+    ).replace(/\/$/, "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return base.includes("/api")
+      ? `${base}${normalizedPath}`
+      : `${base}/api${normalizedPath}`;
+  };
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(resolveApiUrl("/vehicle/"));
+
+        const vehicleList = Array.isArray(response.data)
+          ? response.data
+          : response.data.vehicles || [];
+
+        // Ensure tourists only see 'Available' vehicles
+        const availableOnly = vehicleList.filter(
+          (vehicle) => vehicle.status?.toLowerCase() === "available"
+        );
+
+        setAllVehicles(availableOnly);
+        setFilteredVehicles(availableOnly);
+      } catch (error) {
+        console.error("Failed to fetch vehicles:", error.message);
+        setAllVehicles([]);
+        setFilteredVehicles([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const cardsPerPage = 6; // 3 columns * 2 rows
+  const cardsPerPage = 6;
 
-  // Logic to calculate which cards to show
+  // Filter trigger handler
+  const handleApplyFilters = () => {
+    let result = [...allVehicles];
+
+    // 1. Vehicle Type (Fuel Type)
+    if (selectedFuelType !== "all") {
+      result = result.filter(
+        (v) => v.fuelType?.toLowerCase() === selectedFuelType.toLowerCase()
+      );
+    }
+
+    // 2. Transmission
+    if (selectedTransmission !== "all") {
+      result = result.filter(
+        (v) => v.transmission?.toLowerCase() === selectedTransmission.toLowerCase()
+      );
+    }
+
+    // 3. Price Sorting
+    if (selectedPriceOrder === "low_to_high") {
+      result.sort((a, b) => (a.dailyRentalPrice || 0) - (b.dailyRentalPrice || 0));
+    } else if (selectedPriceOrder === "high_to_low") {
+      result.sort((a, b) => (b.dailyRentalPrice || 0) - (a.dailyRentalPrice || 0));
+    }
+
+    setFilteredVehicles(result);
+    setCurrentPage(1); // Reset to first page after applying filters
+  };
+
+  // Safe slicing with filtered results
   const indexOfLastCard = currentPage * cardsPerPage;
   const indexOfFirstCard = indexOfLastCard - cardsPerPage;
-  const currentVehicles = allVehicles.slice(indexOfFirstCard, indexOfLastCard);
-
-  const totalPages = Math.ceil(allVehicles.length / cardsPerPage);
+  const currentVehicles = filteredVehicles.slice(indexOfFirstCard, indexOfLastCard);
+  const totalPages = Math.ceil(filteredVehicles.length / cardsPerPage) || 1;
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top on page change
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleViewDetails = (id) => {
-    const selectedVehicle = allVehicles.find((v) => v.id === id);
-    navigate(`/dashboard-Tourist/rent-vehicle/vehicle-details/${id}`, { state: { vehicle: selectedVehicle } });
+    const selectedVehicle = allVehicles.find((v) => v._id === id || v.id === id);
+    navigate(`/dashboard-Tourist/rent-vehicle/vehicle-details/${id}`, {
+      state: { vehicle: selectedVehicle },
+    });
   };
 
   return (
@@ -235,60 +122,127 @@ export const RentVehiclePage = () => {
             Find the perfect vehicle for your Sri Lankan adventure
           </p>
         </div>
-        <button className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-transform active:scale-95">
+        <button className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-transform active:scale-95 cursor-pointer">
           <Bookmark size={18} />
           My Bookings
         </button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-end gap-4 mb-10">
-        <FilterInput label="Vehicle Type" placeholder="Select type" />
-        <FilterInput label="Price Range" placeholder="Select range" />
-        <FilterInput label="Transmission" placeholder="Select transmission" />
-        <FilterInput label="Seats" placeholder="Select seats" />
-        <button className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors">
+      {/* Filter Bar with Dropdowns */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end mb-10">
+        {/* Vehicle Type (Fuel Type) Dropdown */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Vehicle Type
+          </label>
+          <select
+            value={selectedFuelType}
+            onChange={(e) => setSelectedFuelType(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="all">All Vehicle Types</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="Electric">Electric</option>
+          </select>
+        </div>
+
+        {/* Transmission Dropdown */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Transmission
+          </label>
+          <select
+            value={selectedTransmission}
+            onChange={(e) => setSelectedTransmission(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="all">All Transmissions</option>
+            <option value="Automatic">Automatic</option>
+            <option value="Manual">Manual</option>
+          </select>
+        </div>
+
+        {/* Price Range / Sorting Dropdown */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Price Range
+          </label>
+          <select
+            value={selectedPriceOrder}
+            onChange={(e) => setSelectedPriceOrder(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option value="all">All Prices</option>
+            <option value="low_to_high">Price: Low to High</option>
+            <option value="high_to_low">Price: High to Low</option>
+          </select>
+        </div>
+
+        {/* Filter Trigger Button */}
+        <button
+          type="button"
+          onClick={handleApplyFilters}
+          className="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors cursor-pointer shadow-md shadow-blue-200"
+        >
           <Filter size={18} />
           Apply Filters
         </button>
       </div>
 
-      {/* Vehicle Grid - Fixed to 3 columns, 2 rows max per page */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-200">
-        {currentVehicles.map((vehicle) => (
-          <VehicleCard
-            key={vehicle.id}
-            {...vehicle}
-            onViewDetails={handleViewDetails}
-          />
-        ))}
+      {/* Vehicle Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-120">
+        {isLoading ? (
+          <div className="col-span-full flex justify-center items-center py-20 text-slate-400 font-semibold">
+            Loading available vehicles...
+          </div>
+        ) : currentVehicles.length > 0 ? (
+          currentVehicles.map((vehicle) => (
+            <VehicleCard
+              key={vehicle._id}
+              id={vehicle._id}
+              {...vehicle}
+              onViewDetails={handleViewDetails}
+            />
+          ))
+        ) : (
+          <div className="col-span-full flex flex-col justify-center items-center py-20 text-slate-400 gap-2">
+            <p className="text-base font-semibold text-slate-600">
+              No vehicles found matching your criteria.
+            </p>
+            <p className="text-xs">Try adjusting or clearing your filters.</p>
+          </div>
+        )}
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex justify-center items-center gap-2 mt-12">
-        <button onClick={() => handlePageChange(currentPage - 1)}>
-          <PaginationButton
-            icon={<ChevronLeft size={20} />}
-            disabled={currentPage === 1}
-          />
-        </button>
-
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button key={i + 1} onClick={() => handlePageChange(i + 1)}>
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-12">
+          <button onClick={() => handlePageChange(currentPage - 1)}>
             <PaginationButton
-              label={(i + 1).toString()}
-              active={currentPage === i + 1}
+              icon={<ChevronLeft size={20} />}
+              disabled={currentPage === 1}
             />
           </button>
-        ))}
 
-        <button onClick={() => handlePageChange(currentPage + 1)}>
-          <PaginationButton
-            icon={<ChevronRight size={20} />}
-            disabled={currentPage === totalPages}
-          />
-        </button>
-      </div>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button key={i + 1} onClick={() => handlePageChange(i + 1)}>
+              <PaginationButton
+                label={(i + 1).toString()}
+                active={currentPage === i + 1}
+              />
+            </button>
+          ))}
+
+          <button onClick={() => handlePageChange(currentPage + 1)}>
+            <PaginationButton
+              icon={<ChevronRight size={20} />}
+              disabled={currentPage === totalPages}
+            />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

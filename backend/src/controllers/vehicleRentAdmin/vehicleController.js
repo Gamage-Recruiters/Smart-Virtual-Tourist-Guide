@@ -115,7 +115,9 @@ export const deleteVehicle = async (req, res) => {
 // 4. GET ALL VEHICLES (Read All-global)
 export const getAllVehicles = async (req, res) => {
   try {
-    const vehicles = await Vehicle.find({}).sort({ createdAt: -1 }); // Newest first
+    const vehicles = await Vehicle.find({
+      status: {$regex: "Available", $options: "i"},
+    }).sort({ createdAt: -1 }); // Newest first
     res.status(200).json(vehicles);
   } catch (error) {
     res

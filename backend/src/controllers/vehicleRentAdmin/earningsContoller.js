@@ -4,11 +4,17 @@ export const dashboardStats = async (req, res) => {
   try {
     const activeRenatalsCount = await Vehicle.countDocuments({
         ownerId: req.user._id,
+        status:"Available"
+    })
+
+    const rentedVehiclesCount = await Vehicle.countDocuments({
+        ownerId: req.user._id,
         status:"Rented"
     })
 
     res.status(200).json({
-        activeRenatalsCount: activeRenatalsCount
+        activeRenatalsCount: activeRenatalsCount,
+        rentedVehiclesCount: rentedVehiclesCount
     });
   } catch (err) {
     res.status(500).json({

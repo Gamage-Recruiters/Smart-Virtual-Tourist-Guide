@@ -12,6 +12,8 @@ import specialPackageRoutes from './routes/HotelOwner/specialPackage.routes.js';
 import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.js';
 import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
+import earningsRouter from './routes/vehicleRentAdmin/earningsRouter.js';
+import vehicleBookingRouter from './routes/vehicleRentAdmin/rentalRequestsRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
@@ -141,6 +143,7 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
 app.use('/api/renter/earnings', earningsRouter);
+app.use('/api/renter/bookings', vehicleBookingRouter);
 
 // Activity Provider Routes
 app.use('/api/activities', activityRoutes);

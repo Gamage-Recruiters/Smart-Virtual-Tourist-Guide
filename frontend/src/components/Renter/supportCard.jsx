@@ -1,6 +1,8 @@
 import { PhoneCall } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const SupportCard = () => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white p-6 shadow-sm rounded-3xl border border-blue-100 space-y-4">
       <div className="flex items-center gap-3">
@@ -12,7 +14,8 @@ export const SupportCard = () => {
       <p className="text-xs text-slate-500 leading-relaxed">
         Our team is available 24/7 to assist you with your booking execution or custom itineraries.
       </p>
-      <button className="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+      <button className="w-full bg-white border border-slate-200 text-slate-700 text-xs font-bold py-3 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+      onClick={() => navigate("/contact")}>
         Contact Support
       </button>
     </div>
