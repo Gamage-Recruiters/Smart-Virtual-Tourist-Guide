@@ -149,6 +149,8 @@ function Dashboard() {
         return "text-emerald-600 bg-emerald-50";
       case "BID SENT":
         return "text-amber-600 bg-amber-50";
+      case "COMPLETED":
+        return "bg-teal-50 text-teal-700 border border-teal-200";
       case "CANCELLED":
       case "EXPIRED":
         return "text-red-500 bg-red-50";
