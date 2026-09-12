@@ -9,10 +9,44 @@ import axios from "axios";
 import uploadFileToSupabase from "../../../../utils/fileUpload.js";
 import toast from "react-hot-toast";
 
+const getInitialFormState = (editData) => ({
+  brand: editData?.brand || "",
+  model: editData?.model || "",
+  year: editData?.year || "",
+  licensePlate: editData?.licensePlate || "",
+  transmission: editData?.transmission || "Automatic",
+  fuelType: editData?.fuelType || "Hybrid",
+  passengers: editData?.passengers || 1,
+  luggage: editData?.luggage || 1,
+  location: editData?.currentLocation || editData?.location || "",
+  rentalPrice: editData?.dailyRentalPrice || "",
+  vehicleInsurance: editData?.documents?.vehicleInsurance || null,
+  revenueLicense: editData?.documents?.revenueLicense || null,
+  photos: {
+    exterior: editData?.photos?.exterior || "",
+    interior: editData?.photos?.interior || "",
+    side: editData?.photos?.side || "",
+    dashboard: editData?.photos?.dashboard || "",
+  },
+});
+
 function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }) {
-  // Added editData prop default fallback
+  if (!isOpen) return null;
+
+  return (
+    <AddVehicleModalContent
+      editData={editData}
+      onClose={onClose}
+      onMutationSuccess={onMutationSuccess}
+    />
+  );
+}
+
+// Inner component mounts freshly every time isOpen becomes true
+function AddVehicleModalContent({ editData, onClose, onMutationSuccess }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState(() => getInitialFormState(editData));
   const token = localStorage.getItem("renterToken") || localStorage.getItem("token");
 
   const resolveApiUrl = (path = "") => {
@@ -21,40 +55,17 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
     return base.includes("/api") ? `${base}${normalizedPath}` : `${base}/api${normalizedPath}`;
   };
 
-  const [formData, setFormData] = useState({
-    brand: editData?.brand || "",
-    model: editData?.model || "",
-    year: editData?.year || "",
-    licensePlate: editData?.licensePlate || "",
-    transmission: editData?.transmission || "Automatic",
-    fuelType: editData?.fuelType || "Hybrid",
-    passengers: editData?.passengers || 1,
-    luggage: editData?.luggage || 1,
-    location: editData?.currentLocation || editData?.location || "",
-    rentalPrice: editData?.dailyRentalPrice || "",
-    vehicleInsurance: editData?.documents?.vehicleInsurance || null,
-    revenueLicense: editData?.documents?.revenueLicense || null,
-    photos: {
-      exterior: editData?.photos?.exterior || "",
-      interior: editData?.photos?.interior || "",
-      side: editData?.photos?.side || "",
-      dashboard: editData?.photos?.dashboard || "",
-    },
-  });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Helper logic: Only upload to Supabase if the file field value is an actual File object type instance (not a string URL)
       const uploadOrKeepUrl = async (fileOrUrl, folder) => {
         if (!fileOrUrl) return "";
-        if (typeof fileOrUrl === "string") return fileOrUrl; // Already uploaded URL string asset
+        if (typeof fileOrUrl === "string") return fileOrUrl;
         return await uploadFileToSupabase(fileOrUrl, folder);
       };
 
-      // Handle file configurations concurrently
       const [
         insuranceUrl,
         licenseUrl,
@@ -94,33 +105,19 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         },
       };
 
-      // Dynamic Routing: Use PUT if editData exists, otherwise use POST
       if (editData) {
-        await axios.put(
-          resolveApiUrl(`/vehicle/${editData._id}`),
-          finalPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        await axios.put(resolveApiUrl(`/vehicle/${editData._id}`), finalPayload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         toast.success("Vehicle updated successfully!");
       } else {
-        await axios.post(
-          resolveApiUrl("/vehicle"),
-          finalPayload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+        await axios.post(resolveApiUrl("/vehicle"), finalPayload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         toast.success("Vehicle saved successfully!");
-        console.log(finalPayload)
       }
 
-      if(onMutationSuccess){
+      if (onMutationSuccess) {
         onMutationSuccess();
       }
 
@@ -133,8 +130,6 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
     }
   };
 
-  if (!isOpen) return null;
-
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
@@ -145,7 +140,6 @@ function AddVehicleModal({ isOpen, onClose, editData = null, onMutationSuccess }
         <div className="px-8 pt-8 pb-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900">
-              {/* Dynamic Title Label Text */}
               {editData ? "Edit Vehicle Details" : "Add New Vehicle"}
             </h2>
             <button

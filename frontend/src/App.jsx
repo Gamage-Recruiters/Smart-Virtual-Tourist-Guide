@@ -86,7 +86,6 @@ import { PageTitleProvider } from "./context/PageTitleContext";
 
 import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
-import DummyPageDriver from "./pages/Driver/dummyPage";
 import Driver_Dashboard from "./components/Driver/Driver_Dashboard";
 import Driver_Request   from "./components/Driver/Driver_Request";
 import Driver_Earnings  from "./components/Driver/Driver_Earnings";
@@ -560,5 +559,3 @@ function App() {
 }
 
 export default App;
-
-

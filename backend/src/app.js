@@ -12,6 +12,8 @@ import specialPackageRoutes from './routes/HotelOwner/specialPackage.routes.js';
 import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.js';
 import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
+import earningsRouter from './routes/vehicleRentAdmin/earningsRouter.js';
+import vehicleBookingRouter from './routes/vehicleRentAdmin/rentalRequestsRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
@@ -49,6 +51,7 @@ import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
+import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 
 config();
 configureCloudinary();
@@ -140,6 +143,9 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
+app.use('/api/renter/earnings', earningsRouter);
+app.use('/api/renter/bookings', vehicleBookingRouter);
+app.use('/api/tourist/rent-vehicle-booking', rentVehicleBookingRouter);
 
 // Activity Provider Routes
 app.use('/api/activities', activityRoutes);
