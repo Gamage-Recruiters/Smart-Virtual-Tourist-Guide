@@ -252,3 +252,51 @@ export const updateBookingStatus = async (req, res) => {
     });
   }
 };
+
+export const completeBookingTrip = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await rentalRequest.findById(id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
+    }
+
+    if (booking.status !== "CONFIRMED" && booking.status !== "WON") {
+      return res.status(400).json({
+        message: "Only confirmed trips can be marked as completed.",
+      });
+    }
+
+    // 1. Update Booking
+    booking.status = "COMPLETED";
+    await booking.save();
+
+    // 2. Free up the Vehicle & Increment trips completed count
+    await Vehicle.findByIdAndUpdate(booking.vehicleId, {
+      $set: { status: "Available" },
+      $inc: { tripsCompleted: 1 },
+    });
+
+    // 3. Move Earnings to PENDING_PAYOUT
+    await RentalEarning.findOneAndUpdate(
+      { bookingId: booking._id },
+      {
+        $set: {
+          tripStatus: "COMPLETED",
+          payoutStatus: "PENDING_PAYOUT",
+          completionDate: new Date(),
+        },
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Trip completed! Vehicle is now available and funds are moved to pending payout.",
+      booking,
+    });
+  } catch (error) {
+    console.error("completeBookingTrip error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};

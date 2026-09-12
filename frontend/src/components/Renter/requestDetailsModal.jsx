@@ -54,7 +54,7 @@ export const RequestDetailsModal = ({
         { status: newStatus },
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
+        },
       );
 
       if (onActionSuccess) {
@@ -70,7 +70,35 @@ export const RequestDetailsModal = ({
     }
   };
 
-  const isPending = request.status === "PENDING" || request.status === "NOT BIDDED";
+  const handleCompleteTrip = async () => {
+    if (!window.confirm("Confirm that the vehicle has been safely returned?"))
+      return;
+
+    try {
+      setIsUpdating(true);
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("renterToken") ||
+        localStorage.getItem("userToken");
+
+      await axios.patch(
+        resolveApiUrl(`/renter/bookings/${request.id || request._id}/complete`),
+        {},
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+      );
+
+      if (onActionSuccess) onActionSuccess();
+      onClose();
+    } catch (err) {
+      console.error("Complete trip error:", err);
+      alert(err.response?.data?.message || "Failed to mark trip as completed.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const isPending =
+    request.status === "PENDING" || request.status === "NOT BIDDED";
   const offeredPrice = request.offeredRate ?? request.offeredDailyRate ?? 0;
   const originalPrice = request.OriginalRate ?? request.originalDailyPrice ?? 0;
 
@@ -159,10 +187,12 @@ export const RequestDetailsModal = ({
             </div>
 
             {/* If it was a custom tourist bid, display the rate comparison */}
-            {request.isBid || (originalPrice > 0 && offeredPrice !== originalPrice) ? (
+            {request.isBid ||
+            (originalPrice > 0 && offeredPrice !== originalPrice) ? (
               <div className="flex flex-col w-full items-end mt-2 pt-2 border-t border-slate-200/60">
                 <p className="text-[12px] font-semibold text-amber-600">
-                  Tourist Offered Rate: LKR {offeredPrice.toLocaleString()} / day
+                  Tourist Offered Rate: LKR {offeredPrice.toLocaleString()} /
+                  day
                 </p>
                 {originalPrice > 0 && (
                   <p className="text-[11px] font-medium text-slate-400 line-through">
@@ -173,7 +203,8 @@ export const RequestDetailsModal = ({
             ) : (
               <div className="flex justify-end mt-2 pt-2 border-t border-slate-200/60">
                 <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  Booked at Standard Rate (LKR {offeredPrice.toLocaleString()} / day)
+                  Booked at Standard Rate (LKR {offeredPrice.toLocaleString()} /
+                  day)
                 </span>
               </div>
             )}
@@ -210,6 +241,29 @@ export const RequestDetailsModal = ({
                   <XCircle size={16} />
                 )}
                 Decline
+              </button>
+            </>
+          ) : request.status === "CONFIRMED" || request.status === "WON" ? (
+            <>
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={handleCompleteTrip}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-blue-100"
+              >
+                {isUpdating ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <CheckCircle2 size={16} />
+                )}
+                Mark Trip as Completed (Vehicle Returned)
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-3 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-bold text-xs"
+              >
+                Close
               </button>
             </>
           ) : (

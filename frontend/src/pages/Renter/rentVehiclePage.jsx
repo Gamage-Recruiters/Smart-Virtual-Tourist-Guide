@@ -4,12 +4,14 @@ import { VehicleCard } from "../../components/Renter/vehicleCard";
 import { PaginationButton } from "../../components/Renter/paginationButton";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { MyBookingsModal } from "../../components/Renter/myBookingsModal";
 
 export const RentVehiclePage = () => {
   const navigate = useNavigate();
   const [allVehicles, setAllVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBookingsOpen, setIsBookingsOpen] = useState(false);
 
   // Filter input states
   const [selectedFuelType, setSelectedFuelType] = useState("all");
@@ -122,10 +124,13 @@ export const RentVehiclePage = () => {
             Find the perfect vehicle for your Sri Lankan adventure
           </p>
         </div>
-        <button className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-transform active:scale-95 cursor-pointer">
+        <button className="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-100 transition-transform active:scale-95 cursor-pointer"
+        onClick={()=> setIsBookingsOpen(true)}
+        >
           <Bookmark size={18} />
           My Bookings
         </button>
+        <MyBookingsModal isOpen={isBookingsOpen} onClose={() => setIsBookingsOpen(false)} />
       </div>
 
       {/* Filter Bar with Dropdowns */}
