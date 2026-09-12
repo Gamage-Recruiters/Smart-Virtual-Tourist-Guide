@@ -151,7 +151,7 @@ function RentalRequestsPage() {
       </div>
 
       {/* 2. Filter Tabs */}
-      <div className="flex items-center justify-center md:justify-start gap-1 md:gap-3 pb-2 overflow-x-auto">
+      <div className="flex items-center justify-center md:justify-start gap-1 md:gap-3 pb-2">
         {filterTabs.map((tab) => (
           <button
             key={tab.value}

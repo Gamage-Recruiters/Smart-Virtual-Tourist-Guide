@@ -1,3 +1,4 @@
+import RentalEarning from "../../models/vehicleRentAdmin/rentalEarnings.js";
 import rentalRequest from "../../models/vehicleRentAdmin/rentalRequest.js";
 import Vehicle from "../../models/vehicleRentAdmin/vehicle.js";
 
@@ -144,14 +145,13 @@ export const getTouristBookings = async (req, res) => {
 };
 
 
-// @desc    Update status of a rental request (Accept / Decline)
-// @route   PATCH /api/renter/bookings/:id/status
 export const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, declineReason } = req.body;
+    const renterId = req.user?._id || req.user?.id;
 
-    // Validate incoming status against VehicleBooking enum values
+    // Validate incoming status
     const allowedStatuses = ["CONFIRMED", "WON", "CANCELLED"];
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
@@ -160,13 +160,16 @@ export const updateBookingStatus = async (req, res) => {
       });
     }
 
-    const booking = await rentalRequest.findById(id);
+    const booking = await rentalRequest.findById(id).populate("vehicleId");
     if (!booking) {
       return res.status(404).json({
         success: false,
         message: "Booking request not found.",
       });
     }
+
+    // Resolve vehicle ID whether populated or unpopulated
+    const vehicleDocId = booking.vehicleId?._id || booking.vehicleId;
 
     // 1. Update booking request status
     booking.status = status;
@@ -175,17 +178,43 @@ export const updateBookingStatus = async (req, res) => {
     }
     await booking.save();
 
-    // 2. Synchronize vehicle status according to Vehicle schema enum: ["Available", "Rented", "Maintenance"]
+    // 2. Handle Status: ACCEPTED ("CONFIRMED" or "WON")
     if (status === "CONFIRMED" || status === "WON") {
+      // Mark vehicle as Rented
       await Vehicle.findByIdAndUpdate(
-        booking.vehicleId,
+        vehicleDocId,
         { $set: { status: "Rented" } },
         { returnDocument: "after", runValidators: true }
       );
-    } else if (status === "CANCELLED") {
+
+      // Auto-record in RentalEarning (prevent duplicates)
+      const existingEarning = await RentalEarning.findOne({ bookingId: booking._id });
+      if (!existingEarning) {
+        const generatedTrxId = `TRX-${Math.floor(10000 + Math.random() * 90000)}`;
+
+        const vehicleBrand = booking.vehicleId?.brand || "";
+        const vehicleModel = booking.vehicleId?.model || "";
+        const tripDescription = `${booking.route || "Rental Trip"} (${vehicleBrand} ${vehicleModel})`.trim();
+
+        await RentalEarning.create({
+          renterId: renterId || booking.vehicleId?.ownerId,
+          bookingId: booking._id,
+          vehicleId: vehicleDocId,
+          touristId: booking.touristId,
+          transactionId: generatedTrxId,
+          tripDescription,
+          amount: booking.totalAmount || 0,
+          tripStatus: "ACTIVE",
+          payoutStatus: "PROCESSING",
+        });
+      }
+    }
+
+    // 3. Handle Status: DECLINED / CANCELLED
+    else if (status === "CANCELLED") {
       // Check if this vehicle has any other currently confirmed bookings
       const activeBookingsCount = await rentalRequest.countDocuments({
-        vehicleId: booking.vehicleId,
+        vehicleId: vehicleDocId,
         _id: { $ne: booking._id },
         status: { $in: ["CONFIRMED", "WON"] },
       });
@@ -193,11 +222,17 @@ export const updateBookingStatus = async (req, res) => {
       // If no other active rentals exist, revert the vehicle back to "Available"
       if (activeBookingsCount === 0) {
         await Vehicle.findByIdAndUpdate(
-          booking.vehicleId,
+          vehicleDocId,
           { $set: { status: "Available" } },
           { returnDocument: "after", runValidators: true }
         );
       }
+
+      // Mark any previously created earnings document as CANCELLED so it's excluded from revenue
+      await RentalEarning.findOneAndUpdate(
+        { bookingId: booking._id },
+        { $set: { tripStatus: "CANCELLED" } }
+      );
     }
 
     return res.status(200).json({
@@ -205,7 +240,7 @@ export const updateBookingStatus = async (req, res) => {
       message:
         status === "CANCELLED"
           ? "Rental request declined."
-          : "Tourist bid accepted and vehicle marked as Rented!",
+          : "Rental request accepted, vehicle marked as Rented, and earnings recorded!",
       data: booking,
     });
   } catch (error) {

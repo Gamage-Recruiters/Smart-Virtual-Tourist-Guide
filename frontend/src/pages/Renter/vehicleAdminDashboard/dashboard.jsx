@@ -244,7 +244,7 @@ function Dashboard() {
                 </p>
               </div>
               <Link
-                to="/dashboard-renter/requests"
+                to="/vehicle-admin/requests"
                 className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
               >
                 View All Requests →
