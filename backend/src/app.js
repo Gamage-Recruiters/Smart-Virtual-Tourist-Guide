@@ -51,6 +51,7 @@ import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
+import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 
 config();
 configureCloudinary();
@@ -144,6 +145,7 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 app.use('/api/vehicle', vehicleRouter);
 app.use('/api/renter/earnings', earningsRouter);
 app.use('/api/renter/bookings', vehicleBookingRouter);
+app.use('/api/tourist/rent-vehicle-booking', rentVehicleBookingRouter);
 
 // Activity Provider Routes
 app.use('/api/activities', activityRoutes);
