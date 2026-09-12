@@ -1,6 +1,6 @@
 import express from "express";
 import { protect } from "../../middleware/authMiddleware.js";
-import { createBooking, getRentalRequests, getTouristBookings, updateBookingStatus } from "../../controllers/vehicleRentAdmin/rentalRequestsController.js";
+import { completeBookingTrip, createBooking, getRentalRequests, getTouristBookings, updateBookingStatus } from "../../controllers/vehicleRentAdmin/rentalRequestsController.js";
 
 const vehicleBookingRouter = express.Router();
 
@@ -14,5 +14,7 @@ vehicleBookingRouter.get("/requests",protect, getRentalRequests);
 vehicleBookingRouter.get("/my-bookings", protect, getTouristBookings);
 
 vehicleBookingRouter.patch("/:id/status",protect, updateBookingStatus);
+
+vehicleBookingRouter.patch("/:id/complete",protect, completeBookingTrip);
 
 export default vehicleBookingRouter;

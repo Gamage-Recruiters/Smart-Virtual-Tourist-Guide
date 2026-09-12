@@ -5,9 +5,10 @@ import { RequestDetailsModal } from "../../../components/Renter/requestDetailsMo
 
 const filterTabs = [
   { label: "All Requests", value: "ALL" },
-  { label: "Pending", value: "PENDING" },       // Awaiting your approval
-  { label: "Approved", value: "APPROVED" },     // Accepted / Confirmed
-  { label: "Declined", value: "DECLINED" },     // Cancelled / Expired
+  { label: "Pending", value: "PENDING" }, // Awaiting your approval
+  { label: "Approved", value: "APPROVED" }, // Accepted / Confirmed
+  { label: "Declined", value: "DECLINED" }, // Cancelled / Expired
+  { label: "Completed", value: "COMPLETED" }, // Completed
 ];
 
 function RentalRequestsPage() {
@@ -40,9 +41,12 @@ function RentalRequestsPage() {
           localStorage.getItem("renterToken") ||
           localStorage.getItem("userToken");
 
-        const res = await axios.get(resolveApiUrl("/renter/bookings/requests"), {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const res = await axios.get(
+          resolveApiUrl("/renter/bookings/requests"),
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          },
+        );
 
         if (isMounted) {
           setRequests(Array.isArray(res.data) ? res.data : []);
@@ -79,6 +83,8 @@ function RentalRequestsPage() {
       case "CONFIRMED":
       case "WON":
         return "bg-emerald-50 text-emerald-600 border border-emerald-100";
+      case "COMPLETED":
+        return "bg-teal-50 text-teal-700 border border-teal-200";
       case "CANCELLED":
       case "EXPIRED":
         return "bg-red-50 text-red-500 border border-red-100";
@@ -100,6 +106,8 @@ function RentalRequestsPage() {
         matchesTab =
           (request.status === "CONFIRMED" || request.status === "WON") &&
           !request.isExpired;
+      } else if (activeTab === "COMPLETED") {
+        matchesTab = request.status === "COMPLETED";
       } else if (activeTab === "DECLINED") {
         matchesTab =
           request.isExpired ||
@@ -193,7 +201,9 @@ function RentalRequestsPage() {
                     />
                   ) : (
                     <div className="w-14 h-14 rounded-full bg-slate-200 text-slate-600 font-bold flex items-center justify-center text-lg shrink-0">
-                      {request.name ? request.name.charAt(0).toUpperCase() : "T"}
+                      {request.name
+                        ? request.name.charAt(0).toUpperCase()
+                        : "T"}
                     </div>
                   )}
                   <div>
@@ -244,12 +254,16 @@ function RentalRequestsPage() {
                       <CarFront
                         size={16}
                         className={
-                          request.isExpired ? "text-slate-400" : "text-orange-500"
+                          request.isExpired
+                            ? "text-slate-400"
+                            : "text-orange-500"
                         }
                       />
                       <p
                         className={`text-sm font-bold ${
-                          request.isExpired ? "text-slate-400" : "text-slate-800"
+                          request.isExpired
+                            ? "text-slate-400"
+                            : "text-slate-800"
                         }`}
                       >
                         {request.vehicle}
@@ -264,7 +278,7 @@ function RentalRequestsPage() {
                     </p>
                     <span
                       className={`inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${getStatusStyles(
-                        request.status
+                        request.status,
                       )}`}
                     >
                       {request.status}

@@ -62,7 +62,7 @@ const rentalRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING", "CONFIRMED", "CANCELLED", "EXPIRED"],
+      enum: ["PENDING", "CONFIRMED", "CANCELLED", "EXPIRED","COMPLETED"],
       default: "PENDING",
     },
     isExpired: {
