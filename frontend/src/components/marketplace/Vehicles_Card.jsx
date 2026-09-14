@@ -8,6 +8,69 @@ import { useTranslation } from 'react-i18next';
 
 
 
+const defaultVehiclesData = [
+  {
+    _id: 'v1',
+    name: 'Toyota KDH Super GL',
+    type: 'Luxury Van',
+    seats: '9 Seats',
+    price: 15000,
+    badge: 'Available',
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'v2',
+    name: 'Mitsubishi Montero Sport',
+    type: 'Luxury SUV',
+    seats: '7 Seats',
+    price: 22000,
+    badge: 'Available',
+    rating: 5.0,
+    image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'v3',
+    name: 'Bajaj RE Tuk Tuk',
+    type: 'Budget',
+    seats: '3 Seats',
+    price: 3500,
+    badge: 'Available',
+    rating: 4.8,
+    image: 'https://images.unsplash.com/photo-1598970434795-0c54fe7c0648?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'v4',
+    name: 'Honda Vezel Hybrid',
+    type: 'Sedan/Crossover',
+    seats: '5 Seats',
+    price: 9500,
+    badge: 'Available',
+    rating: 4.7,
+    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'v5',
+    name: 'Toyota Prius Hybrid',
+    type: 'Sedan',
+    seats: '5 Seats',
+    price: 8500,
+    badge: 'Available',
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'v6',
+    name: 'Toyota Land Cruiser Prado',
+    type: 'Luxury SUV',
+    seats: '7 Seats',
+    price: 28000,
+    badge: 'Available',
+    rating: 5.0,
+    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=600'
+  }
+];
+
 const Vehicles_Card = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -42,11 +105,13 @@ const Vehicles_Card = () => {
           setAllVehicles(formattedData);
           setVehiclesData(formattedData);
         } else {
-          setAllVehicles([]);
-          setVehiclesData([]);
+          setAllVehicles(defaultVehiclesData);
+          setVehiclesData(defaultVehiclesData);
         }
       } catch (error) {
         console.error("Error fetching vehicles:", error);
+        setAllVehicles(defaultVehiclesData);
+        setVehiclesData(defaultVehiclesData);
       } finally {
         setLoading(false);
       }

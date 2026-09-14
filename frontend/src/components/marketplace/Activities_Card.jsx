@@ -6,6 +6,65 @@ import {
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
+const defaultActivitiesData = [
+  {
+    _id: "act-1",
+    title: "White Water Rafting & Adventure in Kitulgala",
+    location: "Kitulgala",
+    category: "Adventure",
+    duration: "3 Hours",
+    groupSize: 10,
+    rating: 4.9,
+    reviews: 128,
+    price: 8500,
+    hasFreeCancellation: true,
+    isInstantBooking: true,
+    image: "https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    _id: "act-2",
+    title: "Sigiriya Rock Fortress Guided Dawn Hike",
+    location: "Sigiriya",
+    category: "Sightseeing",
+    duration: "4 Hours",
+    groupSize: 15,
+    rating: 4.8,
+    reviews: 245,
+    price: 12000,
+    hasFreeCancellation: true,
+    isInstantBooking: true,
+    image: "https://images.unsplash.com/photo-1586611292717-f828b167408c?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    _id: "act-3",
+    title: "Ella Nine Arch Bridge & Mini Adams Peak Safari",
+    location: "Ella",
+    category: "Trekking",
+    duration: "5 Hours",
+    groupSize: 8,
+    rating: 4.7,
+    reviews: 94,
+    price: 9500,
+    hasFreeCancellation: true,
+    isInstantBooking: true,
+    image: "https://images.unsplash.com/photo-1546708973-b339540b5162?auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    _id: "act-4",
+    title: "Mirissa Ocean Whale & Dolphin Watching Tour",
+    location: "Mirissa",
+    category: "Water Sports",
+    duration: "4 Hours",
+    groupSize: 20,
+    rating: 4.6,
+    reviews: 310,
+    price: 15000,
+    hasFreeCancellation: true,
+    isInstantBooking: true,
+    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=600"
+  }
+];
+
 const Activities_Card = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -49,11 +108,13 @@ const Activities_Card = () => {
           setAllActivities(formattedData);
           setActivitiesData(formattedData);
         } else {
-          setAllActivities([]);
-          setActivitiesData([]);
+          setAllActivities(defaultActivitiesData);
+          setActivitiesData(defaultActivitiesData);
         }
       } catch (error) {
         console.error("Error fetching activities:", error);
+        setAllActivities(defaultActivitiesData);
+        setActivitiesData(defaultActivitiesData);
       } finally {
         setLoading(false);
       }

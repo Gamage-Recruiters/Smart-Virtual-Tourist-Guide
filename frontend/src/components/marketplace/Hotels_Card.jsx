@@ -6,6 +6,93 @@ import {
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
+const defaultHotelsData = [
+  {
+    _id: 'h1',
+    name: 'Cinnamon Grand Colombo',
+    location: 'Colombo 03',
+    starRating: 5,
+    price: '28,500',
+    numericPrice: 28500,
+    priceUnit: 'night',
+    userRating: 4.9,
+    reviews: 240,
+    isFeatured: true,
+    amenities: ['wifi', 'pool', 'ac', 'coffee', 'parking'],
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'h2',
+    name: 'Heritance Kandalama',
+    location: 'Dambulla, Sigiriya',
+    starRating: 5,
+    price: '42,000',
+    numericPrice: 42000,
+    priceUnit: 'night',
+    userRating: 5.0,
+    reviews: 310,
+    isFeatured: true,
+    amenities: ['wifi', 'pool', 'ac', 'coffee', 'parking'],
+    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'h3',
+    name: 'Amaya Hills Resort',
+    location: 'Heerassagala, Kandy',
+    starRating: 4,
+    price: '18,500',
+    numericPrice: 18500,
+    priceUnit: 'night',
+    userRating: 4.7,
+    reviews: 180,
+    isFeatured: false,
+    amenities: ['wifi', 'pool', 'ac', 'parking'],
+    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'h4',
+    name: 'Jetwing Lighthouse',
+    location: 'Dadella, Galle',
+    starRating: 5,
+    price: '35,000',
+    numericPrice: 35000,
+    priceUnit: 'night',
+    userRating: 4.8,
+    reviews: 195,
+    isFeatured: true,
+    amenities: ['wifi', 'pool', 'ac', 'coffee'],
+    image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'h5',
+    name: 'Grand Hotel Nuwara Eliya',
+    location: 'Nuwara Eliya Town',
+    starRating: 4,
+    price: '24,000',
+    numericPrice: 24000,
+    priceUnit: 'night',
+    userRating: 4.6,
+    reviews: 150,
+    isFeatured: false,
+    amenities: ['wifi', 'ac', 'coffee', 'parking'],
+    image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'h6',
+    name: 'Cape Weligama Luxury Resort',
+    location: 'Weligama, Matara',
+    starRating: 5,
+    price: '65,000',
+    numericPrice: 65000,
+    priceUnit: 'night',
+    userRating: 4.9,
+    reviews: 110,
+    isFeatured: true,
+    amenities: ['wifi', 'pool', 'ac', 'coffee', 'parking'],
+    image: 'https://images.unsplash.com/photo-1563911302283-d2bc129e7570?auto=format&fit=crop&q=80&w=600'
+  }
+];
+
 const Hotels_Card = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -24,7 +111,7 @@ const Hotels_Card = () => {
         const response = await fetch('http://localhost:5000/api/hotels');
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.data && data.data.length > 0) {
           // Map backend schema (User + Room) to frontend UI schema
           const mappedHotels = data.data.map(dbHotel => {
             const rawPrice = dbHotel.minPrice !== undefined && dbHotel.minPrice !== null ? dbHotel.minPrice : 20000;
@@ -68,11 +155,14 @@ const Hotels_Card = () => {
           
           setAllHotels(mappedHotels);
           setHotelsData(mappedHotels);
+        } else {
+          setAllHotels(defaultHotelsData);
+          setHotelsData(defaultHotelsData);
         }
       } catch (error) {
         console.error("Error fetching hotels:", error);
-        setAllHotels([]);
-        setHotelsData([]);
+        setAllHotels(defaultHotelsData);
+        setHotelsData(defaultHotelsData);
       }
     };
     

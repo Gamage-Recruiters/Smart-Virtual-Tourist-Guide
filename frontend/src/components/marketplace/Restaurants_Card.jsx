@@ -6,6 +6,79 @@ import {
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
+const defaultRestaurantsData = [
+  {
+    _id: 'r1',
+    name: 'Ministry of Crab',
+    location: 'Old Dutch Hospital, Colombo 01',
+    cuisine: 'Seafood',
+    starRating: 4.9,
+    reviews: 420,
+    priceLevel: '$$$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway'],
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'r2',
+    name: 'Upali’s by Nawaloka',
+    location: 'Dharmapala Mawatha, Colombo 07',
+    cuisine: 'Sri Lankan',
+    starRating: 4.7,
+    reviews: 280,
+    priceLevel: '$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway', 'delivery'],
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'r3',
+    name: 'The Gallery Café',
+    location: 'Paradise Road, Colombo 03',
+    cuisine: 'Italian / Western',
+    starRating: 4.8,
+    reviews: 310,
+    priceLevel: '$$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway'],
+    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'r4',
+    name: 'Slightly Chilled Lounge (Bamboo Garden)',
+    location: 'Anagarika Dharmapala Mw, Kandy',
+    starRating: 4.6,
+    reviews: 190,
+    priceLevel: '$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway'],
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'r5',
+    name: 'Pedlar’s Inn Café',
+    location: 'Pedlar Street, Galle Fort',
+    starRating: 4.7,
+    reviews: 230,
+    priceLevel: '$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway', 'delivery'],
+    image: 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?auto=format&fit=crop&q=80&w=600'
+  },
+  {
+    _id: 'r6',
+    name: 'Nihonbashi Japanese Restaurant',
+    location: 'Galle Face Terrace, Colombo 03',
+    cuisine: 'Japanese',
+    starRating: 4.9,
+    reviews: 165,
+    priceLevel: '$$$$',
+    isOpen: true,
+    features: ['dinein', 'takeaway'],
+    image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=600'
+  }
+];
+
 const Restaurants_Card = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -26,7 +99,7 @@ const Restaurants_Card = () => {
         const response = await fetch('http://localhost:5000/api/restaurants');
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.data && data.data.length > 0) {
           // Map backend schema to frontend UI schema
           const mappedRestaurants = data.data.map(dbRest => ({
             _id: dbRest._id,
@@ -44,9 +117,14 @@ const Restaurants_Card = () => {
           
           setAllRestaurants(mappedRestaurants);
           setFilteredRestaurants(mappedRestaurants);
+        } else {
+          setAllRestaurants(defaultRestaurantsData);
+          setFilteredRestaurants(defaultRestaurantsData);
         }
       } catch (error) {
         console.error("Error fetching restaurants:", error);
+        setAllRestaurants(defaultRestaurantsData);
+        setFilteredRestaurants(defaultRestaurantsData);
       }
     };
 
