@@ -1,130 +1,150 @@
-import mongoose from 'mongoose';
+import Bid from '../models/bid.js';
 
-// In-memory fallback array for bids if MongoDB isn't populated for temporary trip IDs
-const inMemoryBids = [
-  { _id: "b1", tripId: "default", driverName: "Kamal Perera", bidAmount: 12000, status: "pending", createdAt: new Date() },
-  { _id: "b2", tripId: "default", driverName: "Sunil Shantha", bidAmount: 9500, status: "pending", createdAt: new Date() },
-  { _id: "b3", tripId: "default", driverName: "Nimal Fernando", bidAmount: 10500, status: "pending", createdAt: new Date() },
-];
+const submitBid = async (req, res, next) => {
+    try {
+        const { tripId, driverName, bidAmount, userId, userName } = req.body;
 
-/**
- * Helper: Find lowest bid for a tripId and set it as hired automatically
- */
-function autoAssignLowestBid(tripId) {
-  const tripBids = inMemoryBids.filter(b => b.tripId === tripId || tripId === "default" || !tripId);
-  if (tripBids.length === 0) return null;
-
-  // Sort by bidAmount ascending
-  tripBids.sort((a, b) => a.bidAmount - b.bidAmount);
-
-  // Lowest bid driver gets auto-hired
-  const lowest = tripBids[0];
-  tripBids.forEach(b => {
-    if (b._id === lowest._id) {
-      b.status = "hired";
-      b.autoHired = true;
-    } else {
-      b.status = "rejected";
-      b.autoHired = false;
-    }
-  });
-
-  return lowest;
-}
-
-// Automatically run initial auto-assign for default bids
-autoAssignLowestBid("default");
-
-// GET /api/bids/:tripId or GET /api/bids
-export const getBidsByTrip = async (req, res) => {
-  try {
-    const { tripId } = req.params;
-    const targetTrip = tripId || "default";
-
-    // Auto-assign lowest bid before returning
-    const lowest = autoAssignLowestBid(targetTrip);
-
-    const bids = inMemoryBids.filter(b => b.tripId === targetTrip || targetTrip === "default");
-    bids.sort((a, b) => a.bidAmount - b.bidAmount);
-
-    return res.status(200).json({
-      success: true,
-      data: bids,
-      autoHiredDriver: lowest,
-      count: bids.length
-    });
-  } catch (error) {
-    console.error("getBidsByTrip error:", error);
-    return res.status(500).json({ success: false, message: "Failed to fetch bids" });
-  }
-};
-
-// POST /api/bids - Submit a new driver bid
-export const submitBid = async (req, res) => {
-  try {
-    const { tripId, driverName, bidAmount, notes } = req.body;
-
-    if (!bidAmount || Number(bidAmount) <= 0) {
-      return res.status(400).json({ success: false, message: "Valid bid amount is required" });
-    }
-
-    const newBid = {
-      _id: "bid_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-      tripId: tripId || "default",
-      driverName: driverName || "Driver",
-      bidAmount: Number(bidAmount),
-      notes: notes || "",
-      status: "pending",
-      createdAt: new Date()
-    };
-
-    inMemoryBids.push(newBid);
-
-    // Run auto-hire logic: lowest bid driver automatically gets hired
-    const lowest = autoAssignLowestBid(newBid.tripId);
-
-    return res.status(201).json({
-      success: true,
-      message: "Bid submitted successfully",
-      data: newBid,
-      autoHiredDriver: lowest
-    });
-  } catch (error) {
-    console.error("submitBid error:", error);
-    return res.status(500).json({ success: false, message: "Failed to submit bid" });
-  }
-};
-
-// PUT /api/bids/hire/:bidId - Mark a specific bid as hired
-export const hireBid = async (req, res) => {
-  try {
-    const { bidId } = req.params;
-    const bid = inMemoryBids.find(b => b._id === bidId);
-
-    if (!bid) {
-      return res.status(404).json({ success: false, message: "Bid not found" });
-    }
-
-    // Set target bid to hired, reject others for same trip
-    inMemoryBids.forEach(b => {
-      if (b.tripId === bid.tripId) {
-        if (b._id === bidId) {
-          b.status = "hired";
-          b.autoHired = true;
-        } else {
-          b.status = "rejected";
-          b.autoHired = false;
+        if (!tripId || !driverName || !bidAmount) {
+            return res.status(400).json({
+                success: false,
+                message: "tripId, driverName and bidAmount are required"
+            });
         }
-      }
-    });
 
-    return res.status(200).json({
-      success: true,
-      message: `Driver ${bid.driverName} hired successfully`,
-      data: bid
-    });
-  } catch (error) {
-    console.error("hireBid error:", error);
-    return res.status(500).json({ success: false, message: "Failed to hire driver" });
-  }
+        const existingBid = await Bid.findOne({ tripId, driverName });
+
+        if (existingBid) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "You have already placed a bid for this trip!" 
+            });
+        }
+
+        const newBid = new Bid({
+            tripId,
+            driverName,
+            bidAmount: Number(bidAmount),
+            userId,
+            userName
+        });
+
+        await newBid.save();
+
+        res.status(201).json({
+            success: true,
+            message: "Bid submitted successfully!",
+            data: newBid
+        });
+
+    } catch (error) {
+        next(error); 
+    }
+};
+
+const getBidsByTrip = async (req, res, next) => {
+    try {
+        const { tripId } = req.params;
+
+        if (!tripId) {
+            return res.status(400).json({
+                success: false,
+                message: "tripId is required"
+            });
+        }
+
+        const bids = await Bid.find({ tripId });
+
+        res.status(200).json({
+            success: true,
+            data: bids
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getBidsByUser = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "userId is required"
+            });
+        }
+
+        const bids = await Bid.find({ userId });
+
+        res.status(200).json({
+            success: true,
+            data: bids
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getBidsByDriver = async (req, res, next) => {
+    try {
+        const { driverName } = req.params;
+
+        if (!driverName) {
+            return res.status(400).json({
+                success: false,
+                message: "driverName is required"
+            });
+        }
+
+        const bids = await Bid.find({ driverName });
+
+        res.status(200).json({
+            success: true,
+            data: bids
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getLowestBidByTrip = async (req, res, next) => {
+    try {
+        const { tripId } = req.params;
+
+        if (!tripId) {
+            return res.status(400).json({
+                success: false,
+                message: "tripId is required"
+            });
+        }
+
+        // Find the lowest bid by sorting bidAmount in ascending order and taking the first one
+        const lowestBid = await Bid.findOne({ tripId }).sort({ bidAmount: 1 });
+
+        if (!lowestBid) {
+            return res.status(404).json({
+                success: false,
+                message: "No bids found for this trip"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: lowestBid
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export {
+    submitBid,
+    getBidsByTrip,
+    getBidsByUser,
+    getBidsByDriver,
+    getLowestBidByTrip
 };
