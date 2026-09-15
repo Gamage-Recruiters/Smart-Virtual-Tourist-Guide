@@ -142,29 +142,36 @@ const apiClient = {
   },
 
   /**
-   * PATCH request (Guide profile, bids, packages, and booking status)
+   * PATCH request
    */
   async patch(endpoint, data) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'PATCH',
-      headers: isPublicRoute(endpoint)
-        ? publicHeaders
-        : privateHeaders(),
-      body: JSON.stringify(data),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'PATCH',
+        headers: isPublicRoute(endpoint)
+          ? publicHeaders
+          : privateHeaders(),
+        body: JSON.stringify(data),
+      });
 
-    const json = await response.json();
+      const json = await response.json();
 
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Request failed',
+        };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API PATCH Error:', error);
+      throw error;
     }
-
-    if (!response.ok) {
-      throw new Error(json.message || 'Request failed');
-    }
-
-    return json;
   },
 
   /**

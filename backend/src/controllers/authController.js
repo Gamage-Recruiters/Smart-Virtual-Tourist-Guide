@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
 import { auth, firebaseInitialized } from '../configs/firebase.js';
+import GuideProfile from '../models/GuideProfile.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -143,6 +144,7 @@ const addHotelInfo = async (req, res) => {
 };
 
 const registerGuide = async (req, res) => {
+  let createdUser = null;
   try {
     const { fullName, email, password, contactNumber, guideId, dob, gender } = req.body;
 
@@ -165,6 +167,13 @@ const registerGuide = async (req, res) => {
       dob,
       gender
     });
+    createdUser = user;
+
+    await GuideProfile.findOneAndUpdate(
+      { user: user._id },
+      { $setOnInsert: { user: user._id } },
+      { upsert: true, setDefaultsOnInsert: true },
+    );
 
     res.status(201).json({
       success: true,
@@ -183,6 +192,9 @@ const registerGuide = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    if (createdUser?._id) {
+      await User.deleteOne({ _id: createdUser._id }).catch(() => undefined);
+    }
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
@@ -638,6 +650,10 @@ const googleAuth = async (req, res) => {
 
     // New user — register with provided role (or default tourist_user)
     const assignedRole = role || 'tourist_user';
+    const publicRoles = ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user'];
+    if (!publicRoles.includes(assignedRole)) {
+      return res.status(400).json({ success: false, message: 'Invalid registration role' });
+    }
     const username = await generateUsername(emailNormalized);
 
     user = await User.create({
