@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI;
+    const mongoURI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb+srv://SVTG:svtg123@cluster0.936rmcg.mongodb.net/test?appName=Cluster0';
 
     if (!mongoURI) {
       throw new Error('MONGODB_URI is not defined in .env file');

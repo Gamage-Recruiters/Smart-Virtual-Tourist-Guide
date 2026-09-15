@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FaCogs, FaUsers
 } from 'react-icons/fa';
-import tuk from '../../assets/vehiclecard/tuk.png';
+const tuk = 'https://images.unsplash.com/photo-1598970434795-0c54fe7c0648?auto=format&fit=crop&q=80&w=600';
 import { useTranslation } from 'react-i18next';
 
 

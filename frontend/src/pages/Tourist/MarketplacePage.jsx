@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { FaHotel, FaCar, FaCompass, FaSuitcaseRolling, FaUtensils, FaRunning, FaGavel } from 'react-icons/fa';
+import { FaHotel, FaCar, FaCompass, FaSuitcaseRolling, FaUtensils, FaRunning } from 'react-icons/fa';
 import Hotels_Card from '../../components/marketplace/Hotels_Card';
 import Drivers_Card from '../../components/marketplace/Drivers_Card';
 import Guides_Card from '../../components/marketplace/Guides_Card';
 import Vehicles_Card from '../../components/marketplace/Vehicles_Card';
 import Restaurants_Card from '../../components/marketplace/Restaurants_Card';
 import Activities_Card from '../../components/marketplace/Activities_Card';
-import Driver_Bids from '../../components/bidding/Driver_Bids';
 
 export default function MarketplacePage() {
   const [activeTab, setActiveTab] = useState('hotels');
@@ -18,7 +17,6 @@ export default function MarketplacePage() {
     { id: 'vehicles', label: 'Vehicles', icon: <FaSuitcaseRolling /> },
     { id: 'restaurants', label: 'Restaurants', icon: <FaUtensils /> },
     { id: 'activities', label: 'Activities', icon: <FaRunning /> },
-    { id: 'bidding', label: 'Bidding Engine', icon: <FaGavel /> },
   ];
 
   return (
@@ -27,8 +25,8 @@ export default function MarketplacePage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 p-4">
         <div className="flex items-center justify-between mb-4 px-2">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-800">Service Marketplace & Bidding</h1>
-            <p className="text-slate-500 text-xs mt-1">Browse hotels, hires, guides, services or submit custom travel bids.</p>
+            <h1 className="text-2xl font-extrabold text-slate-800">Service Marketplace</h1>
+            <p className="text-slate-500 text-xs mt-1">Browse hotels, hires, guides, services and activities.</p>
           </div>
         </div>
 
@@ -59,7 +57,6 @@ export default function MarketplacePage() {
         {activeTab === 'vehicles' && <Vehicles_Card />}
         {activeTab === 'restaurants' && <Restaurants_Card />}
         {activeTab === 'activities' && <Activities_Card />}
-        {activeTab === 'bidding' && <Driver_Bids />}
       </div>
     </div>
   );
