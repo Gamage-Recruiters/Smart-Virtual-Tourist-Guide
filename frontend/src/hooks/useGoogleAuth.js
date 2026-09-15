@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signInWithGoogle } from '../services/firebase';
 import { socialAuthAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const getDashboardRoute = (role) => {
   switch (role) {
@@ -18,6 +19,7 @@ const getDashboardRoute = (role) => {
 };
 
 const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
+  const { setSession } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
 
@@ -36,8 +38,7 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
         localStorage.setItem('restaurantToken', data.token);
         localStorage.setItem('restaurantUser', JSON.stringify(data.user));
       } else {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        setSession(data);
       }
       
       if (customRedirect) {

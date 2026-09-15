@@ -1,6 +1,5 @@
 import express, { json, urlencoded } from 'express';
 import { config } from 'dotenv';
-import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -14,6 +13,7 @@ import userRoutes from './routes/HotelOwner/user.routes.js';
 import vehicleRouter from './routes/vehicleRentAdmin/vehicleRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import guideRoutes from './routes/guideRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
@@ -67,9 +67,6 @@ app.use(express.urlencoded({ extended: true }));
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==================== DATABASE CONNECTION ====================
-connectDB();
-
 // ==================== BASIC ROUTES ====================
 app.get('/', (req, res) => {
   res.json({ 
@@ -111,6 +108,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/safety', safetyRouter);
+
+// Tourist and Guide marketplace routes
+app.use('/api/guides', guideRoutes);
 
 // Tourist Dashboard Routes
 app.use('/api/budget', budgetRoutes);

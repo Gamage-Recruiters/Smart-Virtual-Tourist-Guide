@@ -605,6 +605,7 @@ import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
+import { useAuth } from '../../context/AuthContext';
 
 // Import social icons from assets (SVG files)
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
@@ -615,6 +616,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setSession } = useAuth();
 
   // Google auth — role=null means backend uses existing user's role
   const { handleGoogleAuth, googleLoading, googleError } = useGoogleAuth(navigate, null);
@@ -658,8 +660,7 @@ const LoginScreen = () => {
           localStorage.setItem('restaurantToken', data.token);
           localStorage.setItem('restaurantUser', JSON.stringify(data.user));
         } else {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userData', JSON.stringify(data.user));
+          setSession(data);
         }
 
         // navigate to specific dashboard

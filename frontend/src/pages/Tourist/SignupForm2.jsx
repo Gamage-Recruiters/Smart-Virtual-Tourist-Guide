@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { userAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom'
 import { IoMdArrowForward, IoMdArrowBack } from 'react-icons/io'
 import { getNames } from 'country-list'
@@ -14,6 +15,7 @@ import bgImage4 from '../../assets/Tourist/bg4.png'
 
 const TravelSafetyInfo = () => {
   const navigate = useNavigate()
+  const { setSession } = useAuth()
   const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -126,8 +128,7 @@ const TravelSafetyInfo = () => {
         throw new Error(response.message || 'Failed to save information.');
       }
 
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user || signupData));
+      setSession({ ...response, user: response.user || signupData });
       localStorage.setItem('user', JSON.stringify({
         fullName: signupData.fullName || response.user?.fullName || '',
         email: signupData.email || response.user?.email || '',

@@ -142,6 +142,32 @@ const apiClient = {
   },
 
   /**
+   * PATCH request (Guide profile, bids, packages, and booking status)
+   */
+  async patch(endpoint, data) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: isPublicRoute(endpoint)
+        ? publicHeaders
+        : privateHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const json = await response.json();
+
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+
+    if (!response.ok) {
+      throw new Error(json.message || 'Request failed');
+    }
+
+    return json;
+  },
+
+  /**
    * DELETE request
    */
   async delete(endpoint) {

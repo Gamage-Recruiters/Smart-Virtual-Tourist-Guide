@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  Outlet,
 } from "react-router-dom";
 
 // ==================== Existing Project Imports ====================
@@ -58,6 +59,30 @@ import FinancialAnalysisDashboard from "./pages/HotelOwner/FinancialAnalysisDash
 import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSettings.jsx";
 
 import GuideSignup from "./pages/Guide/SignupPage";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
+import { GuideAdminLayout } from "./layouts/GuideLayouts";
+import {
+  GuideMarketplace,
+  RequestGuide,
+  MyGuideRequests,
+  AvailableBids,
+  GuideProfile,
+  ConfirmBooking,
+  BookingConfirmed,
+  ReviewBooking,
+} from "./pages/Guide/TouristPages";
+import {
+  GuideDashboard,
+  Opportunities,
+  MyBids,
+  BookingRequests,
+  BookingDetails,
+  Packages as GuidePackages,
+  PackageForm,
+  Earnings as GuideEarnings,
+  ProfileSettings as GuideProfileSettings,
+} from "./pages/Guide/ProviderPages";
 import RenterSignup from "./pages/Renter/SignupPage";
 import GovernmentSignup from "./pages/Government/SignupPage";
 import ActivityProviderSignup from "./pages/ActivityProvider/SignupPage";
@@ -84,7 +109,6 @@ import { DriverSignupProvider } from "./context/DriverSignupContext";
 import { PageTitleProvider } from "./context/PageTitleContext";
 
 
-import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
 import DummyPageDriver from "./pages/Driver/dummyPage";
 import Driver_Dashboard from "./components/Driver/Driver_Dashboard";
@@ -138,6 +162,7 @@ function App() {
   return (
     <SafetyProvider>
       <Router>
+        <AuthProvider>
         <Routes>
           {/* ========================================================= */}
           {/*                     EXISTING PROJECT                      */}
@@ -280,6 +305,25 @@ function App() {
               path="restaurants/:id"
               element={<TouristRestaurantDetailsPage />}
             />
+            {/* Guide pages share the current Tourist Dashboard layout. */}
+            <Route
+              element={
+                <RoleProtectedRoute role="tourist_user">
+                  <div className="gs-tourist-pages">
+                    <Outlet />
+                  </div>
+                </RoleProtectedRoute>
+              }
+            >
+              <Route path="guides" element={<GuideMarketplace />} />
+              <Route path="guides/request" element={<RequestGuide />} />
+              <Route path="guides/requests" element={<MyGuideRequests />} />
+              <Route path="guides/requests/:requestId/bids" element={<AvailableBids />} />
+              <Route path="guides/:guideId" element={<GuideProfile />} />
+              <Route path="guides/requests/:requestId/confirm/:bidId" element={<ConfirmBooking />} />
+              <Route path="guides/bookings/:bookingId" element={<BookingConfirmed />} />
+              <Route path="guides/bookings/:bookingId/review" element={<ReviewBooking />} />
+            </Route>
           </Route>
 
           <Route
@@ -331,7 +375,25 @@ function App() {
             <Route index element={<RestuarantDashboard />} />
           </Route>
 
-          <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
+          <Route
+            path="/dashboard-Guide"
+            element={
+              <RoleProtectedRoute role="guide_user">
+                <GuideAdminLayout />
+              </RoleProtectedRoute>
+            }
+          >
+            <Route index element={<GuideDashboard />} />
+            <Route path="opportunities" element={<Opportunities />} />
+            <Route path="bids" element={<MyBids />} />
+            <Route path="booking-requests" element={<BookingRequests />} />
+            <Route path="booking-requests/:bookingId" element={<BookingDetails />} />
+            <Route path="packages" element={<GuidePackages />} />
+            <Route path="packages/new" element={<PackageForm />} />
+            <Route path="packages/:packageId/edit" element={<PackageForm />} />
+            <Route path="earnings" element={<GuideEarnings />} />
+            <Route path="settings" element={<GuideProfileSettings />} />
+          </Route>
 
           <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
 
@@ -345,7 +407,8 @@ function App() {
           <Route path="/driver-request" element={<Driver_Request />} />
           <Route path="/driver-earnings" element={<Driver_Earnings />} />
           <Route path="/driver-bids" element={<Driver_Bids />} />
-          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />`n          <Route path="/other-drivers" element={<Submit_Bids />} />
+          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
+          <Route path="/other-drivers" element={<Submit_Bids />} />
           <Route path="/ride-details" element={<Ride_Details />} />
           <Route path="/driver-details" element={<Driver_Details />} />
 
@@ -554,6 +617,7 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </AuthProvider>
       </Router>
     </SafetyProvider>
   );

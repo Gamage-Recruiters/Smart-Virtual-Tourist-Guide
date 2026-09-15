@@ -25,7 +25,6 @@ const generateUsername = async (email) => {
 
 const registerTourist = async (req, res) => {
   try {
-    console.log('Registering tourist request body:', req.body);
     const { fullName, email, password, country, travelType, gender, travelPreferences, healthInfo, emergencyContact } = req.body;
 
     const emailNormalized = email.toLowerCase().trim();

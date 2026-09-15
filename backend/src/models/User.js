@@ -156,6 +156,7 @@ const userSchema = new mongoose.Schema({
 
 // Method to check password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false;
   if (!this.password.startsWith('$2')) {
     // Fallback for plain text passwords
     return enteredPassword === this.password;
