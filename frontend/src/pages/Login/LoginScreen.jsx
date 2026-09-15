@@ -605,7 +605,7 @@ import loginImg from '../../assets/Tourist/loginImg.png';
 import leftLoginImg from '../../assets/Tourist/commonImg.png';
 import apiClient from '../../services/api';
 import useGoogleAuth from '../../hooks/useGoogleAuth';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 // Import social icons from assets (SVG files)
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
@@ -660,7 +660,7 @@ const LoginScreen = () => {
           localStorage.setItem('restaurantToken', data.token);
           localStorage.setItem('restaurantUser', JSON.stringify(data.user));
         } else {
-          setSession(data);
+          setSession(data.token, data.user);
         }
 
         // navigate to specific dashboard

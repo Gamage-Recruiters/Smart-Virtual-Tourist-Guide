@@ -4,6 +4,7 @@ import connectDB from "./src/configs/database.js";
 import cron from "node-cron";
 import logger from "./src/utils/logger.js";
 import { syncWeatherAlerts } from "./src/utils/alertSyncService.js";
+import migrateGuideProfiles from "./src/migrations/migrateGuideProfiles.js";
 
 // Port
 const PORT = process.env.PORT || 5000;
@@ -12,7 +13,8 @@ const PORT = process.env.PORT || 5000;
 let isSyncing = false;
 
 // Start server after DB connection
-connectDB().then(() => {
+connectDB().then(async () => {
+  await migrateGuideProfiles();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 

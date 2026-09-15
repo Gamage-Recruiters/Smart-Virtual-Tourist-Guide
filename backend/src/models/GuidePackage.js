@@ -6,13 +6,16 @@ const guidePackageSchema = new mongoose.Schema({
   category: { type: String, required: true, trim: true },
   description: { type: String, required: true, trim: true, maxlength: 3000 },
   destination: { type: String, required: true, trim: true },
+  tags: [{ type: String, trim: true }],
   stops: { type: [String], default: [] },
   images: { type: [String], default: [] },
   pricePerPerson: { type: Number, required: true, min: 0 },
   currency: { type: String, trim: true, uppercase: true, default: 'LKR' },
   duration: { type: Number, required: true, min: 1 },
   durationUnit: { type: String, enum: ['hours', 'days'], default: 'days' },
-  status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
+  status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true },
 }, { timestamps: true });
+
+guidePackageSchema.index({ guide: 1, updatedAt: -1 });
 
 export default mongoose.models.GuidePackage || mongoose.model('GuidePackage', guidePackageSchema);

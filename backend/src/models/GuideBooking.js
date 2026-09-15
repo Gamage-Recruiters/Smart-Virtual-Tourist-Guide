@@ -19,6 +19,7 @@ const guideBookingSchema = new mongoose.Schema({
   total: { type: Number, required: true, min: 0 },
   currency: { type: String, required: true, trim: true, uppercase: true },
   status: { type: String, enum: ['pending', 'confirmed', 'rejected', 'cancelled', 'completed'], default: 'pending', index: true },
+  reviewedAt: { type: Date, default: null },
   paymentStatus: { type: String, enum: ['unpaid', 'pending', 'paid', 'refunded'], default: 'unpaid', index: true },
   paymentMethod: { type: String, enum: ['manual', 'card', 'paypal', 'bank_transfer'], default: 'manual' },
 }, { timestamps: true });

@@ -19,10 +19,22 @@ const guideRequestSchema = new mongoose.Schema({
     default: 'open',
     index: true,
   },
+  preferredGuide: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   selectedBid: { type: mongoose.Schema.Types.ObjectId, ref: 'GuideBid', default: null },
   booking: { type: mongoose.Schema.Types.ObjectId, ref: 'GuideBooking', default: null },
 }, { timestamps: true });
 
 guideRequestSchema.index({ startDate: 1, endDate: 1, status: 1 });
+
+guideRequestSchema.pre('validate', function validateDates() {
+  if (this.startDate && this.endDate && this.endDate < this.startDate) {
+    this.invalidate('endDate', 'End date must be on or after the start date');
+  }
+  if (this.budgetMax != null && this.budgetMin > this.budgetMax) {
+    this.invalidate('budgetMin', 'Minimum budget cannot exceed maximum budget');
+  }
+});
+
+guideRequestSchema.index({ tourist: 1, createdAt: -1 });
 
 export default mongoose.models.GuideRequest || mongoose.model('GuideRequest', guideRequestSchema);
