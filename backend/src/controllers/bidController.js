@@ -141,10 +141,24 @@ const getLowestBidByTrip = async (req, res, next) => {
     }
 };
 
+const hireBid = async (req, res, next) => {
+    try {
+        const { bidId } = req.params;
+        const bid = await Bid.findById(bidId);
+        if (!bid) {
+            return res.status(404).json({ success: false, message: "Bid not found" });
+        }
+        res.status(200).json({ success: true, message: "Driver hired successfully", data: bid });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     submitBid,
     getBidsByTrip,
     getBidsByUser,
     getBidsByDriver,
-    getLowestBidByTrip
+    getLowestBidByTrip,
+    hireBid
 };

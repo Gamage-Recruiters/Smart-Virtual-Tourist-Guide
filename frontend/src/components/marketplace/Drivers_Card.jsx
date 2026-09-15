@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FaStar 
 } from 'react-icons/fa';
-import D0 from '../../assets/dirvercard/D0.png';
+const D0 = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600';
 import { useTranslation } from 'react-i18next';
 
 // Default Drivers Dummy Data (Fallback)

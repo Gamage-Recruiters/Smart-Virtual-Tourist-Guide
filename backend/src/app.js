@@ -21,7 +21,6 @@ import destinationRoutes from './routes/destinationRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
 import adminRoutes from './routes/Admin/adminRoutes.js';
-import groupChatRoutes from './routes/Admin/groupChatRoutes.js';
 import tempHotBookRoutes from './routes/HotelOwner/tempHotBook.routes.js';                            
 import hotelRevenueSummaryRoutes from './routes/HotelOwner/hotelRevenueSummary.routes.js';             
 import startBookingSyncScheduler from './jobs/HotelOwner/bookingSyncScheduler.js'; 
@@ -126,7 +125,6 @@ app.use('/api/bids', bidRoutes);
 // Admin Routes
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin/group-chats', groupChatRoutes);
 
 // Navigation and Mapping Routes
 app.use('/api/recent-places', serviceRouter);

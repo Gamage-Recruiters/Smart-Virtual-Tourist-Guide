@@ -1,13 +1,25 @@
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import { SEVERITY_CARD_STYLES } from '../../constants/safety/severityConfig';
 
 const severityStyles = SEVERITY_CARD_STYLES;
 
+const formatDistanceToNowFallback = (date) => {
+  try {
+    const diff = Math.floor((new Date() - new Date(date)) / 1000);
+    if (isNaN(diff) || diff < 0) return 'just now';
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  } catch {
+    return 'recently';
+  }
+};
+
 const AlertCard = ({ alert, onSelect, isSelected }) => {
   const cardRef = React.useRef(null);
   const style = severityStyles[alert.severity] || severityStyles.low;
-  const timeStr = formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true });
+  const timeStr = formatDistanceToNowFallback(alert.createdAt);
 
   React.useEffect(() => {
     if (isSelected && cardRef.current) {
