@@ -143,6 +143,7 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
+app.use('/api/vehicles', vehicleRouter);
 app.use('/api/renter/earnings', earningsRouter);
 app.use('/api/renter/bookings', vehicleBookingRouter);
 app.use('/api/tourist/rent-vehicle-booking', rentVehicleBookingRouter);

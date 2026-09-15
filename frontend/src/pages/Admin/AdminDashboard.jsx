@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StatCard from '../../components/Admin/StatCard';
+import AdminGroupChatModal from '../../components/Admin/AdminGroupChatModal';
 import RevenueChart from '../../components/Admin/RevenueChart';
 import BookingChart from '../../components/Admin/BookingChart';
 import PackagePerformanceChart from '../../components/Admin/PackagePerformanceChart';
@@ -11,6 +12,7 @@ import HeroBg from "../../assets/Admin/hero-bg.png";
 import apiClient from '../../services/Admin/adminApi';
 
 const AdminDashboard = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     travelAgencies: 0,
@@ -120,11 +122,19 @@ useEffect(() => {
             ))}
           </div>
 
-          <div className="mb-12 grid grid-cols-1 gap-3 rounded-[10px] bg-white/65 p-3 shadow-sm backdrop-blur-sm md:grid-cols-3 md:gap-8">
+          <div className="mb-12 grid grid-cols-1 gap-3 rounded-[10px] bg-white/65 p-3 shadow-sm backdrop-blur-sm md:grid-cols-4 md:gap-4">
             <ManagementLink to="/admin/users">User Management</ManagementLink>
             <ManagementLink to="/admin/listings">Approve Listings</ManagementLink>
             <ManagementLink to="/admin/ads">Manage Ads</ManagementLink>
+            <button
+              onClick={() => setIsChatOpen(true)}
+              className="flex min-h-11 w-full items-center justify-center rounded-full border border-indigo-500 bg-indigo-600 px-6 py-2 text-center text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+            >
+              💬 Group Chat
+            </button>
           </div>
+
+          <AdminGroupChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
           <div className="mx-auto mb-8 grid max-w-[1016px] grid-cols-1 gap-8 lg:grid-cols-[470px_436px] lg:justify-between lg:gap-20">
             <ChartPanel title="Monthly Revenue Trend"><RevenueChart data={analytics.revenueChart} /></ChartPanel>
