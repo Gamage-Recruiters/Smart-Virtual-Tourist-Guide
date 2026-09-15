@@ -60,7 +60,6 @@ import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSetti
 
 import GuideSignup from "./pages/Guide/SignupPage";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
-import { AuthProvider } from "./context/AuthContext";
 import { GuideAdminLayout } from "./layouts/GuideLayouts";
 import {
   GuideMarketplace,
@@ -162,7 +161,6 @@ function App() {
   return (
     <SafetyProvider>
       <Router>
-        <AuthProvider>
         <Routes>
           {/* ========================================================= */}
           {/*                     EXISTING PROJECT                      */}
@@ -617,7 +615,6 @@ function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        </AuthProvider>
       </Router>
     </SafetyProvider>
   );

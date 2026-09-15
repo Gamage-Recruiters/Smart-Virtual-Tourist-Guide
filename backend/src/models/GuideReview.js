@@ -8,4 +8,6 @@ const guideReviewSchema = new mongoose.Schema({
   comment: { type: String, required: true, trim: true, maxlength: 2000 },
 }, { timestamps: true });
 
+guideReviewSchema.index({ guide: 1, createdAt: -1 });
+
 export default mongoose.models.GuideReview || mongoose.model('GuideReview', guideReviewSchema);

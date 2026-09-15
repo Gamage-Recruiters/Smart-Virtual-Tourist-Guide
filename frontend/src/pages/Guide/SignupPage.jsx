@@ -5,7 +5,7 @@ import Header from "../../components/Guide/Header";
 import Footer from "../../components/Guide/Footer";
 import heroImg from "../../assets/Guide/bg.jpg";
 import useGoogleAuth from "../../hooks/useGoogleAuth";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const GuideSignup = () => {
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ const GuideSignup = () => {
         throw new Error(response.message || "Registration failed");
       }
 
-      setSession(response);
+      setSession(response.token, response.user);
 
       navigate("/dashboard-Guide");
     } catch (err) {
