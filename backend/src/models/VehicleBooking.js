@@ -59,4 +59,4 @@ const vehicleBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('VehicleBooking', vehicleBookingSchema);
+export default mongoose.models.VehicleBooking || mongoose.model('VehicleBooking', vehicleBookingSchema);

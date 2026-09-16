@@ -58,4 +58,4 @@ const restaurantBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('RestaurantBooking', restaurantBookingSchema);
+export default mongoose.models.RestaurantBooking || mongoose.model('RestaurantBooking', restaurantBookingSchema);

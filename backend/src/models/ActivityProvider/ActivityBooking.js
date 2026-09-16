@@ -55,4 +55,4 @@ const activityBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('ActivityBooking', activityBookingSchema);
+export default mongoose.models.ActivityBooking || mongoose.model('ActivityBooking', activityBookingSchema);

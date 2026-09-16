@@ -59,4 +59,4 @@ const driverBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('DriverBooking', driverBookingSchema);
+export default mongoose.models.DriverBooking || mongoose.model('DriverBooking', driverBookingSchema);

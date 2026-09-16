@@ -59,4 +59,4 @@ const guideBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('GuideBooking', guideBookingSchema);
+export default mongoose.models.GuideBooking || mongoose.model('GuideBooking', guideBookingSchema);

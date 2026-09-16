@@ -59,4 +59,4 @@ const hotelBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('HotelBooking', hotelBookingSchema);
+export default mongoose.models.HotelBooking || mongoose.model('HotelBooking', hotelBookingSchema);
