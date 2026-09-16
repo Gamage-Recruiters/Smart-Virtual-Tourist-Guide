@@ -37,11 +37,12 @@ export const generateHash = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    const amount = booking.pricing?.total ?? booking.priceUSD ?? 0;
-    const currency = booking.pricing?.currency || 'LKR';
-    const orderId = booking._id.toString();
+    const amountNum = Number(booking.pricing?.total ?? booking.priceUSD ?? 0);
+    const amount = amountNum.toFixed(2);
+    const currency = String(booking.pricing?.currency || 'LKR').trim();
+    const orderId = booking._id.toString().trim();
 
-    const hash = generatePaymentHash({ orderId, amount, currency });
+    const hash = generatePaymentHash({ orderId, amount: amountNum, currency });
 
     // Update the booking to link the PayHere order ID if payment object exists
     if (booking.payment) {
@@ -51,7 +52,7 @@ export const generateHash = async (req, res, next) => {
 
     res.json({
       success: true,
-      merchant_id: process.env.PAYHERE_MERCHANT_ID,
+      merchant_id: String(process.env.PAYHERE_MERCHANT_ID || '').trim(),
       hash,
       order_id: orderId,
       amount,

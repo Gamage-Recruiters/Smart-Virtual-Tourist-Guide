@@ -95,15 +95,15 @@ const BookingPage = () => {
             // Step C: Build PayHere payment object
             const payment = {
                 sandbox: true,    // ← SANDBOX MODE for testing
-                merchant_id: hashData.merchant_id,
+                merchant_id: String(hashData.merchant_id || '').trim(),
                 return_url: `${currentUrl}/my-bookings`,
                 cancel_url: `${currentUrl}/booking-page`,
                 notify_url: 'http://localhost:5000/api/payments/notify',
-                order_id: hashData.order_id,
-                items: service.name || 'Service Booking',
-                amount: Number(hashData.amount || totalAmount).toFixed(2),
-                currency: hashData.currency || 'LKR',
-                hash: hashData.hash,
+                order_id: String(hashData.order_id || bookingId).trim(),
+                items: String(service.name || 'Service Booking'),
+                amount: String(hashData.amount || Number(totalAmount).toFixed(2)).trim(),
+                currency: String(hashData.currency || 'LKR').trim(),
+                hash: String(hashData.hash || '').trim(),
                 first_name: formData.firstName || 'Customer',
                 last_name: formData.lastName || 'Guest',
                 email: formData.email || 'customer@example.com',
