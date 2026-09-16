@@ -50,15 +50,15 @@ const GuideAvailabilityCard = () => {
         ],
 
         pricing: {
-          currency: "USD",
+          currency: "LKR",
           items: [
             {
               label: "Guide Fee",
-              amount: 120,
+              amount: 15000,
             },
             {
               label: "Service Charge",
-              amount: 15,
+              amount: 2500,
             },
           ],
         },

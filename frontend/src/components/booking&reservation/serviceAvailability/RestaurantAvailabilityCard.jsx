@@ -51,15 +51,15 @@ const RestaurantAvailabilityCard = () => {
         ],
 
         pricing: {
-          currency: "USD",
+          currency: "LKR",
           items: [
             {
               label: "Table Reservation Fee",
-              amount: 10,
+              amount: 2500,
             },
             {
               label: "Service Charge",
-              amount: 5,
+              amount: 500,
             },
           ],
         },

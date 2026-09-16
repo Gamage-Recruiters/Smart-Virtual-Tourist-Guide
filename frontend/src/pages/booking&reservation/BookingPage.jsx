@@ -4,7 +4,7 @@ import BookingProgressBar from "../../components/booking&reservation/bookingSumm
 import ServiceDetailsCard from "../../components/booking&reservation/bookingSummary/ServiceDetailsCard";
 import BookingDetailsCard from "../../components/booking&reservation/bookingSummary/BookingDetailsCard";
 import PriceSummaryCard from "../../components/booking&reservation/bookingSummary/PriceSummaryCard";
-import { submitBooking, generatePayHereHash } from "../../api/bookingApi";
+import { submitBooking, generatePayHereHash, confirmPayment } from "../../api/bookingApi";
 
 const BookingPage = () => {
 
@@ -20,7 +20,7 @@ const BookingPage = () => {
 
     const pricing =
         location.state?.pricing || {
-            currency: "USD",
+            currency: "LKR",
             items: [],
         };
 
@@ -51,11 +51,17 @@ const BookingPage = () => {
         setSubmitError("");
 
         try {
+            const serviceType = (location.state?.serviceType || service?.type || 'hotel').toLowerCase();
+
             // Step A: Create pending booking in DB
             const bookingPayload = {
                 service,
                 bookingDetails,
-                pricing,
+                pricing: {
+                    currency: pricing.currency || 'LKR',
+                    items: pricing.items || [],
+                    total: totalAmount,
+                },
                 customer: {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -63,7 +69,7 @@ const BookingPage = () => {
                     phone: formData.phone,
                 },
                 paymentMethod: "payhere",
-                serviceType: location.state?.serviceType || 'vehicle',
+                serviceType: serviceType,
             };
 
             const response = await submitBooking(bookingPayload);
@@ -75,34 +81,41 @@ const BookingPage = () => {
             // Step B: Get hash from backend using the real booking ID
             const hashData = await generatePayHereHash({
                 bookingId: bookingId,
-                serviceType: location.state?.serviceType || 'vehicle'
+                serviceType: serviceType
             });
+
+            const currentUrl = window.location.origin;
 
             // Step C: Build PayHere payment object
             const payment = {
                 sandbox: true,    // ← SANDBOX MODE for testing
                 merchant_id: hashData.merchant_id,
-                return_url: undefined,
-                cancel_url: undefined,
+                return_url: `${currentUrl}/my-bookings`,
+                cancel_url: `${currentUrl}/booking-page`,
                 notify_url: 'http://localhost:5000/api/payments/notify',
                 order_id: hashData.order_id,
-                items: service.name || 'Vehicle Rental',
-                amount: Number(hashData.amount).toFixed(2),
+                items: service.name || 'Service Booking',
+                amount: Number(hashData.amount || totalAmount).toFixed(2),
                 currency: hashData.currency || 'LKR',
                 hash: hashData.hash,
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
+                first_name: formData.firstName || 'Customer',
+                last_name: formData.lastName || 'Guest',
+                email: formData.email || 'customer@example.com',
+                phone: formData.phone || '0770000000',
                 address: 'N/A',
                 city: 'Colombo',
                 country: 'Sri Lanka',
             };
 
             // Step D: Setup PayHere callbacks
-            window.payhere.onCompleted = async function (completedOrderId) {
-                console.log("Payment completed. OrderID:", completedOrderId);
-                // Booking is confirmed via server webhook!
+            if (!window.payhere) {
+                throw new Error("PayHere payment SDK failed to load. Please check your network connection.");
+            }
+
+            window.payhere.onCompleted = async function (completedOrderId, completedPaymentId) {
+                console.log("Payment completed. OrderID:", completedOrderId, "PaymentID:", completedPaymentId);
+                // Confirm booking in backend
+                await confirmPayment({ orderId: completedOrderId || bookingId, paymentId: completedPaymentId });
                 setCurrentStep(3);
                 setIsSubmitting(false);
             };

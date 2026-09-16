@@ -57,6 +57,8 @@ const ActivityAvailabilityCard = ({ activity }) => {
             },
           ],
         },
+
+        serviceType: "activity",
       },
     });
   };

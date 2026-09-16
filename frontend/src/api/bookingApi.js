@@ -99,4 +99,25 @@ const generatePayHereHash = async ({ bookingId, serviceType }) => {
   }
 };
 
-export { submitBooking, getBookings, getBookingById, generatePayHereHash };
+// Confirm payment on client side when PayHere completes
+const confirmPayment = async ({ orderId, paymentId }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ orderId, paymentId }),
+    });
+
+    if (!response.ok) {
+      const err = await parseJsonResponse(response);
+      throw new Error(err.message || 'Failed to confirm payment');
+    }
+
+    return response.json();
+  } catch (err) {
+    console.error("Payment confirmation error:", err);
+    return { success: false, message: err.message };
+  }
+};
+
+export { submitBooking, getBookings, getBookingById, generatePayHereHash, confirmPayment };

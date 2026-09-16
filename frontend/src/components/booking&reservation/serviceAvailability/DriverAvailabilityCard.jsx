@@ -52,18 +52,20 @@ const DriverAvailabilityCard = () => {
         ],
 
         pricing: {
-          currency: "USD",
+          currency: "LKR",
           items: [
             {
               label: "Driver Service Fee",
-              amount: 80,
+              amount: 15000,
             },
             {
               label: "Travel Charge",
-              amount: 40,
+              amount: 5000,
             },
           ],
         },
+
+        serviceType: "driver",
       },
     });
   };
