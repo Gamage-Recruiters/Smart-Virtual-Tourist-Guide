@@ -15,8 +15,11 @@ import {
   updateTravelInfo,
   addHotelInfo,
   googleAuth,
-  getMe
+  getMe,
+  updateRenterInfo,
+  getAllDrivers
 } from '../controllers/authController.js';
+
 import {
   validateTouristRegister,
   validateHotelOwnerRegister,
@@ -33,6 +36,9 @@ import { protect } from '../middleware/authMiddleware.js';
 import { uploadDriverDocs } from '../config/cloudinary.js';
 
 const router = express.Router();
+
+// Route to get all registered drivers
+router.get('/drivers', getAllDrivers);
 
 // Registration routes per role
 router.post('/register/tourist', validateTouristRegister, registerTourist);
@@ -61,6 +67,9 @@ router.post('/google', googleAuth);
 
 // Update travel preferences & safety info (protected)
 router.put('/update-travel-info', protect, updateTravelInfo);
+
+// update renter user profile details
+router.put("/update-renter-info", protect, updateRenterInfo);
 
 // Add hotel info (protected - hotelowner_user only)
 router.post('/add-hotel-info', protect, validateHotelInfo, addHotelInfo);

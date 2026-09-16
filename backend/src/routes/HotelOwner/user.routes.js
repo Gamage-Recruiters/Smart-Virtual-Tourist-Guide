@@ -3,6 +3,13 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
+import HotelBooking from '../../models/HotelOwner/TempHotBook.js';
+import getTestDb from '../../configs/HotelOwner/testDb.js';
+
+const getHotelBookingModel = async () => {
+  const conn = await getTestDb();
+  return conn.models.HotelBooking || conn.model('HotelBooking', HotelBooking.schema);
+};
 
 const router = express.Router();
 
@@ -16,6 +23,26 @@ const getUserIdFromToken = (req) => {
     return null;
   }
 };
+
+// GET /api/users/bookings
+router.get('/bookings', async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const user = await User.findById(userId).select('hotels');
+    if (!user || !user.hotels?.length) {
+      return res.json({ bookings: [] });
+    }
+
+    const hotelSubId = user.hotels[0]._id.toString();
+    const HotelBookingModel = await getHotelBookingModel();
+    const bookings = await HotelBookingModel.find({ hotelId: hotelSubId });
+    res.json({ bookings });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 // GET /api/users/me
 router.get('/me', async (req, res) => {
@@ -36,10 +63,18 @@ router.put('/hotel', async (req, res) => {
     const userId = getUserIdFromToken(req);
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
     const { hotelName, hotelRegistrationNo, hotelAddress, hotelEmail, hotelOwnerName, hotelRegisteredYear, hotelContactNumber } = req.body;
-    const hotel = { hotelName, hotelRegistrationNo, hotelAddress, hotelEmail, hotelRegisteredYear, hotelContactNumber };
     const user = await User.findByIdAndUpdate(
       userId,
-      { $set: { 'hotels.0': hotel } },
+      {
+        $set: {
+          'hotels.0.hotelName': hotelName,
+          'hotels.0.hotelRegistrationNo': hotelRegistrationNo,
+          'hotels.0.hotelAddress': hotelAddress,
+          'hotels.0.hotelEmail': hotelEmail,
+          'hotels.0.hotelRegisteredYear': hotelRegisteredYear,
+          'hotels.0.hotelContactNumber': hotelContactNumber,
+        }
+      },
       { new: true, upsert: false }
     ).select('hotels');
     if (!user) return res.status(404).json({ message: 'User not found' });

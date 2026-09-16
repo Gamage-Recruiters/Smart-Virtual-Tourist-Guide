@@ -34,9 +34,19 @@ const userSchema = new mongoose.Schema({
     enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user', 'admin'],
     required: true
   },
+  status: {
+    type: String,
+    enum: ['Active', 'Suspended', 'Pending'],
+    default: 'Active',
+    index: true
+  },
   contactNumber: {
     type: String,
     trim: true,
+    default: ''
+  },
+  profileImage: {
+    type: String,
     default: ''
   },
   // Tourist specific fields
@@ -114,6 +124,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  vehicleColor: {
+    type: String,
+    trim: true
+  },
+  nationalIdNumber: {
+    type: String,
+    trim: true
+  },
   licenseNumber: {
     type: String,
     trim: true
@@ -128,9 +146,10 @@ const userSchema = new mongoose.Schema({
     type: String
   }],
   // Renter specific fields
-  renterVerificationDocument: [{
-    type: String
-  }]
+  renterVerificationDocument: {
+    nicOrPassport: { type: String, default: '' },
+    businessLicense: { type: String, default: '' },
+  }
 }, {
   timestamps: true,
   collection: 'users'

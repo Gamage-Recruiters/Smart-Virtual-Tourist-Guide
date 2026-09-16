@@ -82,6 +82,7 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
   const [savedBlocks, setSavedBlocks] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const mapPeriodsToBlocks = (periods) => (
     (periods || []).map((period) => {
@@ -125,6 +126,20 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
         ? []
         : roomNumbers.filter((r) => r.toLowerCase().startsWith(val.toLowerCase()))
     );
+  };
+
+  const mergeBlocks = (bList) => {
+    if (bList.length === 0) return [];
+    const sorted = [...bList].sort((a, b) => absDay(a.from) - absDay(b.from));
+    const merged = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const last = merged[merged.length - 1];
+      if (absDay(sorted[i].from) <= absDay(last.to) + 1)
+        last.to = absDay(sorted[i].to) > absDay(last.to) ? sorted[i].to : last.to;
+      else
+        merged.push({ ...sorted[i] });
+    }
+    return merged;
   };
 
   const absDay = (d) => d.monthIdx * 31 + d.day;
@@ -256,49 +271,87 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
           </div>
         </div>
         {isEditing ? (
-          <button
-            onClick={async () => {
-              if (selectedBlock === null || !selectedRoomId?.roomId) return;
-              const remaining = blocks.filter((_, i) => i !== selectedBlock);
-              const endpoint = statusType === 'Non Available' ? 'blocked' : 'maintenance';
-              setSaving(true);
-              setSaveMsg('');
-              try {
-                const periods = remaining.map((b) => ({
-                  startDate: new Date(Date.UTC(getYear(b.from.monthIdx), b.from.monthIdx, b.from.day)).toISOString(),
-                  endDate:   new Date(Date.UTC(getYear(b.to.monthIdx),   b.to.monthIdx,   b.to.day  )).toISOString(),
-                }));
-                const res = await fetch(`${BASE_URL}/api/room-availability/${endpoint}`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ roomId: selectedRoomId.roomId, periods }),
-                });
-                if (res.ok) {
-                  setBlocks(remaining);
-                  setSavedBlocks(remaining);
-                  setSelectedBlock(null);
-                  setFromInput('');
-                  setToInput('');
-                  setIsEditing(false);
-                  onSaveSuccess();
-                } else {
-                  setSaveMsg('Clear failed');
-                }
-              } catch { setSaveMsg('Clear failed'); }
-              finally { setSaving(false); }
-            }}
-            disabled={selectedBlock === null || saving}
-            className="px-3 py-1.5 text-xs font-semibold text-white bg-rose-500 border border-rose-500 rounded hover:bg-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {saving ? 'Clearing...' : 'Permanent Clear'}
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setConfirmClear((v) => !v)}
+              disabled={selectedBlock === null || saving}
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-rose-500 border border-rose-500 rounded hover:bg-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Clearing...' : 'Permanent Clear'}
+            </button>
+            {confirmClear && (
+              <div className="absolute left-0 top-full mt-2 z-20 w-64 bg-white border border-rose-200 rounded-lg shadow-lg p-3">
+                <p className="text-xs font-bold text-slate-800 mb-1">Delete this period permanently?</p>
+                <p className="text-[11px] text-slate-500 mb-3">
+                  {fromInput && toInput ? `${fromInput} → ${toInput}` : 'Selected period'} will be removed and cannot be recovered.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmClear(false)}
+                    className="flex-1 py-1 text-xs font-semibold text-slate-600 border border-slate-300 rounded hover:bg-slate-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={saving}
+                    onClick={async () => {
+                      setConfirmClear(false);
+                      if (selectedBlock === null || !selectedRoomId?.roomId) return;
+                      const remaining = blocks.filter((_, i) => i !== selectedBlock);
+                      const endpoint = statusType === 'Non Available' ? 'blocked' : 'maintenance';
+                      setSaving(true);
+                      setSaveMsg('');
+                      try {
+                        const periods = mergeBlocks(remaining).map((b) => ({
+                          startDate: new Date(Date.UTC(getYear(b.from.monthIdx), b.from.monthIdx, b.from.day)).toISOString(),
+                          endDate:   new Date(Date.UTC(getYear(b.to.monthIdx),   b.to.monthIdx,   b.to.day  )).toISOString(),
+                        }));
+                        const res = await fetch(`${BASE_URL}/api/room-availability/${endpoint}`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ roomId: selectedRoomId.roomId, periods }),
+                        });
+                        if (res.ok) {
+                          setBlocks(remaining);
+                          setSavedBlocks(remaining);
+                          setSelectedBlock(null);
+                          setFromInput('');
+                          setToInput('');
+                          setIsEditing(false);
+                          onSaveSuccess();
+                        } else {
+                          setSaveMsg('Clear failed');
+                        }
+                      } catch { setSaveMsg('Clear failed'); }
+                      finally { setSaving(false); }
+                    }}
+                    className="flex-1 py-1 text-xs font-semibold text-white bg-rose-500 rounded hover:bg-rose-600 transition-colors disabled:opacity-40"
+                  >
+                    OK, Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <button
             onClick={() => {
-              setPendingFrom(null);
-              setFromInput('');
-              setToInput('');
-              setBlocks((prev) => prev.slice(0, -1));
+              if (pendingFrom) {
+                setPendingFrom(null);
+                setFromInput('');
+                setToInput('');
+              } else {
+                // only remove the last block if it is unsaved (no _id from DB)
+                setBlocks((prev) => {
+                  const lastIdx = prev.length - 1;
+                  if (lastIdx < 0 || prev[lastIdx]._id) return prev;
+                  const next = prev.slice(0, lastIdx);
+                  const last = next[next.length - 1];
+                  setFromInput(last ? formatDate(last.from) : '');
+                  setToInput(last ? formatDate(last.to) : '');
+                  return next;
+                });
+              }
             }}
             className="px-3 py-1.5 text-xs font-semibold text-slate-500 border border-slate-300 rounded hover:bg-slate-100 transition-colors"
           >
@@ -454,7 +507,7 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
                   setPendingFrom(null);
                 }
                 // POST: replace all periods (empty array clears all dates)
-                const periods = finalBlocks.map((b) => ({
+                const periods = mergeBlocks(finalBlocks).map((b) => ({
                   startDate: new Date(Date.UTC(getYear(b.from.monthIdx), b.from.monthIdx, b.from.day)).toISOString(),
                   endDate:   new Date(Date.UTC(getYear(b.to.monthIdx),   b.to.monthIdx,   b.to.day  )).toISOString(),
                 }));
@@ -478,7 +531,15 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
           onClick={() => {
             if (!isEditing) {
               setSavedBlocks(blocks);
-              setSelectedBlock(null);
+              setFromInput('');
+              setToInput('');
+              if (blocks.length === 1) {
+                setSelectedBlock(0);
+                setFromInput(formatDate(blocks[0].from));
+                setToInput(formatDate(blocks[0].to));
+              } else {
+                setSelectedBlock(null);
+              }
             } else {
               setBlocks(savedBlocks);
               setSelectedBlock(null);
@@ -491,7 +552,7 @@ function MiniCalendar({ title, accent, selectedRoomType, roomNumbers, selectedRo
             isEditing ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-emerald-500 hover:bg-emerald-600'
           }`}
         >
-          {isEditing ? 'Editing...' : 'Edit'}
+          {isEditing ? 'Cancel Edit' : 'Edit'}
         </button>
       </div>
     </div>

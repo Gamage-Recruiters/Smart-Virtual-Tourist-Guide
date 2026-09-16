@@ -596,7 +596,7 @@
 // };
 
 // export default LoginScreen;
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -654,8 +654,13 @@ const LoginScreen = () => {
 
       // success login
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        if (data.user.role === 'restaurant_user') {
+          localStorage.setItem('restaurantToken', data.token);
+          localStorage.setItem('restaurantUser', JSON.stringify(data.user));
+        } else {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userData', JSON.stringify(data.user));
+        }
 
         // navigate to specific dashboard
         const route = getDashboardRoute(data.user.role);
@@ -805,7 +810,7 @@ const LoginScreen = () => {
             </Link>
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
-            <Link to="/restuarant" className="flex-1 btn-primary bg-purple-600 hover:bg-purple-700 py-3 text-center text-sm">
+            <Link to="/resturent/register" className="flex-1 btn-primary bg-purple-600 hover:bg-purple-700 py-3 text-center text-sm">
               Restaurant Register
             </Link>
             <Link to="/renter" className="flex-1 btn-primary bg-teal-600 hover:bg-teal-700 py-3 text-center text-sm">
