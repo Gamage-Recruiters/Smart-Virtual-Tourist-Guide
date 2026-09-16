@@ -36,6 +36,24 @@ const Header = () => {
     console.log(`Language changed to: ${langName}`);
   };
 
+  const handleProfileClick = () => {
+    if (!user) return;
+    const role = (user.role || '').toLowerCase();
+    if (role.includes('driver')) {
+      navigate('/driver-details');
+    } else if (role.includes('hotel')) {
+      navigate('/Hotel-Owner-Profile-Settings');
+    } else if (role.includes('restaurant')) {
+      navigate('/resturent/dashboard/profile');
+    } else if (role.includes('guide')) {
+      navigate('/guide-dashboard');
+    } else if (role.includes('renter')) {
+      navigate('/renter-dashboard');
+    } else {
+      navigate('/dashboard-Tourist/touristProfile');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50">
       <nav className="relative">
@@ -59,55 +77,53 @@ const Header = () => {
               <img 
                 src={logoIcon} 
                 alt="Logo" 
-                className="h-30 w-auto object-contain pt-3"
+                className="h-14 w-auto cursor-pointer"
                 onClick={() => navigate('/')}
               />
-              
-              {/* Logo Name Text Image - Increased from h-8 to h-12 */}
+              {/* Logo Text Image - Increased from h-8 to h-10 */}
               <img 
                 src={logoText} 
-                alt="Smart Virtual Tourism Guide Sri Lanka" 
-                className="h-12 w-auto object-contain"
+                alt="Smart Virtual Tourist Guide" 
+                className="h-10 w-auto hidden sm:block cursor-pointer"
+                onClick={() => navigate('/')}
               />
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+            <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item) => (
-                <button
+                <a
                   key={item}
-                  onClick={() => {
-                    if (item === 'Restaurants') {
-                      navigate('/restaurants');
-                    } else if (item === 'Home') {
-                      navigate('/');
-                    }
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-[#0075FF] font-medium rounded-lg transition-all duration-200 hover:bg-white/50 hover:scale-105"
+                  href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="text-gray-700 hover:text-[#0075FF] font-medium text-sm transition-colors duration-200"
                 >
                   {item}
-                </button>
+                </a>
               ))}
+            </div>
+
+            {/* Language Selector & Action Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
               
-              {/* Language Selector */}
+              {/* Language Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-[#0075FF] font-medium rounded-lg transition-all duration-200 hover:bg-white/50"
+                  className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-[#0075FF] transition-colors duration-200"
                 >
-                  <Globe size={18} />
-                  <span>{selectedLanguage}</span>
-                  <ChevronDown size={16} className={`transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                  <Globe className="w-5 h-5 text-[#0075FF]" />
+                  <span className="text-sm font-semibold">{selectedLanguage}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isLanguageOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Language Dropdown */}
+                {/* Dropdown Menu */}
                 {isLanguageOpen && (
                   <>
                     <div 
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsLanguageOpen(false)}
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setIsLanguageOpen(false)} 
                     />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 animate-fadeIn border border-gray-100">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       {languages.map((lang) => (
                         <button
                           key={lang.code}
@@ -116,7 +132,7 @@ const Header = () => {
                             selectedLanguage === lang.code ? 'bg-blue-50 text-[#0075FF]' : 'text-gray-700'
                           }`}
                         >
-                          <span className="text-xl">{lang.flag}</span>
+                          <span className="text-lg">{lang.flag}</span>
                           <span className="flex-1">{lang.name}</span>
                           {selectedLanguage === lang.code && (
                             <span className="text-[#0075FF]">✓</span>
@@ -131,10 +147,14 @@ const Header = () => {
               {/* Sign In / User Profile display */}
               {user ? (
                 <div className="flex items-center gap-2">
-                  <div className="ml-2 px-5 py-2 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm">
+                  <button
+                    onClick={handleProfileClick}
+                    className="ml-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                    title="View Profile"
+                  >
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     {user.fullName || user.restaurantName || user.username || 'User'}
-                  </div>
+                  </button>
                   <button
                     onClick={() => {
                       localStorage.removeItem('token');
