@@ -299,7 +299,7 @@ const Drivers_Card = () => {
                   </div>
 
                   <button 
-                    onClick={() => navigate(`/driver-booking/${driver._id}`, { state: { driver } })}
+                    onClick={() => navigate(`/driver-booking/${driver?._id || driver?.id || ''}`, { state: { driver } })}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-colors shadow-xs"
                   >
                     Book Now

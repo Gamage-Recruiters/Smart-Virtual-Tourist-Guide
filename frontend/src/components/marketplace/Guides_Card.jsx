@@ -348,7 +348,7 @@ const Guides_Card = () => {
                   </div>
 
                   <button 
-                    onClick={() => navigate(`/guide-booking/${guide._id}`, { state: { guide } })}
+                    onClick={() => navigate(`/guide-booking/${guide?._id || guide?.id || ''}`, { state: { guide } })}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-colors shadow-xs mt-2"
                   >
                     Hire Guide
