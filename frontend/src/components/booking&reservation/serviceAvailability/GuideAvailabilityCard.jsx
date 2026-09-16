@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const GuideAvailabilityCard = () => {
+const GuideAvailabilityCard = ({ guide }) => {
   const navigate = useNavigate();
 
   const [guideData, setGuideData] = useState({
@@ -12,18 +12,26 @@ const GuideAvailabilityCard = () => {
     duration: "",
   });
 
+  const displayGuide = guide || {
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+    name: "Nadeesha Silva",
+    location: "Kandy, Sri Lanka",
+    rating: 4.8,
+    reviews: 142,
+    description: "Licensed cultural and heritage guide specializing in Kandy and Central Province tours.",
+    price: 15000,
+  };
+
   const handleAvailabilityCheck = () => {
     navigate("/booking-page", {
       state: {
         service: {
-          image:
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-          name: "Nadeesha Silva",
-          location: "Kandy, Sri Lanka",
-          rating: 4.8,
-          reviews: 142,
-          description:
-            "Licensed cultural and heritage guide specializing in Kandy and Central Province tours.",
+          image: displayGuide.image,
+          name: displayGuide.name || displayGuide.title,
+          location: displayGuide.location || "Kandy, Sri Lanka",
+          rating: displayGuide.rating || 4.8,
+          reviews: displayGuide.reviews || 142,
+          description: displayGuide.description || "Licensed tour guide.",
         },
 
         bookingDetails: [
@@ -37,7 +45,7 @@ const GuideAvailabilityCard = () => {
           },
           {
             label: "Participants",
-            value: `${guideData.participants} Person(s)`,
+            value: `${guideData.participants || 1} Person(s)`,
           },
           {
             label: "Meeting Location",
@@ -54,7 +62,7 @@ const GuideAvailabilityCard = () => {
           items: [
             {
               label: "Guide Fee",
-              amount: 15000,
+              amount: Number(displayGuide.price) || 15000,
             },
             {
               label: "Service Charge",

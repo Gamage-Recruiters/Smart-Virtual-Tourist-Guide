@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const DriverAvailabilityCard = () => {
+const DriverAvailabilityCard = ({ driver }) => {
   const navigate = useNavigate();
 
   const [driverData, setDriverData] = useState({
@@ -13,18 +13,26 @@ const DriverAvailabilityCard = () => {
     duration: "",
   });
 
+  const displayDriver = driver || {
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+    name: "Kasun Perera",
+    location: "Colombo, Sri Lanka",
+    rating: 4.9,
+    reviews: 187,
+    description: "Professional tourist driver with 8+ years of experience and fluent English.",
+    price: 15000,
+  };
+
   const handleAvailabilityCheck = () => {
     navigate("/booking-page", {
       state: {
         service: {
-          image:
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-          name: "Kasun Perera",
-          location: "Colombo, Sri Lanka",
-          rating: 4.9,
-          reviews: 187,
-          description:
-            "Professional tourist driver with 8+ years of experience and fluent English.",
+          image: displayDriver.image,
+          name: displayDriver.name || displayDriver.title,
+          location: displayDriver.location || "Colombo, Sri Lanka",
+          rating: displayDriver.rating || 4.9,
+          reviews: displayDriver.reviews || 187,
+          description: displayDriver.description || "Professional tourist driver with 8+ years of experience.",
         },
 
         bookingDetails: [
@@ -46,9 +54,8 @@ const DriverAvailabilityCard = () => {
           },
           {
             label: "Passengers",
-            value: `${driverData.passengers} Person(s)`,
+            value: `${driverData.passengers || 1} Person(s)`,
           },
-          
         ],
 
         pricing: {
@@ -56,7 +63,7 @@ const DriverAvailabilityCard = () => {
           items: [
             {
               label: "Driver Service Fee",
-              amount: 15000,
+              amount: Number(displayDriver.price) || 15000,
             },
             {
               label: "Travel Charge",

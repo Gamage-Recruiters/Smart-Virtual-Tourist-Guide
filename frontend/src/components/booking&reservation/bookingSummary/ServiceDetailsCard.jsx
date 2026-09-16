@@ -10,7 +10,7 @@ const ServiceDetailsCard = ({ service }) => {
       <img
         src={service.image}
         alt={service.name}
-        className="rounded-lg mb-4 h-48 w-full object-cover"
+        className="rounded-lg mb-4 h-64 sm:h-72 w-full object-cover object-top shadow-sm"
       />
 
       <h3 className="font-semibold text-lg">
