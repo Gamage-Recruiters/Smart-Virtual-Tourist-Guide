@@ -440,10 +440,24 @@ function App() {
               element={<Navigate to="/safety/report-incident" replace />}
             />
 
-            {/* ===== TOURIST-FACING RESTAURANT ROUTES ===== */}
+            {/* ===== TOURIST-FACING RESTAURANT & MARKETPLACE ROUTES ===== */}
             <Route path="/restaurants" element={<TouristRestaurantsPage />} />
             <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
 
+            {/* ===== MARKETPLACE DIRECT BOOKING & DETAIL ROUTES ===== */}
+            <Route path="/hotel-booking" element={<HotelDetails />} />
+            <Route path="/hotel-booking/:id" element={<HotelDetails />} />
+            <Route path="/hotel-details/:id" element={<HotelDetails />} />
+            <Route path="/vehicle-booking" element={<VehicleDetailsPage />} />
+            <Route path="/vehicle-booking/:id" element={<VehicleDetailsPage />} />
+            <Route path="/restaurant-booking" element={<TouristRestaurantDetailsPage />} />
+            <Route path="/restaurant-booking/:id" element={<TouristRestaurantDetailsPage />} />
+            <Route path="/driver-booking" element={<BookDriver />} />
+            <Route path="/driver-booking/:id" element={<BookDriver />} />
+            <Route path="/guide-booking" element={<BookDriver />} />
+            <Route path="/guide-booking/:id" element={<BookDriver />} />
+            <Route path="/activity-booking" element={<TripPlanningPage />} />
+            <Route path="/activity-booking/:id" element={<TripPlanningPage />} />
 
             {/* Report Success */}
             <Route
