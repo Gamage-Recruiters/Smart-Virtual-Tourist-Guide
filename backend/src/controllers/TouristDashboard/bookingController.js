@@ -51,7 +51,7 @@ async function createBooking(req, res) {
       status: req.body.status || "Pending",
     });
 
-    return res.status(201).json({ success: true, data: booking });
+    return res.status(201).json({ success: true, booking, data: booking });
   } catch (err) {
     console.error("[bookingController] createBooking error:", err);
     return res.status(500).json({ message: "Failed to create booking." });

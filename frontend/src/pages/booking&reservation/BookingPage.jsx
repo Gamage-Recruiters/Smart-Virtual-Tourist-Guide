@@ -73,8 +73,14 @@ const BookingPage = () => {
             };
 
             const response = await submitBooking(bookingPayload);
-            const bookingResultData = response.booking;
+            const bookingResultData = response?.booking || response?.data || response;
+            if (!bookingResultData) {
+                throw new Error("Invalid response received from server when creating booking.");
+            }
             const bookingId = bookingResultData._id || bookingResultData.id;
+            if (!bookingId) {
+                throw new Error("Booking ID was not returned by server.");
+            }
             
             setBookingResult(bookingResultData);
 

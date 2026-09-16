@@ -97,7 +97,7 @@ export const createBooking = async (req, res, next) => {
     const Model = getBookingModel(serviceType);
     const booking = await Model.create(bookingData);
 
-    res.status(201).json({ success: true, booking, serviceType: serviceType || 'activity' });
+    res.status(201).json({ success: true, booking, data: booking, serviceType: serviceType || 'activity' });
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,6 @@
 import { generatePaymentHash, verifyNotification } from '../services/paymentService.js';
 import { getBookingModel } from './bookingController.js';
+import TouristDashboardBooking from '../models/TouristDashboard/Booking.js';
 
 /**
  * POST /api/payments/generate-hash
@@ -9,26 +10,44 @@ export const generateHash = async (req, res, next) => {
   try {
     const { bookingId, serviceType } = req.body;
 
-    if (!bookingId || !serviceType) {
-      return res.status(400).json({ success: false, message: 'bookingId and serviceType are required.' });
+    if (!bookingId) {
+      return res.status(400).json({ success: false, message: 'bookingId is required.' });
     }
 
-    const Model = getBookingModel(serviceType);
-    const booking = await Model.findById(bookingId);
+    let booking = null;
+    if (serviceType) {
+      const Model = getBookingModel(serviceType);
+      booking = await Model.findById(bookingId).catch(() => null);
+    }
+
+    if (!booking) {
+      const allTypes = ['activity', 'driver', 'guide', 'hotel', 'restaurant', 'vehicle'];
+      for (const type of allTypes) {
+        const Model = getBookingModel(type);
+        booking = await Model.findById(bookingId).catch(() => null);
+        if (booking) break;
+      }
+    }
+
+    if (!booking && String(bookingId).match(/^[0-9a-fA-F]{24}$/)) {
+      booking = await TouristDashboardBooking.findById(bookingId).catch(() => null);
+    }
 
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    const amount = booking.pricing.total;
-    const currency = booking.pricing.currency || 'LKR';
+    const amount = booking.pricing?.total ?? booking.priceUSD ?? 0;
+    const currency = booking.pricing?.currency || 'LKR';
     const orderId = booking._id.toString();
 
     const hash = generatePaymentHash({ orderId, amount, currency });
 
-    // Update the booking to link the PayHere order ID
-    booking.payment.payhereOrderId = orderId;
-    await booking.save();
+    // Update the booking to link the PayHere order ID if payment object exists
+    if (booking.payment) {
+      booking.payment.payhereOrderId = orderId;
+      await booking.save();
+    }
 
     res.json({
       success: true,
@@ -59,20 +78,30 @@ export const confirmPayment = async (req, res, next) => {
 
     for (const type of allTypes) {
       const Model = getBookingModel(type);
-      let booking = await Model.findOne({ 'payment.payhereOrderId': orderId });
+      let booking = await Model.findOne({ 'payment.payhereOrderId': orderId }).catch(() => null);
       if (!booking && String(orderId).match(/^[0-9a-fA-F]{24}$/)) {
-        booking = await Model.findById(orderId);
+        booking = await Model.findById(orderId).catch(() => null);
       }
 
       if (booking) {
         bookingFound = true;
         booking.status = 'confirmed';
+        if (!booking.payment) booking.payment = {};
         booking.payment.method = 'payhere';
         booking.payment.payhereOrderId = orderId;
         if (paymentId) booking.payment.payherePaymentId = paymentId;
         booking.payment.paidAt = new Date();
         await booking.save();
         return res.json({ success: true, booking });
+      }
+    }
+
+    if (!bookingFound && String(orderId).match(/^[0-9a-fA-F]{24}$/)) {
+      const tdBooking = await TouristDashboardBooking.findById(orderId).catch(() => null);
+      if (tdBooking) {
+        tdBooking.status = 'Confirmed';
+        await tdBooking.save();
+        return res.json({ success: true, booking: tdBooking });
       }
     }
 
