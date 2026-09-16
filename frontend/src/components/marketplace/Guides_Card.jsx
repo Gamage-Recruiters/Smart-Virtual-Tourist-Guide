@@ -401,3 +401,5 @@ const Guides_Card = () => {
     </div>
   );
 };
+
+export default Guides_Card;
