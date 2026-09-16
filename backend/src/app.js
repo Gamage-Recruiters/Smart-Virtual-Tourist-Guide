@@ -159,7 +159,9 @@ app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // Payment & Booking Engine Routes
 app.use('/api/payment', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/service-bookings', serviceBookingRoutes);
+app.use('/api/bookings', serviceBookingRoutes);
 
 // ==================== ERROR HANDLING ====================
 // ==================== RESTAURANT API ROUTES ====================
