@@ -163,11 +163,11 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 //
 // Therefore the final endpoint is:
 //
-// GET /api/dashboard/government
+// GET /api/gov/dashboard/government
 //
 // -----------------------------------------------------------------------------
 
-app.use("/api/dashboard", governmentDashboardRoutes);
+app.use("/api/gov/dashboard", governmentDashboardRoutes);
 
 // -----------------------------------------------------------------------------
 // Existing Dashboard Routes
@@ -177,7 +177,6 @@ app.use("/api/dashboard", governmentDashboardRoutes);
 //
 // -----------------------------------------------------------------------------
 
-app.use("/api/dashboard", dashboardRoutes);
 
 // -----------------------------------------------------------------------------
 // Hotel Owner Routes

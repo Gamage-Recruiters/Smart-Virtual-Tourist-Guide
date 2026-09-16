@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/Government/Header";
 import Footer from "../../components/Government/Footer";
 
 const API_URL =
-  import.meta.env.VITE_GOVERNMENT_DASHBOARD_API_URL ||
-  "/api/dashboard/government";
+  import.meta.env.VITE_BACKEND_URL+"/api/gov/dashboard/government";
 
 const DEFAULT_HERO_IMAGE =
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=85";
@@ -317,8 +316,6 @@ export default function GovernmentDashboard() {
                 }
               : {}),
           },
-          credentials: "include",
-          signal: controller.signal,
         });
 
         if (!response.ok) {
