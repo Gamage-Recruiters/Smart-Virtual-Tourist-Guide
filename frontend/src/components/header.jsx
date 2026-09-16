@@ -8,9 +8,24 @@ const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Load user data if logged in
-  const userDataRaw = localStorage.getItem('userData');
-  const user = userDataRaw ? JSON.parse(userDataRaw) : null;
+  // Load user data if logged in (check all potential keys)
+  const getUserFromStorage = () => {
+    try {
+      const keys = ['userData', 'user', 'restaurantUser', 'renter', 'touristProfile'];
+      for (const key of keys) {
+        const item = localStorage.getItem(key);
+        if (item) {
+          const parsed = JSON.parse(item);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const user = getUserFromStorage();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -21,8 +36,8 @@ const Header = () => {
   };
 
   const handleProfileClick = () => {
-    if (!user) return;
-    const role = (user.role || '').toLowerCase();
+    const activeUser = user || getUserFromStorage();
+    const role = (activeUser?.role || '').toLowerCase();
     if (role.includes('driver')) {
       navigate('/driver-details');
     } else if (role.includes('hotel')) {

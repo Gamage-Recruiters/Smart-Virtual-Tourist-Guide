@@ -469,6 +469,7 @@ function App() {
             <Route path="/activity-booking" element={<ActivityBooking />} />
             <Route path="/activity-booking/:id" element={<ActivityBooking />} />
             <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/touristProfile" element={<TouristProfilePage />} />
 
             {/* Report Success */}
             <Route

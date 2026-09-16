@@ -12,15 +12,29 @@ const Header = () => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
 
-  // Load user data if logged in
-  const userDataRaw = localStorage.getItem('userData');
-  const user = userDataRaw ? JSON.parse(userDataRaw) : null;
+  // Load user data if logged in (check all potential keys)
+  const getUserFromStorage = () => {
+    try {
+      const keys = ['userData', 'user', 'restaurantUser', 'renter', 'touristProfile'];
+      for (const key of keys) {
+        const item = localStorage.getItem(key);
+        if (item) {
+          const parsed = JSON.parse(item);
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const user = getUserFromStorage();
 
   const navigate = useNavigate();
 
   const navItems = ['Home', 'Features', 'Destinations', 'Restaurants', 'How it Works', 'Contact'];
 
-  
   const languages = [
     { code: 'EN', name: 'English', flag: '🇬🇧' },
     { code: 'SI', name: 'සිංහල', flag: '🇱🇰' },
@@ -32,13 +46,12 @@ const Header = () => {
   const handleLanguageChange = (langCode, langName) => {
     setSelectedLanguage(langCode);
     setIsLanguageOpen(false);
-    // Add your language change logic here
     console.log(`Language changed to: ${langName}`);
   };
 
   const handleProfileClick = () => {
-    if (!user) return;
-    const role = (user.role || '').toLowerCase();
+    const activeUser = user || getUserFromStorage();
+    const role = (activeUser?.role || '').toLowerCase();
     if (role.includes('driver')) {
       navigate('/driver-details');
     } else if (role.includes('hotel')) {
