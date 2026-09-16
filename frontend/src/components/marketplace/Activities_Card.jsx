@@ -391,5 +391,3 @@ const Activities_Card = () => {
     </div>
   );
 };
-
-export default Activities_Card;

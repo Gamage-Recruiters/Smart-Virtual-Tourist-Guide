@@ -79,5 +79,3 @@ const AlertCard = ({ alert, onSelect, isSelected }) => {
     </button>
   );
 };
-
-export default AlertCard;

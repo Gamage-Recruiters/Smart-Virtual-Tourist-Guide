@@ -352,5 +352,3 @@ const Drivers_Card = () => {
     </div>
   );
 };
-
-export default Drivers_Card;

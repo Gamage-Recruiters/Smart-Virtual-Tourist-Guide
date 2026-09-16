@@ -395,5 +395,3 @@ const Vehicles_Card = () => {
     </div>
   );
 };
-
-export default Vehicles_Card;

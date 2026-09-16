@@ -412,5 +412,3 @@ const Restaurants_Card = () => {
     </div>
   );
 };
-
-export default Restaurants_Card;

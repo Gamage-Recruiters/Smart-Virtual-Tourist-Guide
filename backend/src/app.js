@@ -1,5 +1,5 @@
-import express, { json, urlencoded } from 'express';
-import { config } from 'dotenv';
+import express, { json, urlencoded } from "express";
+import { config } from "dotenv";
 import connectDB from "./configs/database.js";
 import cors from 'cors';
 import path from 'path';
@@ -18,6 +18,7 @@ import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import destinationRoutes from './routes/destinationRoutes.js';
+import governmentDashboardRoutes from "./routes/dashboard.js";
 import errorHandler from './middleware/errorHandler.js';
 import adminAuthRoutes from './routes/Admin/adminAuthRoutes.js';
 import adminRoutes from './routes/Admin/adminRoutes.js';
@@ -73,14 +74,16 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ==================== DATABASE CONNECTION ====================
 connectDB();
 
-// ==================== BASIC ROUTES ====================
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Welcome to Smart Virtual Tourist Guide API',
-    version: '1.0.0',
+// ============================================================================
+// BASIC ROUTES
+// ============================================================================
+
+app.get("/", (req, res) => {
+  res.json({
+    message: "Welcome to Smart Virtual Tourist Guide API",
+    version: "1.0.0",
     endpoints: {
       health: 'GET /api/health',
       auth: 'POST /api/auth/register, POST /api/auth/login',
@@ -93,23 +96,30 @@ app.get('/', (req, res) => {
       activities: 'GET /api/activities, POST /api/activities, PUT /api/activities/:id, DELETE /api/activities/:id, PATCH /api/activities/:id/publish',
       bookings: 'GET /api/bookings, PATCH /api/bookings/:id/status',
       availability: 'GET /api/availability, GET /api/availability/date/:date',
-      calendar: 'GET /api/calendar/:activityId/month, GET /api/calendar/:activityId/summary, GET /api/calendar/:activityId/date/:date, POST /api/calendar/:activityId/date/:date, PATCH /api/calendar/:activityId/date/:date/unavailable'
+      calendar: 'GET /api/calendar/:activityId/month, GET /api/calendar/:activityId/summary, GET /api/calendar/:activityId/date/:date, POST /api/calendar/:activityId/date/:date, PATCH /api/calendar/:activityId/date/:date/unavailable',
+      governmentDashboard: "GET /api/dashboard/government",
     }
   });
 });
 
-// Health check - single endpoint (removed duplicate)
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'Server is running',
+// ============================================================================
+// HEALTH CHECK
+// ============================================================================
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "Server is running",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: 'Connected'
+    database: "Connected",
   });
 });
 
-// ==================== API ROUTES ====================
-// Authentication Routes
+// ============================================================================
+// API ROUTES
+// ============================================================================
+
+//auth routes
 app.use('/api/auth', authRoutes);
 
 // Dashboard Routes
@@ -144,6 +154,46 @@ app.use('/api/users', userRoutes);
 app.use('/api/temp-bookings', tempHotBookRoutes); 
 app.use('/api/revenue-summary', hotelRevenueSummaryRoutes); 
 
+// -----------------------------------------------------------------------------
+// Government Dashboard
+// -----------------------------------------------------------------------------
+//
+// IMPORTANT:
+// This route is registered BEFORE the existing dashboard routes.
+//
+// dashboard.js contains:
+// router.get("/government", ...)
+//
+// Therefore the final endpoint is:
+//
+// GET /api/gov/dashboard/government
+//
+// -----------------------------------------------------------------------------
+
+app.use("/api/gov/dashboard", governmentDashboardRoutes);
+
+// -----------------------------------------------------------------------------
+// Existing Dashboard Routes
+// -----------------------------------------------------------------------------
+//
+// These are kept unchanged for your existing dashboard functionality.
+//
+// -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// Hotel Owner Routes
+// -----------------------------------------------------------------------------
+
+app.use("/api/rooms", roomRoutes);
+
+app.use("/api/packages", specialPackageRoutes);
+
+app.use("/api/room-availability", roomAvailabilityRoutes);
+
+app.use("/api/users", userRoutes);
+
+// -----------------------------------------------------------------------------
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
 app.use('/api/vehicles', vehicleRouter);
@@ -188,11 +238,14 @@ app.use('/api/upload', uploadRoutes);
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
-// Global error handler middleware (must be last)
+// ============================================================================
+// GLOBAL ERROR HANDLER
+// ============================================================================
+
 app.use(errorHandler);
 
 export default app;

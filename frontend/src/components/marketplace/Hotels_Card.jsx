@@ -409,5 +409,3 @@ const Hotels_Card = () => {
     </div>
   );
 };
-
-export default Hotels_Card;
