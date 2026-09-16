@@ -128,6 +128,10 @@ import { RentVehiclePage } from "./pages/Renter/rentVehiclePage.jsx";
 import TouristDashboard from "./pages/Tourist/touristDashboard/dashboard.jsx";
 import TripPlanningPage from "./pages/Tourist/tripPlanning/TripPlanningPage.jsx";
 import MarketplacePage from "./pages/Tourist/MarketplacePage.jsx";
+import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
+import BookDriver from "./pages/Driver/bookDriver.jsx";
+import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
+import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
 
 // ==================== PayHere Payment & Booking Imports ====================
 import BookingPage from './pages/booking&reservation/BookingPage.jsx';
