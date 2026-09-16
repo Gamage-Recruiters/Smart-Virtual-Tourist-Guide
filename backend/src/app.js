@@ -53,6 +53,9 @@ import availabilityRoutes from './routes/ActivityProvider/availability.routes.js
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 
+import paymentRoutes from './routes/paymentRoutes.js';
+import serviceBookingRoutes from './routes/bookingRoutes.js';
+
 config();
 configureCloudinary();
 startBookingSyncScheduler(); 
@@ -153,6 +156,10 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/activity-bookings', activityBookingRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/calendar/:activityId', activityCalenderRoutes);
+
+// Payment & Booking Engine Routes
+app.use('/api/payment', paymentRoutes);
+app.use('/api/service-bookings', serviceBookingRoutes);
 
 // ==================== ERROR HANDLING ====================
 // ==================== RESTAURANT API ROUTES ====================

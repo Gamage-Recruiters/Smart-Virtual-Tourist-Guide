@@ -127,11 +127,17 @@ import "./App.css";
 import { RentVehiclePage } from "./pages/Renter/rentVehiclePage.jsx";
 import TouristDashboard from "./pages/Tourist/touristDashboard/dashboard.jsx";
 import TripPlanningPage from "./pages/Tourist/tripPlanning/TripPlanningPage.jsx";
-import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
-import BookDriver from "./pages/Driver/bookDriver.jsx";
-import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
-import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
 import MarketplacePage from "./pages/Tourist/MarketplacePage.jsx";
+
+// ==================== PayHere Payment & Booking Imports ====================
+import BookingPage from './pages/booking&reservation/BookingPage.jsx';
+import ActivityBooking from './pages/more_details_services_booking/ActivityBooking.jsx';
+import HotelBooking from './pages/more_details_services_booking/HotelBooking.jsx';
+import DriverBooking from './pages/more_details_services_booking/DriverBooking.jsx';
+import VehicleBooking from './pages/more_details_services_booking/VehicleBooking.jsx';
+import GuideBooking from './pages/more_details_services_booking/GuideBooking.jsx';
+import RestaurantBooking from './pages/more_details_services_booking/RestaurantBooking.jsx';
+import MyBookings from './pages/booking&reservation/MyBookings.jsx';
 
 function App() {
   return (
@@ -444,20 +450,21 @@ function App() {
             <Route path="/restaurants" element={<TouristRestaurantsPage />} />
             <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
 
-            {/* ===== MARKETPLACE DIRECT BOOKING & DETAIL ROUTES ===== */}
-            <Route path="/hotel-booking" element={<HotelDetails />} />
-            <Route path="/hotel-booking/:id" element={<HotelDetails />} />
-            <Route path="/hotel-details/:id" element={<HotelDetails />} />
-            <Route path="/vehicle-booking" element={<VehicleDetailsPage />} />
-            <Route path="/vehicle-booking/:id" element={<VehicleDetailsPage />} />
-            <Route path="/restaurant-booking" element={<TouristRestaurantDetailsPage />} />
-            <Route path="/restaurant-booking/:id" element={<TouristRestaurantDetailsPage />} />
-            <Route path="/driver-booking" element={<BookDriver />} />
-            <Route path="/driver-booking/:id" element={<BookDriver />} />
-            <Route path="/guide-booking" element={<BookDriver />} />
-            <Route path="/guide-booking/:id" element={<BookDriver />} />
-            <Route path="/activity-booking" element={<TripPlanningPage />} />
-            <Route path="/activity-booking/:id" element={<TripPlanningPage />} />
+            {/* ===== PAYHERE PAYMENT & SERVICE BOOKING ROUTES ===== */}
+            <Route path="/booking-page" element={<BookingPage />} />
+            <Route path="/hotel-booking" element={<HotelBooking />} />
+            <Route path="/hotel-booking/:id" element={<HotelBooking />} />
+            <Route path="/vehicle-booking" element={<VehicleBooking />} />
+            <Route path="/vehicle-booking/:id" element={<VehicleBooking />} />
+            <Route path="/restaurant-booking" element={<RestaurantBooking />} />
+            <Route path="/restaurant-booking/:id" element={<RestaurantBooking />} />
+            <Route path="/driver-booking" element={<DriverBooking />} />
+            <Route path="/driver-booking/:id" element={<DriverBooking />} />
+            <Route path="/guide-booking" element={<GuideBooking />} />
+            <Route path="/guide-booking/:id" element={<GuideBooking />} />
+            <Route path="/activity-booking" element={<ActivityBooking />} />
+            <Route path="/activity-booking/:id" element={<ActivityBooking />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
 
             {/* Report Success */}
             <Route
