@@ -53,9 +53,16 @@ const BookingPage = () => {
         try {
             const serviceType = (location.state?.serviceType || service?.type || 'hotel').toLowerCase();
 
-            // Step A: Create pending booking in DB
+            // Step A: Create pending booking in DB (sanitize service object to keep payload lightweight)
+            const sanitizedService = {
+                ...service,
+                image: (service.image && service.image.startsWith('data:image/') && service.image.length > 500)
+                    ? 'https://images.unsplash.com/photo-1566073771259-6a8506099945'
+                    : service.image
+            };
+
             const bookingPayload = {
-                service,
+                service: sanitizedService,
                 bookingDetails,
                 pricing: {
                     currency: pricing.currency || 'LKR',
