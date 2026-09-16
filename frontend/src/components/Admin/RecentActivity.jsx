@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import apiClient from '../../services/Admin/adminApi';
 
 const activityColor = {
@@ -9,19 +10,6 @@ const activityColor = {
   REVIEW: "bg-orange-400",
   ADVERTISEMENT: "bg-blue-500",
   ROOM: "bg-teal-500"
-};
-
-const formatDistanceToNowFallback = (date) => {
-  try {
-    const diff = Math.floor((new Date() - new Date(date)) / 1000);
-    if (isNaN(diff) || diff < 0) return 'just now';
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  } catch {
-    return 'recently';
-  }
 };
 
 const RecentActivity = () => {
@@ -80,7 +68,7 @@ const RecentActivity = () => {
                   </div>
                 </div>
                 <span className="ml-4 mt-1 whitespace-nowrap text-[12px] font-medium text-slate-600 sm:text-[14px]">
-                  {formatDistanceToNowFallback(activity.createdAt)}
+                  {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                 </span>
               </div>
             ))}
