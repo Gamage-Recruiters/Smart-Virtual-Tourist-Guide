@@ -33,29 +33,22 @@ async function getBookings(req, res) {
 async function createBooking(req, res) {
   try {
     const userId = req.user.id;
-    const { type, title, location, dateTime, displayTime, notes, priceUSD, status } = req.body;
-
-    if (!type || !title) {
-      return res.status(400).json({ message: "type and title are required." });
-    }
+    const resolvedType = req.body.type || req.body.serviceType || req.body.category || "hotel";
+    const resolvedTitle = req.body.title || req.body.serviceName || req.body.name || req.body.hotelName || req.body.vehicleName || "Service Booking";
 
     const ALLOWED_TYPES = ["hotel", "driver", "activity", "vehicle", "guide", "food", "package"];
-    if (!ALLOWED_TYPES.includes(String(type).toLowerCase())) {
-      return res.status(400).json({
-        message: `type must be one of: ${ALLOWED_TYPES.join(", ")}`,
-      });
-    }
+    const finalType = ALLOWED_TYPES.includes(String(resolvedType).toLowerCase()) ? String(resolvedType).toLowerCase() : "hotel";
 
     const booking = await Booking.create({
       userId,
-      type: String(type).toLowerCase(),
-      title: String(title).trim(),
-      location: String(location || "").trim(),
-      dateTime: String(dateTime || ""),
-      displayTime: String(displayTime || ""),
-      notes: String(notes || "").trim(),
-      priceUSD: Number(priceUSD) || 0,
-      status: status || "Pending",
+      type: finalType,
+      title: String(resolvedTitle).trim(),
+      location: String(req.body.location || "").trim(),
+      dateTime: String(req.body.dateTime || ""),
+      displayTime: String(req.body.displayTime || ""),
+      notes: String(req.body.notes || "").trim(),
+      priceUSD: Number(req.body.priceUSD || req.body.price) || 0,
+      status: req.body.status || "Pending",
     });
 
     return res.status(201).json({ success: true, data: booking });
