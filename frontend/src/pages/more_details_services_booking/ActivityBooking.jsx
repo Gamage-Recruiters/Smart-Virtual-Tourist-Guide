@@ -34,12 +34,10 @@ const ActivityBooking = () => {
 
     return (
         <div className="bg-gray-50 min-h-screen flex flex-col">
-            <Header />
-            
-            <main className="flex-grow max-w-[1200px] mx-auto w-full px-6 py-8 mt-20">
+            <main className="flex-grow max-w-[1200px] mx-auto w-full px-6 py-8">
                 {/* Back Button */}
-                <Link to="/activities" className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold text-sm mb-6 transition-colors">
-                    <FaArrowLeft className="mr-2" /> Back to Activities
+                <Link to="/dashboard-Tourist/marketplace" className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold text-sm mb-6 transition-colors">
+                    <FaArrowLeft className="mr-2" /> Back to Marketplace
                 </Link>
 
                 <div className="mb-8">
@@ -74,8 +72,6 @@ const ActivityBooking = () => {
                     </div>
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 };
