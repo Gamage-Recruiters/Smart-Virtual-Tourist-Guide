@@ -39,6 +39,10 @@ async function createBooking(req, res) {
     const ALLOWED_TYPES = ["hotel", "driver", "activity", "vehicle", "guide", "food", "package"];
     const finalType = ALLOWED_TYPES.includes(String(resolvedType).toLowerCase()) ? String(resolvedType).toLowerCase() : "hotel";
 
+    const rawItems = req.body.pricing?.items || [];
+    const itemsTotal = Array.isArray(rawItems) ? rawItems.reduce((sum, item) => sum + Number(item.amount || 0), 0) : 0;
+    const totalAmount = Number(req.body.pricing?.total || itemsTotal || req.body.priceUSD || req.body.price || req.body.totalAmount || 0);
+
     const booking = await Booking.create({
       userId,
       type: finalType,
@@ -47,7 +51,12 @@ async function createBooking(req, res) {
       dateTime: String(req.body.dateTime || ""),
       displayTime: String(req.body.displayTime || ""),
       notes: String(req.body.notes || "").trim(),
-      priceUSD: Number(req.body.priceUSD || req.body.price) || 0,
+      priceUSD: totalAmount,
+      pricing: {
+        currency: req.body.pricing?.currency || "LKR",
+        total: totalAmount,
+        items: rawItems,
+      },
       status: req.body.status || "Pending",
     });
 

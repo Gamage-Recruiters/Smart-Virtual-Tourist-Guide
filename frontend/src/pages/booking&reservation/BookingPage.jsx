@@ -84,10 +84,11 @@ const BookingPage = () => {
             
             setBookingResult(bookingResultData);
 
-            // Step B: Get hash from backend using the real booking ID
+            // Step B: Get hash from backend using the real booking ID and total amount
             const hashData = await generatePayHereHash({
                 bookingId: bookingId,
-                serviceType: serviceType
+                serviceType: serviceType,
+                amount: totalAmount
             });
 
             const currentUrl = window.location.origin;

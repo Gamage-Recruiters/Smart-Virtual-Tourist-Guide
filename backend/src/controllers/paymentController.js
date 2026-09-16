@@ -37,7 +37,8 @@ export const generateHash = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    const amountNum = Number(booking.pricing?.total ?? booking.priceUSD ?? 0);
+    const rawAmount = booking.pricing?.total || booking.priceUSD || req.body.amount || 0;
+    const amountNum = Number(rawAmount);
     const amount = amountNum.toFixed(2);
     const currency = String(booking.pricing?.currency || 'LKR').trim();
     const orderId = booking._id.toString().trim();
