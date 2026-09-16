@@ -6,6 +6,9 @@ const router = express.Router();
 // Frontend calls this to get hash before opening PayHere popup
 router.post('/generate-hash', paymentController.generateHash);
 
+// Client-side confirmation fallback when PayHere popup completes
+router.post('/confirm', paymentController.confirmPayment);
+
 // PayHere server-to-server notification
 router.post('/notify', paymentController.handleNotification);
 

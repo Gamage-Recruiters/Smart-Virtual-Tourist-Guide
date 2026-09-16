@@ -44,6 +44,47 @@ export const generateHash = async (req, res, next) => {
 };
 
 /**
+ * POST /api/payments/confirm
+ * Client-side fallback to confirm booking payment when window.payhere.onCompleted fires.
+ */
+export const confirmPayment = async (req, res, next) => {
+  try {
+    const { orderId, paymentId } = req.body;
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: 'orderId is required' });
+    }
+
+    const allTypes = ['activity', 'driver', 'guide', 'hotel', 'restaurant', 'vehicle'];
+    let bookingFound = false;
+
+    for (const type of allTypes) {
+      const Model = getBookingModel(type);
+      let booking = await Model.findOne({ 'payment.payhereOrderId': orderId });
+      if (!booking && String(orderId).match(/^[0-9a-fA-F]{24}$/)) {
+        booking = await Model.findById(orderId);
+      }
+
+      if (booking) {
+        bookingFound = true;
+        booking.status = 'confirmed';
+        booking.payment.method = 'payhere';
+        booking.payment.payhereOrderId = orderId;
+        if (paymentId) booking.payment.payherePaymentId = paymentId;
+        booking.payment.paidAt = new Date();
+        await booking.save();
+        return res.json({ success: true, booking });
+      }
+    }
+
+    if (!bookingFound) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/payments/notify
  * PayHere sends server-to-server POST when payment completes.
  */
@@ -81,7 +122,10 @@ export const handleNotification = async (req, res) => {
 
       for (const type of allTypes) {
         const Model = getBookingModel(type);
-        const booking = await Model.findOne({ 'payment.payhereOrderId': order_id });
+        let booking = await Model.findOne({ 'payment.payhereOrderId': order_id });
+        if (!booking && String(order_id).match(/^[0-9a-fA-F]{24}$/)) {
+          booking = await Model.findById(order_id);
+        }
 
         if (booking) {
           bookingFound = true;
