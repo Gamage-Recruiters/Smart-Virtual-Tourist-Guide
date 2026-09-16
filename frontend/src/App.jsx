@@ -330,7 +330,7 @@ function App() {
           <Route path="/driver-earnings" element={<Driver_Earnings />} />
           <Route path="/driver-bids" element={<Driver_Bids />} />
           <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
-          `n <Route path="/other-drivers" element={<Submit_Bids />} />
+          <Route path="/other-drivers" element={<Submit_Bids />} />
           <Route path="/ride-details" element={<Ride_Details />} />
           <Route path="/driver-details" element={<Driver_Details />} />
           <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
