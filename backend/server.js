@@ -4,16 +4,25 @@ import { Server } from "socket.io";
 
 import app from "./src/app.js";
 import connectDB from "./src/configs/database.js";
-// ===== IMPORTS FROM MAIN BRANCH =====
+
+// ===== NOTIFICATION ENGINE & WEATHER CRON IMPORTS (HEAD) =====
 import cron from "node-cron";
 import logger from "./src/utils/logger.js";
 import { syncWeatherAlerts } from "./src/utils/alertSyncService.js";
-
-// ===== NOTIFICATION ENGINE IMPORTS (OURS) =====
 import notificationHandler from "./socket/notificationHandler.js";
 import "./src/configs/firebaseConfig.js";
 import seedRegions from "./src/utils/dbSeeder.js";
 import socketAuth from "./src/middleware/socketAuthMiddleware.js";
+
+// ===== ACTIVITY PROVIDER IMPORTS (DEV) =====
+import { configureCloudinary } from "./src/configs/ActivityProvider/cloudinary.js";
+import activityRoutes from "./src/routes/ActivityProvider/activity.routes.js";
+import activityCalenderRoutes from "./src/routes/ActivityProvider/activityCalender.routes.js";
+import activityBookingRoutes from "./src/routes/ActivityProvider/activityBooking.routes.js";
+import availabilityRoutes from "./src/routes/ActivityProvider/availability.routes.js";
+
+// Configure cloudinary (From Dev)
+configureCloudinary();
 
 // ==========================================
 // NOTIFICATION ENGINE: SOCKET.IO SETUP
@@ -37,16 +46,14 @@ io.use(socketAuth);
 /* Initialize socket routing and geo-fencing */
 notificationHandler(io);
 
-// Mount NavigationAndMapping routes
-//app.use('/api/recent-places', serviceRouter);
-//app.use('/api/favorite-places', favoriteRouter);
-//app.use('/api/security-alerts', securityAlertRouter);
-//app.use('/api/incidents', incidentRouter);
-//app.use('/api/hotels', hotelRouter);
-
-// Mount Safety routes
-//  app.use('/api/safety', safetyRouter);
-
+// ==========================================
+// MOUNT ROUTES
+// ==========================================
+// Activity Provider routes (From Dev)
+app.use('/api/activities', activityRoutes);
+app.use('/api/bookings', activityBookingRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
 // Port
 const PORT = process.env.PORT || 5000;

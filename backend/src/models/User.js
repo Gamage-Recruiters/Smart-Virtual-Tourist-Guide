@@ -1,10 +1,7 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  // =========================================================
-  // MAIN BRANCH FIELDS (100% UNTOUCHED)
-  // =========================================================
   fullName: {
     type: String,
     required: true,
@@ -37,6 +34,7 @@ const userSchema = new mongoose.Schema({
     enum: ['tourist_user', 'guide_user', 'hotelowner_user', 'restaurant_user', 'government_user', 'renter_user', 'driver_user', 'activityprovider_user', 'admin'],
     required: true
   },
+  // Added for Notification Engine integration
   status: {
     type: String,
     enum: ['Active', 'Suspended', 'Pending'],
@@ -78,7 +76,7 @@ const userSchema = new mongoose.Schema({
     contactNumber: { type: String },
     country: { type: String }
   },
-  // Hotel Owner specific fields
+  // Hotel Owner specific fields — array to support multiple hotels per owner
   hotels: {
     type: [
       {
@@ -142,7 +140,7 @@ const userSchema = new mongoose.Schema({
   }],
 
   // =========================================================
-  // NOTIFICATION ENGINE FIELDS (OUR ADDITIONS)
+  // NOTIFICATION ENGINE FIELDS
   // =========================================================
   vehicleColor: { type: String, trim: true },
   availability: { type: Boolean, default: false },
@@ -164,9 +162,6 @@ const userSchema = new mongoose.Schema({
 // =========================================================
 userSchema.index({ currentLocation: "2dsphere" });
 
-// =========================================================
-// MAIN BRANCH METHODS & HOOKS (100% UNTOUCHED)
-// =========================================================
 // Method to check password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   if (!this.password.startsWith('$2')) {
