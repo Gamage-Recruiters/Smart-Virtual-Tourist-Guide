@@ -34,6 +34,13 @@ export const useSocket = () => {
   return context;
 };
 
+// 📱 Helper function to check if the device is mobile
+const checkIsMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
+
 export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
   const dispatch = useDispatch();
@@ -45,6 +52,23 @@ export const SocketProvider = ({ children }) => {
   // Connection States
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
+  
+  // State to check Mobile or Laptop
+  const [isMobileDevice, setIsMobileDevice] = useState(checkIsMobile());
+
+  // 🚀 UPDATE: Create a separate function to request FCM Token (Called later by user action)
+  const requestNotificationPermission = async () => {
+    try {
+      console.log("🔔 Requesting Notification Permission from User...");
+      const fcmToken = await requestForToken();
+      if (fcmToken && user?._id) {
+        await updateFCMTokenApi(user._id, fcmToken);
+        console.log("✅ FCM Token saved in DB successfully!");
+      }
+    } catch (error) {
+      console.error("❌ Notification permission denied or failed:", error);
+    }
+  };
 
   useEffect(() => {
     let watchId = null;
@@ -52,16 +76,13 @@ export const SocketProvider = ({ children }) => {
     if (user?._id && token) {
       dispatch(clearNotifications());
 
-      requestForToken().then((fcmToken) => {
-        if (fcmToken) {
-          updateFCMTokenApi(user._id, fcmToken)
-            .then(() => console.log("✅ FCM Token saved in DB successfully!"))
-            .catch((err) => console.error("❌ Failed to save FCM Token:", err));
-        }
-      });
+      const ALLOWED_LOCATION_ROLES = ["tourist_user", "driver_user"];
+      const isLocationAllowedRole = ALLOWED_LOCATION_ROLES.includes(user.role);
 
-      const SOCKET_URL =
-        import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+      // 🚀 UPDATE: Removed the auto requestForToken() from here to prevent instant blocking
+
+      // Socket Connection
+      const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
       socketRef.current = io(SOCKET_URL, {
         auth: { token },
@@ -113,54 +134,63 @@ export const SocketProvider = ({ children }) => {
 
           const newPages = [...oldData.pages];
           if (newPages.length > 0) {
-            newPages[0] = {
-              ...newPages[0],
-              data: [notification, ...newPages[0].data],
-            };
+            const exists = newPages[0].data.some(
+              (n) => n._id === notification._id,
+            );
+            if (!exists) {
+              newPages[0] = {
+                ...newPages[0],
+                data: [notification, ...newPages[0].data],
+              };
+            }
           }
           return {
             ...oldData,
             pages: newPages,
           };
         });
-
-        dispatch(addRealtimeNotification(notification));
-        queryClient.invalidateQueries({ queryKey: ["notifications", token] });
       };
 
       socket.on("connect", handleConnect);
-      8;
       socket.on("disconnect", handleDisconnect);
       socket.on("connect_error", handleConnectError);
       socket.on("reconnect_attempt", handleReconnectAttempt);
       socket.on("new_notification", handleNewNotification);
 
-      if ("geolocation" in navigator) {
-        let lastLat = null;
-        let lastLng = null;
+      // 📍 Location Tracking Logic
+      if ("geolocation" in navigator && isLocationAllowedRole) {
+        
+        if (isMobileDevice) {
+          // Automatic GPS Tracking for Mobile
+          let lastLat = null;
+          let lastLng = null;
 
-        watchId = navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
+          watchId = navigator.geolocation.watchPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              console.log("📍 Live Location (Auto):", latitude, longitude);
 
-            if (lastLat && lastLng) {
-              const dist = calculateDistance(
-                lastLat,
-                lastLng,
-                latitude,
-                longitude,
-              );
-              if (dist < 50) return;
-            }
+              if (lastLat && lastLng) {
+                const dist = calculateDistance(
+                  lastLat,
+                  lastLng,
+                  latitude,
+                  longitude,
+                );
+                if (dist < 50) return;
+              }
 
-            lastLat = latitude;
-            lastLng = longitude;
+              lastLat = latitude;
+              lastLng = longitude;
 
-            socket.emit("update_location", { lat: latitude, lng: longitude });
-          },
-          (err) => console.warn("⚠️ GPS Error:", err.message),
-          { enableHighAccuracy: true, distanceFilter: 50 },
-        );
+              socket.emit("update_location", { lat: latitude, lng: longitude });
+            },
+            (err) => console.warn("⚠️ GPS Error:", err.message),
+            { enableHighAccuracy: true, distanceFilter: 50 },
+          );
+        } else {
+           console.log("💻 Laptop/Desktop Detected: Waiting for Manual Location Input");
+        }
       }
 
       return () => {
@@ -177,10 +207,26 @@ export const SocketProvider = ({ children }) => {
     }
 
     return undefined;
-  }, [user?._id, token, dispatch, queryClient]);
+  }, [user, token, dispatch, queryClient, isMobileDevice]); 
+
+  const updateManualLocation = (lat, lng) => {
+    if (socketRef.current && connectionStatus === "connected") {
+      console.log("📍 Manual Location Submitted:", lat, lng);
+      socketRef.current.emit("update_location", { lat, lng });
+    }
+  };
+
   return (
     <SocketContext.Provider
-      value={{ socket: socketRef.current, connectionStatus, reconnectAttempt }}
+      value={{ 
+        socket: socketRef.current, 
+        connectionStatus, 
+        reconnectAttempt,
+        isMobileDevice,           
+        updateManualLocation,
+        // 🚀 UPDATE: Expose the function so LocationSelector can use it
+        requestNotificationPermission
+      }}
     >
       {children}
     </SocketContext.Provider>

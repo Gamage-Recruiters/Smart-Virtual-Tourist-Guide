@@ -78,6 +78,7 @@ import DummyPageGuide from "./pages/Guide/dummyPage";
 import DummyPageGovernment from "./pages/Government/dummyPage";
 import DummyPageAdmin from "./pages/Admin/dummyPage";
 import DummyPageDriver from "./pages/Driver/dummyPage";
+import RenterDashboard from "./pages/Renter/vehicleAdminDashboard/dashboard";
 
 // ===== VEHICLE ADMIN (from main) =====
 //import VehicleAdmin from "./pages/vehicleAdminDashboard/vehicleAdminPage";
@@ -257,17 +258,14 @@ function App() {
         <Route
           path="/dashboard-Tourist"
           // element={<DummyPageTourist />}
-          element={<TouristDashboard />}
+          element={<DummyPageDriver />}
         />
 
         <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
 
         <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
 
-        {/* <Route
-          path="/dashboard-Renter"
-          element={<VehicleAdmin />}
-        /> */}
+        <Route path="/vehicle-admin" element={<RenterDashboard />} />
 
         <Route path="/dashboard-Government" element={<DummyPageGovernment />} />
 
@@ -623,6 +621,7 @@ function App() {
       </Routes>
 
       <NotificationModal />
+      <ToastContainer />
     </>
   );
 }

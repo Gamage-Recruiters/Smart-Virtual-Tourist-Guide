@@ -55,7 +55,12 @@ export default (io) => {
       if (user.currentLocation?.coordinates) {
         // MongoDB uses [longitude, latitude] format
         const [lng, lat] = user.currentLocation.coordinates;
+        console.log("📍 Live Location Updated (Bakcend) :", lat, lng);
         const regionData = await getRegionFromCoords(lat, lng);
+        console.log(
+          "📍 Live Location Updated  (Bakcend - Region) :",
+          regionData,
+        );
 
         if (regionData && typeof regionData === "object") {
           // Add user to the relevant Socket rooms
@@ -92,6 +97,84 @@ export default (io) => {
     } catch (err) {
       handleSocketError(err, "initial_sync");
     }
+
+    // --- MANUAL REGION UPDATE (For Desktop Users) ---
+    socket.on("update_manual_region", async (data) => {
+      try {
+        const { division, district } = data;
+
+        // Check if both division and district are provided
+        if (!division || !district) {
+          throw new AppError(
+            "Division and District are required for manual update",
+            400,
+          );
+        }
+
+        // Proceed only if the user selected a new region different from their current one
+        if (division !== socket.currentDivision) {
+          // 1. Remove the user from their previous region's rooms and notifications
+          if (socket.currentDivision && socket.currentDistrict) {
+            manageRegionalRooms(
+              socket,
+              {
+                division: socket.currentDivision,
+                district: socket.currentDistrict,
+              },
+              role,
+              "leave",
+            );
+
+            // Unsubscribe from old Firebase (FCM) topics
+            if (socket.fcmToken) {
+              await manageRegionalTopics(
+                socket.fcmToken,
+                {
+                  division: socket.currentDivision,
+                  district: socket.currentDistrict,
+                },
+                role,
+                "unsubscribe",
+              );
+            }
+          }
+
+          // 2. Add the user to the newly selected region's rooms and notifications
+          const newRegionData = { division, district };
+          manageRegionalRooms(socket, newRegionData, role, "join");
+
+          // Subscribe to new Firebase (FCM) topics
+          if (socket.fcmToken) {
+            await manageRegionalTopics(
+              socket.fcmToken,
+              newRegionData,
+              role,
+              "subscribe",
+            );
+          }
+
+          logger.info(
+            `🗺️ Manual Region Set: User=${userId}, Region=${division}`,
+          );
+
+          // 3. Update the socket session with the new region details
+          socket.currentDivision = division;
+          socket.currentDistrict = district;
+
+          // 4. Print the currently active rooms in the terminal for debugging
+          setTimeout(() => {
+            const activeRooms = Array.from(socket.rooms);
+            console.log("-----------------------------------------");
+            console.log(` User ${userId} Manually Joined these Rooms:`);
+            console.table(activeRooms);
+            console.log("-----------------------------------------");
+          }, 500);
+        }
+      } catch (error) {
+        // Send the error back to the frontend if something fails
+        handleSocketError(error, "update_manual_region");
+      }
+    });
 
     // --- LOCATION UPDATE ---
     // Listens to live GPS updates from the client app

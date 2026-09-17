@@ -399,6 +399,7 @@ const registerDriver = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    console.error('Driver registration error:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 // import Header from '../../components/Header';
 // import Footer from '../../components/Footer';
-import Sidebar from '../../components/ActivityProvider/ActivityProviderSidebar';
-import { activityAPI } from '../../services/ActivityProvider/activityAPI';
+import Sidebar from "../../components/ActivityProvider/ActivityProviderSidebar";
+import { activityAPI } from "../../services/ActivityProvider/activityAPI";
 // import apiClient from '../../services/auth/api';
 import {
   FiUsers,
@@ -16,18 +16,26 @@ import {
   FiCheckCircle,
   FiEdit3,
   FiClock,
-  FiUser
-} from 'react-icons/fi';
-import heroBanner from '../../assets/LandingPage/fisherman.png';
+  FiUser,
+  FiBell, // Added FiBell icon for the notification button
+} from "react-icons/fi";
+import heroBanner from "../../assets/LandingPage/fisherman.png";
+import { useDispatch , useSelector } from "react-redux";
+import { toggleNotificationModal } from "../../store/slices/notificationSlice";
+import LocationSelector from "../../components/notifications/LocationSelector";
 
 const StatCard = ({ title, value, subtitle, icon, colorBg, colorText }) => (
-  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center justify-between transition hover:shadow-md">
+  <div className="flex items-center justify-between p-5 transition bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
     <div>
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{title}</div>
+      <div className="mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
+        {title}
+      </div>
       <div className="text-2xl font-bold text-gray-900">{value}</div>
-      {subtitle && <div className="text-xs text-gray-400 mt-1">{subtitle}</div>}
+      {subtitle && <div className="mt-1 text-xs text-gray-400">{subtitle}</div>}
     </div>
-    <div className={`p-3.5 rounded-2xl ${colorBg} ${colorText} text-xl shadow-inner`}>
+    <div
+      className={`p-3.5 rounded-2xl ${colorBg} ${colorText} text-xl shadow-inner`}
+    >
       {icon}
     </div>
   </div>
@@ -44,11 +52,15 @@ const ActivityProviderDashboard = () => {
     draft: 0,
   });
 
+  // State to keep track of unread notifications count
+  const unreadCount = useSelector((state) => state.notifications.unreadCount);
+  const dispatch = useDispatch();
+
   useEffect(() => {
     // 1. Get user data from localStorage or fetch profile from API
     let storedUser = null;
     try {
-      const raw = localStorage.getItem('userData');
+      const raw = localStorage.getItem("userData");
       if (raw) storedUser = JSON.parse(raw);
     } catch {
       storedUser = null;
@@ -58,19 +70,6 @@ const ActivityProviderDashboard = () => {
       setUser(storedUser);
     }
 
-    // Attempt fetching fresh profile data from backend
-    // apiClient
-    //   .get('/auth/me')
-    //   .then((res) => {
-    //     if (res?.user) {
-    //       setUser(res.user);
-    //       localStorage.setItem('userData', JSON.stringify(res.user));
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     console.log('Failed to fetch user profile, using stored data:', err);
-    //   });
-
     // 2. Fetch live activity statistics
     activityAPI
       .getAll({ page: 1, limit: 10 })
@@ -79,13 +78,17 @@ const ActivityProviderDashboard = () => {
         setActivities(fetchedActivities);
 
         const total = res.data?.pagination?.total || fetchedActivities.length;
-        const active = fetchedActivities.filter((a) => a.status === 'active').length;
-        const draft = fetchedActivities.filter((a) => a.status === 'draft').length;
+        const active = fetchedActivities.filter(
+          (a) => a.status === "active",
+        ).length;
+        const draft = fetchedActivities.filter(
+          (a) => a.status === "draft",
+        ).length;
 
         setStats({ total, active, draft });
       })
       .catch((err) => {
-        console.error('Failed to load activities:', err);
+        console.error("Failed to load activities:", err);
       })
       .finally(() => {
         setLoading(false);
@@ -93,24 +96,26 @@ const ActivityProviderDashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col justify-between">
+    <div className="flex flex-col justify-between min-h-screen bg-slate-100">
+      <LocationSelector />
+
       {/* <Header /> */}
 
-      <div className="flex-1 flex">
+      <div className="flex flex-1">
         <Sidebar />
 
-        <main className="flex-1 flex flex-col min-w-0">
+        <main className="flex flex-col flex-1 min-w-0">
           {/* Header Hero Banner */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-sky-700 to-indigo-800 text-white p-8">
+          <div className="relative p-8 overflow-hidden text-white bg-gradient-to-r from-blue-700 via-sky-700 to-indigo-800">
             <img
               src={heroBanner}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none"
+              className="absolute inset-0 object-cover w-full h-full pointer-events-none opacity-20"
             />
-            <div className="relative z-10 max-w-5xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative z-10 flex flex-col justify-between max-w-5xl gap-4 md:flex-row md:items-center">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-white/20 backdrop-blur-md text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider text-blue-100 border border-white/20">
+                  <span className="px-3 py-1 text-xs font-semibold tracking-wider text-blue-100 uppercase border rounded-full bg-white/20 backdrop-blur-md border-white/20">
                     Authenticated Provider
                   </span>
                   <span className="flex items-center gap-1 text-xs bg-green-500/20 text-green-200 px-2.5 py-1 rounded-full border border-green-400/30">
@@ -118,23 +123,45 @@ const ActivityProviderDashboard = () => {
                   </span>
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Welcome back, {user?.fullName || user?.username || 'Activity Provider'}! 👋
+                  Welcome back,{" "}
+                  {user?.fullName || user?.username || "Activity Provider"}! 👋
                 </h1>
-                <p className="text-blue-100 text-sm mt-1 max-w-xl">
-                  Manage your tour offerings, availability calendars, and booking requests in one place.
+                <p className="max-w-xl mt-1 text-sm text-blue-100">
+                  Manage your tour offerings, availability calendars, and
+                  booking requests in one place.
                 </p>
               </div>
 
               {user && (
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg text-white">
-                    {user.fullName ? user.fullName.charAt(0).toUpperCase() : <FiUser />}
+                <div className="flex items-center gap-4 p-4 border bg-white/10 backdrop-blur-md rounded-2xl border-white/20">
+                  <button
+                    className="relative p-2.5 bg-white/10 hover:bg-white/25 rounded-full text-white transition-all duration-200"
+                    onClick={() => dispatch(toggleNotificationModal())}
+                  >
+                    <FiBell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 flex items-center justify-center min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold px-1 rounded-full border-2 border-[#1E40AF] shadow-sm">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-center w-12 h-12 text-lg font-bold text-white rounded-full bg-white/20">
+                    {user.fullName ? (
+                      user.fullName.charAt(0).toUpperCase()
+                    ) : (
+                      <FiUser />
+                    )}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold truncate max-w-[180px]">{user.fullName || user.username}</div>
-                    <div className="text-xs text-blue-200 truncate max-w-[180px]">{user.email}</div>
+                    <div className="text-sm font-semibold truncate max-w-[180px]">
+                      {user.fullName || user.username}
+                    </div>
+                    <div className="text-xs text-blue-200 truncate max-w-[180px]">
+                      {user.email}
+                    </div>
                     <div className="text-[10px] text-sky-300 capitalize mt-0.5 font-mono">
-                      ID: {user._id?.slice(-8) || 'Provider'}
+                      ID: {user._id?.slice(-8) || "Provider"}
                     </div>
                   </div>
                 </div>
@@ -144,10 +171,10 @@ const ActivityProviderDashboard = () => {
 
           <div className="p-6 space-y-6 max-w-7xl">
             {/* Key Metrics Section */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard
                 title="Total Activities"
-                value={loading ? '...' : stats.total}
+                value={loading ? "..." : stats.total}
                 subtitle="All created tours"
                 icon={<FiMap />}
                 colorBg="bg-blue-50"
@@ -155,7 +182,7 @@ const ActivityProviderDashboard = () => {
               />
               <StatCard
                 title="Active Listings"
-                value={loading ? '...' : stats.active}
+                value={loading ? "..." : stats.active}
                 subtitle="Published & bookable"
                 icon={<FiCheckCircle />}
                 colorBg="bg-emerald-50"
@@ -163,7 +190,7 @@ const ActivityProviderDashboard = () => {
               />
               <StatCard
                 title="Draft Activities"
-                value={loading ? '...' : stats.draft}
+                value={loading ? "..." : stats.draft}
                 subtitle="In-progress listings"
                 icon={<FiClock />}
                 colorBg="bg-amber-50"
@@ -180,70 +207,80 @@ const ActivityProviderDashboard = () => {
             </section>
 
             {/* Quick Actions Grid */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Management Actions</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <section className="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                Quick Management Actions
+              </h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
                 <button
-                  onClick={() => navigate('/activityprovider/activities/new')}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-blue-100 bg-blue-50/50 hover:bg-blue-600 hover:text-white group transition text-center"
+                  onClick={() => navigate("/activityprovider/activities/new")}
+                  className="flex flex-col items-center justify-center p-4 text-center transition border border-blue-100 rounded-xl bg-blue-50/50 hover:bg-blue-600 hover:text-white group"
                 >
-                  <div className="p-3 rounded-full bg-blue-100 text-blue-600 group-hover:bg-white/20 group-hover:text-white mb-2 transition">
+                  <div className="p-3 mb-2 text-blue-600 transition bg-blue-100 rounded-full group-hover:bg-white/20 group-hover:text-white">
                     <FiPlus className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-semibold">Add Activity</span>
                 </button>
-
                 <button
-                  onClick={() => navigate('/activityprovider/activities')}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 group transition text-center"
+                  onClick={() => navigate("/activityprovider/activities")}
+                  className="flex flex-col items-center justify-center p-4 text-center transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50 group"
                 >
-                  <div className="p-3 rounded-full bg-gray-100 text-gray-700 mb-2">
+                  <div className="p-3 mb-2 text-gray-700 bg-gray-100 rounded-full">
                     <FiList className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-800">My Activities</span>
+                  <span className="text-xs font-semibold text-gray-800">
+                    My Activities
+                  </span>
                 </button>
-
                 <button
-                  onClick={() => navigate('/activityprovider/calendar')}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 group transition text-center"
+                  onClick={() => navigate("/activityprovider/calendar")}
+                  className="flex flex-col items-center justify-center p-4 text-center transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50 group"
                 >
-                  <div className="p-3 rounded-full bg-gray-100 text-gray-700 mb-2">
+                  <div className="p-3 mb-2 text-gray-700 bg-gray-100 rounded-full">
                     <FiCalendar className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-800">Manage Calendar</span>
+                  <span className="text-xs font-semibold text-gray-800">
+                    Manage Calendar
+                  </span>
                 </button>
-
                 <button
-                  onClick={() => navigate('/activityprovider/acceptbookings')}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 group transition text-center"
+                  onClick={() => navigate("/activityprovider/acceptbookings")}
+                  className="flex flex-col items-center justify-center p-4 text-center transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50 group"
                 >
-                  <div className="p-3 rounded-full bg-gray-100 text-gray-700 mb-2">
+                  <div className="p-3 mb-2 text-gray-700 bg-gray-100 rounded-full">
                     <FiBookmark className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-800">Bookings</span>
+                  <span className="text-xs font-semibold text-gray-800">
+                    Bookings
+                  </span>
                 </button>
-
                 <button
-                  onClick={() => navigate('/activityprovider/viewratings')}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 group transition text-center"
+                  onClick={() => navigate("/activityprovider/viewratings")}
+                  className="flex flex-col items-center justify-center p-4 text-center transition bg-white border border-gray-200 rounded-xl hover:bg-gray-50 group"
                 >
-                  <div className="p-3 rounded-full bg-gray-100 text-gray-700 mb-2">
+                  <div className="p-3 mb-2 text-gray-700 bg-gray-100 rounded-full">
                     <FiStar className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-800">Ratings & Reviews</span>
+                  <span className="text-xs font-semibold text-gray-800">
+                    Ratings & Reviews
+                  </span>
                 </button>
               </div>
             </section>
 
             {/* Recent Activities Section */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <section className="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Recent Activities Overview</h2>
-                  <p className="text-xs text-gray-500">Activities registered under your provider account</p>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Recent Activities Overview
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Activities registered under your provider account
+                  </p>
                 </div>
                 <button
-                  onClick={() => navigate('/activityprovider/activities')}
+                  onClick={() => navigate("/activityprovider/activities")}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline"
                 >
                   View All ({stats.total}) →
@@ -251,14 +288,20 @@ const ActivityProviderDashboard = () => {
               </div>
 
               {loading ? (
-                <div className="py-8 text-center text-sm text-gray-400">Loading activity listings...</div>
+                <div className="py-8 text-sm text-center text-gray-400">
+                  Loading activity listings...
+                </div>
               ) : activities.length === 0 ? (
-                <div className="py-10 text-center border-2 border-dashed border-gray-100 rounded-xl">
-                  <FiMap className="w-10 h-10 mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm font-medium text-gray-700">No activities added yet</p>
-                  <p className="text-xs text-gray-400 mt-1 mb-4">Start publishing your tour packages for tourists</p>
+                <div className="py-10 text-center border-2 border-gray-100 border-dashed rounded-xl">
+                  <FiMap className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm font-medium text-gray-700">
+                    No activities added yet
+                  </p>
+                  <p className="mt-1 mb-4 text-xs text-gray-400">
+                    Start publishing your tour packages for tourists
+                  </p>
                   <button
-                    onClick={() => navigate('/activityprovider/activities/new')}
+                    onClick={() => navigate("/activityprovider/activities/new")}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-full inline-flex items-center gap-1.5 transition"
                   >
                     <FiPlus className="w-4 h-4" /> Create First Activity
@@ -267,37 +310,43 @@ const ActivityProviderDashboard = () => {
               ) : (
                 <div className="divide-y divide-gray-100">
                   {activities.slice(0, 5).map((activity) => (
-                    <div key={activity._id} className="py-3.5 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shrink-0">
+                    <div
+                      key={activity._id}
+                      className="py-3.5 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center min-w-0 gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 text-sm font-bold text-blue-600 rounded-xl bg-blue-50 shrink-0">
                           <FiMap className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 truncate">{activity.title}</h4>
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">
+                            {activity.title}
+                          </h4>
                           <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                             <span>{activity.category}</span>
                             <span>•</span>
                             <span>{activity.location}</span>
                             <span>•</span>
-                            <span className="font-semibold text-blue-600">LKR {activity.pricePerPerson?.toLocaleString()}</span>
+                            <span className="font-semibold text-blue-600">
+                              LKR {activity.pricePerPerson?.toLocaleString()}
+                            </span>
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
                         <span
-                          className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold capitalize ${activity.status === 'active'
-                            ? 'bg-green-100 text-green-700'
-                            : activity.status === 'draft'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-gray-100 text-gray-600'
-                            }`}
+                          className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold capitalize ${activity.status === "active" ? "bg-green-100 text-green-700" : activity.status === "draft" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"}`}
                         >
                           {activity.status}
                         </span>
                         <button
-                          onClick={() => navigate(`/activityprovider/activities/edit/${activity._id}`)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition"
+                          onClick={() =>
+                            navigate(
+                              `/activityprovider/activities/edit/${activity._id}`,
+                            )
+                          }
+                          className="p-2 text-gray-400 transition rounded-lg hover:text-blue-600 hover:bg-gray-50"
                           title="Edit Activity"
                         >
                           <FiEdit3 className="w-4 h-4" />
@@ -311,12 +360,8 @@ const ActivityProviderDashboard = () => {
           </div>
         </main>
       </div>
-
-      {/* <Footer /> */}
     </div>
   );
 };
 
 export default ActivityProviderDashboard;
-
-

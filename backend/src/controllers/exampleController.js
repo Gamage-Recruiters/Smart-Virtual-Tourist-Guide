@@ -102,11 +102,22 @@ export const triggerSimulation = catchAsync(async (req, res, next) => {
       payload.priority = "low";
       payload.actionUrl = "/policy";
       break;
+
+    case "TRANSPORT_REQUEST": 
+      payload.title = "අලුත් ගමනක් තිබේ: කොළඹ -> නුවරඑළිය";
+      payload.message = "නව සංචාරකයෙක් සඳහා වාහනයක් අවශ්‍ය වී ඇත. දැන්ම ලංසු තබන්න (Bid).";
+      payload.category = "BID"; 
+      payload.priority = "high";
+      payload.actionUrl = "/driver/bidding/req-102";
+      break;
   }
 
   // Allow overriding title and message via the request body for custom testing
   if (req.body.title) payload.title = req.body.title;
   if (req.body.message) payload.message = req.body.message;
+  if (req.body.priority) payload.priority = req.body.priority;
+  if (req.body.category) payload.category = req.body.category;
+  if (req.body.actionUrl) payload.actionUrl = req.body.actionUrl;
 
   logger.info(`Triggering Simulation: [${scenario}] | Scope: [${type}]`);
 

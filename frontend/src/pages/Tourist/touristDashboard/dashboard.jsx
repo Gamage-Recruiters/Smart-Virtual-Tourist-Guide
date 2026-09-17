@@ -7,6 +7,7 @@ import QuickActions from "../../../components/Tourist/touristDashboard/quickActi
 import UpcomingBookings from "../../../components/Tourist/touristDashboard/upcomingBookings";
 import TripCalendar from "../../../components/Tourist/touristDashboard/calender";
 import dayjs from "dayjs";
+import LocationSelector from "../../../components/notifications/LocationSelector";
 
 function TouristDashboard() {
   // Retrieve travel dates from localStorage (tripInfo or touristProfile)
@@ -30,7 +31,7 @@ function TouristDashboard() {
         const parsed = JSON.parse(profile);
         if (parsed.travelStart) startStr = parsed.travelStart;
         else if (parsed.startDate) startStr = parsed.startDate;
-        
+
         if (parsed.travelEnd) endStr = parsed.travelEnd;
         else if (parsed.endDate) endStr = parsed.endDate;
       } catch (e) {
@@ -40,22 +41,22 @@ function TouristDashboard() {
 
     return {
       startDate: dayjs(startStr),
-      endDate: dayjs(endStr)
+      endDate: dayjs(endStr),
     };
   };
 
   const { startDate, endDate } = getDates();
 
   return (
-    <div className="p-4 2xl:p-8 flex flex-col xl:flex-row gap-4 2xl:gap-8 overflow-y-auto">
+    <div className="flex flex-col gap-4 p-4 overflow-y-auto 2xl:p-8 xl:flex-row 2xl:gap-8">
       {/* Left Column */}
       <div className="md:flex-[2.5] 2xl:flex-4 space-y-8">
         {/* Hero Banner */}
-        <div className="relative h-100 2xl:h-130 rounded-3xl overflow-hidden shadow-xl group">
+        <div className="relative overflow-hidden shadow-xl h-100 2xl:h-130 rounded-3xl group">
           <img
             src={main}
             alt="Sri Lanka"
-            className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-700"
+            className="object-fill w-full h-full transition-transform duration-700 group-hover:scale-105"
           />
         </div>
 
@@ -66,7 +67,7 @@ function TouristDashboard() {
         <TripPlan />
 
         {/* budget & alterts section */}
-        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
           <BudgetTracker />
           <AlertsNotifications />
         </div>
@@ -85,10 +86,14 @@ function TouristDashboard() {
 
         {/* Final Report Action Button (as seen in your screenshot) */}
         <div className="w-full text-center">
-          <button className="w-1/2 mt-8 bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">
-          Final Report
-        </button>
+          <button className="w-1/2 py-4 mt-8 font-bold text-white transition-all bg-blue-600 shadow-lg rounded-xl shadow-blue-100 hover:bg-blue-700">
+            Final Report
+          </button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <LocationSelector />
       </div>
     </div>
   );

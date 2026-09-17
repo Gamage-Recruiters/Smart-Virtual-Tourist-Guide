@@ -92,8 +92,8 @@ const NotificationList = () => {
 
   if (isError) {
     return (
-      <div className="p-4 text-[#E53935] text-center text-xs">
-        Error loading notifications.
+      <div className="p-6 text-rose-500 font-medium text-center text-sm bg-rose-50/50 rounded-2xl m-4 border border-rose-100">
+        Oops! Error loading notifications.
       </div>
     );
   }
@@ -111,46 +111,46 @@ const NotificationList = () => {
       <div className="flex flex-col gap-3">
         {list.map((notification) => {
           const isExpanded = expandedId === notification._id;
-          
           const Icon = getCategoryIcon(notification.category);
 
           return (
             <div
               key={notification._id}
               onClick={() => handleNotificationClick(notification)}
-              className={`group relative flex flex-col p-4 cursor-pointer rounded-[12px] transition-all duration-300 border border-[#F4F9FF] shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] ${
+              // 🎨 Glassmorphism, soft shadows, and clean hover states
+              className={`group relative flex flex-col p-4 cursor-pointer rounded-2xl transition-all duration-300 border backdrop-blur-sm ${
                 notification.isRead
-                  ? "bg-[#FFFFFF] border-[#F4F9FF]"
-                  : `bg-[#F4F9FF] ${getLeftBorderColor(notification.priority)}`
-              } ${isExpanded ? "ring-1 ring-[#F4F9FF]" : ""}`}
+                  ? "bg-white/80 border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-blue-100 hover:bg-white"
+                  : `bg-blue-50/60 border-blue-100 shadow-sm hover:shadow-md hover:bg-blue-50/90 ${getLeftBorderColor(notification.priority)}`
+              } ${isExpanded ? "ring-2 ring-[#00aaff]/30 bg-white scale-[1.01] shadow-lg" : ""}`}
             >
               <div className="flex items-start">
-                <div className={`shrink-0 p-2.5 rounded-full mr-4 ${getIconColor(notification.priority)}`}>
+                {/* Icon Container with a soft ring */}
+                <div className={`shrink-0 p-2.5 rounded-full mr-4 ring-4 ring-white shadow-sm ${getIconColor(notification.priority)}`}>
                   <Icon className="w-5 h-5" />
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pt-0.5">
                   <div className="flex items-start justify-between mb-1">
                     <h4
                       className={`text-sm pr-2 transition-all truncate ${
-                        isExpanded
-                          ? "text-[#111111] font-semibold"
-                          : notification.isRead
-                            ? "font-semibold text-[#111111]"
-                            : "font-semibold text-[#111111]"
+                        isExpanded || !notification.isRead
+                          ? "text-slate-800 font-extrabold"
+                          : "font-semibold text-slate-600"
                       }`}
                     >
                       {notification.title}
                     </h4>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-[#111111]/70 font-medium">
+                    <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                      <span className="text-[10px] text-slate-400 font-semibold">
                         {timeAgo(notification.createdAt)}
                       </span>
+                      {/* 🎨 Updated pinging dot to a vibrant blue instead of red */}
                       {!notification.isRead && (
-                        <span className="relative flex w-2 h-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E53935] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#E53935]"></span>
+                        <span className="relative flex w-2.5 h-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00aaff] opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00aaff]"></span>
                         </span>
                       )}
                     </div>
@@ -158,15 +158,15 @@ const NotificationList = () => {
 
                   <p
                     className={`text-xs leading-relaxed transition-all duration-300 ${
-                      isExpanded ? "text-[#111111]" : "text-[#111111]/70 line-clamp-2"
+                      isExpanded ? "text-slate-700" : "text-slate-500 line-clamp-2 font-medium"
                     }`}
                   >
                     {notification.message}
                   </p>
 
                   {isExpanded && (
-                    <div className="mt-4 pt-3 border-t border-[#F4F9FF] flex justify-between items-center">
-                      <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider rounded text-[#111111]/70 bg-[#FFFFFF] uppercase">
+                    <div className="mt-4 pt-3 border-t border-slate-100/80 flex justify-between items-center">
+                      <span className="px-2.5 py-1 text-[9px] font-extrabold tracking-wider rounded-md text-blue-600 bg-blue-50 uppercase border border-blue-100/50">
                         {notification.scope}
                       </span>
                       {notification.actionUrl && (
@@ -175,7 +175,8 @@ const NotificationList = () => {
                             e.stopPropagation();
                             navigate(notification.actionUrl);
                           }}
-                          className="flex items-center gap-1 bg-[#111111] text-[#FFFFFF] text-[11px] font-semibold px-4 py-1.5 rounded-[12px] hover:bg-[#E53935] active:scale-95 transition-all"
+                          // 🎨 Pill-shaped gradient button to match "Start Your Journey"
+                          className="flex items-center gap-1.5 bg-gradient-to-r from-[#00bfff] to-[#007bff] text-white text-[11px] font-bold px-4 py-2 rounded-full hover:shadow-[0_4px_12px_rgba(0,123,255,0.3)] active:scale-95 transition-all transform hover:-translate-y-0.5"
                         >
                           View Details <ChevronRight className="w-3.5 h-3.5" />
                         </button>
@@ -197,17 +198,22 @@ const NotificationList = () => {
 
       {!hasNextPage && list.length > 0 && (
         <div className="py-8 text-center">
-          <span className="px-4 py-1.5 rounded-full bg-[#F4F9FF] text-[10px] font-semibold text-[#111111]/70 tracking-widest uppercase">
-            End of updates
+          <span className="px-5 py-2 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-400 tracking-widest uppercase shadow-sm">
+            You're all caught up ✨
           </span>
         </div>
       )}
 
       {!isLoading && list.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-[#111111]/60">
-          <Bell className="w-12 h-12 mb-3 opacity-10" />
-          <p className="text-sm font-semibold italic text-[#111111]/60">
-            No notifications found.
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="p-5 bg-slate-50 rounded-full mb-4 ring-8 ring-slate-50/50">
+            <Bell className="w-10 h-10 text-slate-300" />
+          </div>
+          <p className="text-sm font-bold text-slate-500">
+            No notifications yet
+          </p>
+          <p className="text-xs font-medium text-slate-400 mt-1">
+            We'll let you know when something happens.
           </p>
         </div>
       )}
