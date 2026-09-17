@@ -13,6 +13,37 @@ import formBgImage from '../../assets/HotelOwner/form back.jpg';
 
 import googleIcon from '../../assets/HotelOwner/svg/google.svg';
 
+// ---------------------------------------------------------------------------
+// Sri Lankan districts (flat list — no province grouping)
+// ---------------------------------------------------------------------------
+const SRI_LANKA_DISTRICTS = [
+  'Ampara',
+  'Anuradhapura',
+  'Badulla',
+  'Batticaloa',
+  'Colombo',
+  'Galle',
+  'Gampaha',
+  'Hambantota',
+  'Jaffna',
+  'Kalutara',
+  'Kandy',
+  'Kegalle',
+  'Kilinochchi',
+  'Kurunegala',
+  'Mannar',
+  'Matale',
+  'Matara',
+  'Monaragala',
+  'Mullaitivu',
+  'Nuwara Eliya',
+  'Polonnaruwa',
+  'Puttalam',
+  'Ratnapura',
+  'Trincomalee',
+  'Vavuniya',
+];
+
 const HotelInfo = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -21,6 +52,8 @@ const HotelInfo = () => {
     hotelName: '',
     hotelRegistrationNo: '',
     hotelAddress: '',
+    hotelCity: '',
+    hotelDistrict: '',
     hotelEmail: '',
     hotelRegisteredYear: new Date().getFullYear().toString(),
     countryCode: '+94',
@@ -32,8 +65,8 @@ const HotelInfo = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/hotel-owner');
-       return;
-     }
+      return;
+    }
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     setOwnerName(userData.fullName || '');
   }, [navigate]);
@@ -58,7 +91,14 @@ const HotelInfo = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // When district changes, clear city so user types a new one
+    if (name === 'hotelDistrict') {
+      setFormData((prev) => ({ ...prev, hotelDistrict: value, hotelCity: '' }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -69,6 +109,8 @@ const HotelInfo = () => {
         hotelName: formData.hotelName,
         hotelRegistrationNo: formData.hotelRegistrationNo,
         hotelAddress: formData.hotelAddress,
+        hotelCity: formData.hotelCity,
+        hotelDistrict: formData.hotelDistrict,
         hotelEmail: formData.hotelEmail,
         hotelRegisteredYear: formData.hotelRegisteredYear,
         hotelContactNumber: `${formData.countryCode}${formData.hotelPhoneNumber}`,
@@ -84,16 +126,16 @@ const HotelInfo = () => {
   return (
     <div className="relative w-full min-h-screen bg-white overflow-x-hidden">
       <Header />
-      
+
       {/* --- TOP BACKGROUND IMAGE --- */}
       <div className="relative w-full flex justify-center bg-gradient-to-b from-green-100 to-white">
         <div className="relative w-full max-w-6xl mx-auto">
           <div className="absolute inset-0 bg-gradient-to-r from-green-200 via-teal-100 to-blue-100 opacity-40 mix-blend-multiply rounded-full blur-3xl"></div>
           <div className="relative w-full flex items-center justify-center">
             <div className="w-full relative">
-              <img 
-                src={heroImage} 
-                alt="Sri Lanka Travel" 
+              <img
+                src={heroImage}
+                alt="Sri Lanka Travel"
                 className="w-full h-auto object-contain"
                 style={{ maskImage: 'radial-gradient(circle, black 60%, transparent 100%)', WebkitMaskImage: 'radial-gradient(circle, black 60%, transparent 100%)' }}
               />
@@ -105,7 +147,7 @@ const HotelInfo = () => {
       {/* --- MAIN CONTENT --- */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start max-w-7xl mx-auto">
-          
+
           {/* Left Side: Visuals */}
           <div className="hidden lg:flex flex-col items-center justify-center space-y-8 sticky top-8">
             <div className="w-full max-w-md">
@@ -125,7 +167,7 @@ const HotelInfo = () => {
               <div className="absolute inset-0 z-0">
                 <img src={formBgImage} alt="Form Background" className="w-full h-full object-cover opacity-40" />
               </div>
-              
+
               <div className="relative z-10">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">Add Your Hotel Details</h2>
                 <p className="text-gray-500 text-xs sm:text-sm mb-6 sm:mb-8">Set up your hotel information</p>
@@ -178,6 +220,49 @@ const HotelInfo = () => {
                         placeholder="123 Main Street, Kandy"
                         className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3CB4FF] bg-gray-50/50 text-sm"
                       />
+                    </div>
+                  </div>
+
+                  {/* District (dropdown) + City (free text) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* District — dropdown */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 mb-1 block">District</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                        <select
+                          name="hotelDistrict"
+                          value={formData.hotelDistrict}
+                          onChange={handleChange}
+                          required
+                          className="w-full pl-10 pr-8 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3CB4FF] bg-gray-50/50 appearance-none text-sm"
+                        >
+                          <option value="">Select district</option>
+                          {SRI_LANKA_DISTRICTS.map((d) => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* City — free text input */}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-600 mb-1 block">City</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                        <input
+                          type="text"
+                          name="hotelCity"
+                          value={formData.hotelCity}
+                          onChange={handleChange}
+                          required
+                          placeholder="e.g. Kandy"
+                          className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3CB4FF] bg-gray-50/50 text-sm"
+                        />
+                      </div>
                     </div>
                   </div>
 

@@ -14,15 +14,15 @@ import ViewRatings from "./pages/ActivityProvider/ViewRatings.jsx";
 import AcceptBookings from "./pages/ActivityProvider/AcceptBookings.jsx";
 
 // ===== LANDING PAGES (from main) =====
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import AboutUs from './pages/AboutUs';
-import Destinations from './pages/Destinations';
-import HowItWorks from './pages/HowItWork';
-import ContactUs from './pages/Contact.jsx';
-import AddDestination from './pages/addDestinations';
-import DestinationDetails from './pages/DestinationDetails.jsx';
-import ResultsPage from './pages/ResultsPage.jsx';
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import AboutUs from "./pages/AboutUs";
+import Destinations from "./pages/Destinations";
+import HowItWorks from "./pages/HowItWork";
+import ContactUs from "./pages/Contact.jsx";
+import AddDestination from "./pages/addDestinations";
+import DestinationDetails from "./pages/DestinationDetails.jsx";
+import ResultsPage from "./pages/ResultsPage.jsx";
 
 import SignupForm from "./pages/Tourist/SignupForm1";
 import TravelSafetyInfo from "./pages/Tourist/SignupForm2";
@@ -60,6 +60,7 @@ import HotelOwnerProfileSettings from "./pages/HotelOwner/HotelOwnerProfileSetti
 import GuideSignup from "./pages/Guide/SignupPage";
 import RenterSignup from "./pages/Renter/SignupPage";
 import GovernmentSignup from "./pages/Government/SignupPage";
+import GovernmentDashboard from "./pages/Government/governmentDashboard.jsx";
 import ActivityProviderSignup from "./pages/ActivityProvider/SignupPage";
 
 import AdminLogin from "./pages/Admin/LoginPage";
@@ -83,16 +84,14 @@ import DriverSignUp3 from "./pages/Driver/SignUpForm3";
 import { DriverSignupProvider } from "./context/DriverSignupContext";
 import { PageTitleProvider } from "./context/PageTitleContext";
 
-
 import DummyPageGuide from "./pages/Guide/dummyPage";
-import DummyPageGovernment from "./pages/Government/dummyPage";
 import Driver_Dashboard from "./components/Driver/Driver_Dashboard";
-import Driver_Request   from "./components/Driver/Driver_Request";
-import Driver_Earnings  from "./components/Driver/Driver_Earnings";
-import Driver_Bids      from "./components/Driver/Driver_Bids";
-import Submit_Bids      from "./components/Driver/Submit_Bids";
-import Ride_Details     from "./components/Driver/Ride_Details";
-import Driver_Details   from "./components/Driver/Driver_Deatils";
+import Driver_Request from "./components/Driver/Driver_Request";
+import Driver_Earnings from "./components/Driver/Driver_Earnings";
+import Driver_Bids from "./components/Driver/Driver_Bids";
+import Submit_Bids from "./components/Driver/Submit_Bids";
+import Ride_Details from "./components/Driver/Ride_Details";
+import Driver_Details from "./components/Driver/Driver_Deatils";
 import DummyPageAdmin from "./pages/Admin/dummyPage";
 
 import VehicleAdmin from "./pages/Renter/vehicleAdminDashboard/vehicleAdminPage";
@@ -110,17 +109,16 @@ import NavigationMain from "./pages/NavigationAndMapping/NavigationMain.jsx";
 // ==================== Safety Module Imports ====================
 import { SafetyProvider } from "./context/SafetyContext.jsx";
 
-import SafetyLayout from './pages/safety/SafetyLayout';
-import PublicIncidentsPage from './pages/safety/PublicIncidentsPage';
-import EmergencyCallPage from './pages/safety/EmergencyCallPage';
-import SecurityAlertsPage from './pages/safety/SecurityAlertsPage';
-import IncidentReportPage from './pages/safety/IncidentReportPage';
-import IncidentTrackingPage from './pages/safety/IncidentTrackingPage';
-import MyStatusDashboardPage from './pages/safety/MyStatusDashboardPage';
-import IncidentReportSuccessPage from './pages/safety/IncidentReportSuccessPage';
-import WeatherAlertsPage from './pages/safety/WeatherAlertsPage';
-import NavigationDirectionsPage from './pages/safety/NavigationDirectionsPage';
-
+import SafetyLayout from "./pages/safety/SafetyLayout";
+import PublicIncidentsPage from "./pages/safety/PublicIncidentsPage";
+import EmergencyCallPage from "./pages/safety/EmergencyCallPage";
+import SecurityAlertsPage from "./pages/safety/SecurityAlertsPage";
+import IncidentReportPage from "./pages/safety/IncidentReportPage";
+import IncidentTrackingPage from "./pages/safety/IncidentTrackingPage";
+import MyStatusDashboardPage from "./pages/safety/MyStatusDashboardPage";
+import IncidentReportSuccessPage from "./pages/safety/IncidentReportSuccessPage";
+import WeatherAlertsPage from "./pages/safety/WeatherAlertsPage";
+import NavigationDirectionsPage from "./pages/safety/NavigationDirectionsPage";
 
 // ==================== CSS ====================
 import "./App.css";
@@ -130,18 +128,18 @@ import TripPlanningPage from "./pages/Tourist/tripPlanning/TripPlanningPage.jsx"
 import MarketplacePage from "./pages/Tourist/MarketplacePage.jsx";
 import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
 import BookDriver from "./pages/Driver/bookDriver.jsx";
-import FindHotelPage from "./pages/HotelOwner/findHotelPage.jsx";
-import HotelDetails from "./pages/HotelOwner/HotelDetails.jsx";
+import FindHotelPage from "./pages/TouristHotelView/findHotelPage.jsx";
+import HotelDetails from "./pages/TouristHotelView/HotelDetails.jsx";
 
 // ==================== PayHere Payment & Booking Imports ====================
-import BookingPage from './pages/booking&reservation/BookingPage.jsx';
-import ActivityBooking from './pages/more_details_services_booking/ActivityBooking.jsx';
-import HotelBooking from './pages/more_details_services_booking/HotelBooking.jsx';
-import DriverBooking from './pages/more_details_services_booking/DriverBooking.jsx';
-import VehicleBooking from './pages/more_details_services_booking/VehicleBooking.jsx';
-import GuideBooking from './pages/more_details_services_booking/GuideBooking.jsx';
-import RestaurantBooking from './pages/more_details_services_booking/RestaurantBooking.jsx';
-import MyBookings from './pages/booking&reservation/MyBookings.jsx';
+import BookingPage from "./pages/booking&reservation/BookingPage.jsx";
+import ActivityBooking from "./pages/more_details_services_booking/ActivityBooking.jsx";
+import HotelBooking from "./pages/more_details_services_booking/HotelBooking.jsx";
+import DriverBooking from "./pages/more_details_services_booking/DriverBooking.jsx";
+import VehicleBooking from "./pages/more_details_services_booking/VehicleBooking.jsx";
+import GuideBooking from "./pages/more_details_services_booking/GuideBooking.jsx";
+import RestaurantBooking from "./pages/more_details_services_booking/RestaurantBooking.jsx";
+import MyBookings from "./pages/booking&reservation/MyBookings.jsx";
 
 function App() {
   return (
@@ -152,18 +150,20 @@ function App() {
           {/*                     EXISTING PROJECT                      */}
           {/* ========================================================= */}
 
-        {/* ===== LANDING PAGES (from main) ===== */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={<AboutUs />} />
-          <Route path="how-it-works" element={<HowItWorks />} />
-          <Route path="destinations" element={<Destinations />} />
-          <Route path="contact" element={<ContactUs />} />
-          <Route path="results" element={<ResultsPage />} />
-        <Route path="/destination-detail" element={<DestinationDetails />} />
-
-        </Route>
-        <Route path="/add-destination" element={<AddDestination />} />
+          {/* ===== LANDING PAGES (from main) ===== */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="about" element={<AboutUs />} />
+            <Route path="how-it-works" element={<HowItWorks />} />
+            <Route path="destinations" element={<Destinations />} />
+            <Route path="contact" element={<ContactUs />} />
+            <Route path="results" element={<ResultsPage />} />
+            <Route
+              path="/destination-detail"
+              element={<DestinationDetails />}
+            />
+          </Route>
+          <Route path="/add-destination" element={<AddDestination />} />
 
           {/* Activity Provider */}
           <Route
@@ -330,7 +330,10 @@ function App() {
             <Route path="menu/edit/:id" element={<RestuarantAddMenuPage />} />
             <Route path="offers" element={<RestuarantOfferPage />} />
             <Route path="profile" element={<RestuarantProfilePage />} />
-            <Route path="reservations" element={<RestuarantReservationPage />} />
+            <Route
+              path="reservations"
+              element={<RestuarantReservationPage />}
+            />
             <Route path="revenue" element={<RestuarantRevenuePage />} />
             <Route path="reviews" element={<RestuarantReviewPage />} />
           </Route>
@@ -346,15 +349,23 @@ function App() {
 
           <Route
             path="/dashboard-Government"
-            element={<DummyPageGovernment />}
+            element={<GovernmentDashboard />}
+          />
+          <Route
+            path="/government-dashboard-public"
+            element={<GovernmentDashboard />}
           />
 
-                    <Route path="/dashboard-Driver" element={<Navigate to="/driver-dashboard" replace />} />
+          <Route
+            path="/dashboard-Driver"
+            element={<Navigate to="/driver-dashboard" replace />}
+          />
           <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
           <Route path="/driver-request" element={<Driver_Request />} />
           <Route path="/driver-earnings" element={<Driver_Earnings />} />
           <Route path="/driver-bids" element={<Driver_Bids />} />
-          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />`n          <Route path="/other-drivers" element={<Submit_Bids />} />
+          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
+          <Route path="/other-drivers" element={<Submit_Bids />} />
           <Route path="/ride-details" element={<Ride_Details />} />
           <Route path="/driver-details" element={<Driver_Details />} />
 
@@ -452,7 +463,10 @@ function App() {
 
             {/* ===== TOURIST-FACING RESTAURANT & MARKETPLACE ROUTES ===== */}
             <Route path="/restaurants" element={<TouristRestaurantsPage />} />
-            <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
+            <Route
+              path="/restaurants/:id"
+              element={<TouristRestaurantDetailsPage />}
+            />
 
             {/* ===== PAYHERE PAYMENT & SERVICE BOOKING ROUTES ===== */}
             <Route path="/booking-page" element={<BookingPage />} />
@@ -461,7 +475,10 @@ function App() {
             <Route path="/vehicle-booking" element={<VehicleBooking />} />
             <Route path="/vehicle-booking/:id" element={<VehicleBooking />} />
             <Route path="/restaurant-booking" element={<RestaurantBooking />} />
-            <Route path="/restaurant-booking/:id" element={<RestaurantBooking />} />
+            <Route
+              path="/restaurant-booking/:id"
+              element={<RestaurantBooking />}
+            />
             <Route path="/driver-booking" element={<DriverBooking />} />
             <Route path="/driver-booking/:id" element={<DriverBooking />} />
             <Route path="/guide-booking" element={<GuideBooking />} />

@@ -867,13 +867,6 @@ export default function ManageRoomAvailability() {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={handleCapacitySave}
-                    disabled={capacitySaving}
-                    className="mt-3 w-full py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors disabled:opacity-50"
-                  >
-                    {capacitySaving ? 'Saving...' : capacitySaved ? '✓ Saved' : 'Save Capacity'}
-                  </button>
                 </>
               )}
             </div>

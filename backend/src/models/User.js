@@ -89,6 +89,23 @@ const userSchema = new mongoose.Schema({
         hotelRegisteredYear: { type: String, trim: true },
         hotelContactNumber: { type: String, trim: true },
         hotelAddress: { type: String, trim: true },
+        hotelLocation: {
+          city: { type: String, trim: true, default: '' },
+          district: { type: String, trim: true, default: '' }
+        },
+        hotelImages: {
+          type: [String],
+          default: [],
+          validate: {
+            validator: function (v) {
+              return v.length <= 20;
+            },
+            message: 'A hotel can have a maximum of 20 images.'
+          }
+        },
+        hotelAmenities: { type: [String], default: [] },
+        hotelPolicies: { type: String, trim: true, default: '' },
+        hotelDescription: { type: String, trim: true, default: '' }
       }
     ],
     default: []
