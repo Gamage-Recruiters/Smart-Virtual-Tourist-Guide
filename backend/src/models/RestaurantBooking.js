@@ -5,21 +5,22 @@ const pricingItemSchema = new mongoose.Schema({
   amount: { type: Number, required: true, min: 0 },
 });
 
-const activityBookingSchema = new mongoose.Schema(
+const restaurantBookingSchema = new mongoose.Schema(
   {
     service: {
       serviceId: { type: String },
       name: { type: String, required: true },
-      type: { type: String, default: 'activity' },
+      type: { type: String, default: 'restaurant' },
       location: { type: String },
       image: { type: String },
       description: { type: String },
       rating: { type: Number, min: 0, max: 5 },
       reviews: { type: Number, min: 0 },
     },
-    activityDate: { type: String },
-    timeSlot: { type: String },
-    participants: { type: Number, min: 1 },
+    reservationDate: { type: String },
+    reservationTime: { type: String },
+    guests: { type: Number, min: 1 },
+    specialRequests: { type: String },
     bookingDetails: [
       {
         label: { type: String, required: true },
@@ -43,10 +44,12 @@ const activityBookingSchema = new mongoose.Schema(
       last4: { type: String },
       expiryDate: { type: String },
       paidAt: { type: Date },
+      payhereOrderId: { type: String },
+      payherePaymentId: { type: String },
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'cancelled'],
+      enum: ['pending', 'pending_payment', 'confirmed', 'cancelled', 'payment_failed'],
       default: 'pending',
     },
   },
@@ -55,4 +58,4 @@ const activityBookingSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.models.ActivityBooking || mongoose.model('ActivityBooking', activityBookingSchema);
+export default mongoose.models.RestaurantBooking || mongoose.model('RestaurantBooking', restaurantBookingSchema);

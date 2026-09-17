@@ -177,9 +177,9 @@ const Guides_Card = () => {
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944a11.954 11.954 0 007.834 3.056 11.95 11.95 0 01-1.6 5.944 11.95 11.95 0 01-6.234 4.944 11.954 11.954 0 01-6.234-4.944 11.95 11.95 0 01-1.6-5.944zm8.92 4.71a1 1 0 10-1.414-1.414L8 9.586 7.328 8.914a1 1 0 00-1.414 1.414l1.383 1.383a1 1 0 001.414 0l2.374-2.374z" clipRule="evenodd" />
               </svg>
-              <span>{t("sidebar.budgetGuardian")}</span>
+              <span>{t("sidebar.budgetGuardian", "Budget Guardian")}</span>
             </div>
-            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">{t("sidebar.availableFunds")}</span>
+            <span className="text-gray-400 text-[10px] block font-bold tracking-wider">{t("sidebar.availableFunds", "Available Funds")}</span>
             <div className="flex flex-col mb-4 mt-1">
               <div className="flex items-baseline space-x-1 mb-2">
                 <span className="text-2xl font-black text-gray-900">{budget.toLocaleString()}</span>
@@ -204,15 +204,15 @@ const Guides_Card = () => {
               onClick={handleReset}
               className="w-full border-2 border-[#1E40AF] text-[#1E40AF] font-bold text-xs py-2.5 rounded-xl uppercase tracking-wider hover:bg-blue-50 transition-colors"
             >
-              {t("sidebar.manageBudget")}
+              {t("sidebar.manageBudget", "Manage Budget")}
             </button>
           </div>
 
           {/* Filters Card */}
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters")}</h3>
-              <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset")}</button>
+              <h3 className="font-bold text-gray-900 text-sm">{t("sidebar.filters", "Filters")}</h3>
+              <button onClick={handleReset} className="text-xs font-bold text-blue-600 hover:underline">{t("sidebar.reset", "Reset")}</button>
             </div>
 
             {/* Languages Filter */}
@@ -235,7 +235,7 @@ const Guides_Card = () => {
 
             {/* Rating Filter */}
             <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating")}</label>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">{t("sidebar.rating", "Rating")}</label>
               <div className="space-y-2">
                 {[5, 4].map((star) => (
                   <label key={star} className="flex items-center justify-between text-xs font-medium text-gray-600 cursor-pointer">
@@ -348,7 +348,7 @@ const Guides_Card = () => {
                   </div>
 
                   <button 
-                    onClick={() => navigate(`/guide-booking/${guide._id}`, { state: { guide } })}
+                    onClick={() => navigate(`/guide-booking/${guide?._id || guide?.id || ''}`, { state: { guide } })}
                     className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs py-3 rounded-xl uppercase tracking-wider transition-colors shadow-xs mt-2"
                   >
                     Hire Guide

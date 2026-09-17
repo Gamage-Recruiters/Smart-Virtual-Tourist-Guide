@@ -45,10 +45,15 @@ const bookingSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
-    // Optional price in USD
+    // Optional price in USD or LKR
     priceUSD: {
       type: Number,
       default: 0,
+    },
+    pricing: {
+      currency: { type: String, default: "LKR" },
+      total: { type: Number, default: 0 },
+      items: { type: Array, default: [] },
     },
   },
   {
