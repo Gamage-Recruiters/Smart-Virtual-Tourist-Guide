@@ -120,7 +120,7 @@ const registerHotelOwner = async (req, res) => {
 
 const addHotelInfo = async (req, res) => {
   try {
-    const { hotelName, hotelRegistrationNo, hotelEmail,hotelAddress, hotelRegisteredYear, hotelContactNumber } = req.body;
+    const { hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelCity, hotelDistrict, hotelRegisteredYear, hotelContactNumber, hotelAmenities, hotelPolicies, hotelDescription } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -130,7 +130,13 @@ const addHotelInfo = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    user.hotels.push({ hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelRegisteredYear, hotelContactNumber });
+    user.hotels.push({
+      hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelRegisteredYear, hotelContactNumber,
+      hotelLocation: { city: hotelCity || '', district: hotelDistrict || '' },
+      hotelAmenities: Array.isArray(hotelAmenities) ? hotelAmenities : [],
+      hotelPolicies: hotelPolicies || '',
+      hotelDescription: hotelDescription || '',
+    });
     await user.save();
 
     res.status(201).json({

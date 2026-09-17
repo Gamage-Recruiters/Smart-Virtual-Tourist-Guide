@@ -114,6 +114,38 @@ const apiClient = {
   },
 
   /**
+   * PUT request with FormData (file uploads)
+   */
+  async upload(endpoint, formData) {
+    try {
+      const headers = privateHeaders();
+      delete headers['Content-Type'];
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw { message: json.message || 'Upload failed' };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API UPLOAD Error:', error);
+      throw error;
+    }
+  },
+
+  /**
    * PUT request
    */
   async put(endpoint, data) {

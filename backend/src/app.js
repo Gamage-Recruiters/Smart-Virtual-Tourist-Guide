@@ -53,6 +53,7 @@ import activityBookingRoutes from './routes/ActivityProvider/activityBooking.rou
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
+import touristHotelViewRoutes from './routes/touristHotelViewRoutes.js';
 
 config();
 configureCloudinary();
@@ -150,6 +151,10 @@ app.use('/api/room-availability', roomAvailabilityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/temp-bookings', tempHotBookRoutes); 
 app.use('/api/revenue-summary', hotelRevenueSummaryRoutes); 
+
+
+// Tourist Hotel View Routes
+app.use('/api/tourist/hotels', touristHotelViewRoutes);
 
 // -----------------------------------------------------------------------------
 // Government Dashboard

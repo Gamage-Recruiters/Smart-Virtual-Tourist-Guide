@@ -133,7 +133,7 @@ const validateGovernmentRegister = (req, res, next) => {
 };
 
 const validateHotelInfo = (req, res, next) => {
-  const { hotelName, hotelRegistrationNo, hotelEmail, hotelRegisteredYear, hotelContactNumber } = req.body;
+  const { hotelName, hotelRegistrationNo, hotelEmail, hotelContactNumber, hotelCity, hotelDistrict } = req.body;
   if (!hotelName || hotelName.trim() === '') {
     return res.status(400).json({ success: false, message: 'Hotel name is required' });
   }
@@ -145,6 +145,12 @@ const validateHotelInfo = (req, res, next) => {
   }
   if (!hotelContactNumber || hotelContactNumber.trim() === '') {
     return res.status(400).json({ success: false, message: 'Hotel contact number is required' });
+  }
+  if (!hotelCity || hotelCity.trim() === '') {
+    return res.status(400).json({ success: false, message: 'Hotel city is required' });
+  }
+  if (!hotelDistrict || hotelDistrict.trim() === '') {
+    return res.status(400).json({ success: false, message: 'Hotel district is required' });
   }
   next();
 };

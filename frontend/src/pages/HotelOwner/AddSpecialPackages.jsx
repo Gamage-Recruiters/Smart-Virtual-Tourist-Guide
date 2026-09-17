@@ -342,7 +342,7 @@ export default function AddSpecialPackages() {
   };
 
   return (
-    <div className="w-full bg-linear-to-b from-white to-[#A0DBFF] min-h-screen pt-28">
+    <div className="w-full bg-linear-to-b from-white to-[#A0DBFF] min-h-screen">
       <Header />
 
       {/* HERO BANNER */}
