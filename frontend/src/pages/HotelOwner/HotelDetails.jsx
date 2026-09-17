@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import HotelGallery from "../../components/HotelOwner/hotelDetails/HotelGallery";
 import HotelInfo from "../../components/HotelOwner/hotelDetails/HotelInfo";
 import CheckAvailability from "../../components/HotelOwner/hotelDetails/CheckAvailability";
@@ -52,8 +52,9 @@ const hotels = [
 
 export default function HotelDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const hotelId = parseInt(id, 10);
-  const hotel = hotels.find((h) => h.id === hotelId);
+  const hotel = location.state?.hotel || hotels.find((h) => h.id === hotelId) || hotels[0];
 
   if (!hotel) {
     return (

@@ -54,6 +54,9 @@ import availabilityRoutes from './routes/ActivityProvider/availability.routes.js
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 
+import paymentRoutes from './routes/paymentRoutes.js';
+import serviceBookingRoutes from './routes/bookingRoutes.js';
+
 config();
 configureCloudinary();
 startBookingSyncScheduler(); 
@@ -65,8 +68,8 @@ const app = express();
 
 // middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -203,6 +206,12 @@ app.use('/api/activities', activityRoutes);
 app.use('/api/activity-bookings', activityBookingRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/calendar/:activityId', activityCalenderRoutes);
+
+// Payment & Booking Engine Routes
+app.use('/api/payment', paymentRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/service-bookings', serviceBookingRoutes);
+app.use('/api/bookings', serviceBookingRoutes);
 
 // ==================== ERROR HANDLING ====================
 // ==================== RESTAURANT API ROUTES ====================

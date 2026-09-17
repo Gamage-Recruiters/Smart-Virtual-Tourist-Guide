@@ -113,7 +113,7 @@ export default function TouristRestaurantsPage() {
       ? selectedAmenities.every(a => r.amenities?.includes(a))
       : true;
 
-    const matchesOffers = onlyWithOffers ? !!restaurantOffersMap[r._id] : true;
+    const matchesOffers = onlyWithOffers ? !!(r?._id && restaurantOffersMap[r._id]) : true;
 
     return matchesSearch && matchesDistrict && matchesAmenities && matchesOffers;
   });
@@ -315,54 +315,57 @@ export default function TouristRestaurantsPage() {
                   </div>
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {filteredRestaurants.map(restaurant => (
-                      <article 
-                        key={restaurant._id} 
-                        onClick={() => navigate(`/restaurants/${restaurant._id}`)}
-                        className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                      >
-                        <div className="h-44 bg-slate-200 relative overflow-hidden">
-                          {restaurant.bannerImage ? (
-                            <img src={restaurant.bannerImage} alt={restaurant.restaurantName} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-50 text-blue-400 text-2xl font-bold uppercase transition-transform duration-300 group-hover:scale-105">
-                              {restaurant.restaurantName?.slice(0, 2)}
-                            </div>
-                          )}
-                          <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm">
-                            {restaurant.district}
-                          </span>
-                          {restaurantOffersMap[restaurant._id] !== undefined && (
-                            <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm animate-pulse">
-                              🔥 {restaurantOffersMap[restaurant._id]}% OFF
+                    {filteredRestaurants.map((restaurant, idx) => {
+                      const resId = restaurant?._id || restaurant?.id || idx;
+                      return (
+                        <article 
+                          key={resId} 
+                          onClick={() => navigate(`/restaurants/${resId}`)}
+                          className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+                        >
+                          <div className="h-44 bg-slate-200 relative overflow-hidden">
+                            {restaurant.bannerImage ? (
+                              <img src={restaurant.bannerImage} alt={restaurant.restaurantName} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-50 text-blue-400 text-2xl font-bold uppercase transition-transform duration-300 group-hover:scale-105">
+                                {restaurant.restaurantName?.slice(0, 2)}
+                              </div>
+                            )}
+                            <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm">
+                              {restaurant.district}
                             </span>
-                          )}
-                        </div>
-
-                        <div className="p-5 space-y-4">
-                          <div>
-                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{restaurant.restaurantName}</h3>
-                            <p className="text-xs text-slate-500 mt-1">{restaurant.address}</p>
+                            {restaurantOffersMap[resId] !== undefined && (
+                              <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm animate-pulse">
+                                🔥 {restaurantOffersMap[resId]}% OFF
+                              </span>
+                            )}
                           </div>
 
-                          {/* Amenities Icons/Badges list */}
-                          {restaurant.amenities?.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 pt-1">
-                              {restaurant.amenities.map(a => (
-                                <span key={a} className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                                  {a}
-                                </span>
-                              ))}
+                          <div className="p-5 space-y-4">
+                            <div>
+                              <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{restaurant.restaurantName}</h3>
+                              <p className="text-xs text-slate-500 mt-1">{restaurant.address}</p>
                             </div>
-                          )}
 
-                          <div className="border-t border-slate-100 pt-4 flex items-center justify-between text-xs text-slate-600">
-                            <div><span className="font-medium">Call:</span> {restaurant.phone}</div>
-                            <div><span className="font-medium">Owner:</span> {restaurant.ownerName}</div>
+                            {/* Amenities Icons/Badges list */}
+                            {restaurant.amenities?.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {restaurant.amenities.map(a => (
+                                  <span key={a} className="bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                    {a}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="border-t border-slate-100 pt-4 flex items-center justify-between text-xs text-slate-600">
+                              <div><span className="font-medium">Call:</span> {restaurant.phone}</div>
+                              <div><span className="font-medium">Owner:</span> {restaurant.ownerName}</div>
+                            </div>
                           </div>
-                        </div>
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 )}
               </>
