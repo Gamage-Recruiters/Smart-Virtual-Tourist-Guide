@@ -1,56 +1,60 @@
+// Import required Firebase modules for app initialization and authentication
 import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+// Import Node.js built-in modules for file and path management
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import logger from "../utils/logger.js";
 
-// ESM workaround for __dirname (not available in ES Modules)
+// Import custom logger to print messages
+import logger from "../utils/logger.js"; 
+
+// Workaround to get the current file and folder path in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Declare variables to store the Firebase App and Auth instances
 let firebaseApp;
+let auth;
 
 try {
-  /**
-   * Define the path to the Firebase Service Account JSON file.
-   * __dirname gives the current folder (src/configs), so we go two steps back (../../) to reach the root folder.
-   */
+  // Create the exact path to the Firebase Service Account JSON file
+  // "../../" goes back two folders to reach the main project folder
   const serviceAccountPath = path.join(
     __dirname,
-    "../../firebase-service-account.json",
+    "../../firebase-service-account.json"
   );
 
-  // Safety Check: Verify if the service account file actually exists before trying to load it
+  // Stop the process and show an error if the JSON file is missing
   if (!fs.existsSync(serviceAccountPath)) {
-    throw new Error(
-      `Firebase service account file not found at: ${serviceAccountPath}`,
-    );
+    throw new Error(`Firebase service account file not found at: ${serviceAccountPath}`);
   }
 
-  // Load the service account credentials using fs + JSON.parse (ESM JSON import workaround)
+  // Read the JSON file and convert it into a usable JavaScript object
   const rawData = fs.readFileSync(serviceAccountPath, "utf-8");
   const serviceAccount = JSON.parse(rawData);
 
-  /**
-   * Singleton Pattern: Check if Firebase is already initialized.
-   * This prevents Firebase from throwing an error if the server reloads (e.g., during development with nodemon).
-   */
+  // Check if Firebase is NOT already initialized (prevents double initialization)
   if (getApps().length === 0) {
-    // Initialize Firebase for the first time
+    // Start Firebase for the first time using the loaded credentials
     firebaseApp = initializeApp({
       credential: cert(serviceAccount),
     });
-    logger.info(" Firebase Admin Initialized Successfully!");
+    logger.info("✅ Firebase Admin SDK Initialized Successfully!");
   } else {
-    // If already initialized, just use the existing instance
+    // If it is already running, just use the existing active instance
     firebaseApp = getApps()[0];
-    logger.info("Firebase Admin already running.");
   }
+
+  // Get the Authentication service instance for user management
+  auth = getAuth(firebaseApp);
+
 } catch (error) {
-  // Log any errors that happen during initialization (e.g., wrong file path or invalid credentials)
-  logger.error(` Firebase Initialization Failed: ${error.message}`);
+  // Log the error message if anything fails during startup
+  logger.error(`❌ Firebase Initialization Failed: ${error.message}`);
 }
 
-// Export the initialized app so other services (like FCM) can use it
-export default firebaseApp;
+// Export 'auth' (for login/security) and 'firebaseApp' (for push notifications)
+export { auth, firebaseApp };

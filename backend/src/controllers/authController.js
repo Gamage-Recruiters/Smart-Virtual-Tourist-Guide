@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
-import { auth, firebaseInitialized } from '../configs/firebase.js';
+import { auth } from '../configs/firebaseConfig.js';
 
 // Generate JWT Token
 const generateToken = (id) => {

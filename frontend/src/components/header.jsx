@@ -1,17 +1,21 @@
 ﻿import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 // IMPORT YOUR FLAG IMAGE HERE
-import sriLankaFlag from '../assets/LandingPage/SLFH.jpg';
+import sriLankaFlag from "../assets/LandingPage/SLFH.jpg";
 // IMPORT YOUR LOGO IMAGE HERE
-import logoImage from '../assets/LandingPage/logo.png';
+import logoImage from "../assets/LandingPage/logo.png";
 // IMPORT YOUR BACKGROUND IMAGE HERE
-import bg4Image from '../assets/LandingPage/bg4.png';
+import bg4Image from "../assets/LandingPage/bg4.png";
 
 import NotificationBell from "../components/notifications/NotificationBell";
-import NotificationModal from "../components/notifications/NotificationModal"; 
+import NotificationModal from "../components/notifications/NotificationModal";
+import { useDispatch } from "react-redux";
+import  logoutSuccess  from "../store/slices/authSlice";
+
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Load user data if logged in
   const userDataRaw = localStorage.getItem("userData");
@@ -124,13 +128,13 @@ const Header = () => {
 
           {/* --- Right: Actions --- */}
           <div className="relative z-10 flex items-center gap-3">
-              {user && (
-                <div className="flex items-center gap-4">
-                  <NotificationBell />
+            {user && (
+              <div className="flex items-center gap-4">
+                <NotificationBell />
 
-                  {/* //<NotificationModal /> */}
-                </div>
-              )}
+                {/* //<NotificationModal /> */}
+              </div>
+            )}
 
             {/* Sign In Button / User Profile */}
             {user ? (
@@ -147,6 +151,9 @@ const Header = () => {
                     localStorage.removeItem("token");
                     localStorage.removeItem("userData");
                     localStorage.removeItem("restaurantUser");
+                    localStorage.removeItem("renterToken");
+                    localStorage.removeItem("renter");
+                    dispatch(logoutSuccess());
                     window.location.reload();
                   }}
                   className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
@@ -206,9 +213,7 @@ const Header = () => {
         </div>
 
         {/* //{user && <NotificationModal />} */}
-        
       </header>
-      
 
       {/* --- Mobile Sidebar --- */}
       <div

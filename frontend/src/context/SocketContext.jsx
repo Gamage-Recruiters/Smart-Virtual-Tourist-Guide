@@ -75,6 +75,7 @@ export const SocketProvider = ({ children }) => {
 
     if (user?._id && token) {
       dispatch(clearNotifications());
+      requestNotificationPermission();
 
       const ALLOWED_LOCATION_ROLES = ["tourist_user", "driver_user"];
       const isLocationAllowedRole = ALLOWED_LOCATION_ROLES.includes(user.role);

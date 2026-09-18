@@ -19,13 +19,13 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log("[firebase-messaging-sw.js] Received background message: ", payload);
 
-  const notificationTitle = payload.notification?.title || "New Notification";
-  const notificationOptions = {
-    body: payload.notification?.body || "",
-    icon: "/vite.svg",
-  };
+  // const notificationTitle = payload.notification?.title || "New Notification";
+  // const notificationOptions = {
+  //   body: payload.notification?.body || "",
+  //   icon: "/vite.svg",
+  // };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
 // Handle clicks on the notification
