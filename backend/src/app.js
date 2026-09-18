@@ -58,6 +58,10 @@ import touristHotelViewRoutes from './routes/touristHotelViewRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import serviceBookingRoutes from './routes/bookingRoutes.js';
 
+// ===== TRAVEL PACKAGE ROUTE IMPORTS =====
+import packageRoutes from './routes/travelPackage/packageRoutes.js';
+import advertisementRoutes from './routes/travelPackage/advertisementRoutes.js';
+
 config();
 configureCloudinary();
 startBookingSyncScheduler(); 
@@ -185,20 +189,6 @@ app.use("/api/gov/dashboard", governmentDashboardRoutes);
 //
 // -----------------------------------------------------------------------------
 
-
-// -----------------------------------------------------------------------------
-// Hotel Owner Routes
-// -----------------------------------------------------------------------------
-
-app.use("/api/rooms", roomRoutes);
-
-app.use("/api/packages", specialPackageRoutes);
-
-app.use("/api/room-availability", roomAvailabilityRoutes);
-
-app.use("/api/users", userRoutes);
-
-// -----------------------------------------------------------------------------
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
 app.use('/api/vehicles', vehicleRouter);
@@ -217,6 +207,10 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/service-bookings', serviceBookingRoutes);
 app.use('/api/bookings', serviceBookingRoutes);
+
+// ===== TRAVEL PACKAGE ROUTES =====
+app.use('/api/packages', packageRoutes);
+app.use('/api/advertisements', advertisementRoutes);
 
 // ==================== ERROR HANDLING ====================
 // ==================== RESTAURANT API ROUTES ====================
