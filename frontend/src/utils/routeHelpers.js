@@ -2,17 +2,14 @@
  * Route calculation and description utilities.
  * Extracted from Direction.jsx to keep the component focused on rendering.
  */
-import carIcon from '../assets/carIcon.png';
-import bikeIcon from '../assets/bikeIcon.png';
-import busIcon from '../assets/busIcon.png';
-import manIcon from '../assets/manIcon.png';
+import { Car, Bike, Bus, Footprints } from 'lucide-react';
 
 /** Transport mode configurations for OSRM routing */
 export const MODE_CONFIGS = [
-  { key: 'drive', label: 'Drive', icon: carIcon, osrmProfile: 'driving', multiplier: 1 },
-  { key: 'bike', label: 'Bike', icon: bikeIcon, osrmProfile: 'cycling', multiplier: 1.35 },
-  { key: 'transit', label: 'Transit', icon: busIcon, osrmProfile: 'driving', multiplier: 1.85 },
-  { key: 'walk', label: 'Walk', icon: manIcon, osrmProfile: 'foot', multiplier: 8.5 },
+  { key: 'drive', label: 'Drive', icon: Car, osrmProfile: 'driving', multiplier: 1 },
+  { key: 'bike', label: 'Bike', icon: Bike, osrmProfile: 'cycling', multiplier: 1.35 },
+  { key: 'transit', label: 'Transit', icon: Bus, osrmProfile: 'driving', multiplier: 1.85 },
+  { key: 'walk', label: 'Walk', icon: Footprints, osrmProfile: 'foot', multiplier: 8.5 },
 ];
 
 /**

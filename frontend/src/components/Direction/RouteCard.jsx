@@ -1,6 +1,6 @@
 import React from 'react';
 import { describeRoute, buildRouteDescription } from '../../utils/routeHelpers';
-import coins from '../../assets/coins.png';
+import { Coins } from 'lucide-react';
 
 export default function RouteCard({
   selectedRoute,
@@ -30,7 +30,7 @@ export default function RouteCard({
 
       <p className="mt-4 text-sm text-slate-500 flex items-center gap-24">
         <span className="flex items-center gap-2">
-          <img src={coins} alt="Tolls icon" className="w-6 h-6 opacity-70" />
+          <Coins size={24} className="opacity-70" />
           <span>Tolls</span>
         </span>
         {petrol > 0 && <span>Saves ~{petrol}% petrol</span>}

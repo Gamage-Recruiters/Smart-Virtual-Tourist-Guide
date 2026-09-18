@@ -14,8 +14,7 @@ import AddStopPanel from '../components/Direction/AddStopPanel';
 import { saveFavoritePlace } from '../services/api';
 import ActionToast from '../components/shared/ActionToast';
 import middle from '../assets/middle.png';
-import gpsIcon from '../assets/gpsSearch.png';
-import blueLocationIcon from '../assets/directionCircle.png';
+import { LocateFixed } from 'lucide-react';
 import { getBlueMarkerIcon, getNavigationMarkerIcon } from '../utils/leafletSetup';
 import { renderPOIPopup } from '../components/shared/LeafletPopups';
 
@@ -341,7 +340,7 @@ export default function DirectionPage() {
               }}
               style={{ pointerEvents: 'auto', width: '45px', height: '45px', borderRadius: '16px', border: 'none', background: '#1A73E8', boxShadow: '0 10px 24px rgba(26,115,232,0.28)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'absolute', right: '0px', bottom: '8px' }}
             >
-              <img src={gpsIcon} alt="GPS search" style={{ width: '25px', height: '25px' }} />
+              <LocateFixed size={25} color="#fff" />
             </button>
           </div>
         </div>

@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import middle from '../assets/middle.png';
-import carIcon from '../assets/carIcon.png';
-import clockIcon from '../assets/clockIcon.png';
-import busIcon from '../assets/busIcon.png';
-import bikeIcon from '../assets/bikeIcon.png';
-import manIcon from '../assets/manIcon.png';
+import { Car, Clock, Bus, Bike, Footprints } from 'lucide-react';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
@@ -14,10 +10,10 @@ import { getRoute } from '../utils/mapServices';
 import '../utils/leafletSetup';
 
 const MODE_ICONS = {
-  drive: carIcon,
-  bike: bikeIcon,
-  transit: busIcon,
-  walk: manIcon,
+  drive: Car,
+  bike: Bike,
+  transit: Bus,
+  walk: Footprints,
 };
 
 const MODE_LABELS = {
@@ -232,12 +228,12 @@ const EtaPage = () => {
         }}>
           {/* Distance row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img src={MODE_ICONS[mode] || carIcon} alt="transport" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
+            {(() => { const ModeIcon = MODE_ICONS[mode] || Car; return <ModeIcon size={42} />; })()}
             <span style={{ fontWeight: 700, fontSize: '26px', color: '#111827', fontFamily: "'Inter', sans-serif" }}>{distance}</span>
           </div>
           {/* ETA row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img src={clockIcon} alt="clock" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
+            <Clock size={42} />
             <span style={{ fontWeight: 700, fontSize: '26px', color: '#111827', fontFamily: "'Inter', sans-serif" }}>ETA: {duration}</span>
           </div>
           {/* Arrival time */}
@@ -316,7 +312,7 @@ const EtaPage = () => {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: '#6B7280', fontWeight: 500, fontFamily: "'Inter', sans-serif" }}>Transport Type:</div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827', fontFamily: "'Inter', sans-serif", marginTop: '2px' }}>{MODE_LABELS[mode] || 'Car'}</div>
-            <img src={MODE_ICONS[mode] || carIcon} alt="transport" style={{ width: '28px', height: '28px', objectFit: 'contain', margin: '4px auto 0' }} />
+            {(() => { const ModeIcon = MODE_ICONS[mode] || Car; return <ModeIcon size={28} style={{ margin: '4px auto 0' }} />; })()}
           </div>
         </div>
 

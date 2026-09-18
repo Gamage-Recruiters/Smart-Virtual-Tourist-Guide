@@ -1,13 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import middle from '../assets/middle.png';
-import bikeIcon from '../assets/bikeIcon.png';
-import busIcon from '../assets/busIcon.png';
-import carIcon from '../assets/carIcon.png';
-import clockIcon from '../assets/clockIcon.png';
-import directionCircle from '../assets/directionCircle.png';
-import locationRed from '../assets/locationRed.png';
-import manIcon from '../assets/manIcon.png';
-import upDown from '../assets/upDown.png';
+import { Bike, Bus, Car, Footprints, Clock, CircleDot, MapPin, ArrowUpDown } from 'lucide-react';
 import { useLocationSearch } from '../utils/useLocationSearch';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useNavigationContext } from '../contexts/NavigationContext';
@@ -15,10 +8,10 @@ import { useAppNavigate } from '../hooks/useAppNavigate';
 import { geocodeAddress } from '../utils/mapServices';
 import { saveRecentPlace, fetchRecentPlaces } from '../services/api';
 
-const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
+const LocationRow = ({ icon: Icon, iconColor, search, placeholder, vehicleIcon: VehicleIcon, onSearch }) => {
   return (
     <div ref={search.containerRef} className="relative flex items-center">
-      <img src={icon} alt={placeholder} style={{ width: '48px', height: '48px', marginRight: '10px' }} />
+      <Icon size={48} color={iconColor} style={{ marginRight: '10px' }} />
       <div
         className="bg-gradient-to-r from-[#FFFFFF] to-[#A0DBFF] shadow text-full text-center font-bold relative"
         style={{ borderRadius: '8px', padding: '16px 24px', width: '700px', display: 'flex', alignItems: 'center' }}
@@ -34,7 +27,7 @@ const LocationRow = ({ icon, search, placeholder, vehicleIcon, onSearch }) => {
           onFocus={e => e.target.style.setProperty('--placeholder-opacity', '0')}
           onBlur={e => e.target.style.setProperty('--placeholder-opacity', '0.45')}
         />
-        {vehicleIcon && (
+        {VehicleIcon && (
           <svg
             onClick={onSearch}
             width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -122,7 +115,7 @@ const DirectionOne = () => {
     return () => { isActive = false; };
   }, []);
 
-  const vehicleIconMap = { bus: busIcon, bike: bikeIcon, car: carIcon, man: manIcon };
+  const vehicleIconMap = { bus: Bus, bike: Bike, car: Car, man: Footprints };
   const bothFilled = originSearch.query.trim() && destinationSearch.query.trim();
   const activeVehicleIcon = bothFilled && selectedVehicle ? vehicleIconMap[selectedVehicle] : null;
 
@@ -170,10 +163,10 @@ const DirectionOne = () => {
   };
 
   const vehicles = [
-    { key: 'bus',  src: busIcon,  alt: 'Bus',  className: 'w-12 h-12' },
-    { key: 'bike', src: bikeIcon, alt: 'Bike', className: 'w-12 h-12' },
-    { key: 'car',  src: carIcon,  alt: 'Car',  className: 'w-12.3 h-9'  },
-    { key: 'man',  src: manIcon,  alt: 'Walk', className: 'w-12 h-11.3' },
+    { key: 'bus',  icon: Bus,        alt: 'Bus',  className: 'w-12 h-12' },
+    { key: 'bike', icon: Bike,       alt: 'Bike', className: 'w-12 h-12' },
+    { key: 'car',  icon: Car,        alt: 'Car',  className: 'w-12.3 h-9'  },
+    { key: 'man',  icon: Footprints, alt: 'Walk', className: 'w-12 h-11.3' },
   ];
 
   return (
@@ -199,12 +192,14 @@ const DirectionOne = () => {
         {/* Two text box rows */}
         <div className="flex flex-col" style={{ gap: '20px' }}>
           <LocationRow
-            icon={directionCircle}
+            icon={CircleDot}
+            iconColor="#1A73E8"
             search={originSearch}
             placeholder="Your location"
           />
           <LocationRow
-            icon={locationRed}
+            icon={MapPin}
+            iconColor="#EF4444"
             search={destinationSearch}
             placeholder="Choose destination"
             vehicleIcon={activeVehicleIcon}
@@ -213,21 +208,19 @@ const DirectionOne = () => {
         </div>
 
         {/* Single upDown icon beside both boxes */}
-        <img
-          src={upDown}
-          alt="Swap"
+        <ArrowUpDown
+          size={40}
+          color="#333"
           onClick={handleSwap}
-          style={{ width: '40px', marginLeft: '20px', cursor: 'pointer', marginRight: '720px' }}
+          style={{ marginLeft: '20px', cursor: 'pointer', marginRight: '720px' }}
         />
       </div>
 
       {/* Transport Icons */}
 <div className="relative z-10 flex justify-center gap-32 mt-6 mb-10">
-  {vehicles.map(({ key, src, alt, className }) => (
-    <img
+  {vehicles.map(({ key, icon: VehicleIcon, alt, className }) => (
+    <div
       key={key}
-      src={src}
-      alt={alt}
       className={className}
       onClick={() => {
         setSelectedVehicle(key);
@@ -237,15 +230,18 @@ const DirectionOne = () => {
       }}
       style={{
         cursor: 'pointer',
-        borderRadius: '4px', // square with slightly rounded corners
+        borderRadius: '4px',
         padding: '6px',
         transition: 'background 0.2s, box-shadow 0.2s',
         background: selectedVehicle === key ? 'rgba(0,0,0,0.1)' : 'transparent',
         boxShadow: selectedVehicle === key ? '0 0 0 1px #5d5d61' : 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
       onMouseEnter={(e) => {
         if (selectedVehicle !== key) {
-          e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; // subtle hover square
+          e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
         }
       }}
       onMouseLeave={(e) => {
@@ -253,7 +249,9 @@ const DirectionOne = () => {
           e.currentTarget.style.background = 'transparent';
         }
       }}
-    />
+    >
+      <VehicleIcon size={36} color="#333" />
+    </div>
   ))}
 </div>
 
@@ -289,11 +287,7 @@ const DirectionOne = () => {
                     }
                   }}
                 >
-                  <img
-                    src={clockIcon}
-                    alt="Clock"
-                    className="w-7 h-7 mr-3 opacity-80"
-                  />
+                  <Clock size={28} className="mr-3 opacity-80" />
                   <span className="text-sm font-medium text-gray-800">{place.name || place.displayName}</span>
                 </div>
               ))

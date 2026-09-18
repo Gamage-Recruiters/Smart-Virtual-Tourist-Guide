@@ -1,9 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import L from 'leaflet';
 import middle from '../assets/middle.png';
-import exploreIcon from '../assets/explore.png';
-import userIcon from '../assets/userIcon.png';
-import directionIcon from '../assets/directionIcon.png';
+import { Compass, User, Navigation } from 'lucide-react';
 import { useUIContext } from '../contexts/UIContext';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
@@ -117,7 +115,7 @@ const Explore = () => {
     try {
       const category = 'home';
       let placeToSave = { name: "Your Location", geometry: { location: userLocation } };
-      
+
       try {
         const result = await reverseGeocode(userLocation.lat, userLocation.lng);
         if (result && result.display_name) {
@@ -141,7 +139,7 @@ const Explore = () => {
           if (url) photoUrls.push(url);
         }
       }
-      
+
       await saveFavoritePlace(placeToSave, category, null, photoUrls);
       setActionMessage({ text: 'Saved to home!', type: 'success' });
     } catch (error) {
@@ -176,7 +174,7 @@ const Explore = () => {
 
   const handleShareLocation = useCallback(async () => {
     if (!searchedPlace) return;
-    
+
     let url = '';
     if (searchedPlace?.geometry?.location) {
       const lat = typeof searchedPlace.geometry.location.lat === 'function' ? searchedPlace.geometry.location.lat() : searchedPlace.geometry.location.lat;
@@ -408,12 +406,20 @@ const Explore = () => {
             className="w-full block shadow-lg"
             style={{ height: '750px', margin: 0, padding: 0, boxShadow: '0 4px 24px rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '15px', position: 'relative', zIndex: 5 }}
           ></div>
-          <img
-            src={directionIcon}
-            alt="Direction"
+          <div
             onClick={() => appNavigate('directionOne')}
-            style={{ position: 'absolute', bottom: '20px', right: '50px', width: '70px', cursor: 'pointer', zIndex: 40 }}
-          />
+            style={{
+              position: 'absolute', bottom: '20px', right: '50px', width: '60px', height: '60px',
+              borderRadius: '50%', background: 'linear-gradient(135deg, #1A73E8, #4A90D9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 40, boxShadow: '0 4px 12px rgba(26,115,232,0.4)',
+              transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(26,115,232,0.5)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(26,115,232,0.4)'; }}
+          >
+            <Navigation size={28} color="#fff" />
+          </div>
         </div>
       </div>
 
@@ -437,12 +443,27 @@ const Explore = () => {
               className="relative z-10 flex justify-center items-center gap-[30rem]"
               style={{ marginTop: '120px', marginBottom: '8px', paddingLeft: '16px', paddingRight: '16px', zIndex: 40 }}
             >
-              <img
-                src={exploreIcon}
-                alt="Explore"
-                style={{ width: '140px', cursor: 'pointer', position: 'relative', zIndex: 40 }}
+              <div
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                  cursor: 'pointer', position: 'relative', zIndex: 40,
+                }}
                 onClick={() => setShowUserPopup(false)}
-              />
+              >
+                <div style={{
+                  width: '80px', height: '80px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #1A73E8, #4A90D9)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(26,115,232,0.35)',
+                  transition: 'transform 0.2s',
+                }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <Compass size={40} color="#fff" />
+                </div>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Explore</span>
+              </div>
               {showUserPopup && (
                 <UserPopup
                   onClose={() => setShowUserPopup(false)}
@@ -450,12 +471,27 @@ const Explore = () => {
                   renderRecentPlaceMedia={renderRecentPlaceMedia}
                 />
               )}
-              <img
-                src={userIcon}
-                alt="User"
-                style={{ width: '140px', cursor: 'pointer', position: 'relative', zIndex: 40 }}
+              <div
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                  cursor: 'pointer', position: 'relative', zIndex: 40,
+                }}
                 onClick={() => setShowUserPopup((value) => !value)}
-              />
+              >
+                <div style={{
+                  width: '80px', height: '80px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #374151, #4B5563)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(55,65,81,0.35)',
+                  transition: 'transform 0.2s',
+                }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <User size={40} color="#fff" />
+                </div>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Profile</span>
+              </div>
             </div>
           )}
         </>
@@ -464,12 +500,27 @@ const Explore = () => {
           className="relative z-10 flex justify-center items-center gap-[30rem]"
           style={{ marginTop: '120px', marginBottom: '8px', paddingLeft: '16px', paddingRight: '16px', zIndex: 40 }}
         >
-          <img
-            src={exploreIcon}
-            alt="Explore"
-            style={{ width: '140px', cursor: 'pointer', position: 'relative', zIndex: 40 }}
+          <div
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+              cursor: 'pointer', position: 'relative', zIndex: 40,
+            }}
             onClick={() => setShowUserPopup(false)}
-          />
+          >
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, #1A73E8, #4A90D9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(26,115,232,0.35)',
+              transition: 'transform 0.2s',
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <Compass size={40} color="#fff" />
+            </div>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Explore</span>
+          </div>
           {showUserPopup && (
             <UserPopup
               onClose={() => setShowUserPopup(false)}
@@ -477,12 +528,27 @@ const Explore = () => {
               renderRecentPlaceMedia={renderRecentPlaceMedia}
             />
           )}
-          <img
-            src={userIcon}
-            alt="User"
-            style={{ width: '140px', cursor: 'pointer', position: 'relative', zIndex: 40 }}
+          <div
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+              cursor: 'pointer', position: 'relative', zIndex: 40,
+            }}
             onClick={() => setShowUserPopup((value) => !value)}
-          />
+          >
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, #374151, #4B5563)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(55,65,81,0.35)',
+              transition: 'transform 0.2s',
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <User size={40} color="#fff" />
+            </div>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>You</span>
+          </div>
         </div>
       )}
     </div>

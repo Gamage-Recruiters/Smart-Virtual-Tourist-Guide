@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import user from '../../assets/user.png';
+import { UserCircle } from 'lucide-react';
 import { formatViewedAgo } from '../../utils/helpers';
 import { fetchFavoritePlaces, deleteFavoritePlace, deleteRecentPlace } from '../../services/api';
 
@@ -59,7 +59,7 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
       {/* User profile header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: '25px' }}>
         <div className="popup-header-avatar">
-          <img src={user} alt="User" style={{ width: '40%', height: '40%', objectFit: 'cover' }} />
+          <UserCircle size={48} color="#1F2937" />
         </div>
         <div style={{ lineHeight: 1.05 }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '20px', fontWeight: 700, color: '#1F2937' }}>
