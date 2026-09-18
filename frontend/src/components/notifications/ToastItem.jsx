@@ -1,29 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { removeToast, toggleNotificationModal } from "../../store/slices/notificationSlice";
-import { 
-  getCategoryIcon, 
-  getIconColor, 
-  getLeftBorderColor, 
-  playNotificationSound 
+import {
+  removeToast,
+  toggleNotificationModal,
+} from "../../store/slices/notificationSlice";
+import {
+  getCategoryIcon,
+  getIconColor,
+  getLeftBorderColor,
+  playNotificationSound,
 } from "../../utils/notificationHelpers";
 import { X, ChevronRight } from "lucide-react";
-import { useNotificationNavigation } from "../../hooks/useNotificationNavigation"; 
+import { useNotificationNavigation } from "../../hooks/useNotificationNavigation";
 
 const ToastItem = ({ notification }) => {
   const dispatch = useDispatch();
   const [isLeaving, setIsLeaving] = useState(false);
-  const { handleNotificationClick } = useNotificationNavigation(); 
+  const { handleNotificationClick } = useNotificationNavigation();
 
+  // Set how long the toast stays on the screen based on priority
   const getDuration = (priority) => {
     switch (priority?.toLowerCase()) {
-      case "critical": return 10000;
-      case "high": return 7000;
-      case "medium": return 5000;
-      default: return 4000;
+      case "critical":
+        return 10000;
+      case "high":
+        return 7000;
+      case "medium":
+        return 5000;
+      default:
+        return 4000;
     }
   };
 
+  // Play sound and start the auto-close timer when the toast appears
   useEffect(() => {
     playNotificationSound(notification.priority);
 
@@ -31,24 +40,31 @@ const ToastItem = ({ notification }) => {
     const timer = window.setTimeout(() => {
       handleClose();
     }, duration);
-    
+
     return () => window.clearTimeout(timer);
   }, [dispatch, notification]);
 
+  // Function to smoothly animate and remove the toast
   const handleClose = () => {
     setIsLeaving(true);
     window.setTimeout(() => dispatch(removeToast(notification.toastId)), 300);
   };
 
+  // When clicking anywhere on the toast body -> Open the Modal
   const handleBodyClick = () => {
     handleClose();
     dispatch(toggleNotificationModal(true));
   };
 
+  // When clicking the "View Details" button -> Navigate to the specific page
   const handleActionClick = (e) => {
-    e.stopPropagation();
-    handleClose();       
-    handleNotificationClick(notification); 
+    e.stopPropagation(); // Stop the click from triggering handleBodyClick
+    handleClose(); // Remove the toast from the screen
+
+    // Navigate to the URL using your custom hook
+    if (notification.actionUrl) {
+      handleNotificationClick(notification);
+    }
   };
 
   const Icon = getCategoryIcon(notification.category);
@@ -58,19 +74,22 @@ const ToastItem = ({ notification }) => {
       role="alert"
       aria-live="assertive"
       className={`pointer-events-auto relative flex w-[340px] bg-white/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-[16px] overflow-hidden mb-3 transition-all duration-300 transform border border-slate-100 border-l-[4px] ${getLeftBorderColor(notification.priority)} ${
-        isLeaving ? "opacity-0 translate-x-full" : "animate-in slide-in-from-top-4"
+        isLeaving
+          ? "opacity-0 translate-x-full"
+          : "animate-in slide-in-from-top-4"
       }`}
     >
       <div
         className="flex-1 p-3.5 cursor-pointer hover:bg-slate-50/50 transition-colors flex items-start group"
         onClick={handleBodyClick}
       >
-        <div className={`shrink-0 p-2 rounded-full mr-3 ring-2 ring-white shadow-sm mt-0.5 ${getIconColor(notification.priority)}`}>
+        <div
+          className={`shrink-0 p-2 rounded-full mr-3 ring-2 ring-white shadow-sm mt-0.5 ${getIconColor(notification.priority)}`}
+        >
           <Icon className="w-4 h-4" />
         </div>
 
         <div className="flex-1 min-w-0">
-          
           <div className="flex items-start justify-between">
             <h4 className="text-[13px] font-bold text-slate-800 pr-2 truncate">
               {notification.title}
@@ -91,11 +110,12 @@ const ToastItem = ({ notification }) => {
             {notification.message}
           </p>
 
+          {/* View Details Button */}
           {notification.actionUrl && (
-            <div className="mt-2.5">
+            <div className="mt-3 mb-1">
               <button
                 onClick={handleActionClick}
-                className="flex items-center gap-1 text-[11px] font-bold text-[#00aaff] hover:text-[#007bff] transition-colors active:scale-95 p-0"
+                className="flex items-center gap-1 bg-[#00aaff] hover:bg-[#007bff] text-white text-[12px] font-bold px-4 py-1.5 rounded-full transition-colors shadow-sm active:scale-95"
               >
                 View Details <ChevronRight className="w-3.5 h-3.5" />
               </button>
