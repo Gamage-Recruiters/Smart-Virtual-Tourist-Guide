@@ -451,7 +451,7 @@ const Explore = () => {
                 onClick={() => setShowUserPopup(false)}
               >
                 <div style={{
-                  width: '80px', height: '80px', borderRadius: '50%',
+                  width: '120px', height: '60px', borderRadius: '8px',
                   background: 'linear-gradient(135deg, #1A73E8, #4A90D9)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 4px 16px rgba(26,115,232,0.35)',
@@ -460,7 +460,7 @@ const Explore = () => {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <Compass size={40} color="#fff" />
+                  <Compass size={32} color="#fff" />
                 </div>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Explore</span>
               </div>
@@ -479,7 +479,7 @@ const Explore = () => {
                 onClick={() => setShowUserPopup((value) => !value)}
               >
                 <div style={{
-                  width: '80px', height: '80px', borderRadius: '50%',
+                  width: '120px', height: '60px', borderRadius: '8px',
                   background: 'linear-gradient(135deg, #374151, #4B5563)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 4px 16px rgba(55,65,81,0.35)',
@@ -488,9 +488,9 @@ const Explore = () => {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <User size={40} color="#fff" />
+                  <User size={32} color="#fff" />
                 </div>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Profile</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>You</span>
               </div>
             </div>
           )}
@@ -508,7 +508,7 @@ const Explore = () => {
             onClick={() => setShowUserPopup(false)}
           >
             <div style={{
-              width: '80px', height: '80px', borderRadius: '50%',
+              width: '120px', height: '60px', borderRadius: '8px',
               background: 'linear-gradient(135deg, #1A73E8, #4A90D9)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 16px rgba(26,115,232,0.35)',
@@ -517,7 +517,7 @@ const Explore = () => {
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <Compass size={40} color="#fff" />
+              <Compass size={32} color="#fff" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>Explore</span>
           </div>
@@ -536,7 +536,7 @@ const Explore = () => {
             onClick={() => setShowUserPopup((value) => !value)}
           >
             <div style={{
-              width: '80px', height: '80px', borderRadius: '50%',
+              width: '120px', height: '60px', borderRadius: '8px',
               background: 'linear-gradient(135deg, #374151, #4B5563)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 16px rgba(55,65,81,0.35)',
@@ -545,7 +545,7 @@ const Explore = () => {
               onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
               onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <User size={40} color="#fff" />
+              <User size={32} color="#fff" />
             </div>
             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#1F2937' }}>You</span>
           </div>
