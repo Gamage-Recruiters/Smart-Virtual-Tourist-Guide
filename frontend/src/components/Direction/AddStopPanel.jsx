@@ -262,6 +262,11 @@ export default function AddStopPanel({
             )})}
           </div>
         )}
+        
+        {/* Attribution required by Geoapify terms */}
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: '#9CA3AF', fontFamily: 'Inter, sans-serif' }}>
+          POI data by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" style={{ color: '#9CA3AF', textDecoration: 'underline' }}>Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" style={{ color: '#9CA3AF', textDecoration: 'underline' }}>OpenStreetMap contributors</a>
+        </div>
       </div>
     </div>
   );

@@ -1,17 +1,18 @@
 /**
  * Central API wrapper for open-source map services.
- * Replaces all Google Maps API calls with free, no-key-required alternatives.
  *
  * APIs used:
  *   - Photon (komoot)        → Search autocomplete
  *   - Nominatim (OSM)        → Forward & reverse geocoding
  *   - OSRM                   → Route calculation
- *   - Overpass (OSM)          → Nearby place search
- *   - Wikimedia Commons       → Place photos (Geosearch by coordinates — primary)
- *   - Wikipedia pageimages    → Place photos (by title — fallback)
+ *   - Geoapify Places (OSM)  → POI search along route (primary, 3000 credits/day free)
+ *   - Overpass (OSM)         → POI fallback + nearest hospital (cached)
+ *   - Wikimedia Commons      → Place photos (Geosearch by coordinates — primary)
+ *   - Wikipedia pageimages   → Place photos (by title — fallback)
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
 
 // ── Photon: Search Autocomplete ──
 // Sri Lanka bounding box: minLon,minLat,maxLon,maxLat
@@ -118,19 +119,62 @@ export async function getRouteWithWaypoints(coordinates, profile = 'driving') {
   }));
 }
 
-// ── Overpass: Nearby Places ──
+// ── Persistent cache + in-flight dedupe (used by all POI lookups) ──
+const POI_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // OSM data changes slowly
+const inflight = new Map();
+
+function readCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { t, data } = JSON.parse(raw);
+    if (Date.now() - t > POI_CACHE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ t: Date.now(), data }));
+  } catch {
+    // quota exceeded — skip caching
+  }
+}
+
+/** Returns cached data if fresh; otherwise runs fetcher once (concurrent callers share it). */
+function withCache(key, fetcher) {
+  const hit = readCache(key);
+  if (hit) return Promise.resolve(hit);
+  if (inflight.has(key)) return inflight.get(key);
+  const p = fetcher()
+    .then(data => {
+      if (!data?.partial) writeCache(key, data); // don't cache incomplete results
+      return data;
+    })
+    .finally(() => inflight.delete(key));
+  inflight.set(key, p);
+  return p;
+}
+
+// ── Overpass: Nearby Places (single point — e.g. nearest hospital) ──
 export async function findNearbyPlaces(lat, lng, radiusMeters = 5000, types = '"tourism"~"attraction|viewpoint|museum"') {
-  const query = `[out:json][timeout:10];node[${types}](around:${radiusMeters},${lat},${lng});out body;`;
-  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return (data.elements || []).map(el => ({
-    name: el.tags?.name || 'Unknown',
-    lat: el.lat,
-    lng: el.lon,
-    type: el.tags?.tourism || el.tags?.amenity || '',
-    osmId: el.id,
-  }));
+  const key = `near_${lat.toFixed(3)}_${lng.toFixed(3)}_${radiusMeters}_${types}`;
+  return withCache(key, async () => {
+    const query = `[out:json][timeout:10];node[${types}](around:${radiusMeters},${lat},${lng});out body;`;
+    const data = await fetchOverpass(query); // uses all mirrors
+    return (data.elements || []).map(el => ({
+      name: el.tags?.name || 'Unknown',
+      lat: el.lat,
+      lng: el.lon,
+      type: el.tags?.tourism || el.tags?.amenity || '',
+      osmId: el.id,
+    }));
+  });
 }
 
 // ── Wikimedia Commons: Place Photos by Location (Geosearch — Primary) ──
@@ -224,7 +268,7 @@ export async function getPlacePhotoByName(placeName) {
   }
 }
 
-// ── Overpass: Unified Batch Nearby Places ──
+// ── Overpass mirrors ──
 const OVERPASS_MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
@@ -243,11 +287,92 @@ async function fetchOverpass(query) {
       } else {
         console.error('Overpass mirror returned error:', mirror, res.status, await res.text());
       }
-    } catch (err) { 
+    } catch (err) {
       console.error('Overpass mirror fetch failed:', mirror, err.message);
     }
   }
   throw new Error('All Overpass mirrors failed');
+}
+
+// ── POI search along a route: cache → Geoapify → Overpass ──
+const GEO_CATEGORIES =
+  'catering.restaurant,catering.cafe,commercial.supermarket,service.vehicle.fuel,tourism.attraction';
+const GEO_RADIUS_M = 1500; // search circle around each route sample point
+const GEO_LIMIT = 40;      // ≈2 credits per request (1 + 1 per extra 20 places)
+
+function geoapifyToPOI({ properties: p }) {
+  const cats = p.categories || [];
+  let category = 'other';
+  if (cats.includes('catering.restaurant')) category = 'Restaurant';
+  else if (cats.includes('catering.cafe')) category = 'Coffee Shop';
+  else if (cats.includes('service.vehicle.fuel')) category = 'Petrol Station';
+  else if (cats.includes('commercial.supermarket')) category = 'Supermarket';
+  else if (cats.some(c => c.startsWith('tourism'))) category = 'Attraction';
+
+  const osmId = p.datasource?.raw?.osm_id ?? p.place_id;
+  return {
+    name: p.name || 'Unknown',
+    lat: p.lat,
+    lng: p.lon,
+    category,
+    vicinity: p.street || p.city || '',
+    osmId,
+    placeId: `osm-${osmId}`,
+    location: { lat: p.lat, lng: p.lon },
+  };
+}
+
+async function fetchGeoapifyPoint(p) {
+  const url =
+    `https://api.geoapify.com/v2/places?categories=${GEO_CATEGORIES}` +
+    `&filter=circle:${p.lng},${p.lat},${GEO_RADIUS_M}` +
+    `&bias=proximity:${p.lng},${p.lat}&limit=${GEO_LIMIT}&apiKey=${GEOAPIFY_KEY}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Geoapify ${res.status}`);
+  const data = await res.json();
+  return (data.features || []).map(geoapifyToPOI);
+}
+
+async function findPOIsGeoapify(points) {
+  // One request per sample point, in parallel; a single failure doesn't lose the rest
+  const results = await Promise.allSettled(points.map(fetchGeoapifyPoint));
+  const pois = results.filter(r => r.status === 'fulfilled').flatMap(r => r.value);
+
+  // Every request failed → throw so findAllNearbyPOIs falls back to Overpass
+  if (!pois.length && results.every(r => r.status === 'rejected')) {
+    throw new Error('All Geoapify requests failed');
+  }
+
+  const seen = new Set();
+  const unique = pois.filter(poi => {
+    if (seen.has(poi.placeId)) return false;
+    seen.add(poi.placeId);
+    return true;
+  });
+
+  // Some points failed → return what we have, but flag it so it isn't cached for 24h
+  if (results.some(r => r.status === 'rejected')) {
+    Object.defineProperty(unique, 'partial', { value: true });
+  }
+  return unique;
+}
+
+async function findPOIsOverpass(points, radiusMap) {
+  // "lat1,lon1,lat2,lon2,..." — Overpass treats multiple points as a route corridor
+  const coords = points.map(p => `${Number(p.lat).toFixed(5)},${Number(p.lng).toFixed(5)}`).join(',');
+
+  const query = `[out:json][timeout:25];
+(
+  node["amenity"~"restaurant|cafe"](around:${radiusMap.restaurant},${coords});
+  node["amenity"="fuel"](around:${radiusMap.fuel},${coords});
+  node["shop"="supermarket"](around:${radiusMap.supermarket},${coords});
+  node["tourism"~"attraction|viewpoint|museum"](around:${radiusMap.attraction},${coords});
+);
+out body;`;
+
+  const data = await fetchOverpass(query);
+  return dedupeAndTag(data?.elements || []);
 }
 
 export async function findAllNearbyPOIs(samplePoints, radiusMap = {
@@ -263,19 +388,19 @@ export async function findAllNearbyPOIs(samplePoints, radiusMap = {
   const points = dedupePoints(samplePoints, 3); // 3 decimal places ≈ 100m
   if (points.length === 0) return [];
 
-  // Build "lat1,lon1,lat2,lon2,..." string safely with fixed decimals
-  const coords = points.map(p => `${Number(p.lat).toFixed(5)},${Number(p.lng).toFixed(5)}`).join(',');
+  // ~1 km rounding so the same route always hits the same cache entry
+  const key = 'poi_v2_' + points.map(p => `${p.lat.toFixed(2)},${p.lng.toFixed(2)}`).join('|');
 
-  const query = `[out:json][timeout:25];
-(
-  node["amenity"~"restaurant|cafe|fuel"](around:${radiusMap.restaurant},${coords});
-  node["shop"="supermarket"](around:${radiusMap.supermarket},${coords});
-  node["tourism"~"attraction|viewpoint|museum"](around:${radiusMap.attraction},${coords});
-);
-out body;`;
-
-  const data = await fetchOverpass(query);
-  return dedupeAndTag(data?.elements || []);
+  return withCache(key, async () => {
+    if (GEOAPIFY_KEY) {
+      try {
+        return await findPOIsGeoapify(points);
+      } catch (err) {
+        console.warn('Geoapify failed, falling back to Overpass:', err.message);
+      }
+    }
+    return findPOIsOverpass(points, radiusMap);
+  });
 }
 
 function dedupePoints(points, decimals) {
@@ -294,7 +419,7 @@ function dedupeAndTag(elements) {
     const key = `${el.lat.toFixed(5)},${el.lon.toFixed(5)}`;
     if (seen.has(key)) return acc;
     seen.add(key);
-    
+
     let category = 'other';
     if (el.tags?.amenity === 'restaurant') category = 'Restaurant';
     else if (el.tags?.amenity === 'fuel') category = 'Petrol Station';
@@ -316,6 +441,7 @@ function dedupeAndTag(elements) {
   }, []);
 }
 
+// Session-level route cache (kept for usePOISearch.js — now sits on top of the 24h cache above)
 export function getCachedPOIs(routeHash, maxAgeMs = 30 * 60 * 1000) {
   try {
     const raw = sessionStorage.getItem(`poi_${routeHash}`);
