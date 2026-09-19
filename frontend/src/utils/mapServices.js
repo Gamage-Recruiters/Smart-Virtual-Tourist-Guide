@@ -96,6 +96,28 @@ export async function getRoute(originLat, originLng, destLat, destLng, profile =
   }));
 }
 
+// ── OSRM: Multi-Waypoint Route Calculation ──
+/**
+ * Multi-waypoint OSRM route. coordinates is [{lat,lng}, ...] with 2+ points.
+ * Returns an array of route objects, each with full legs[] (one per segment).
+ * No alternatives — OSRM only supports alternatives for 2-point routes.
+ */
+export async function getRouteWithWaypoints(coordinates, profile = 'driving') {
+  if (!coordinates || coordinates.length < 2) return null;
+  const coordString = coordinates.map(c => `${c.lng},${c.lat}`).join(';');
+  const url = `https://router.project-osrm.org/route/v1/${profile}/${coordString}?overview=full&geometries=geojson&steps=true`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.code !== 'Ok') return null;
+  return data.routes.map(route => ({
+    geometry: route.geometry,
+    distance: route.distance,           // total distance in meters
+    duration: route.duration,           // total duration in seconds
+    legs: route.legs,                   // array of legs — one per segment
+    summary: route.legs.map(l => l.summary).join(' → '),
+  }));
+}
+
 // ── Overpass: Nearby Places ──
 export async function findNearbyPlaces(lat, lng, radiusMeters = 5000, types = '"tourism"~"attraction|viewpoint|museum"') {
   const query = `[out:json][timeout:10];node[${types}](around:${radiusMeters},${lat},${lng});out body;`;

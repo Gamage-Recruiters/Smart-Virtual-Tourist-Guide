@@ -6,7 +6,7 @@ import { useNavigationContext } from '../contexts/NavigationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getRoute } from '../utils/mapServices';
+import { getRoute, getRouteWithWaypoints } from '../utils/mapServices';
 import '../utils/leafletSetup';
 
 const MODE_ICONS = {
@@ -73,6 +73,8 @@ const EtaPage = () => {
   const durationMinutes = etaData?.durationMinutes || 0;
   const traffic = etaData?.traffic || 'Light traffic';
   const mode = etaData?.mode || 'drive';
+  const waypoints = etaData?.waypoints || [];
+  const hasWaypoints = waypoints.length > 0;
 
   const distKm = parseDistanceKm(distance);
   const fuelRate = FUEL_RATES[mode] || 0;
@@ -125,12 +127,26 @@ const EtaPage = () => {
       const destLat = typeof destLoc.lat === 'function' ? destLoc.lat() : destLoc.lat;
       const destLng = typeof destLoc.lng === 'function' ? destLoc.lng() : destLoc.lng;
 
-      getRoute(originLat, originLng, destLat, destLng, osrmProfile).then((osrmRoutes) => {
+      // Choose routing method based on whether waypoints exist
+      const routePromise = hasWaypoints
+        ? getRouteWithWaypoints(
+            [{ lat: originLat, lng: originLng }, ...waypoints, { lat: destLat, lng: destLng }],
+            osrmProfile
+          )
+        : getRoute(originLat, originLng, destLat, destLng, osrmProfile);
+
+      routePromise.then((osrmRoutes) => {
         if (osrmRoutes && osrmRoutes.length > 0) {
           const allRoutes = osrmRoutes.map((route, idx) => {
-            const durationMins = Math.round(route.duration / 60);
-            const distM = route.distance;
-            const distText = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${Math.round(distM)} m`;
+            // For waypoint routes, sum all legs; for regular routes use top-level values
+            const totalDuration = route.legs
+              ? route.legs.reduce((sum, l) => sum + (l.duration || 0), 0)
+              : route.duration;
+            const totalDistance = route.legs
+              ? route.legs.reduce((sum, l) => sum + (l.distance || 0), 0)
+              : route.distance;
+            const durationMins = Math.round(totalDuration / 60);
+            const distText = totalDistance >= 1000 ? `${(totalDistance / 1000).toFixed(1)} km` : `${Math.round(totalDistance)} m`;
             
             return {
               index: idx,
@@ -240,6 +256,11 @@ const EtaPage = () => {
           <div style={{ textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#374151', fontFamily: "'Inter', sans-serif", marginTop: '4px' }}>
             Arrival: {arrivalTime}
           </div>
+          {hasWaypoints && (
+            <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 500, color: '#1A73E8', fontFamily: "'Inter', sans-serif", marginTop: '4px' }}>
+              via {waypoints.map(s => s.name).join(' → ')}
+            </div>
+          )}
         </div>
 
         {/* ── Map ── */}
@@ -316,8 +337,8 @@ const EtaPage = () => {
           </div>
         </div>
 
-        {/* ── Alternative Routes Card ── */}
-        {alternativeRoutes.length > 0 && (
+        {/* ── Alternative Routes Card (hidden when waypoints exist) ── */}
+        {!hasWaypoints && alternativeRoutes.length > 0 && (
           <div style={{
             background: 'linear-gradient(90deg, #FFFFFF 0%, #A0DBFF 100%)',
             borderRadius: '14px',

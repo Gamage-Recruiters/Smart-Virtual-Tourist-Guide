@@ -41,6 +41,9 @@ export default function DirectionPage() {
   const [addStopOpen, setAddStopOpen] = useState(false);
   const [stopPanelCollapsed, setStopPanelCollapsed] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+  const [pendingStops, setPendingStops] = useState([]);
+  const [lockedStops, setLockedStops] = useState([]);
+  const [isEditingStops, setIsEditingStops] = useState(false);
   
   const [originLabel, setOriginLabel] = useState('');
   const [destPlace, setDestPlace] = useState(searchedPlace);
@@ -160,9 +163,13 @@ export default function DirectionPage() {
 
   useEffect(() => {
     if (!mapInstanceRef.current || !originChosenRef.current) return;
-    const { origin, destination: currentDest } = routing.activeRoutePairRef.current;
+    const { origin, destination: currentDest, waypoints: currentWaypoints } = routing.activeRoutePairRef.current;
     if (!origin || !currentDest) return;
-    routing.requestDirections(origin, currentDest, selectedMode);
+    if (lockedStops.length > 0 || currentWaypoints?.length > 0) {
+      routing.requestDirectionsWithWaypoints(origin, lockedStops.length > 0 ? lockedStops : currentWaypoints, currentDest, selectedMode);
+    } else {
+      routing.requestDirections(origin, currentDest, selectedMode);
+    }
   }, [selectedMode]);
 
   useEffect(() => {
@@ -283,13 +290,54 @@ export default function DirectionPage() {
     const dest = destPlace || searchedPlace;
     if (dest) {
       setSearchedPlace(dest);
-      const savedRoute = { destination: dest, origin: userLocationRef.current || userLocation, mode: selectedMode, updatedAt: new Date().toISOString() };
+      const savedRoute = {
+        destination: dest,
+        origin: userLocationRef.current || userLocation,
+        mode: selectedMode,
+        waypoints: lockedStops,
+        updatedAt: new Date().toISOString()
+      };
       window.localStorage.setItem('savedDirectionRoute', JSON.stringify(savedRoute));
     }
     setShowSearchBar(true);
     appNavigate('start');
     setActionMessage({ text: 'Opening start page.', type: 'success' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAddStopPoint = (place) => {
+    if (pendingStops.length >= 5) {
+      setActionMessage({ text: 'Maximum 5 stops allowed.', type: 'error' });
+      return;
+    }
+    const loc = place?.location || { lat: place.lat, lng: place.lng };
+    const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+    const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+    setPendingStops(prev => [...prev, { lat, lng, name: place.name, placeId: place.osmId || place.placeId }]);
+    addPoiMarker(place);
+  };
+
+  const handleRemoveStopPoint = (index) => {
+    setPendingStops(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRecalculateRoute = async () => {
+    const origin = userLocationRef.current;
+    const dest = routing.activeRoutePairRef.current.destination;
+    if (!origin || !dest) return;
+    await routing.requestDirectionsWithWaypoints(origin, pendingStops, dest, selectedMode);
+    setLockedStops([...pendingStops]);
+    setPendingStops([]);
+    setIsEditingStops(false);
+    setAddStopOpen(false);
+  };
+
+  const handleEditStops = () => {
+    setPendingStops([...lockedStops]);
+    setLockedStops([]);
+    setIsEditingStops(true);
+    setAddStopOpen(true);
+    setStopPanelCollapsed(false);
   };
 
   const addPoiMarker = (place) => {
@@ -362,6 +410,11 @@ export default function DirectionPage() {
             poiError={poiSearch.poiError}
             filteredPois={poiSearch.filteredPois}
             addPoiMarker={addPoiMarker}
+            pendingStops={pendingStops}
+            onAddStop={handleAddStopPoint}
+            onRemoveStop={handleRemoveStopPoint}
+            onRecalculate={handleRecalculateRoute}
+            isEditingStops={isEditingStops}
           />
         )}
 
@@ -414,9 +467,10 @@ export default function DirectionPage() {
                     routes={routing.routes}
                     loadingRoutes={routing.loadingRoutes}
                     handleStart={handleStart}
-                    handleAddStop={() => { setAddStopOpen(true); setStopPanelCollapsed(false); }}
+                    handleAddStop={lockedStops.length > 0 ? handleEditStops : () => { setAddStopOpen(true); setStopPanelCollapsed(false); setIsEditingStops(true); }}
                     handleShare={handleShare}
                     handleSave={handleSave}
+                    lockedStops={lockedStops}
                   />
                 </div>
               </div>

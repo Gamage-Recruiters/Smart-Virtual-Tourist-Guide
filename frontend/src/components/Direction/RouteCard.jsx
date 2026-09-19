@@ -10,7 +10,8 @@ export default function RouteCard({
   handleStart,
   handleAddStop,
   handleShare,
-  handleSave
+  handleSave,
+  lockedStops = [],
 }) {
   if (!routes.length || !selectedRoute) return null;
 
@@ -25,6 +26,11 @@ export default function RouteCard({
       <div className="mt-4 text-medium text-slate-600">
         <p>{firstLine}</p>
         {secondLine && <p className="text-slate-500">{secondLine}</p>}
+        {lockedStops.length > 0 && (
+          <p style={{ fontSize: '13px', color: '#1A73E8', marginTop: '8px', fontWeight: 500 }}>
+            via {lockedStops.map(s => s.name).join(' → ')}
+          </p>
+        )}
         {loadingRoutes && <span className="text-slate-400 text-xs">Updating...</span>}
       </div>
 
@@ -38,7 +44,7 @@ export default function RouteCard({
 
       <div className="mt-12 flex items-center justify-between gap-4 w-full overflow-x-auto">
         <button type="button" onClick={handleStart} className="flex-1 rounded-xl bg-[#1A73E8] py-4 px-2 text-medium font-semibold text-white hover:bg-[#165fbe] whitespace-nowrap">Start</button>
-        <button type="button" onClick={handleAddStop} className="flex-1 rounded-xl bg-[#1A73E8] py-4 px-2 text-medium font-semibold text-white hover:bg-[#165fbe] whitespace-nowrap">Add Stop</button>
+        <button type="button" onClick={handleAddStop} className="flex-1 rounded-xl bg-[#1A73E8] py-4 px-2 text-medium font-semibold text-white hover:bg-[#165fbe] whitespace-nowrap">{lockedStops.length > 0 ? 'Edit Stops' : 'Add Stop'}</button>
         <button type="button" onClick={handleShare} className="flex-1 rounded-xl bg-[#1A73E8] py-4 px-2 text-medium font-semibold text-white hover:bg-[#165fbe] whitespace-nowrap">Share</button>
         <button type="button" onClick={handleSave} className="flex-1 rounded-xl bg-[#1A73E8] py-4 px-2 text-medium font-semibold text-white hover:bg-[#165fbe] whitespace-nowrap">Save</button>
       </div>

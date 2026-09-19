@@ -16,7 +16,12 @@ export default function AddStopPanel({
   poiLoading,
   poiError,
   filteredPois,
-  addPoiMarker
+  addPoiMarker,
+  pendingStops = [],
+  onAddStop,
+  onRemoveStop,
+  onRecalculate,
+  isEditingStops,
 }) {
   return (
     <div style={{
@@ -136,6 +141,42 @@ export default function AddStopPanel({
           )}
         </div>
 
+        {/* Pending stops list */}
+        {pendingStops.length > 0 && (
+          <div style={{ margin: '0 0 16px', padding: '12px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+              Stops to add ({pendingStops.length}):
+            </div>
+            {pendingStops.map((stop, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < pendingStops.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#F97316', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#111' }}>{stop.name}</span>
+                </div>
+                <button onClick={() => onRemoveStop(i)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontWeight: 700, fontSize: '16px', padding: '4px 8px' }}>✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Recalculate Route button */}
+        {pendingStops.length > 0 && (
+          <button
+            onClick={onRecalculate}
+            style={{
+              width: '100%', padding: '14px', background: '#1A73E8', color: '#fff',
+              border: 'none', borderRadius: '10px', fontFamily: 'Inter, sans-serif',
+              fontWeight: 600, fontSize: '15px', cursor: 'pointer', marginBottom: '16px',
+              boxShadow: '0 4px 12px rgba(26,115,232,0.3)',
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => e.target.style.background = '#165fbe'}
+            onMouseLeave={e => e.target.style.background = '#1A73E8'}
+          >
+            Recalculate Route ({pendingStops.length} stop{pendingStops.length > 1 ? 's' : ''})
+          </button>
+        )}
+
         <div style={{ marginTop: '20px'}}>
           <div style={{ display: 'flex', gap: '25%',marginLeft: '2%' }}>
             {['Restaurant', 'Petrol Station', 'Coffee Shop', 'Supermarket', 'Attraction'].map((item) => (
@@ -201,7 +242,7 @@ export default function AddStopPanel({
               return (
               <div key={place.osmId}
                 onClick={() => {
-                  addPoiMarker(place);
+                  onAddStop ? onAddStop(place) : addPoiMarker(place);
                   setStopPanelCollapsed(true);
                 }}
                 style={{

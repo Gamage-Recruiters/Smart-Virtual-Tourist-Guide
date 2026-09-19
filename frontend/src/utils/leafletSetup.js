@@ -224,12 +224,50 @@ export const createRouteLabel = (map, position, content, onClick) => {
   const lng = typeof position.lng === 'function' ? position.lng() : position.lng;
   const icon = L.divIcon({
     className: '',
-    html: `<div style="transform:translate(-50%,-50%);${onClick ? 'cursor:pointer;' : 'pointer-events:none;'}">${content}</div>`,
+    html: `<div style="transform:translate(-50%,-50%);pointer-events:auto;">${content}</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
-  const marker = L.marker([lat, lng], { icon, interactive: !!onClick }).addTo(map);
-  if (onClick) marker.on('click', onClick);
+  const marker = L.marker([lat, lng], { icon, interactive: true }).addTo(map);
+  
+  if (onClick) {
+    marker.on('click', (e) => {
+      if (e.originalEvent && e.originalEvent.target.closest('.close-label-btn')) {
+        return;
+      }
+      onClick(e);
+    });
+  }
+
+  const attachCloseListener = () => {
+    const el = marker.getElement();
+    if (el) {
+      // Disable click propagation to map
+      L.DomEvent.disableClickPropagation(el);
+      const closeBtn = el.querySelector('.close-label-btn');
+      if (closeBtn) {
+        L.DomEvent.on(closeBtn, 'click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+          marker.remove();
+        });
+        
+        // Also support touchstart for mobile
+        L.DomEvent.on(closeBtn, 'touchstart', (e) => {
+          L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
+          marker.remove();
+        });
+      }
+    }
+  };
+
+  if (marker.getElement()) {
+    attachCloseListener();
+  } else {
+    marker.once('add', attachCloseListener);
+  }
+
   // Leaflet-compatible setMap(null) pattern for uniform cleanup
   marker.setMap = (m) => { if (!m) marker.remove(); };
   return marker;

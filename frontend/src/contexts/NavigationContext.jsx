@@ -15,6 +15,7 @@ export const NavigationProvider = ({ children }) => {
   const [pendingVehicle, setPendingVehicle] = useState(null);
   const [etaData, setEtaData] = useState(null);
   const [safetyData, setSafetyData] = useState(null);
+  const [waypoints, setWaypoints] = useState([]);
 
   return (
     <NavigationContext.Provider value={{
@@ -22,6 +23,7 @@ export const NavigationProvider = ({ children }) => {
       pendingVehicle, setPendingVehicle,
       etaData, setEtaData,
       safetyData, setSafetyData,
+      waypoints, setWaypoints,
     }}>
       {children}
     </NavigationContext.Provider>

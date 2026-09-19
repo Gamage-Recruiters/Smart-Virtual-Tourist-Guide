@@ -32,6 +32,7 @@ export default function NavigationPage() {
 
   const [navStepIndex, setNavStepIndex] = useState(0);
   const [navArrived, setNavArrived] = useState(false);
+  const [currentLegIndex, setCurrentLegIndex] = useState(0);
   
   const originMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
@@ -107,22 +108,40 @@ export default function NavigationPage() {
     return { lat: 6.9271, lng: 79.8612 };
   }, [userLocation]);
 
+  // Extract waypoints from localStorage
+  const getWaypoints = useCallback(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('savedDirectionRoute') || 'null');
+      return saved?.waypoints || [];
+    } catch { return []; }
+  }, []);
+
   const updateNavigation = useCallback((loc) => {
     if (!loc) return;
-    const activeRoute = routing.routes?.[routing.selectedIdx] || routing.directionsResultRef.current?.routes?.[routing.selectedIdx]?.legs?.[0];
-    const steps = activeRoute?.steps || [];
+    const waypoints = getWaypoints();
     const dest = getDestinationCoords();
+    const allTargets = [...waypoints, dest].filter(Boolean);
 
-    // Check if arrived at destination
-    if (dest) {
-      const distToDest = haversineDistance(loc.lat, loc.lng, dest.lat, dest.lng);
-      if (distToDest <= 35) {
-        setNavArrived(true);
-        return;
+    // Check if arrived at current leg target
+    if (currentLegIndex < allTargets.length) {
+      const nextTarget = allTargets[currentLegIndex];
+      const distToTarget = haversineDistance(loc.lat, loc.lng, nextTarget.lat, nextTarget.lng);
+      if (distToTarget <= 50) {
+        if (currentLegIndex === allTargets.length - 1) {
+          setNavArrived(true);
+          return;
+        } else {
+          setCurrentLegIndex(prev => prev + 1);
+          setNavStepIndex(0); // Reset step index for next leg
+          return;
+        }
       }
     }
 
-    // Advance to next step if user gets within 30m of the maneuver point
+    // Advance step within current leg
+    const activeRoute = routing.directionsResultRef.current?.routes?.[routing.selectedIdx];
+    const currentLeg = activeRoute?.legs?.[currentLegIndex];
+    const steps = currentLeg?.steps || routing.routes?.[routing.selectedIdx]?.steps || [];
     if (steps.length > 0) {
       setNavStepIndex((currentIdx) => {
         if (currentIdx >= steps.length - 1) return currentIdx;
@@ -137,7 +156,7 @@ export default function NavigationPage() {
         return currentIdx;
       });
     }
-  }, [routing.routes, routing.directionsResultRef.current, routing.selectedIdx, getDestinationCoords]);
+  }, [routing.routes, routing.directionsResultRef.current, routing.selectedIdx, currentLegIndex, getDestinationCoords, getWaypoints]);
 
   // Initialize route, markers and start GPS watching
   useEffect(() => {
@@ -171,7 +190,12 @@ export default function NavigationPage() {
       mapInstanceRef.current.setView([origin.lat, origin.lng], 17);
 
       // Load directions immediately
-      routing.requestDirections(origin, dest, selectedMode);
+      const waypoints = getWaypoints();
+      if (waypoints.length > 0) {
+        routing.requestDirectionsWithWaypoints(origin, waypoints, dest, selectedMode);
+      } else {
+        routing.requestDirections(origin, dest, selectedMode);
+      }
     }
 
     // Set up real-time GPS tracking
@@ -272,8 +296,9 @@ export default function NavigationPage() {
 
   // Resolve active maneuver step from route data
   const getActiveManeuverStep = useCallback(() => {
-    const activeRoute = routing.routes?.[routing.selectedIdx] || routing.directionsResultRef.current?.routes?.[routing.selectedIdx]?.legs?.[0];
-    const steps = activeRoute?.steps || [];
+    const fullRoute = routing.directionsResultRef.current?.routes?.[routing.selectedIdx];
+    const currentLeg = fullRoute?.legs?.[currentLegIndex];
+    const steps = currentLeg?.steps || routing.routes?.[routing.selectedIdx]?.steps || [];
     if (!steps.length) return null;
 
     const safeIndex = Math.min(navStepIndex, steps.length - 1);
@@ -327,6 +352,13 @@ export default function NavigationPage() {
             totalSteps={activeManeuver?.totalSteps || 0}
             onPrevStep={() => setNavStepIndex((i) => Math.max(0, i - 1))}
             onNextStep={() => setNavStepIndex((i) => Math.min((activeManeuver?.totalSteps || 1) - 1, i + 1))}
+            legLabel={
+              getWaypoints().length > 0
+                ? (currentLegIndex < getWaypoints().length
+                  ? `Heading to Stop ${currentLegIndex + 1}`
+                  : 'Heading to Destination')
+                : null
+            }
           />
         </div>
         

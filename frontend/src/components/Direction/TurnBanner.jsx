@@ -9,6 +9,7 @@ export default function TurnBanner({
   totalSteps = 0,
   onPrevStep,
   onNextStep,
+  legLabel,
 }) {
   const instruction = (currentTurnInstruction || bannerTitle || '').toLowerCase();
   const isLeft = instruction.includes('left');
@@ -83,6 +84,9 @@ export default function TurnBanner({
 
         {/* Text Content */}
         <div className="flex min-w-0 flex-1 flex-col justify-center">
+          {legLabel && (
+            <span className="text-xs font-semibold text-blue-500 mb-0.5">{legLabel}</span>
+          )}
           {totalSteps > 1 && (
             <div className="flex items-center justify-between gap-2 mb-1">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600">

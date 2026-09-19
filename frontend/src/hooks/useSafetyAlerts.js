@@ -99,7 +99,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
         const temperature = alert.temperature != null ? `${Math.round(alert.temperature)}°C` : 'N/A';
         const windSpeed = alert.windSpeed != null ? `${alert.windSpeed} km/h` : 'N/A';
         const severity = alert.severity || 'N/A';
-        const html = `<div style="transform:translateY(-72px);min-width:230px;max-width:320px;border-radius:10px;background:#FDE68A;padding:10px 12px;box-shadow:0 3px 8px rgba(0,0,0,.3);color:#111;line-height:1.35;"><div style="font-weight:800;font-size:12px;">${title}</div><div style="font-weight:700;font-size:11px;margin-top:3px;">${condition}${location ? ` · ${location}` : ''}</div><div style="font-size:10px;margin-top:3px;">Temperature: ${temperature} · Wind: ${windSpeed} · Severity: ${severity}</div>${description ? `<div style="font-size:10px;margin-top:4px;white-space:normal;">${description}</div>` : ''}</div>`;
+        const html = `<div style="position:relative;transform:translateY(-72px);min-width:230px;max-width:320px;border-radius:10px;background:#FDE68A;padding:10px 12px;box-shadow:0 3px 8px rgba(0,0,0,.3);color:#111;line-height:1.35;padding-right:24px;"><div class="close-label-btn" style="position:absolute;top:6px;right:6px;width:20px;height:20px;background:rgba(0,0,0,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#000;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div><div style="font-weight:800;font-size:12px;">${title}</div><div style="font-weight:700;font-size:11px;margin-top:3px;">${condition}${location ? ` · ${location}` : ''}</div><div style="font-size:10px;margin-top:3px;">Temperature: ${temperature} · Wind: ${windSpeed} · Severity: ${severity}</div>${description ? `<div style="font-size:10px;margin-top:4px;white-space:normal;">${description}</div>` : ''}</div>`;
         weatherLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, labelPosition, html));
       });
     } catch (error) {
@@ -133,12 +133,16 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
 
     const floodLabel = `
       <div style="
+        position: relative;
         transform: translateY(-60px);
         min-width: 220px; max-width: 300px; height: 44px;
         border-radius: 12px; background: #E8CC1C;
         display: flex; align-items: center; justify-content: center;
-        gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.28); padding: 0 14px;
+        gap: 10px; box-shadow: 0px 2px 6px rgba(0,0,0,0.28); padding: 0 28px 0 14px;
       ">
+        <div class="close-label-btn" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:20px;height:20px;background:rgba(0,0,0,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#000;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </div>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
             fill="none" stroke="#E53935" stroke-width="1.8" stroke-linejoin="round"/>
@@ -209,13 +213,17 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
 
     const crimeLabelHtml = `
       <div style="
+        position: relative;
         transform: translateY(-60px);
         min-width: 200px; max-width: 300px; height: 48px;
         border-radius: 12px;
         background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%);
         display: flex; align-items: center; justify-content: center;
-        gap: 10px; box-shadow: 0px 3px 8px rgba(211,47,47,0.45); padding: 0 14px;
+        gap: 10px; box-shadow: 0px 3px 8px rgba(211,47,47,0.45); padding: 0 28px 0 14px;
       ">
+        <div class="close-label-btn" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:20px;height:20px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#FFF;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </div>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
             fill="none" stroke="#FFF" stroke-width="1.8" stroke-linejoin="round"/>
@@ -245,7 +253,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
         const lng = alert.longitude ?? alert.lng;
         if (lat == null || lng == null || getDistanceToPath({ lat, lng }, overviewPath) > 5000) return;
         const location = alert.location ? ` · ${alert.location}` : '';
-        const html = `<div style="transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#EF4444;display:flex;align-items:center;justify-content:center;padding:8px 12px;box-shadow:0 3px 8px rgba(127,29,29,.4);"><span style="font-weight:700;font-size:11px;color:#fff;white-space:normal;text-align:center;">${alert.title || 'Security alert'}${location}</span></div>`;
+        const html = `<div style="position:relative;transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#EF4444;display:flex;align-items:center;justify-content:center;padding:8px 24px 8px 12px;box-shadow:0 3px 8px rgba(127,29,29,.4);"><div class="close-label-btn" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:20px;height:20px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#FFF;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div><span style="font-weight:700;font-size:11px;color:#fff;white-space:normal;text-align:center;">${alert.title || 'Security alert'}${location}</span></div>`;
         crimeLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, { lat, lng }, html));
       });
     } catch (err) {
@@ -313,13 +321,15 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
 
     const roadblockLabelHtml = `
       <div style="
+        position: relative;
         transform: translateY(-60px);
         min-width: 200px; max-width: 310px; height: 48px;
         border-radius: 12px;
         background: linear-gradient(135deg, #FACC15 0%, #EAB308 100%);
         display: flex; align-items: center; justify-content: center;
-        gap: 10px; box-shadow: 0px 3px 8px rgba(161,98,7,0.35); padding: 0 14px;
+        gap: 10px; box-shadow: 0px 3px 8px rgba(161,98,7,0.35); padding: 0 28px 0 14px;
       ">
+        <div class="close-label-btn" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:20px;height:20px;background:rgba(0,0,0,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#111;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
         <svg width="22" height="24" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect x="6" y="50" width="40" height="7" rx="2" fill="#444"/>
           <rect x="8" y="50" width="36" height="4" rx="1.5" fill="#555"/>
@@ -350,7 +360,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
         const lng = incident.location?.lng ?? incident.longitude ?? incident.lng;
         if (lat == null || lng == null || getDistanceToPath({ lat, lng }, overviewPath) > 5000) return;
         const location = incident.district ? ` · ${incident.district}` : '';
-        const html = `<div style="transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#FACC15;display:flex;align-items:center;justify-content:center;padding:8px 12px;box-shadow:0 3px 8px rgba(161,98,7,.35);"><span style="font-weight:700;font-size:11px;color:#111;white-space:normal;text-align:center;">${incident.incidentCategory || 'Incident'}${location}</span></div>`;
+        const html = `<div style="position:relative;transform:translateY(-56px);min-width:180px;max-width:280px;min-height:42px;border-radius:10px;background:#FACC15;display:flex;align-items:center;justify-content:center;padding:8px 24px 8px 12px;box-shadow:0 3px 8px rgba(161,98,7,.35);"><div class="close-label-btn" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:20px;height:20px;background:rgba(0,0,0,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#111;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div><span style="font-weight:700;font-size:11px;color:#111;white-space:normal;text-align:center;">${incident.incidentCategory || 'Incident'}${location}</span></div>`;
         roadblockLabelsRef.current.push(createRouteLabel(mapInstanceRef.current, { lat, lng }, html));
       });
     } catch (err) {
