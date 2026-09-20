@@ -100,3 +100,18 @@ export const replyToReviewService = async (reviewId, replyText) => {
 export const deleteReviewService = async (reviewId) => {
     return await Review.findByIdAndDelete(reviewId);
 };
+
+
+
+/**
+ * Retrieves all reviews that have been reported by users.
+ * Used by the Admin Control Panel for moderation purposes.
+ * 
+ * @returns {Promise<Array>} - An array of reported review documents sorted by newest first.
+ */
+export const getReportedReviewsService = async () => {
+    // isReported kiyana field eka true wela thiyena ewa witharak gannawa
+    // TODO: Add .populate('touristId targetProviderId') later to show admin who wrote it and for whom
+    return await Review.find({ isReported: true })
+                       .sort({ updatedAt: -1 }); 
+};

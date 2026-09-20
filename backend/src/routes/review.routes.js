@@ -9,7 +9,8 @@ import {
     markHelpful, 
     deleteReview,
     getBatchProviderRatings,
-    replyToReview
+    replyToReview,
+    getReportedReviews
 } from '../controllers/review.controller.js';
 
 // Import our Joi Validator
@@ -35,6 +36,14 @@ router.post('/', protect, validateReview, createReview);
  * @access  Public
  */
 router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
+
+/**
+ * @route   GET /api/reviews/admin/reported
+ * @desc    Get all flagged/reported reviews
+ * @access  Private (Admin only)
+ */
+// TODO: Add authorizeRoles('admin_user') middleware here later
+router.get('/admin/reported', protect, getReportedReviews);
 
 
 /**

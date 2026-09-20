@@ -6,7 +6,8 @@ import {
     getBatchReviewsService,
     reportReviewService,
     markHelpfulService,
-    replyToReviewService
+    replyToReviewService,
+    getReportedReviewsService
 } from '../services/review.service.js';
 
 import { calculateRatingStats, calculateBatchRatings } from '../utils/rating.util.js';
@@ -154,6 +155,26 @@ export const deleteReview = async (req, res) => {
         if (!deletedReview) return res.status(404).json({ success: false, message: 'Review not found' });
         
         res.status(200).json({ success: true, message: 'Review deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+
+/**
+ * @desc    Get all reported reviews for admin moderation
+ * @route   GET /api/reviews/admin/reported
+ * @access  Private (Admin only)
+ */
+export const getReportedReviews = async (req, res) => {
+    try {
+        const reportedReviews = await getReportedReviewsService();
+
+        res.status(200).json({ 
+            success: true, 
+            count: reportedReviews.length,
+            data: reportedReviews 
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
     }
