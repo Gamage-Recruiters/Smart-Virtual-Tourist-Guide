@@ -6,11 +6,12 @@ import { useAppNavigate } from '../hooks/useAppNavigate';
 import { useLeafletMap } from '../hooks/useLeafletMap';
 import { useRouting } from '../hooks/useRouting';
 import { useSafetyAlerts } from '../hooks/useSafetyAlerts';
-import { haversineDistance, formatDistance } from '../utils/geo';
+import { haversineDistance, formatDistance, calculateBearing } from '../utils/geo';
 import L from 'leaflet';
 import TurnBanner from '../components/Direction/TurnBanner';
 import NavigationControls from '../components/Direction/NavigationControls';
-import { getNavigationMarkerIcon } from '../utils/leafletSetup';
+import { getNavigationArrowIcon } from '../utils/leafletSetup';
+import { LocateFixed } from 'lucide-react';
 
 export default function NavigationPage() {
   const { setTitle, setShowSearchBar } = useUIContext();
@@ -33,11 +34,19 @@ export default function NavigationPage() {
   const [navStepIndex, setNavStepIndex] = useState(0);
   const [navArrived, setNavArrived] = useState(false);
   const [currentLegIndex, setCurrentLegIndex] = useState(0);
+  const [isTracking, setIsTracking] = useState(true);
   
   const originMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
   const userLocationRef = useRef(null);
   const navWatchIdRef = useRef(null);
+  const lastHeadingRef = useRef(0);
+  const isTrackingRef = useRef(true);
+
+  const setTrackingStatus = useCallback((status) => {
+    setIsTracking(status);
+    isTrackingRef.current = status;
+  }, []);
 
   const mapContainerRef = useRef(null);
   const { mapInstanceRef, mapReady } = useLeafletMap(mapContainerRef, { zoom: 17 });
@@ -162,6 +171,10 @@ export default function NavigationPage() {
   useEffect(() => {
     if (!mapReady || !mapInstanceRef.current) return;
 
+    const map = mapInstanceRef.current;
+    const handleDragStart = () => setTrackingStatus(false);
+    map.on('dragstart', handleDragStart);
+
     const dest = getDestinationCoords();
     const origin = getInitialOrigin();
     userLocationRef.current = origin;
@@ -169,9 +182,9 @@ export default function NavigationPage() {
     // Draw origin marker
     if (originMarkerRef.current) originMarkerRef.current.remove();
     originMarkerRef.current = L.marker([origin.lat, origin.lng], {
-      icon: getNavigationMarkerIcon(),
+      icon: getNavigationArrowIcon(lastHeadingRef.current),
       zIndexOffset: 999,
-    }).addTo(mapInstanceRef.current);
+    }).addTo(map);
 
     // Draw destination marker
     if (dest) {
@@ -187,7 +200,9 @@ export default function NavigationPage() {
         }),
       }).addTo(mapInstanceRef.current);
 
-      mapInstanceRef.current.setView([origin.lat, origin.lng], 17);
+      if (isTrackingRef.current) {
+        mapInstanceRef.current.setView([origin.lat, origin.lng], 19);
+      }
 
       // Load directions immediately
       const waypoints = getWaypoints();
@@ -207,13 +222,25 @@ export default function NavigationPage() {
       navWatchIdRef.current = navigator.geolocation.watchPosition(
         (pos) => {
           const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          
+          let newHeading = lastHeadingRef.current;
+          if (pos.coords.heading !== null && !isNaN(pos.coords.heading)) {
+            newHeading = pos.coords.heading;
+          } else if (userLocationRef.current) {
+            const dist = haversineDistance(userLocationRef.current.lat, userLocationRef.current.lng, loc.lat, loc.lng);
+            if (dist > 1.5) {
+              newHeading = calculateBearing(userLocationRef.current.lat, userLocationRef.current.lng, loc.lat, loc.lng);
+            }
+          }
+          lastHeadingRef.current = newHeading;
           userLocationRef.current = loc;
 
           if (originMarkerRef.current) {
             originMarkerRef.current.setLatLng(loc);
+            originMarkerRef.current.setIcon(getNavigationArrowIcon(newHeading));
           }
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.panTo(loc);
+          if (mapInstanceRef.current && isTrackingRef.current) {
+            mapInstanceRef.current.setView(loc, 19, { animate: true });
           }
 
           updateNavigation(loc);
@@ -232,6 +259,9 @@ export default function NavigationPage() {
     }
 
     return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.off('dragstart', handleDragStart);
+      }
       if (navWatchIdRef.current != null) {
         navigator.geolocation.clearWatch(navWatchIdRef.current);
         navWatchIdRef.current = null;
@@ -360,6 +390,24 @@ export default function NavigationPage() {
                 : null
             }
           />
+          
+          {!isTracking && (
+            <div className="absolute z-[1000] bottom-[220px] right-4 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => {
+                  setTrackingStatus(true);
+                  if (userLocationRef.current && mapInstanceRef.current) {
+                    mapInstanceRef.current.setView(userLocationRef.current, 19, { animate: true });
+                  }
+                }}
+                style={{ pointerEvents: 'auto', width: '50px', height: '50px', borderRadius: '25px', border: 'none', background: '#1A73E8', boxShadow: '0 4px 12px rgba(26,115,232,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                aria-label="Re-center"
+              >
+                <LocateFixed size={24} color="#fff" />
+              </button>
+            </div>
+          )}
         </div>
         
         <NavigationControls

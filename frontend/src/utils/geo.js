@@ -93,3 +93,29 @@ export const getDistanceToPath = (point, path) => {
   }
   return minDist;
 };
+
+/**
+ * Calculate the initial bearing (forward azimuth) between two points.
+ * @param {number} lat1
+ * @param {number} lon1
+ * @param {number} lat2
+ * @param {number} lon2
+ * @returns {number} bearing in degrees [0, 360)
+ */
+export const calculateBearing = (lat1, lon1, lat2, lon2) => {
+  const toRad = (v) => (v * Math.PI) / 180;
+  const toDeg = (v) => (v * 180) / Math.PI;
+
+  const lat1Rad = toRad(lat1);
+  const lat2Rad = toRad(lat2);
+  const dLonRad = toRad(lon2 - lon1);
+
+  const y = Math.sin(dLonRad) * Math.cos(lat2Rad);
+  const x =
+    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLonRad);
+
+  const brng = toDeg(Math.atan2(y, x));
+  return (brng + 360) % 360;
+};
+

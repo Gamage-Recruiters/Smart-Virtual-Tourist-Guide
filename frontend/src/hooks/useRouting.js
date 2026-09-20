@@ -272,7 +272,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
       setSelectedIdx(shortestIdx);
       drawSelectedRoute(shortestIdx);
 
-      if (normalizedRoutes[shortestIdx]?.overview_path?.length > 0) {
+      if (showDetailsPanel && normalizedRoutes[shortestIdx]?.overview_path?.length > 0) {
         const bounds = L.latLngBounds(normalizedRoutes[shortestIdx].overview_path.map(p => [p.lat, p.lng]));
         mapInstanceRef.current.fitBounds(bounds, { padding: [60, 30] });
       }
@@ -441,7 +441,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
       setSelectedIdx(0);
       drawSelectedRoute(0);
 
-      if (normalizedRoutes[0]?.overview_path?.length > 0) {
+      if (showDetailsPanel && normalizedRoutes[0]?.overview_path?.length > 0) {
         const bounds = L.latLngBounds(normalizedRoutes[0].overview_path.map(p => [p.lat, p.lng]));
         mapInstanceRef.current.fitBounds(bounds, { padding: [60, 30] });
       }

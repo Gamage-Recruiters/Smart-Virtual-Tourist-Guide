@@ -210,6 +210,25 @@ export const createUserLocationIcon = () =>
   });
 
 /**
+ * Navigation arrow icon pointing in the user's direction of travel.
+ * @param {number} heading - bearing in degrees
+ * @returns {L.DivIcon}
+ */
+export const getNavigationArrowIcon = (heading = 0) => {
+  return L.divIcon({
+    className: 'navigation-arrow-icon',
+    html: `<div style="width: 48px; height: 48px; transform: rotate(${heading}deg); transition: transform 0.3s ease-out; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
+             <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <polygon points="12 2 19 21 12 17 5 21 12 2" fill="#1A73E8" />
+             </svg>
+           </div>`,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+  });
+};
+
+
+/**
  * Create a custom label overlay on the map using a Leaflet DivIcon marker.
  * Replaces the old Google Maps OverlayView pattern.
  *
