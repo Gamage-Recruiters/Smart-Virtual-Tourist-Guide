@@ -293,6 +293,7 @@ const Explore = () => {
     };
 
     const placeUserMarker = (coords) => {
+      if (!mapInstanceRef.current) return;
       if (userMarkerRef.current) userMarkerRef.current.remove();
       userMarkerRef.current = L.marker([coords.lat, coords.lng], { icon: userLocationIcon })
         .addTo(mapInstanceRef.current)
