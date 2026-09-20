@@ -318,6 +318,14 @@ export default function DirectionPage() {
   };
 
   const handleRemoveStopPoint = (index) => {
+    const stopToRemove = pendingStops[index];
+    if (stopToRemove) {
+      const markerIndex = poiMarkersRef.current.findIndex((m) => m.__placeId === stopToRemove.placeId);
+      if (markerIndex !== -1) {
+        poiMarkersRef.current[markerIndex].remove();
+        poiMarkersRef.current.splice(markerIndex, 1);
+      }
+    }
     setPendingStops(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -345,8 +353,9 @@ export default function DirectionPage() {
 
     const lat = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
     const lng = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
+    const pId = place.osmId || place.placeId;
 
-    const existingMarker = poiMarkersRef.current.find((marker) => marker.__placeId === place.placeId);
+    const existingMarker = poiMarkersRef.current.find((marker) => marker.__placeId === pId);
     if (existingMarker) {
       mapInstanceRef.current.setView(existingMarker.getLatLng(), 16);
       existingMarker.openPopup();
@@ -356,7 +365,7 @@ export default function DirectionPage() {
     const marker = L.marker([lat, lng]).addTo(mapInstanceRef.current)
       .bindPopup(renderPOIPopup(place));
 
-    marker.__placeId = place.placeId;
+    marker.__placeId = pId;
     poiMarkersRef.current.push(marker);
     mapInstanceRef.current.setView([lat, lng], 16);
     marker.openPopup();
