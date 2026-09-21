@@ -1,17 +1,26 @@
-import Activity from '../../models/ActivityProvider/activity.model.js';
+import Activity from "../../models/ActivityProvider/activity.model.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 const normalizeImages = (images = []) =>
-  [...new Set(
-    images
-      .filter((image) => typeof image === 'string')
-      .map((image) => image.trim())
-      .filter((image) => image && image !== '/uploads/undefined')
-  )].slice(0, 8);
+  [
+    ...new Set(
+      images
+        .filter((image) => typeof image === "string")
+        .map((image) => image.trim())
+        .filter((image) => image && image !== "/uploads/undefined"),
+    ),
+  ].slice(0, 8);
 
 const parseTimeSlotTemplates = (raw, fallback = []) => {
   let templates = raw;
 
-  if (typeof templates === 'string') {
+  if (typeof templates === "string") {
     try {
       templates = JSON.parse(templates);
     } catch {
@@ -22,14 +31,21 @@ const parseTimeSlotTemplates = (raw, fallback = []) => {
   if (!Array.isArray(templates)) return fallback;
 
   return templates
-    .filter((t) => t && typeof t === 'object')
+    .filter((t) => t && typeof t === "object")
     .map((t) => ({
-      label: String(t.label || '').trim(),
-      startTime: String(t.startTime || '').trim(),
-      endTime: String(t.endTime || '').trim(),
+      label: String(t.label || "").trim(),
+      startTime: String(t.startTime || "").trim(),
+      endTime: String(t.endTime || "").trim(),
       capacity: parseInt(t.capacity, 10),
     }))
-    .filter((t) => t.label && t.startTime && t.endTime && Number.isFinite(t.capacity) && t.capacity > 0)
+    .filter(
+      (t) =>
+        t.label &&
+        t.startTime &&
+        t.endTime &&
+        Number.isFinite(t.capacity) &&
+        t.capacity > 0,
+    )
     .slice(0, 6);
 };
 
@@ -37,18 +53,29 @@ const parseTimeSlotTemplates = (raw, fallback = []) => {
 // Query params: category, status, search, page, limit
 export const getActivities = async (req, res) => {
   try {
-    const { category, status, search, userID, userId, page = 1, limit = 12 } = req.query;
+    const {
+      category,
+      status,
+      search,
+      userID,
+      userId,
+      page = 1,
+      limit = 12,
+    } = req.query;
 
     const query = {};
-    if (category && category !== 'All') query.category = category;
-    if (status && status !== 'all') query.status = status;
+    if (category && category !== "All") query.category = category;
+    if (status && status !== "all") query.status = status;
     if (userID || userId) query.userID = userID || userId;
     if (search) query.$text = { $search: search };
 
     const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
 
     const [activities, total] = await Promise.all([
-      Activity.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit, 10)),
+      Activity.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit, 10)),
       Activity.countDocuments(query),
     ]);
 
@@ -77,7 +104,10 @@ export const getActivities = async (req, res) => {
 export const getActivityById = async (req, res) => {
   try {
     const activity = await Activity.findById(req.params.id);
-    if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
+    if (!activity)
+      return res
+        .status(404)
+        .json({ success: false, message: "Activity not found" });
     const data = activity.toObject();
     data.images = normalizeImages(data.images);
     res.json({ success: true, data });
@@ -89,22 +119,44 @@ export const getActivityById = async (req, res) => {
 // POST /api/activities
 export const createActivity = async (req, res) => {
   try {
+    // 1. Get all the activity details from the request body sent by the user
     const {
-      title, category, description, location, duration,
-      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, userID, userId,
+      title,
+      category,
+      description,
+      location,
+      duration,
+      maxParticipants,
+      pricePerPerson,
+      requiredEquipment,
+      safetyNotes,
+      status,
+      userID,
+      userId,
     } = req.body;
 
+    // 2. Format the images coming from Cloudinary
     const images = normalizeImages(
       (req.cloudinaryImages || []).map((i) => i.url)
     );
 
+    // 3. Format the required equipment data into a proper array
     let equipment = requiredEquipment;
-    if (typeof requiredEquipment === 'string') {
-      try { equipment = JSON.parse(requiredEquipment); } catch { equipment = []; }
+    if (typeof requiredEquipment === "string") {
+      try {
+        equipment = JSON.parse(requiredEquipment);
+      } catch {
+        equipment = [];
+      }
     }
 
-    const timeSlotTemplates = parseTimeSlotTemplates(req.body.timeSlotTemplates, []);
+    // 4. Format the time slot templates
+    const timeSlotTemplates = parseTimeSlotTemplates(
+      req.body.timeSlotTemplates,
+      []
+    );
 
+    // 5. Create and save the new activity into the MongoDB database
     const activity = await Activity.create({
       userID: userID || userId || req.user?._id || req.user?.id,
       title,
@@ -115,18 +167,49 @@ export const createActivity = async (req, res) => {
       maxParticipants: parseInt(maxParticipants, 10),
       pricePerPerson: parseFloat(pricePerPerson),
       requiredEquipment: equipment || [],
-      safetyNotes: safetyNotes || '',
+      safetyNotes: safetyNotes || "",
       images,
-      status: status || 'draft',
+      status: status || "draft",
       timeSlotTemplates,
     });
 
-    res.status(201).json({ success: true, data: activity, message: 'Activity created successfully' });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({ success: false, message: messages.join(', ') });
+    // 6. Send a Push Notification to the Admin about the new activity
+    try {
+      // Get the Socket.io instance from the Express app (REQUIRED for the notification service)
+      const io = req.app.get("io");
+
+      // Pass BOTH 'io' and the 'notification data object' to the service
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN, // Sends to 'Administrator' topic
+        title: "New Activity Awaiting Approval",
+        message: `A new activity "${activity.title}" has been created and needs your approval.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.HIGH,
+        actionUrl: `/admin/activities/${activity._id}`,
+      });
+    } catch (notifError) {
+      // If the notification fails, log the error but DO NOT stop the activity creation
+      console.error("Notification Error:", notifError);
     }
+
+    // 7. Send a success response back to the frontend
+    res.status(201).json({
+      success: true,
+      data: activity,
+      message: "Activity created successfully",
+    });
+
+  } catch (error) {
+    // 8. Handle Database Validation Errors (e.g., missing required fields)
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res
+        .status(400)
+        .json({ success: false, message: messages.join(", ") });
+    }
+    
+    // 9. Handle General Server Errors
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -135,31 +218,57 @@ export const createActivity = async (req, res) => {
 export const updateActivity = async (req, res) => {
   try {
     const activity = await Activity.findById(req.params.id);
-    if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
+    if (!activity)
+      return res
+        .status(404)
+        .json({ success: false, message: "Activity not found" });
 
     const {
-      title, category, description, location, duration,
-      maxParticipants, pricePerPerson, requiredEquipment, safetyNotes, status, existingImages, userID, userId,
+      title,
+      category,
+      description,
+      location,
+      duration,
+      maxParticipants,
+      pricePerPerson,
+      requiredEquipment,
+      safetyNotes,
+      status,
+      existingImages,
+      userID,
+      userId,
     } = req.body;
 
     const newImages = normalizeImages(
-      (req.cloudinaryImages || []).map((i) => i.url)
+      (req.cloudinaryImages || []).map((i) => i.url),
     );
 
     let kept = existingImages || [];
-    if (typeof kept === 'string') {
-      try { kept = JSON.parse(kept); } catch { kept = []; }
+    if (typeof kept === "string") {
+      try {
+        kept = JSON.parse(kept);
+      } catch {
+        kept = [];
+      }
     }
     kept = normalizeImages(Array.isArray(kept) ? kept : []);
 
     let equipment = requiredEquipment;
-    if (typeof requiredEquipment === 'string') {
-      try { equipment = JSON.parse(requiredEquipment); } catch { equipment = activity.requiredEquipment; }
+    if (typeof requiredEquipment === "string") {
+      try {
+        equipment = JSON.parse(requiredEquipment);
+      } catch {
+        equipment = activity.requiredEquipment;
+      }
     }
 
-    const timeSlotTemplates = req.body.timeSlotTemplates !== undefined
-      ? parseTimeSlotTemplates(req.body.timeSlotTemplates, activity.timeSlotTemplates)
-      : activity.timeSlotTemplates;
+    const timeSlotTemplates =
+      req.body.timeSlotTemplates !== undefined
+        ? parseTimeSlotTemplates(
+            req.body.timeSlotTemplates,
+            activity.timeSlotTemplates,
+          )
+        : activity.timeSlotTemplates;
 
     const updated = await Activity.findByIdAndUpdate(
       req.params.id,
@@ -170,25 +279,32 @@ export const updateActivity = async (req, res) => {
         description: description || activity.description,
         location: location || activity.location,
         duration: duration || activity.duration,
-        maxParticipants: maxParticipants ? parseInt(maxParticipants, 10) : activity.maxParticipants,
-        pricePerPerson: pricePerPerson ? parseFloat(pricePerPerson) : activity.pricePerPerson,
+        maxParticipants: maxParticipants
+          ? parseInt(maxParticipants, 10)
+          : activity.maxParticipants,
+        pricePerPerson: pricePerPerson
+          ? parseFloat(pricePerPerson)
+          : activity.pricePerPerson,
         requiredEquipment: equipment || activity.requiredEquipment,
-        safetyNotes: safetyNotes !== undefined ? safetyNotes : activity.safetyNotes,
+        safetyNotes:
+          safetyNotes !== undefined ? safetyNotes : activity.safetyNotes,
         images: normalizeImages([...kept, ...newImages]),
         status: status || activity.status,
         timeSlotTemplates,
       },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: "after", runValidators: true },
     );
 
     const data = updated.toObject();
     data.images = normalizeImages(data.images);
 
-    res.json({ success: true, data, message: 'Activity updated successfully' });
+    res.json({ success: true, data, message: "Activity updated successfully" });
   } catch (error) {
-    if (error.name === 'ValidationError') {
+    if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((e) => e.message);
-      return res.status(400).json({ success: false, message: messages.join(', ') });
+      return res
+        .status(400)
+        .json({ success: false, message: messages.join(", ") });
     }
     res.status(500).json({ success: false, message: error.message });
   }
@@ -198,27 +314,113 @@ export const updateActivity = async (req, res) => {
 export const deleteActivity = async (req, res) => {
   try {
     const activity = await Activity.findByIdAndDelete(req.params.id);
-    if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
-    res.json({ success: true, message: 'Activity deleted successfully' });
+    if (!activity)
+      return res
+        .status(404)
+        .json({ success: false, message: "Activity not found" });
+    res.json({ success: true, message: "Activity deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // PATCH /api/activities/:id/publish
+// export const publishActivity = async (req, res) => {
+//   try {
+//     const activity = await Activity.findByIdAndUpdate(
+//       req.params.id,
+//       { status: "active" },
+//       { returnDocument: "after" },
+//     );
+
+//     try {
+//       const providerId = activity.userID || activity.userId;
+//       if (providerId) {
+//         await sendNotification({
+//           body: {
+//             scope: NOTIFICATION_SCOPES.MULTICAST,
+//             recipientRole: RECIPIENT_ROLES.ADMIN,
+//             title: "New Activity Awaiting Approval",
+//             message: `A new activity "${activity.title}" has been created and needs your approval.`,
+//             category: NOTIFICATION_CATEGORIES.SYSTEM,
+//             priority: NOTIFICATION_PRIORITIES.HIGH,
+//             actionUrl: `/admin/activities/${activity._id}`,
+//           },
+//         });
+//       }
+//     } catch (notifError) {
+//       console.error("Notification Error:", notifError);
+//     }
+
+//     if (!activity)
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Activity not found" });
+//     res.json({
+//       success: true,
+//       data: activity,
+//       message: "Activity published successfully",
+//     });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+// PATCH /api/activities/:id/publish
 export const publishActivity = async (req, res) => {
   try {
+    // 1. Update the activity status to "active" in the database
     const activity = await Activity.findByIdAndUpdate(
       req.params.id,
-      { status: 'active' },
-      { returnDocument: 'after' }
+      { status: "active" },
+      { returnDocument: "after" }
     );
-    if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
-    res.json({ success: true, data: activity, message: 'Activity published successfully' });
+
+    // 2. If the activity does not exist, stop and return a 404 error
+    if (!activity) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Activity not found" });
+    }
+
+    // 3. Send a Push Notification to the Activity Provider
+    try {
+      // Get the provider's ID from the activity
+      const providerId = activity.userID || activity.userId; 
+      
+      if (providerId) {
+        // Get the Socket.io instance from Express
+        const io = req.app.get("io"); 
+
+        // Send UNICAST notification to the specific provider
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: providerId,
+          title: "Activity Approved & Published! 🎉",
+          message: `Great news! Your activity "${activity.title || "listing"}" has been approved and is now live.`,
+          category: NOTIFICATION_CATEGORIES.SYSTEM,
+          priority: NOTIFICATION_PRIORITIES.MEDIUM,
+          actionUrl: `/provider/activities/${activity._id}`,
+        });
+      }
+    } catch (notifError) {
+      // Log the error but don't stop the publishing process
+      console.error("Notification Error:", notifError);
+    }
+
+    // 4. Send the success response back to the frontend
+    res.json({
+      success: true,
+      data: activity,
+      message: "Activity published successfully",
+    });
+
   } catch (error) {
+    // 5. Handle any server errors
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export default {
   getActivities,

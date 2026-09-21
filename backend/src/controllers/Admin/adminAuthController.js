@@ -5,7 +5,7 @@ const ALLOWED_ADMIN_ROLES = ['Administrator', 'Moderator', 'Editor'];
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
 
 const generateToken = (id) => {
-  return jwt.sign({ id, tokenType: 'admin' }, process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({ id, tokenType: 'admin' }, process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 const registerAdmin = async (req, res) => {

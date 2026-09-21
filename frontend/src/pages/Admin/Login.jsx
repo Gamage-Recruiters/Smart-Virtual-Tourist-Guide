@@ -1,49 +1,81 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// 1. Import Redux hook and the loginSuccess action to connect to the socket
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../store/slices/authSlice'; 
+
 import AdminLayout from '../../components/Admin/AdminLayout';
 import HeroBg from '../../assets/Admin/airplane-bg.jpg';
 import apiClient from '../../services/Admin/adminApi';
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // Initialize Redux dispatch
 
+  // State to store username and password entered by the user
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
 
+  // State to manage loading status and error messages
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Function to update state when the user types in the input fields
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-
+    // Clear any existing errors when the user starts typing again
     if (error) setError('');
   };
 
+  // Function that runs when the user clicks the 'Log In' button
   const handleSubmit = async (event) => {
+    // 2. Prevent the default form submission (Stops the page from refreshing)
     event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      // 3. Send login request to the backend API
       const response = await apiClient.post('/admin/auth/login', {
         username: formData.username.trim(),
         password: formData.password,
       });
 
-      localStorage.setItem('adminToken', response.token);
+      // 4. Extract token and user data safely from the backend response
+      const token = response.data?.token || response.token;
+      const userData = response.data?.user || response.data;
 
+      // 5. Save the token to local storage for persistent login
+      localStorage.setItem('adminToken', token);
+
+      // 6. UPDATE REDUX STORE: This is crucial to trigger the Socket connection
+      dispatch(loginSuccess({
+        token: token,
+        user: {
+          _id: userData._id || userData.id, // Admin's unique ID
+          role: userData.role || 'Administrator', // Admin's role (e.g., Administrator)
+          email: formData.username,
+        }
+      }));
+
+      // 7. Determine the correct dashboard URL based on the admin's role
       const roleHome = response.data.role === 'Administrator'
-        ? '/admin'
+        ? '/admin/integrated' // Fixed: Navigates to the new integrated dashboard
         : response.data.role === 'Moderator'
           ? '/admin/listings'
           : '/admin/access-denied';
 
+      // 8. Redirect the user to their specific dashboard
       navigate(roleHome, { replace: true });
+      
     } catch (err) {
+      // Show error message if login fails (e.g., wrong password)
       setError(err.message || 'Unable to log in.');
     } finally {
+      // Stop the loading spinner regardless of success or failure
       setLoading(false);
     }
   };
@@ -51,7 +83,7 @@ const Login = () => {
   return (
     <AdminLayout>
       <div className="relative overflow-hidden bg-[#eef8ff]">
-        {/* Hero image */}
+        {/* Hero image section */}
         <section
           className="relative h-[280px] sm:h-[330px] md:h-[390px] lg:h-[430px] bg-cover bg-center"
           style={{
@@ -60,20 +92,24 @@ const Login = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-b from-sky-400/5 via-transparent to-[#d8efff]/45" />
 
-          {/* Figma-style translucent panel at bottom of hero */}
+          {/* Figma-style translucent panel at the bottom of the hero image */}
           <div className="absolute bottom-0 left-1/2 h-[92px] w-[86%] max-w-[1280px] -translate-x-1/2 bg-sky-300/20 backdrop-blur-[1px]" />
         </section>
 
-        {/* Login background */}
+        {/* Login form background section */}
         <section className="relative bg-[#d9effd] px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
           <div className="mx-auto flex w-full max-w-[880px] justify-center">
+            
+            {/* Login Card */}
             <div className="w-full max-w-[610px] rounded-[14px] bg-white px-7 py-10 shadow-[0_10px_40px_rgba(30,119,242,0.08)] sm:px-12 sm:py-14 lg:px-16">
+              
               <div className="mb-8 text-center">
                 <h1 className="text-[22px] font-bold tracking-[-0.02em] text-[#1677ff] sm:text-[25px]">
                   Welcome To The Admin Panel
                 </h1>
               </div>
 
+              {/* Display error message if there is an error */}
               {error && (
                 <div
                   role="alert"
@@ -83,8 +119,10 @@ const Login = () => {
                 </div>
               )}
 
+              {/* Login Form */}
               <form onSubmit={handleSubmit}>
-                {/* Username / Email */}
+                
+                {/* Username / Email Input Field */}
                 <div className="mb-6">
                   <label
                     htmlFor="username"
@@ -122,7 +160,7 @@ const Login = () => {
                   />
                 </div>
 
-                {/* Password */}
+                {/* Password Input Field */}
                 <div>
                   <label
                     htmlFor="password"
@@ -160,6 +198,7 @@ const Login = () => {
                   />
                 </div>
 
+                {/* Forgot Password Link */}
                 <div className="mt-2 flex justify-end">
                   <button
                     type="button"
@@ -169,9 +208,10 @@ const Login = () => {
                   </button>
                 </div>
 
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading} // Disable button while the request is loading
                   className={`
                     mt-8
                     flex
@@ -188,12 +228,13 @@ const Login = () => {
                     duration-200
                     ${
                       loading
-                        ? 'cursor-not-allowed bg-blue-400'
-                        : 'bg-[#1677ff] hover:bg-[#0869e8] hover:shadow-[0_8px_18px_rgba(22,119,255,0.22)]'
+                        ? 'cursor-not-allowed bg-blue-400' // Loading state styles
+                        : 'bg-[#1677ff] hover:bg-[#0869e8] hover:shadow-[0_8px_18px_rgba(22,119,255,0.22)]' // Normal state styles
                     }
                   `}
                 >
-                  {loading ? 'Logging in...' : 'Log In'}
+                  {/* Change button text based on loading state */}
+                  {loading ? 'Logging in...' : 'Log In'} 
                 </button>
               </form>
             </div>

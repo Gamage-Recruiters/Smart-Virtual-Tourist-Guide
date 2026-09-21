@@ -23,7 +23,7 @@ export const RECIPIENT_ROLES = {
   ACTIVITY_PROVIDER: "activityprovider_user",
   RENTER: "renter_user",
   GOVERNMENT: "government_user",
-  ADMIN: "admin",
+  ADMIN: "Administrator",
   ALL: "ALL", // Broadcast
 };
 

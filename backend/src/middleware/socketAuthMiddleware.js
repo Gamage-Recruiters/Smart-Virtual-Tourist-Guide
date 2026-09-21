@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Admin from "../models/Admin/Admin.js"; 
 import logger from "../utils/logger.js";
 
 /**
@@ -24,8 +25,6 @@ const socketAuth = async (socket, next) => {
     // 2. Verify the token using the real JWT_SECRET
     // Previously used jwt.decode() which skipped signature verification,
     // allowing any forged token to impersonate any user.
-    console.log("මගේ JWT SECRET එක තමයි:", process.env.JWT_SECRET);
-
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Check if the decoded token has the required 'id' field
@@ -38,8 +37,16 @@ const socketAuth = async (socket, next) => {
 
     // 3. Find the user in the database to ensure they still exist and get their role
     // Exclude password for security, matching the REST API's authMiddleware behavior
-    const user = await User.findById(decoded.id).select("-password");
+    
+    // First, try to find a standard User
+    let user = await User.findById(decoded.id).select("-password");
 
+    // If not a standard User, try to find an Admin
+    if (!user) {
+      user = await Admin.findById(decoded.id).select("-password");
+    }
+
+    // If still not found, throw an error
     if (!user) {
       logger.warn(
         `Socket Auth Failed: User not found in DB. ID: ${decoded.id}`,

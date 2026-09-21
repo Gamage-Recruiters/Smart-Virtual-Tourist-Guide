@@ -67,6 +67,13 @@ const adminSchema = new mongoose.Schema(
       default: 'Active',
       index: true,
     },
+
+    // 👇 NEW ADDITION: Store FCM Token for Push Notifications
+    // Default is null. This will be updated when the Admin logs in from the frontend.
+    fcmToken: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

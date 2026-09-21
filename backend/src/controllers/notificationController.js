@@ -6,6 +6,7 @@ import AppError from "../errors/appError.js";
 import logger from "../utils/logger.js";
 import { getRegionFromCoords } from "../utils/locationHelper.js";
 import User from "../models/User.js";
+import Admin from "../models/Admin/Admin.js";
 
 /**
  * 1. Fetch notifications with Pagination
@@ -26,8 +27,12 @@ const getNotifications = catchAsync(async (req, res, next) => {
     );
   }
 
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found in Database", 404));
+  let user = await User.findById(userId);
+  if (!user) {
+    user = await Admin.findById(userId);
+  }
+
+   if (!user) return next(new AppError("User or Admin not found in Database", 404));
 
   const userRole = user.role;
   let userDistrict = null,
@@ -60,7 +65,7 @@ const getNotifications = catchAsync(async (req, res, next) => {
     // 1. Filter Messages
     { $match: { $or: matchCriteria } },
 
-    // 🚀 CRITICAL PERFORMANCE FIX: Sort & Paginate BEFORE $lookup
+    //  CRITICAL PERFORMANCE FIX: Sort & Paginate BEFORE $lookup
     { $sort: { createdAt: -1 } },
     { $skip: skip },
     { $limit: limit },
@@ -127,6 +132,15 @@ const markAsRead = catchAsync(async (req, res, next) => {
     );
   }
 
+  let account = await User.findById(userId);
+  if (!account) {
+    account = await Admin.findById(userId);
+  }
+  
+  if (!account) {
+    return next(new AppError("User or Admin not found in Database", 404));
+  }
+
   // Validate if the provided ID is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new AppError("Invalid Notification ID format", 400));
@@ -148,10 +162,10 @@ const markAsRead = catchAsync(async (req, res, next) => {
       notification.recipientId || notification.userId
     )?.toString();
 
-    // Security check: Make sure the logged-in user is the actual owner of this notification
+    // Security check: Make sure the logged-in user/admin is the actual owner of this notification
     if (targetUserId !== userId) {
       logger.warn(
-        ` Unauthorized read attempt by User ${userId} on Notif ${id}`,
+        ` Unauthorized read attempt by User/Admin ${userId} on Notif ${id}`,
       );
       return next(
         new AppError("Unauthorized access to this notification", 403),
@@ -171,13 +185,14 @@ const markAsRead = catchAsync(async (req, res, next) => {
     );
   }
 
-  logger.info(` Notification ${id} marked as read by User ${userId}`);
+  logger.info(` Notification ${id} marked as read by User/Admin ${userId}`);
 
   res.status(200).json({
     status: "success",
     message: "Marked as read successfully",
   });
 });
+
 
 /**
  * 3. Get total unread count
@@ -186,6 +201,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
  * Description: Calculates how many unread messages the user has.
  * This is useful for displaying the red badge number on the notification bell icon.
  */
+
 const getUnreadCount = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
 
@@ -195,8 +211,13 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
     );
   }
 
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found in Database", 404));
+  let user = await User.findById(userId);
+  
+  if (!user) {
+    user = await Admin.findById(userId);
+  }
+
+  if (!user) return next(new AppError("User or Admin not found in Database", 404));
 
   const userRole = user.role;
   let userDistrict = null;
@@ -273,18 +294,22 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 /**
  * 4. Mark all notifications as read for a user
  * PATCH /api/notifications/mark-all-read
  */
-
 const markAllAsRead = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
 
   if (!userId) return next(new AppError("User ID required", 400));
 
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found", 404));
+  let user = await User.findById(userId);
+  if (!user) {
+    user = await Admin.findById(userId);
+  }
+
+  if (!user) return next(new AppError("User or Admin not found", 404));
 
   const { role: userRole, currentLocation } = user;
 
@@ -363,14 +388,17 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
  * 5. Clear all notifications for a user
  * DELETE /api/notifications/clear-all
  */
-
 const clearAllNotifications = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
 
   if (!userId) return next(new AppError("User ID required", 400));
 
-  const user = await User.findById(userId);
-  if (!user) return next(new AppError("User not found", 404));
+  let user = await User.findById(userId);
+  if (!user) {
+    user = await Admin.findById(userId);
+  }
+
+  if (!user) return next(new AppError("User or Admin not found", 404));
 
   const { role: userRole, currentLocation } = user;
 

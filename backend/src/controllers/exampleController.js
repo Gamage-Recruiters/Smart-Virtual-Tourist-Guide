@@ -103,12 +103,40 @@ export const triggerSimulation = catchAsync(async (req, res, next) => {
       payload.actionUrl = "/policy";
       break;
 
-    case "TRANSPORT_REQUEST": 
+    case "TRANSPORT_REQUEST":
       payload.title = "අලුත් ගමනක් තිබේ: කොළඹ -> නුවරඑළිය";
-      payload.message = "නව සංචාරකයෙක් සඳහා වාහනයක් අවශ්‍ය වී ඇත. දැන්ම ලංසු තබන්න (Bid).";
-      payload.category = "BID"; 
+      payload.message =
+        "නව සංචාරකයෙක් සඳහා වාහනයක් අවශ්‍ය වී ඇත. දැන්ම ලංසු තබන්න (Bid).";
+      payload.category = "BID";
       payload.priority = "high";
       payload.actionUrl = "/driver/bidding/req-102";
+      break;
+
+    case "NEW_LISTING_APPROVAL": // Ideal for MULTICAST (Role: Administrator)
+      payload.title = "New Listing Awaiting Approval";
+      payload.message =
+        "A new Hotel Partner has submitted a property listing. Please review and approve it.";
+      payload.category = "SYSTEM"; // Or "INFO"
+      payload.priority = "medium";
+      payload.actionUrl = "/admin/listings";
+      break;
+
+    case "USER_REPORTED": // Ideal for MULTICAST (Role: Administrator or Moderator)
+      payload.title = "User Reported for Policy Violation";
+      payload.message =
+        "A tourist has reported a driver for inappropriate behavior. Immediate action is required.";
+      payload.category = "SYSTEM";
+      payload.priority = "high";
+      payload.actionUrl = "/admin/users";
+      break;
+
+    case "SYSTEM_ERROR": // Ideal for UNICAST (to a specific Super Admin) or MULTICAST (Administrator)
+      payload.title = "High Server Load Detected";
+      payload.message =
+        "The primary database is experiencing high latency. Please check the server analytics.";
+      payload.category = "SYSTEM";
+      payload.priority = "critical";
+      payload.actionUrl = "/admin/analytics"; // Or integrated dashboard route
       break;
   }
 

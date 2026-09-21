@@ -37,7 +37,7 @@ export const useSocket = () => {
 // 📱 Helper function to check if the device is mobile
 const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
+    navigator.userAgent,
   );
 };
 
@@ -52,7 +52,7 @@ export const SocketProvider = ({ children }) => {
   // Connection States
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
-  
+
   // State to check Mobile or Laptop
   const [isMobileDevice, setIsMobileDevice] = useState(checkIsMobile());
 
@@ -73,25 +73,33 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     let watchId = null;
 
-    if (user?._id && token) {
+    console.log("🔄 SocketProvider Effect Triggered:", {
+      hasUser: !!user,
+      userId: user?._id || user?.id,
+      hasToken: !!token,
+    });
+
+    const currentUserId = user?._id || user?.id;
+
+    if (currentUserId && token) {
       dispatch(clearNotifications());
       requestNotificationPermission();
 
       const ALLOWED_LOCATION_ROLES = ["tourist_user", "driver_user"];
       const isLocationAllowedRole = ALLOWED_LOCATION_ROLES.includes(user.role);
 
-      // 🚀 UPDATE: Removed the auto requestForToken() from here to prevent instant blocking
+      const SOCKET_URL =
+        import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
-      // Socket Connection
-      const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
-
+      // අලුතින් Socket එක හදනවා
       socketRef.current = io(SOCKET_URL, {
         auth: { token },
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 2000,
         reconnectionDelayMax: 5000,
-        transports: ["polling", "websocket"],
+        transports: ["websocket", "polling"],
+        autoConnect: true,
       });
 
       const socket = socketRef.current;
@@ -99,14 +107,13 @@ export const SocketProvider = ({ children }) => {
       const handleConnect = () => {
         setConnectionStatus("connected");
         setReconnectAttempt(0);
-        console.log("✅ Socket Connected to Engine");
+        console.log("✅ Socket Connected to Engine. Socket ID:", socket.id);
       };
 
       const handleDisconnect = (reason) => {
         console.log(`❌ Socket Disconnected: ${reason}`);
         setConnectionStatus("reconnecting");
-
-        if (reason === "io server disconnect") {
+        if (reason === "io server disconnect" || reason === "transport close") {
           socket.connect();
         }
       };
@@ -132,7 +139,6 @@ export const SocketProvider = ({ children }) => {
 
         queryClient.setQueryData(["notifications", token], (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
-
           const newPages = [...oldData.pages];
           if (newPages.length > 0) {
             const exists = newPages[0].data.some(
@@ -145,10 +151,7 @@ export const SocketProvider = ({ children }) => {
               };
             }
           }
-          return {
-            ...oldData,
-            pages: newPages,
-          };
+          return { ...oldData, pages: newPages };
         });
       };
 
@@ -160,17 +163,13 @@ export const SocketProvider = ({ children }) => {
 
       // 📍 Location Tracking Logic
       if ("geolocation" in navigator && isLocationAllowedRole) {
-        
         if (isMobileDevice) {
-          // Automatic GPS Tracking for Mobile
           let lastLat = null;
           let lastLng = null;
 
           watchId = navigator.geolocation.watchPosition(
             (position) => {
               const { latitude, longitude } = position.coords;
-              console.log("📍 Live Location (Auto):", latitude, longitude);
-
               if (lastLat && lastLng) {
                 const dist = calculateDistance(
                   lastLat,
@@ -180,35 +179,42 @@ export const SocketProvider = ({ children }) => {
                 );
                 if (dist < 50) return;
               }
-
               lastLat = latitude;
               lastLng = longitude;
-
               socket.emit("update_location", { lat: latitude, lng: longitude });
             },
             (err) => console.warn("⚠️ GPS Error:", err.message),
             { enableHighAccuracy: true, distanceFilter: 50 },
           );
         } else {
-           console.log("💻 Laptop/Desktop Detected: Waiting for Manual Location Input");
+          console.log(
+            "💻 Laptop/Desktop Detected: Waiting for Manual Location Input",
+          );
         }
       }
 
+      // Cleanup Function
       return () => {
         console.log("🧹 Cleaning up Socket & GPS...");
         if (watchId) navigator.geolocation.clearWatch(watchId);
-        socket.off("connect", handleConnect);
-        socket.off("disconnect", handleDisconnect);
-        socket.off("connect_error", handleConnectError);
-        socket.off("reconnect_attempt", handleReconnectAttempt);
-        socket.off("new_notification", handleNewNotification);
-        socket.disconnect();
+
+        if (socket) {
+          socket.off("connect", handleConnect);
+          socket.off("disconnect", handleDisconnect);
+          socket.off("connect_error", handleConnectError);
+          socket.off("reconnect_attempt", handleReconnectAttempt);
+          socket.off("new_notification", handleNewNotification);
+          socket.disconnect();
+        }
         socketRef.current = null;
       };
+    } else {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     }
-
-    return undefined;
-  }, [user, token, dispatch, queryClient, isMobileDevice]); 
+  }, [user, token, dispatch, queryClient, isMobileDevice]);
 
   const updateManualLocation = (lat, lng) => {
     if (socketRef.current && connectionStatus === "connected") {
@@ -219,14 +225,14 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider
-      value={{ 
-        socket: socketRef.current, 
-        connectionStatus, 
+      value={{
+        socket: socketRef.current,
+        connectionStatus,
         reconnectAttempt,
-        isMobileDevice,           
+        isMobileDevice,
         updateManualLocation,
         // 🚀 UPDATE: Expose the function so LocationSelector can use it
-        requestNotificationPermission
+        requestNotificationPermission,
       }}
     >
       {children}

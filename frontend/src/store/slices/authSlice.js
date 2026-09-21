@@ -39,6 +39,8 @@ const authSlice = createSlice({
       // Remove auth data from browser storage
       localStorage.removeItem("token");
       localStorage.removeItem("userData");
+      localStorage.removeItem("restaurantToken");
+      localStorage.removeItem("adminToken");
     },
 
     // 3. Switch between test users during development/testing

@@ -10,7 +10,7 @@ import bg4Image from "../assets/LandingPage/bg4.png";
 import NotificationBell from "../components/notifications/NotificationBell";
 import NotificationModal from "../components/notifications/NotificationModal";
 import { useDispatch } from "react-redux";
-import  logoutSuccess  from "../store/slices/authSlice";
+import { logout } from "../store/slices/authSlice";
 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -153,8 +153,9 @@ const Header = () => {
                     localStorage.removeItem("restaurantUser");
                     localStorage.removeItem("renterToken");
                     localStorage.removeItem("renter");
-                    dispatch(logoutSuccess());
-                    window.location.reload();
+                    dispatch(logout());
+                    // window.location.reload();
+                    navigate("/");
                   }}
                   className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
                 >

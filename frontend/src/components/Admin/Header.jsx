@@ -217,9 +217,11 @@ import logoIcon from '../../assets/Tourist/logo.png';
 import logoText from '../../assets/Tourist/name.png';
 import navBg from '../../assets/Tourist/Headder.png';
 
+// 🔔 Import the Notification Bell component
+import NotificationBell from '../../components/notifications/NotificationBell';
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const navigate = useNavigate();
 
   return (
@@ -256,8 +258,11 @@ const Header = () => {
               />
             </div>
 
-            {/* Desktop Login Button */}
-            <div className="hidden md:flex items-center">
+            {/* Desktop View: Notification Bell + Login Button */}
+            <div className="hidden md:flex items-center space-x-6">
+              {/* 🔔 Notification Bell placed here for desktop */}
+              <NotificationBell />
+              
               <button
                 className="px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
               >
@@ -265,8 +270,11 @@ const Header = () => {
               </button>
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            {/* Mobile View: Notification Bell + Menu Button */}
+            <div className="md:hidden flex items-center space-x-4">
+              {/* 🔔 Notification Bell placed here for mobile, so it's visible even when the menu is closed */}
+              <NotificationBell />
+
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="text-gray-600 p-2 rounded-lg hover:bg-white/50 transition-colors"
@@ -276,7 +284,7 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation Dropdown */}
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t border-gray-200 animate-slideDown">
               <button

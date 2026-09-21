@@ -3,6 +3,7 @@ import activityBookingController from '../../controllers/ActivityProvider/activi
 
 const router = express.Router();
 
+router.post('/', activityBookingController.createBooking);
 router.get('/', activityBookingController.getBookings);
 router.patch('/:id/status', activityBookingController.updateBookingStatus);
 

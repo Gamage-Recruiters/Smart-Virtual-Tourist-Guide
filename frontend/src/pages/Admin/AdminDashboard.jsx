@@ -10,6 +10,9 @@ import { FiUsers, FiBriefcase, FiTruck, FiHome } from 'react-icons/fi';
 import HeroBg from "../../assets/Admin/hero-bg.png";
 import apiClient from '../../services/Admin/adminApi';
 
+//  NEW ADDITION: Import the Notification Bell component
+import NotificationBell from '../../components/notifications/NotificationBell';
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -61,9 +64,9 @@ const AdminDashboard = () => {
     bookingChart: [],
     packagePerformance: [],
     userDistribution: []
-});
+  });
 
-useEffect(() => {
+  useEffect(() => {
     const fetchAnalytics = async () => {
         try {
             const analyticsResult = await apiClient.get('/admin/dashboard-analytics');
@@ -75,15 +78,21 @@ useEffect(() => {
         }
     };
     fetchAnalytics();
-}, []);
+  }, []);
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white relative">
       <div
         className="relative flex min-h-[360px] w-full items-center bg-cover bg-center sm:min-h-[520px] lg:h-[min(58.4vw,839px)] lg:min-h-[680px]"
         style={{ backgroundImage: `url(${HeroBg})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-transparent" />
+        
+        {/* ✨ NEW ADDITION: Notification Bell placed in the top right corner */}
+        <div className="absolute top-6 right-8 z-50 bg-white/70 backdrop-blur-md rounded-full p-1.5 shadow-sm">
+          <NotificationBell />
+        </div>
+
         <div className="relative z-10 w-full px-6 sm:px-8 lg:px-[47px]">
           <h1 className="mb-4 max-w-[600px] text-[40px] font-black leading-[1.15] text-[#111111] sm:text-[46px] lg:text-[49px]">
             Welcome To Your <br /> Admin Dashboard

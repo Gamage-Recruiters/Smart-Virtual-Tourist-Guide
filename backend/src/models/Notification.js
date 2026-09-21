@@ -113,20 +113,29 @@ notificationSchema.index({ district: 1, createdAt: -1 }); // Standalone for $or 
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // --- PRE-SAVE HOOK (Data Validation & Cleanup) ---
+// --- PRE-SAVE HOOK (Data Validation & Cleanup) ---
 notificationSchema.pre("save", async function () {
   try {
-    // If it's a private message, check if the recipient actually exists in the User collection
+    // If it's a private message, check if the recipient actually exists in the User or Admin collection
     if (
       this.scope === NOTIFICATION_SCOPES.UNICAST &&
       this.isModified("recipientId")
     ) {
       // Use mongoose.models to prevent schema missing errors during server startup
       const User = mongoose.models.User || mongoose.model("User");
-      const userExists = await User.exists({ _id: this.recipientId });
+      const Admin = mongoose.models.Admin || mongoose.model("Admin"); 
 
+      const userExists = await User.exists({ _id: this.recipientId });
+      
+      let adminExists = false;
+      
       if (!userExists) {
+        adminExists = await Admin.exists({ _id: this.recipientId });
+      }
+
+      if (!userExists && !adminExists) {
         throw new Error(
-          `Recipient User with ID ${this.recipientId} does not exist.`
+          `Recipient User or Admin with ID ${this.recipientId} does not exist.`
         );
       }
     }

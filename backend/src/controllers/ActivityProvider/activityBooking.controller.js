@@ -1,11 +1,32 @@
-import mongoose from 'mongoose';
-import ActivityBooking from '../../models/ActivityProvider/ActivityBooking.js';
-import Availability from '../../models/ActivityProvider/checkavailability.model.js';
-import Calendar from '../../models/ActivityProvider/activityCalender.model.js';
-import Activity from '../../models/ActivityProvider/activity.model.js';
+import mongoose from "mongoose";
+import ActivityBooking from "../../models/ActivityProvider/ActivityBooking.js";
+import Availability from "../../models/ActivityProvider/checkavailability.model.js";
+import Calendar from "../../models/ActivityProvider/activityCalender.model.js";
+import Activity from "../../models/ActivityProvider/activity.model.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
+
+// POST /api/activity-bookings
+export const createBooking = async (req, res) => {
+  try {
+    const newBooking = await ActivityBooking.create(req.body);
+    res.status(201).json({
+      success: true,
+      data: newBooking,
+      message: "Booking created successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 const normalizeBooking = (booking) => ({
-  ...booking.toObject ? booking.toObject() : booking,
+  ...(booking.toObject ? booking.toObject() : booking),
   _id: booking._id?.toString?.() || booking._id,
 });
 
@@ -18,10 +39,10 @@ export const getBookings = async (req, res) => {
 
     if (search) {
       query.$or = [
-        { 'customer.firstName': { $regex: search, $options: 'i' } },
-        { 'customer.lastName': { $regex: search, $options: 'i' } },
-        { 'service.name': { $regex: search, $options: 'i' } },
-        { activityDate: { $regex: search, $options: 'i' } },
+        { "customer.firstName": { $regex: search, $options: "i" } },
+        { "customer.lastName": { $regex: search, $options: "i" } },
+        { "service.name": { $regex: search, $options: "i" } },
+        { activityDate: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -49,13 +70,15 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
     }
 
     if (!activity && booking.service?.name) {
-      const escapedName = booking.service.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedName = booking.service.name
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       activity = await Activity.findOne({
-        title: { $regex: new RegExp(`^${escapedName}$`, 'i') },
+        title: { $regex: new RegExp(`^${escapedName}$`, "i") },
       });
       if (!activity) {
         activity = await Activity.findOne({
-          title: { $regex: new RegExp(escapedName, 'i') },
+          title: { $regex: new RegExp(escapedName, "i") },
         });
       }
       if (activity) {
@@ -71,33 +94,41 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
       }
     }
 
-    const bookingDate = booking.activityDate || new Date().toISOString().split('T')[0];
-    const timeSlotStr = booking.timeSlot || 'Full Day';
+    const bookingDate =
+      booking.activityDate || new Date().toISOString().split("T")[0];
+    const timeSlotStr = booking.timeSlot || "Full Day";
     const participants = booking.participants || 1;
-    const customerName = [booking.customer?.firstName, booking.customer?.lastName].filter(Boolean).join(' ').trim() || 'Guest';
+    const customerName =
+      [booking.customer?.firstName, booking.customer?.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim() || "Guest";
 
-    if (status === 'confirmed') {
+    if (status === "confirmed") {
       // 1. Save / Update in Availability Model
       await Availability.findOneAndUpdate(
         { bookingId: booking._id },
         {
           bookingId: booking._id,
           activityId: activityId || null,
-          serviceName: booking.service?.name || activity?.title || 'Activity',
+          serviceName: booking.service?.name || activity?.title || "Activity",
           date: bookingDate,
           timeSlot: timeSlotStr,
           participants,
           customerName,
-          customerEmail: booking.customer?.email || '',
-          customerPhone: booking.customer?.phone || '',
-          status: 'booked',
+          customerEmail: booking.customer?.email || "",
+          customerPhone: booking.customer?.phone || "",
+          status: "booked",
         },
-        { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
       );
 
       // 2. Store / Update in Management Calendar
       if (activityId) {
-        let calendar = await Calendar.findOne({ activityId, date: bookingDate });
+        let calendar = await Calendar.findOne({
+          activityId,
+          date: bookingDate,
+        });
 
         if (!calendar) {
           let templates = activity?.timeSlotTemplates || [];
@@ -114,8 +145,8 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
             initialSlots = [
               {
                 label: timeSlotStr,
-                startTime: '08:00',
-                endTime: '17:00',
+                startTime: "08:00",
+                endTime: "17:00",
                 capacity: activity?.maxParticipants || 15,
                 booked: 0,
                 isActive: true,
@@ -126,7 +157,7 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
           calendar = new Calendar({
             activityId,
             date: bookingDate,
-            status: 'available',
+            status: "available",
             timeSlots: initialSlots,
           });
         }
@@ -136,7 +167,7 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
           (s) =>
             s.label?.toLowerCase() === timeSlotStr.toLowerCase() ||
             timeSlotStr.toLowerCase().includes(s.label?.toLowerCase()) ||
-            s.startTime === timeSlotStr
+            s.startTime === timeSlotStr,
         );
 
         if (matchedSlot) {
@@ -144,8 +175,8 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
         } else {
           calendar.timeSlots.push({
             label: timeSlotStr,
-            startTime: '08:00',
-            endTime: '17:00',
+            startTime: "08:00",
+            endTime: "17:00",
             capacity: activity?.maxParticipants || 15,
             booked: participants,
             isActive: true,
@@ -154,61 +185,94 @@ const syncBookingWithCalendarAndAvailability = async (booking, status) => {
 
         await calendar.save();
       }
-    } else if (status === 'cancelled') {
+    } else if (status === "cancelled") {
       // Mark Availability as cancelled
       await Availability.findOneAndUpdate(
         { bookingId: booking._id },
-        { status: 'cancelled' }
+        { status: "cancelled" },
       );
 
       // Decrement booked count in Calendar if present
       if (activityId) {
-        const calendar = await Calendar.findOne({ activityId, date: bookingDate });
+        const calendar = await Calendar.findOne({
+          activityId,
+          date: bookingDate,
+        });
         if (calendar) {
           const matchedSlot = calendar.timeSlots.find(
             (s) =>
               s.label?.toLowerCase() === timeSlotStr.toLowerCase() ||
-              timeSlotStr.toLowerCase().includes(s.label?.toLowerCase())
+              timeSlotStr.toLowerCase().includes(s.label?.toLowerCase()),
           );
           if (matchedSlot) {
-            matchedSlot.booked = Math.max(0, (matchedSlot.booked || 0) - participants);
+            matchedSlot.booked = Math.max(
+              0,
+              (matchedSlot.booked || 0) - participants,
+            );
             await calendar.save();
           }
         }
       }
     }
   } catch (err) {
-    console.error('Error syncing booking with calendar/availability:', err);
+    console.error("Error syncing booking with calendar/availability:", err);
   }
 };
 
 export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const allowedStatuses = ['pending', 'confirmed', 'cancelled'];
+    const allowedStatuses = ["pending", "confirmed", "cancelled"];
 
     if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ success: false, message: 'Invalid booking status' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid booking status" });
     }
 
     const booking = await ActivityBooking.findByIdAndUpdate(
       req.params.id,
       { status },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
-    // Sync with management calendar & Availability model
     await syncBookingWithCalendarAndAvailability(booking, status);
+
+    const customerId = booking.customer?.userId || booking.userID;
+
+    try {
+      if (customerId) {
+        const io = req.app.get("io");
+
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: customerId,
+          title: `Booking ${status.charAt(0).toUpperCase() + status.slice(1)}!`,
+          message: `Your activity booking for ${booking.service?.name || "the activity"} has been ${status}.`,
+          category: NOTIFICATION_CATEGORIES.BOOKING,
+          priority:
+            status === "cancelled"
+              ? NOTIFICATION_PRIORITIES.HIGH
+              : NOTIFICATION_PRIORITIES.MEDIUM,
+          actionUrl: `/tourist/bookings/${booking._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error("Notification Error:", notifError);
+    }
 
     res.json({
       success: true,
       data: normalizeBooking(booking),
-      message: 'Booking status updated successfully',
+      message: "Booking status updated successfully",
     });
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -217,4 +281,5 @@ export const updateBookingStatus = async (req, res) => {
 export default {
   getBookings,
   updateBookingStatus,
+  createBooking
 };

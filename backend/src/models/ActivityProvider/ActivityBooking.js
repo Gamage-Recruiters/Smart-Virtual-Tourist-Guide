@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const pricingItemSchema = new mongoose.Schema({
   label: { type: String, required: true },
@@ -10,7 +10,7 @@ const activityBookingSchema = new mongoose.Schema(
     service: {
       serviceId: { type: String },
       name: { type: String, required: true },
-      type: { type: String, default: 'activity' },
+      type: { type: String, default: "activity" },
       location: { type: String },
       image: { type: String },
       description: { type: String },
@@ -27,18 +27,19 @@ const activityBookingSchema = new mongoose.Schema(
       },
     ],
     pricing: {
-      currency: { type: String, default: 'USD' },
+      currency: { type: String, default: "USD" },
       items: [pricingItemSchema],
       total: { type: Number, required: true, min: 0 },
     },
     customer: {
-      firstName: { type: String, required: true },
-      lastName: { type: String, required: true },
-      email: { type: String, required: true },
-      phone: { type: String, required: true },
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, 
+      firstName: String,
+      lastName: String,
+      email: String,
+      phone: String,
     },
     payment: {
-      method: { type: String, default: 'card' },
+      method: { type: String, default: "card" },
       cardBrand: { type: String },
       last4: { type: String },
       expiryDate: { type: String },
@@ -46,13 +47,13 @@ const activityBookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'cancelled'],
-      default: 'pending',
+      enum: ["pending", "confirmed", "cancelled"],
+      default: "pending",
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export default mongoose.model('ActivityBooking', activityBookingSchema);
+export default mongoose.model("ActivityBooking", activityBookingSchema);

@@ -144,7 +144,7 @@ app.use('/api/notifications', engineNotificationRoutes);
 app.use('/api/user', fcmRoutes);
 
 // Tourist Dashboard notifications (main) — fallback for routes not in engine
-app.use('/api/notifications', notificationRoutes);
+//app.use('/api/notifications', notificationRoutes);
 
 // Activity Provider Routes
 app.use('/api/activities', activityRoutes);
