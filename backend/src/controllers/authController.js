@@ -69,6 +69,11 @@ const registerTourist = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
+    // Mongoose CastError (e.g. empty string for a Date field) or
+    // ValidationError should be a 400, not a 500.
+    if (error.name === 'CastError' || error.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: `Invalid data: ${error.message}` });
+    }
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
@@ -115,7 +120,7 @@ const registerHotelOwner = async (req, res) => {
 
 const addHotelInfo = async (req, res) => {
   try {
-    const { hotelName, hotelRegistrationNo, hotelEmail, hotelRegisteredYear, hotelContactNumber } = req.body;
+    const { hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelCity, hotelDistrict, hotelRegisteredYear, hotelContactNumber, hotelAmenities, hotelPolicies, hotelDescription } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -125,7 +130,13 @@ const addHotelInfo = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    user.hotels.push({ hotelName, hotelRegistrationNo, hotelEmail, hotelRegisteredYear, hotelContactNumber });
+    user.hotels.push({
+      hotelName, hotelRegistrationNo, hotelEmail, hotelAddress, hotelRegisteredYear, hotelContactNumber,
+      hotelLocation: { city: hotelCity || '', district: hotelDistrict || '' },
+      hotelAmenities: Array.isArray(hotelAmenities) ? hotelAmenities : [],
+      hotelPolicies: hotelPolicies || '',
+      hotelDescription: hotelDescription || '',
+    });
     await user.save();
 
     res.status(201).json({
@@ -416,6 +427,7 @@ const loginUser = async (req, res) => {
           username: user.username,
           email: user.email,
           role: user.role,
+          hotels: user.hotels || [],
         },
         token: generateToken(user._id),
       });
@@ -450,6 +462,9 @@ const forgotPassword = async (req, res) => {
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/create-password?token=${resetToken}`;
+    
+    // Log the reset link for development and testing verification
+    console.log(`[PASS_RESET] Reset Link generated: ${resetLink}`);
 
     // Compose rich premium HTML email matching user design mockup
     const emailHtml = `
@@ -544,37 +559,87 @@ const resetPassword = async (req, res) => {
 
 const updateTravelInfo = async (req, res) => {
   try {
-    const { travelPreferences, healthInfo, emergencyContact } = req.body;
+    const {
+      fullName,
+      contactNumber,
+      vehicleType,
+      vehicleNumber,
+      vehicleColor,
+      nationalIdNumber,
+      licenseNumber,
+      profileImage,
+      vehicleImages,
+      travelPreferences,
+      healthInfo,
+      emergencyContact
+    } = req.body;
 
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    user.travelPreferences = travelPreferences;
-    user.healthInfo = healthInfo;
-    user.emergencyContact = emergencyContact;
+    if (fullName !== undefined) user.fullName = fullName;
+    if (contactNumber !== undefined) user.contactNumber = contactNumber;
+    if (vehicleType !== undefined) user.vehicleType = vehicleType;
+    if (vehicleNumber !== undefined) user.vehicleNumber = vehicleNumber;
+    if (vehicleColor !== undefined) user.vehicleColor = vehicleColor;
+    if (nationalIdNumber !== undefined || licenseNumber !== undefined) {
+      const val = nationalIdNumber || licenseNumber;
+      user.nationalIdNumber = val;
+      user.licenseNumber = val;
+    }
+    if (profileImage !== undefined) user.profileImage = profileImage;
+    if (vehicleImages !== undefined) user.vehicleImages = vehicleImages;
+
+    if (travelPreferences !== undefined) user.travelPreferences = travelPreferences;
+    if (healthInfo !== undefined) user.healthInfo = healthInfo;
+    if (emergencyContact !== undefined) user.emergencyContact = emergencyContact;
 
     await user.save();
 
     res.json({
       success: true,
-      message: 'Travel safety information updated successfully',
-      user: {
-        _id: user._id,
-        fullName: user.fullName,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        travelPreferences: user.travelPreferences,
-        healthInfo: user.healthInfo,
-        emergencyContact: user.emergencyContact
-      }
+      message: 'Profile updated successfully',
+      user
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
+
+const updateRenterInfo = async (req, res) => {
+  try{
+    const { fullName, email, contactNumber, renterVerificationDocument } = req.body;
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({success: false, message: 'User not found'});
+    }
+
+    user.fullName = fullName;
+    user.email = email;
+    user.contactNumber = contactNumber;
+    user.renterVerificationDocument = renterVerificationDocument;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Renter information updated successfully',
+      user: {
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        contactNumber: user.contactNumber,
+      }
+    })
+
+  } catch (error) {
+    res.status(500).json({success: false, message: 'Server error', error: error.message});
+  }
+}
 
 const googleAuth = async (req, res) => {
   try {
@@ -606,7 +671,7 @@ const googleAuth = async (req, res) => {
       // Existing user — login
       return res.json({
         success: true,
-        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+        user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: user.hotels || [] },
         token: generateToken(user._id),
       });
     }
@@ -619,14 +684,16 @@ const googleAuth = async (req, res) => {
       fullName: name || emailNormalized.split('@')[0],
       username,
       email: emailNormalized,
-      password: uid, // Firebase UID as placeholder password (not used for login)
+      password: uid,
       role: assignedRole,
       googleId: uid,
+      contactNumber: '',
+      hotels: [],
     });
 
     res.status(201).json({
       success: true,
-      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role },
+      user: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role, hotels: [] },
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -659,6 +726,20 @@ const getMe = async (req, res) => {
   }
 };
 
+// Public route: returns all registered drivers
+const getAllDrivers = async (req, res) => {
+  try {
+    const drivers = await User.find({ role: 'driver_user' }).select('-password');
+    res.status(200).json({
+      success: true,
+      count: drivers.length,
+      drivers
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 export {
   loginUser,
   registerTourist,
@@ -672,7 +753,9 @@ export {
   forgotPassword,
   resetPassword,
   updateTravelInfo,
+  updateRenterInfo,
   addHotelInfo,
   googleAuth,
   getMe,
+  getAllDrivers
 };

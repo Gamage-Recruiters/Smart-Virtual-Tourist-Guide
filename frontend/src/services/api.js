@@ -1,4 +1,3 @@
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -17,7 +16,8 @@ const privateHeaders = () => {
     'Content-Type': 'application/json',
   };
 
-  const token = localStorage.getItem('token');
+  // Check both tourist token ('token') and restaurant owner token ('restaurantToken')
+  const token = localStorage.getItem('token') || localStorage.getItem('restaurantToken');
 
   if (token && token !== 'null') {
     headers['Authorization'] = `Bearer ${token}`;
@@ -43,6 +43,9 @@ const isPublicRoute = (endpoint = '') => {
  * Core API client
  */
 const apiClient = {
+  /**
+   * GET request
+   */
   async get(endpoint) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -52,20 +55,31 @@ const apiClient = {
           : privateHeaders(),
       });
 
-      return await response.json();
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      return json;
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
     }
   },
 
+  /**
+   * POST request
+   */
   async post(endpoint, data) {
     try {
       const isFormData = data instanceof FormData;
-      
-      const headers = isPublicRoute(endpoint) ? { ...publicHeaders } : privateHeaders();
-      
-      // Browser automatically sets correct Content-Type with boundary for FormData
+
+      const headers = isPublicRoute(endpoint)
+        ? { ...publicHeaders }
+        : privateHeaders();
+
       if (isFormData) {
         delete headers['Content-Type'];
       }
@@ -78,8 +92,18 @@ const apiClient = {
 
       const json = await response.json();
 
+      if (
+        response.status === 401 &&
+        !endpoint.startsWith('/auth/login')
+      ) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
       if (!response.ok) {
-        throw { message: json.message || 'Request failed' };
+        throw {
+          message: json.message || 'Request failed',
+        };
       }
 
       return json;
@@ -89,6 +113,41 @@ const apiClient = {
     }
   },
 
+  /**
+   * PUT request with FormData (file uploads)
+   */
+  async upload(endpoint, formData) {
+    try {
+      const headers = privateHeaders();
+      delete headers['Content-Type'];
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw { message: json.message || 'Upload failed' };
+      }
+
+      return json;
+    } catch (error) {
+      console.error('API UPLOAD Error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * PUT request
+   */
   async put(endpoint, data) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -102,7 +161,9 @@ const apiClient = {
       const json = await response.json();
 
       if (!response.ok) {
-        throw { message: json.message || 'Request failed' };
+        throw {
+          message: json.message || 'Request failed',
+        };
       }
 
       return json;
@@ -112,6 +173,9 @@ const apiClient = {
     }
   },
 
+  /**
+   * DELETE request
+   */
   async delete(endpoint) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -121,7 +185,20 @@ const apiClient = {
           : privateHeaders(),
       });
 
-      return await response.json();
+      const json = await response.json();
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+
+      if (!response.ok) {
+        throw {
+          message: json.message || 'Delete request failed',
+        };
+      }
+
+      return json;
     } catch (error) {
       console.error('API DELETE Error:', error);
       throw error;
@@ -136,8 +213,21 @@ export const userAPI = {
   register(userData) {
     return apiClient.post('/auth/register/tourist', userData);
   },
+
+  login(credentials) {
+    return apiClient.post('/auth/login', credentials);
+  },
+
   updateTravelInfo(travelData) {
     return apiClient.put('/auth/update-travel-info', travelData);
+  },
+
+  getProfile() {
+    return apiClient.get('/auth/me');
+  },
+
+  updateProfile(profileData) {
+    return apiClient.put('/auth/update-travel-info', profileData);
   },
 };
 
@@ -150,6 +240,15 @@ export const hotelOwnerAPI = {
   },
   addHotelInfo(hotelData) {
     return apiClient.post('/auth/add-hotel-info', hotelData);
+  },
+  getBookingsByHotel(hotelId) {
+    return apiClient.get(`/temp-bookings/hotel/${hotelId}`);
+  },
+  getRevenueSummariesByHotel(hotelId) {
+    return apiClient.get(`/revenue-summary/hotel/${hotelId}`);
+  },
+  syncRevenueSummariesByHotel(hotelId) {
+    return apiClient.post(`/revenue-summary/hotel/${hotelId}/sync`, {});
   },
 };
 
@@ -185,7 +284,10 @@ export const renterAPI = {
  */
 export const activityProviderAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/activity-provider', userData);
+    return apiClient.post(
+      '/auth/register/activity-provider',
+      userData
+    );
   },
 };
 
@@ -194,7 +296,10 @@ export const activityProviderAPI = {
  */
 export const governmentAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/government', userData);
+    return apiClient.post(
+      '/auth/register/government',
+      userData
+    );
   },
 };
 
@@ -203,7 +308,10 @@ export const governmentAPI = {
  */
 export const driverAPI = {
   register(userData) {
-    return apiClient.post('/auth/register/driver', userData);
+    return apiClient.post(
+      '/auth/register/driver',
+      userData
+    );
   },
 };
 
@@ -212,8 +320,124 @@ export const driverAPI = {
  */
 export const socialAuthAPI = {
   googleAuth(idToken, role) {
-    return apiClient.post('/auth/google', { idToken, role });
+    return apiClient.post('/auth/google', {
+      idToken,
+      role,
+    });
   },
 };
 
+/**
+ * NAVIGATION & MAPPING APIs
+ */
+export const fetchRecentPlaces = async (userId, limit) => {
+  const params = new URLSearchParams();
+  if (userId) params.append('userId', userId);
+  if (limit) params.append('limit', limit);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/recent-places${queryString}`);
+};
+
+export const saveRecentPlace = async (place, action = null, userId = null, imageUrls = []) => {
+  if (!place) return;
+  const name = place.displayName || place.name || place.formatted_address?.split(',')[0] || '';
+  const placeId = place.place_id || place.placeId || '';
+  const body = {
+    name,
+    placeId,
+    action,
+    imageUrls,
+    ...(userId ? { userId } : {}),
+  };
+  return apiClient.post('/recent-places', body);
+};
+
+export const deleteRecentPlace = async (placeId) => {
+  if (!placeId) {
+    throw new Error('Place ID is required');
+  }
+  return apiClient.delete(`/recent-places/${placeId}`);
+};
+
+export const fetchFavoritePlaces = async (userId, category) => {
+  const params = new URLSearchParams();
+  if (userId) params.append('userId', userId);
+  if (category) params.append('category', category);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/favorite-places${queryString}`);
+};
+
+export const saveFavoritePlace = async (place, category = 'favorite', userId = null, imageUrls = []) => {
+  if (!place) return;
+  const name = place.displayName || place.name || place.formatted_address?.split(',')[0] || 'Saved Place';
+  const placeId = place.place_id || place.placeId || '';
+  const body = {
+    name,
+    placeId,
+    category,
+    imageUrls,
+    ...(userId ? { userId } : {}),
+  };
+  return apiClient.post('/favorite-places', body);
+};
+
+export const deleteFavoritePlace = async (placeId) => {
+  if (!placeId) {
+    throw new Error('Place ID is required');
+  }
+  return apiClient.delete(`/favorite-places/${placeId}`);
+};
+
+export const fetchHotels = async (location, lat, lng) => {
+  const params = new URLSearchParams();
+  if (location) params.append('location', location);
+  if (lat !== undefined && lat !== null) params.append('lat', lat);
+  if (lng !== undefined && lng !== null) params.append('lng', lng);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/hotels${queryString}`);
+};
+
+export const fetchCrimeAlerts = async () => {
+  return apiClient.get('/security-alerts/crime');
+};
+
+export const fetchRoadBlockages = async () => {
+  return apiClient.get('/incidents/public');
+};
+
+export const fetchWeatherAlerts = async (location) => {
+  const params = new URLSearchParams();
+  if (location) params.append('location', location);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiClient.get(`/security-alerts/weather${queryString}`);
+};
+
+/**
+ * REVIEWS API
+ */
+export const reviewAPI = {
+  getRestaurantReviews(restaurantId, page = 1) {
+    return apiClient.get(`/reviews/restaurant/${restaurantId}?page=${page}`);
+  },
+  createReview(data) {
+    return apiClient.post('/reviews', data);
+  },
+  updateReview(id, data) {
+    return apiClient.put(`/reviews/${id}`, data);
+  },
+  deleteReview(id) {
+    return apiClient.delete(`/reviews/${id}`);
+  },
+  getOwnerReviews(restaurantId, page = 1) {
+    return apiClient.get(`/reviews/owner/${restaurantId}?page=${page}`);
+  },
+  replyToReview(reviewId, replyText) {
+    // Backend route: PUT /api/reviews/:reviewId/reply
+    return apiClient.put(`/reviews/${reviewId}/reply`, { reply: replyText });
+  },
+};
+
+/**
+ * Default API client
+ */
 export default apiClient;

@@ -1,9 +1,6 @@
-node_modules/
 .env
 .env.local
+node_modules/
 dist/
 .DS_Store
 *.log
-# Temporary Test Files & Environment Variables
-.env
-server.js

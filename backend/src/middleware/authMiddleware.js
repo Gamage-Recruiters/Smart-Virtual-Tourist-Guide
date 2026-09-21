@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import User  from '../models/User.js';
 
-const protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -22,6 +22,13 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'User not found, unauthorized' });
       }
 
+      if (req.user.status && req.user.status !== 'Active') {
+        return res.status(403).json({
+          success: false,
+          message: 'Your account is not active. Please contact support.',
+        });
+      }
+
       next();
     } catch (error) {
       console.error('JWT Verification Error:', error);
@@ -35,7 +42,7 @@ const protect = async (req, res, next) => {
 };
 
 // Authorize roles
-const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'Not authorized' });
@@ -50,9 +57,4 @@ const authorizeRoles = (...roles) => {
     
     next();
   };
-};
-
-export {
-  protect,
-  authorizeRoles,
 };

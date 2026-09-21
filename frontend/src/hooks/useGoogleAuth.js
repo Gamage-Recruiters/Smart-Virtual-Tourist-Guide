@@ -9,9 +9,9 @@ const getDashboardRoute = (role) => {
     case 'hotelowner_user':  return '/dashboard-HotelOwner';
     case 'restaurant_user':  return '/dashboard-Restaurant';
     case 'government_user':  return '/dashboard-Government';
-    case 'renter_user':      return '/dashboard-Renter';
+    case 'renter_user':      return '/vehicle-admin';
     case 'driver_user':      return '/dashboard-Driver';
-    case 'activityprovider_user': return '/dashboard-ActivityProvider';
+    case 'activityprovider_user': return '/activityprovider/dashboard';
     case 'admin':            return '/dashboard-Admin';
     default:                 return '/';
   }
@@ -32,8 +32,13 @@ const useGoogleAuth = (navigate, role = null, customRedirect = null) => {
       const data = await socialAuthAPI.googleAuth(idToken, role);
 
       // Step 3: Save token + navigate to dashboard or custom route
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      if (data.user.role === 'restaurant_user') {
+        localStorage.setItem('restaurantToken', data.token);
+        localStorage.setItem('restaurantUser', JSON.stringify(data.user));
+      } else {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+      }
       
       if (customRedirect) {
         navigate(customRedirect);

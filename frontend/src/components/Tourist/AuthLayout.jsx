@@ -295,7 +295,7 @@
 // export default AuthLayout;
 
 import React from 'react';
-import Header from './Header.jsx';
+import Header from '../header.jsx';
 import Footer from './Footer.jsx';
 import logoText from '../../assets/Tourist/name.png';
 
@@ -332,7 +332,7 @@ const rightStyle = {
 
       <Header />
 
-      <main className="relative min-h-300 pt-1 overflow-hidden">
+      <main className="relative min-h-300 pt-1 overflow-hidden bg-[#f4f8fc]">
 
         {/* LEFT IMAGE */}
         <div

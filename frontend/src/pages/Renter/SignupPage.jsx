@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { renterAPI } from "../../services/api";
 import Header from "../../components/Renter/Header";
@@ -62,7 +62,7 @@ const RenterSignup = () => {
       localStorage.setItem("token", response.token);
       localStorage.setItem("userData", JSON.stringify(response.user));
 
-      navigate("/dashboard-Renter");
+      navigate("/vehicle-admin");
     } catch (err) {
       console.error(err);
       setError(err.message || "Registration failed. Please try again.");
@@ -250,7 +250,7 @@ const RenterSignup = () => {
               <p className="text-gray-500">
                 Already have an account?{" "}
                 <Link
-                  to="/"
+                  to="/login"
                   className="text-blue-600 font-semibold"
                 >
                   Sign in
