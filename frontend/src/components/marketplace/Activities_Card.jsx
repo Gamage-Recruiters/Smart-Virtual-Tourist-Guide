@@ -5,6 +5,7 @@ import {
   FaCalendarAlt, FaCheckCircle, FaUserFriends 
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const defaultActivitiesData = [
   {
@@ -82,35 +83,53 @@ const Activities_Card = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
+        let loaded = [];
         const response = await fetch('http://localhost:5000/api/activities');
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-          // Map backend data to frontend structure
-          const formattedData = result.data.map((act) => ({
+          loaded = result.data.map((act) => ({
             _id: act._id,
-            title: act.title ,
-            location: act.location ,
-            category: act.category ,
-            duration: act.duration ,
-            groupSize: act.maxParticipants ,
-            rating: act.averageRating ,
-            reviews: act.totalReviews ,
-            price: act.pricePerPerson ,
+            title: act.title,
+            location: act.location,
+            category: act.category,
+            duration: act.duration,
+            groupSize: act.maxParticipants,
+            rating: act.averageRating || 0,
+            reviews: act.totalReviews || 0,
+            price: act.pricePerPerson,
             timeSlotTemplates: act.timeSlotTemplates || [],
             timeSlots: act.timeSlots || [],
-            hasFreeCancellation: true, // Mock value
-            isInstantBooking: true, // Mock value
+            hasFreeCancellation: true,
+            isInstantBooking: true,
             image: (act.images && act.images.length > 0) 
               ? act.images[0] 
               : 'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?auto=format&fit=crop&q=80&w=600'
           }));
-          setAllActivities(formattedData);
-          setActivitiesData(formattedData);
         } else {
-          setAllActivities(defaultActivitiesData);
-          setActivitiesData(defaultActivitiesData);
+          loaded = defaultActivitiesData;
         }
+
+        // Fetch batch rating statistics for loaded activities
+        try {
+          const actIds = loaded.map(a => a._id);
+          const ratingRes = await getBatchProviderRatings('Activity', actIds);
+          if (ratingRes.success && ratingRes.data) {
+            loaded = loaded.map(a => {
+              const stat = ratingRes.data[a._id];
+              return {
+                ...a,
+                rating: stat ? stat.averageRating : a.rating,
+                reviews: stat ? stat.totalReviews : a.reviews
+              };
+            });
+          }
+        } catch (rErr) {
+          console.log("Could not load batch activity ratings:", rErr);
+        }
+
+        setAllActivities(loaded);
+        setActivitiesData(loaded);
       } catch (error) {
         console.error("Error fetching activities:", error);
         setAllActivities(defaultActivitiesData);

@@ -5,7 +5,24 @@ import axios from 'axios';
  * Uses Vite's environment variable from the .env file.
  * Make sure VITE_API_URL is defined in your root .env file.
  */
-const API_URL = `${import.meta.env.VITE_API_URL}/reviews`;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/reviews`;
+
+/**
+ * Helper to get authorization headers with token from localStorage
+ */
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || 
+                  localStorage.getItem('restaurantToken') || 
+                  localStorage.getItem('jwt') || 
+                  localStorage.getItem('userToken') || 
+                  localStorage.getItem('authToken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token && token !== 'null') {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return { headers };
+};
 
 /**
  * Submits a new review to the database.
@@ -15,7 +32,7 @@ const API_URL = `${import.meta.env.VITE_API_URL}/reviews`;
  */
 export const submitReview = async (reviewData) => {
     try {
-        const response = await axios.post(API_URL, reviewData);
+        const response = await axios.post(API_URL, reviewData, getAuthHeaders());
         return response.data;
     } catch (error) {
         throw error.response?.data || error.message;
@@ -47,7 +64,7 @@ export const getProviderReviews = async (targetType, targetProviderId) => {
  */
 export const reportReview = async (reviewId, reportReason) => {
     try {
-        const response = await axios.patch(`${API_URL}/${reviewId}/report`, { reportReason });
+        const response = await axios.patch(`${API_URL}/${reviewId}/report`, { reportReason }, getAuthHeaders());
         return response.data;
     } catch (error) {
         throw error.response?.data || error.message;
@@ -63,7 +80,23 @@ export const reportReview = async (reviewId, reportReason) => {
  */
 export const markReviewHelpful = async (reviewId, isHelpful) => {
     try {
-        const response = await axios.patch(`${API_URL}/${reviewId}/helpful`, { isHelpful });
+        const response = await axios.patch(`${API_URL}/${reviewId}/helpful`, { isHelpful }, getAuthHeaders());
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || error.message;
+    }
+};
+
+/**
+ * Fetches batch ratings for multiple service providers at once.
+ * 
+ * @param {String} targetType - The type of provider (e.g., 'Driver', 'Hotel', 'Vehicle').
+ * @param {Array<String>} providerIds - List of provider IDs.
+ * @returns {Promise<Object>} The API response data containing map of rating stats.
+ */
+export const getBatchProviderRatings = async (targetType, providerIds) => {
+    try {
+        const response = await axios.post(`${API_URL}/batch-ratings`, { targetType, providerIds });
         return response.data;
     } catch (error) {
         throw error.response?.data || error.message;
