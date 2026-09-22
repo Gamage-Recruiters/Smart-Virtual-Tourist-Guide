@@ -1,4 +1,11 @@
 import Restaurant from "../../models/Restuarant/restaurant.model.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 const REQUIRED_FIELDS = [
   "restaurantName",
@@ -34,6 +41,24 @@ const createRestaurantProfile = async (req, res) => {
     }
 
     const restaurant = await Restaurant.create(req.body);
+
+    // --- Notification: MULTICAST to all Administrators ---
+    // Alerts admins that a new restaurant has registered and requires identity/business verification.
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '🍽️ New Restaurant Profile Registered',
+        message: `"${restaurant.restaurantName}" (Reg. No: ${restaurant.registrationNo}) in ${restaurant.district} has submitted a new profile for verification.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.HIGH,
+        actionUrl: `/admin/restaurants/${restaurant._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] createRestaurantProfile:', notifError.message);
+    }
+
     return res.status(201).json(restaurant);
   } catch (error) {
     const { status, message } = getErrorResponse(error);

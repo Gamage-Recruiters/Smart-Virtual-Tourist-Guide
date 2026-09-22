@@ -1,4 +1,10 @@
 import Booking from "../../models/TouristDashboard/Booking.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/bookings
@@ -58,6 +64,22 @@ async function createBooking(req, res) {
       status: status || "Pending",
     });
 
+    // --- Notification: UNICAST to the Tourist — booking confirmed ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: userId,
+        title: '✅ Booking Confirmed!',
+        message: `Your ${type} booking for "${title}" ${dateTime ? `on ${displayTime || dateTime}` : ''} has been successfully placed.`,
+        category: NOTIFICATION_CATEGORIES.BOOKING,
+        priority: NOTIFICATION_PRIORITIES.HIGH,
+        actionUrl: `/my-bookings/${booking._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] createBooking:', notifError.message);
+    }
+
     return res.status(201).json({ success: true, data: booking });
   } catch (err) {
     console.error("[bookingController] createBooking error:", err);
@@ -92,6 +114,23 @@ async function updateBookingStatus(req, res) {
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found." });
+    }
+
+    // --- Notification: UNICAST to the Tourist — booking status updated ---
+    try {
+      const io = req.app.get('io');
+      const statusEmoji = status === 'Confirmed' ? '✅' : status === 'Cancelled' ? '❌' : '⏳';
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: userId,
+        title: `${statusEmoji} Booking ${status}`,
+        message: `Your booking for "${booking.title}" has been updated to "${status}".`,
+        category: NOTIFICATION_CATEGORIES.BOOKING,
+        priority: status === 'Cancelled' ? NOTIFICATION_PRIORITIES.HIGH : NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/my-bookings/${booking._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] updateBookingStatus:', notifError.message);
     }
 
     return res.status(200).json({ success: true, data: booking });

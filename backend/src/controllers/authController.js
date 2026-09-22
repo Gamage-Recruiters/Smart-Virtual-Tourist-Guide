@@ -2,6 +2,12 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail.js';
 import { auth } from '../configs/firebaseConfig.js';
+import { sendNotification } from '../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../constants/notificationConstants.js';
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -68,6 +74,22 @@ const registerTourist = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Tourist ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🌍 Welcome to Smart Virtual Tourist Guide!',
+        message: `Hi ${user.fullName}! Your tourist account is ready. Start exploring Sri Lanka with personalised recommendations.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerTourist:', notifError.message);
+    }
   } catch (error) {
     // Mongoose CastError (e.g. empty string for a Date field) or
     // ValidationError should be a 400, not a 500.
@@ -113,6 +135,22 @@ const registerHotelOwner = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Hotel Owner ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🏨 Welcome, Hotel Partner!',
+        message: `Hi ${user.fullName}! Your hotel owner account is active. Add your hotel details to start receiving bookings.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/hotel-dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerHotelOwner:', notifError.message);
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -183,6 +221,22 @@ const registerGuide = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Guide ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🧑‍🦺 Welcome, Licensed Guide!',
+        message: `Hi ${user.fullName}! Your guide account is set up. Complete your profile to connect with tourists across Sri Lanka.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/guide-dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerGuide:', notifError.message);
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -222,6 +276,22 @@ const registerRestaurant = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Restaurant Owner ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🍽️ Welcome, Restaurant Partner!',
+        message: `Hi ${user.fullName}! Your restaurant account is ready. Set up your restaurant profile to start receiving reservations.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/restaurant-dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerRestaurant:', notifError.message);
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -261,6 +331,22 @@ const registerRenter = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Renter ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🚗 Welcome to SVTG Vehicle Rentals!',
+        message: `Hi ${user.fullName}! Your renter account is active. Browse available vehicles and plan your next road trip.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/vehicles',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerRenter:', notifError.message);
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -300,6 +386,22 @@ const registerActivityProvider = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Activity Provider ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🎨 Welcome, Activity Provider!',
+        message: `Hi ${user.fullName}! Your activity provider account is ready. Create your first activity listing and attract tourists!`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/provider-dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerActivityProvider:', notifError.message);
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -398,6 +500,22 @@ const registerDriver = async (req, res) => {
       },
       token: generateToken(user._id),
     });
+
+    // --- Notification: UNICAST welcome to the new Driver ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: user._id,
+        title: '🚕 Welcome, Driver Partner!',
+        message: `Hi ${user.fullName}! Your driver account is active. Your documents are under review — you will be notified once verified.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: '/driver-dashboard',
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerDriver:', notifError.message);
+    }
   } catch (error) {
     console.error('Driver registration error:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });

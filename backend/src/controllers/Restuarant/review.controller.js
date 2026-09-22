@@ -2,6 +2,12 @@ import Review from "../../models/Restuarant/review.model.js";
 import Restaurant from "../../models/Restuarant/restaurant.model.js";
 import jwt from "jsonwebtoken";
 import User from "../../models/User.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 /**
  * POST /api/reviews
@@ -76,6 +82,27 @@ const createReview = async (req, res) => {
       "user",
       "fullName username email"
     );
+
+    // --- Notification: UNICAST to Restaurant Owner — new review posted ---
+    // Informs the restaurant that a customer has submitted a new review.
+    try {
+      const io = req.app.get('io');
+      const ownerId = restaurant.ownerId || restaurant.userId;
+      if (ownerId) {
+        const starDisplay = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: ownerId,
+          title: '⭐ New Review Received',
+          message: `${populatedReview.user?.fullName || 'A customer'} left a ${rating}-star review: "${comment.trim().substring(0, 80)}${comment.length > 80 ? '...' : ''}"`,
+          category: NOTIFICATION_CATEGORIES.REVIEW,
+          priority: NOTIFICATION_PRIORITIES.MEDIUM,
+          actionUrl: `/restaurant/reviews/${review._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error('[Notification Error] createReview:', notifError.message);
+    }
 
     return res.status(201).json({
       success: true,
@@ -399,6 +426,27 @@ const replyToReview = async (req, res) => {
       "user",
       "fullName username email"
     );
+
+    // --- Notification: UNICAST to the Customer (review author) — restaurant replied ---
+    // Informs the tourist that the restaurant owner has responded to their review.
+    try {
+      const io = req.app.get('io');
+      const reviewerId = review.user;
+      const restaurantName = review.restaurant?.restaurantName || review.restaurant?.name || 'The restaurant';
+      if (reviewerId) {
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: reviewerId,
+          title: '💬 Restaurant Replied to Your Review',
+          message: `${restaurantName} has responded to your review: "${reply.trim().substring(0, 80)}${reply.length > 80 ? '...' : ''}"`,
+          category: NOTIFICATION_CATEGORIES.REVIEW,
+          priority: NOTIFICATION_PRIORITIES.MEDIUM,
+          actionUrl: `/reviews/${review._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error('[Notification Error] replyToReview:', notifError.message);
+    }
 
     return res.status(200).json({
       success: true,

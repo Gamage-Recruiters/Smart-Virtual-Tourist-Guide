@@ -5,6 +5,13 @@ import Package from '../../models/Admin/Package.js';
 import Advertisement from '../../models/Admin/Advertisement.js';
 import Review from '../../models/Restuarant/review.model.js';
 import Room from '../../models/HotelOwner/room.model.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 
 // Fetch dashboard statistics
@@ -88,6 +95,24 @@ const updateUserStatus = async (req, res) => {
 
         if (!updatedAccount) {
             return res.status(404).json({ success: false, message: 'Account not found' });
+        }
+
+        // --- Notification: UNICAST to the affected user/admin ---
+        // Informs the account holder that their account status has changed.
+        try {
+            const io = req.app.get('io');
+            const statusEmoji = status === 'Active' ? '✅' : status === 'Suspended' ? '🚫' : '⏳';
+            await sendNotification(io, {
+                scope: NOTIFICATION_SCOPES.UNICAST,
+                recipientId: updatedAccount._id,
+                title: `${statusEmoji} Account Status Updated`,
+                message: `Your account status has been updated to "${status}" by an administrator.`,
+                category: NOTIFICATION_CATEGORIES.ACCOUNT,
+                priority: status === 'Suspended' ? NOTIFICATION_PRIORITIES.HIGH : NOTIFICATION_PRIORITIES.MEDIUM,
+                actionUrl: `/profile`,
+            });
+        } catch (notifError) {
+            console.error('[Notification Error] updateUserStatus:', notifError.message);
         }
 
         res.status(200).json({ success: true, message: `Status updated to ${status}` });
@@ -452,10 +477,34 @@ const getAdminPackages = async (req, res) => {
 // 2. Approve Package
 const approvePackage = async (req, res) => {
     try {
-        await Package.findByIdAndUpdate(req.params.id, {
+        const pkg = await Package.findByIdAndUpdate(req.params.id, {
             approvalStatus: 'Approved',
             approvedAt: new Date()
-        });
+        }, { returnDocument: 'after' });
+
+        // --- Notification: UNICAST to the Travel Agency / Package Owner ---
+        // Informs the submitter that their package has been approved.
+        if (pkg) {
+            try {
+                const io = req.app.get('io');
+                const ownerId = pkg.submittedBy || pkg.userId || pkg.ownerId;
+                const packageTitle = pkg.BasicInformation?.title || 'Your package';
+                if (ownerId) {
+                    await sendNotification(io, {
+                        scope: NOTIFICATION_SCOPES.UNICAST,
+                        recipientId: ownerId,
+                        title: '🎉 Package Approved!',
+                        message: `Great news! "${packageTitle}" has been approved and is now live for tourists.`,
+                        category: NOTIFICATION_CATEGORIES.SYSTEM,
+                        priority: NOTIFICATION_PRIORITIES.HIGH,
+                        actionUrl: `/provider/packages/${pkg._id}`,
+                    });
+                }
+            } catch (notifError) {
+                console.error('[Notification Error] approvePackage:', notifError.message);
+            }
+        }
+
         res.json({ success: true, message: "Package approved" });
     } catch (err) {
         res.status(500).json({ success: false, message: "Error approving" });
@@ -466,11 +515,35 @@ const approvePackage = async (req, res) => {
 const rejectPackage = async (req, res) => {
     try {
         const { reason } = req.body;
-        await Package.findByIdAndUpdate(req.params.id, {
+        const pkg = await Package.findByIdAndUpdate(req.params.id, {
             approvalStatus: 'Rejected',
             rejectionReason: reason,
             rejectedAt: new Date()
-        });
+        }, { returnDocument: 'after' });
+
+        // --- Notification: UNICAST to the Travel Agency / Package Owner ---
+        // Informs the submitter that their package was rejected with the reason.
+        if (pkg) {
+            try {
+                const io = req.app.get('io');
+                const ownerId = pkg.submittedBy || pkg.userId || pkg.ownerId;
+                const packageTitle = pkg.BasicInformation?.title || 'Your package';
+                if (ownerId) {
+                    await sendNotification(io, {
+                        scope: NOTIFICATION_SCOPES.UNICAST,
+                        recipientId: ownerId,
+                        title: '❌ Package Rejected',
+                        message: `"${packageTitle}" was not approved. Reason: ${reason || 'Please contact the admin for details.'}`,
+                        category: NOTIFICATION_CATEGORIES.SYSTEM,
+                        priority: NOTIFICATION_PRIORITIES.HIGH,
+                        actionUrl: `/provider/packages/${pkg._id}`,
+                    });
+                }
+            } catch (notifError) {
+                console.error('[Notification Error] rejectPackage:', notifError.message);
+            }
+        }
+
         res.json({ success: true, message: "Package rejected" });
     } catch (err) {
         res.status(500).json({ success: false, message: "Error rejecting" });

@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 import Incident from '../../models/Safety/Incident.js';
 import logger from '../../utils/logger.js';
 import { getNextSequence } from '../../utils/Safety/sequenceUtils.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 // @desc    Report a new incident
 // @route   POST /api/safety/incidents
@@ -75,6 +82,23 @@ export const createIncident = async (req, res, next) => {
       data: incident,
       referenceNumber: incident.referenceNumber 
     });
+
+    // --- Notification: MULTICAST to Administrators / Safety Officers ---
+    // Immediately alerts all admins and safety personnel about the newly reported incident.
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '🚨 New Incident Reported',
+        message: `A ${incident.incidentCategory || 'general'} incident has been reported by ${incident.reporterName || 'Anonymous'} in ${incident.district || 'an unknown district'}. Ref: ${incident.referenceNumber}`,
+        category: NOTIFICATION_CATEGORIES.SAFETY,
+        priority: NOTIFICATION_PRIORITIES.CRITICAL,
+        actionUrl: `/admin/incidents/${incident._id}`,
+      });
+    } catch (notifError) {
+      logger.error('[Notification Error] createIncident: ' + notifError.message);
+    }
   } catch (error) {
     logger.error('Error reporting incident:', error);
     next(error);
@@ -193,6 +217,27 @@ export const updateIncident = async (req, res, next) => {
 
     if (!incident) {
       return res.status(404).json({ success: false, message: 'Incident not found' });
+    }
+
+    // --- Notification: UNICAST to the Reporting Tourist — incident status updated ---
+    // Notifies the tourist who filed the incident that its status has changed.
+    try {
+      const io = req.app.get('io');
+      const touristId = incident.touristId;
+      if (touristId) {
+        const newStatus = incident.status || req.body.status || 'updated';
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: touristId,
+          title: '📝 Incident Status Updated',
+          message: `Your incident report (Ref: ${incident.referenceNumber}) has been updated to "${newStatus}" by the safety team.`,
+          category: NOTIFICATION_CATEGORIES.SAFETY,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+          actionUrl: `/my-incidents/${incident._id}`,
+        });
+      }
+    } catch (notifError) {
+      logger.error('[Notification Error] updateIncident: ' + notifError.message);
     }
 
     res.status(200).json({ success: true, data: incident });

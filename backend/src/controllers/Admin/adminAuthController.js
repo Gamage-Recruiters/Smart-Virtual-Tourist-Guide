@@ -1,5 +1,12 @@
 import jwt from 'jsonwebtoken';
 import Admin from '../../models/Admin/Admin.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 const ALLOWED_ADMIN_ROLES = ['Administrator', 'Moderator', 'Editor'];
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
@@ -45,6 +52,23 @@ const registerAdmin = async (req, res) => {
       role,
       status: 'Active',
     });
+
+    // --- Notification: MULTICAST to all Administrators ---
+    // Informs existing admins that a new administrator account has been created.
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '👤 New Administrator Account Created',
+        message: `A new ${role} account for "${admin.fullName}" (${admin.email}) has been successfully created.`,
+        category: NOTIFICATION_CATEGORIES.ACCOUNT,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/admin/users`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] registerAdmin:', notifError.message);
+    }
 
     return res.status(201).json({
       success: true,

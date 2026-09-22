@@ -1,4 +1,11 @@
 import Vehicle from "../../models/vehicleRentAdmin/vehicle.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 // 1. ADD NEW VEHICLE (Create)
 export const addVehicle = async (req, res) => {
@@ -44,6 +51,39 @@ export const addVehicle = async (req, res) => {
     });
 
     const savedVehicle = await newVehicle.save();
+
+    // --- Notification 1: UNICAST to Vendor — vehicle addition confirmed ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: req.user._id,
+        title: '🚗 Vehicle Added to Fleet',
+        message: `Your vehicle "${savedVehicle.brand} ${savedVehicle.model}" (${savedVehicle.licensePlate}) has been successfully added to your fleet.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/vehicles/${savedVehicle._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] addVehicle (vendor):', notifError.message);
+    }
+
+    // --- Notification 2: MULTICAST to Administrators — new vehicle for fleet verification ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '🚗 New Vehicle Submitted for Verification',
+        message: `A new vehicle "${savedVehicle.brand} ${savedVehicle.model}" (${savedVehicle.licensePlate}) has been submitted to the fleet and requires admin verification.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/admin/vehicles/${savedVehicle._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] addVehicle (admin):', notifError.message);
+    }
+
     res
       .status(201)
       .json({ message: "Vehicle added successfully!", vehicle: savedVehicle });
@@ -72,6 +112,22 @@ export const updateVehicle = async (req, res) => {
       return res.status(404).json({ message: "Vehicle not found" });
     }
 
+    // --- Notification: UNICAST to Vendor — vehicle record updated ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: req.user._id,
+        title: '✏️ Vehicle Details Updated',
+        message: `Your vehicle "${updatedVehicle.brand} ${updatedVehicle.model}" (${updatedVehicle.licensePlate}) has been successfully updated.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.LOW,
+        actionUrl: `/vehicles/${updatedVehicle._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] updateVehicle:', notifError.message);
+    }
+
     res
       .status(200)
       .json({
@@ -97,6 +153,22 @@ export const deleteVehicle = async (req, res) => {
 
     if (!deletedVehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
+    }
+
+    // --- Notification: UNICAST to Vendor — vehicle removed from fleet ---
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.UNICAST,
+        recipientId: req.user._id,
+        title: '🗑️ Vehicle Removed from Fleet',
+        message: `Your vehicle "${deletedVehicle.brand} ${deletedVehicle.model}" (${deletedVehicle.licensePlate}) has been permanently removed from your fleet.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/vehicles`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] deleteVehicle:', notifError.message);
     }
 
     res

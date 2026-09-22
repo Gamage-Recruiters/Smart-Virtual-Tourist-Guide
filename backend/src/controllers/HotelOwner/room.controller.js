@@ -1,6 +1,13 @@
 import mongoose from 'mongoose';
 import getTestDb from '../../configs/HotelOwner/testDb.js';
 import roomModelSchema from '../../models/HotelOwner/room.model.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 const getRoomModel = async () => {
   const conn = await getTestDb();
@@ -42,6 +49,23 @@ export const createRoom = async (req, res) => {
 
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
         const room = await Room.create({ ...body, roomNumber, images, roomStatus: 'Available', blockedDates: [], maintenanceDates: [], bookingDates: [] });
+
+        // --- Notification: MULTICAST to all Administrators ---
+        // Alerts admins that a new room has been submitted and requires verification/approval.
+        try {
+            const io = req.app.get('io');
+            await sendNotification(io, {
+                scope: NOTIFICATION_SCOPES.MULTICAST,
+                recipientRole: RECIPIENT_ROLES.ADMIN,
+                title: '🏨 New Room Awaiting Approval',
+                message: `A new room "${room.roomName || room.roomNumber}" (${room.roomType || 'Standard'}) has been created and requires verification.`,
+                category: NOTIFICATION_CATEGORIES.SYSTEM,
+                priority: NOTIFICATION_PRIORITIES.MEDIUM,
+                actionUrl: `/admin/rooms/${room._id}`,
+            });
+        } catch (notifError) {
+            console.error('[Notification Error] createRoom:', notifError.message);
+        }
 
         return res.status(201).json({ message: 'Room created successfully', room });
     } catch (error) {

@@ -1,6 +1,13 @@
 import mongoose from 'mongoose';
 import getTestDb from '../../configs/HotelOwner/testDb.js';
 import specialPackageBase from '../../models/HotelOwner/specialPackage.model.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 const getPackageModel = async () => {
   const conn = await getTestDb();
@@ -36,6 +43,24 @@ export const createPackage = async (req, res) => {
         const body = parseBody(req.body);
         const images = req.files ? req.files.map((f) => `/uploads/${f.filename}`) : [];
         const pkg = await SpecialPackage.create({ ...body, images });
+
+        // --- Notification: MULTICAST to all Administrators ---
+        // Alerts admins that a new hotel special package requires their review and approval.
+        try {
+            const io = req.app.get('io');
+            await sendNotification(io, {
+                scope: NOTIFICATION_SCOPES.MULTICAST,
+                recipientRole: RECIPIENT_ROLES.ADMIN,
+                title: '🏨 New Hotel Package Awaiting Approval',
+                message: `A new special package "${pkg.packageName || pkg.name || 'Unnamed Package'}" has been submitted and requires your review.`,
+                category: NOTIFICATION_CATEGORIES.SYSTEM,
+                priority: NOTIFICATION_PRIORITIES.MEDIUM,
+                actionUrl: `/admin/hotel-packages/${pkg._id}`,
+            });
+        } catch (notifError) {
+            console.error('[Notification Error] createPackage:', notifError.message);
+        }
+
         return res.status(201).json({ message: 'Special package created successfully', package: pkg });
     } catch (error) {
         return handleError(res, error);

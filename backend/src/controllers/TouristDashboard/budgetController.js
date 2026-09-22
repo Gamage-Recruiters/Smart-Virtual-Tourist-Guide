@@ -1,5 +1,11 @@
 import * as budgetService from "../../services/TouristDashboard/budgetService.js";
 import * as anomalyService from "../../services/TouristDashboard/anomalyService.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 // ─────────────────────────────────────────────────────────────
 // Helper: standardised API response format
@@ -89,6 +95,33 @@ const checkGuardian = async (req, res) => {
     if (spent > total) return sendError(res, "spentSoFarLKR cannot exceed totalBudgetLKR.");
 
     const result = await budgetService.checkBudgetGuardian(total, spent);
+
+    // --- Notification: UNICAST to the Tourist — budget threshold warning ---
+    // Fires only when the budget guardian detects a warning-level spend (>= 90% or explicit alert flag).
+    try {
+      const io = req.app.get('io');
+      const touristId = req.user?._id;
+      const percentageUsed = result?.percentageUsed ?? ((spent / total) * 100);
+      const shouldAlert = result?.alert === true || percentageUsed >= 90;
+
+      if (touristId && shouldAlert) {
+        const isOverBudget = percentageUsed >= 100;
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: touristId,
+          title: isOverBudget ? '🔴 Budget Exceeded!' : '⚠️ Budget Warning — 90% Used',
+          message: isOverBudget
+            ? `You have exceeded your travel budget. Spent: LKR ${spent.toLocaleString()} / LKR ${total.toLocaleString()}.`
+            : `You have used ${Math.round(percentageUsed)}% of your budget. Spent: LKR ${spent.toLocaleString()} / LKR ${total.toLocaleString()}. Consider reviewing your expenses.`,
+          category: NOTIFICATION_CATEGORIES.BUDGET,
+          priority: isOverBudget ? NOTIFICATION_PRIORITIES.CRITICAL : NOTIFICATION_PRIORITIES.HIGH,
+          actionUrl: `/budget`,
+        });
+      }
+    } catch (notifError) {
+      console.error('[Notification Error] checkGuardian:', notifError.message);
+    }
+
     return sendSuccess(res, result);
   } catch (err) {
     console.error("[budgetController.checkGuardian]", err.message);

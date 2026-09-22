@@ -1,5 +1,12 @@
 import logger from '../../utils/logger.js';
 import TouristArea from '../../models/Safety/TouristArea.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 /**
  * Analyze weather data and return a risk assessment for a tourist area.
@@ -206,6 +213,27 @@ export const getWeatherAlerts = async (req, res, next) => {
         title: 'All clear – safe travel conditions',
         message: `All ${alerts.length} monitored tourist areas report low risk. Conditions are favourable for travel across Sri Lanka.`,
       };
+    }
+
+    // --- Notification: BROADCAST for Critical/High weather conditions ---
+    // Fires only when severity is Critical or High to avoid spamming users with low-risk conditions.
+    if (emergencyWarning && (emergencyWarning.type === 'critical' || emergencyWarning.type === 'warning')) {
+      try {
+        const io = req.app.get('io');
+        const isEmergency = emergencyWarning.type === 'critical';
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.BROADCAST,
+          recipientRole: RECIPIENT_ROLES.ALL,
+          title: emergencyWarning.title,
+          message: emergencyWarning.message,
+          category: NOTIFICATION_CATEGORIES.SAFETY,
+          priority: isEmergency ? NOTIFICATION_PRIORITIES.CRITICAL : NOTIFICATION_PRIORITIES.HIGH,
+          actionUrl: '/safety/weather-alerts',
+        });
+        logger.info(`Weather ${emergencyWarning.type} notification broadcast dispatched.`);
+      } catch (notifError) {
+        logger.error('[Notification Error] getWeatherAlerts: ' + notifError.message);
+      }
     }
 
     res.status(200).json({

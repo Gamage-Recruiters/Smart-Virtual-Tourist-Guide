@@ -1,5 +1,12 @@
 import SecurityAlert from '../../models/Safety/SecurityAlert.js';
 import logger from '../../utils/logger.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 // @desc    Get all active security alerts
 // @route   GET /api/safety/security-alerts
@@ -67,18 +74,22 @@ export const createAlert = async (req, res, next) => {
 
     const alert = await SecurityAlert.create(alertData);
 
-    // --- Trigger Notification Engine ---
-    // Push this security alert to all connected users via Socket.io
+    // --- Notification: BROADCAST to ALL Users ---
+    // Critical security warnings are pushed system-wide to every connected user and device.
     try {
-      const { sendNotification } = await import('../services/NotificationService.js');
       const io = req.app.get('io');
       if (io) {
         await sendNotification(io, {
-          scope: 'BROADCAST',
+          scope: NOTIFICATION_SCOPES.BROADCAST,
+          recipientRole: RECIPIENT_ROLES.ALL,
           title: `🚨 ${alert.title}`,
           message: alert.description,
-          category: 'SAFETY',
-          priority: alert.severity === 'critical' ? 'critical' : alert.severity === 'high' ? 'high' : 'medium',
+          category: NOTIFICATION_CATEGORIES.SAFETY,
+          priority: alert.severity === 'critical'
+            ? NOTIFICATION_PRIORITIES.CRITICAL
+            : alert.severity === 'high'
+            ? NOTIFICATION_PRIORITIES.HIGH
+            : NOTIFICATION_PRIORITIES.MEDIUM,
           actionUrl: '/safety/security-alerts',
           metadata: {
             relatedId: alert._id,

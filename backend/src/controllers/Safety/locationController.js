@@ -1,5 +1,11 @@
 import SharedLocation from '../../models/Safety/SharedLocation.js';
 import logger from '../../utils/logger.js';
+import { sendNotification } from '../../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../../constants/notificationConstants.js';
 
 // Helper to generate random 6-char share code
 const generateShareCode = () => {
@@ -28,6 +34,27 @@ export const shareLocation = async (req, res, next) => {
     };
 
     const sharedLocation = await SharedLocation.create(locationData);
+
+    // --- Notification: UNICAST to the Tourist — location sharing confirmed ---
+    // Sends a confirmation to the tourist that their location is now being shared.
+    try {
+      const io = req.app.get('io');
+      const touristId = req.user?._id || req.body.touristId;
+      if (touristId) {
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: touristId,
+          title: '📍 Location Sharing Active',
+          message: `Your location is now being shared. Share code: ${shareCode}. Session expires in ${durationHours} hour(s).`,
+          category: NOTIFICATION_CATEGORIES.SAFETY,
+          priority: NOTIFICATION_PRIORITIES.MEDIUM,
+          actionUrl: `/safety/location/${shareCode}`,
+        });
+      }
+    } catch (notifError) {
+      logger.error('[Notification Error] shareLocation: ' + notifError.message);
+    }
+
     res.status(201).json({ success: true, data: sharedLocation });
   } catch (error) {
     logger.error('Error sharing location:', error);

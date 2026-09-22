@@ -1,5 +1,12 @@
 import Offer from "../../models/Restuarant/offer.model.js";
 import Restaurant from "../../models/Restuarant/restaurant.model.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 const REQUIRED_FIELDS = [
   "restaurantId",
@@ -76,6 +83,24 @@ const createOffer = async (req, res) => {
       startDate,
       endDate,
     });
+
+    // --- Notification: MULTICAST to all Administrators ---
+    // Alerts admins that a new promotional offer has been submitted and may require approval.
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '🍽️ New Restaurant Offer Submitted',
+        message: `A new offer "${offer.title}" (${offer.discountPercentage}% discount) has been submitted by a restaurant and requires admin review.`,
+        category: NOTIFICATION_CATEGORIES.SYSTEM,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/admin/offers/${offer._id}`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] createOffer:', notifError.message);
+    }
+
     return res.status(201).json(offer);
   } catch (error) {
     const { status, message } = getErrorResponse(error);

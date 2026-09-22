@@ -1,5 +1,11 @@
 import Reservation from "../../models/Restuarant/reservation.model.js";
 import Restaurant from "../../models/Restuarant/restaurant.model.js";
+import { sendNotification } from "../../services/NotificationService.js";
+import {
+  NOTIFICATION_SCOPES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from "../../constants/notificationConstants.js";
 
 const createReservation = async (req, res) => {
   try {
@@ -59,6 +65,44 @@ const createReservation = async (req, res) => {
       totalAmount,
       status: "Paid",
     });
+
+    // --- Notification 1: UNICAST to Customer — booking confirmation ---
+    try {
+      const io = req.app.get('io');
+      const customerId = req.user?._id;
+      if (customerId) {
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: customerId,
+          title: '🍽️ Reservation Confirmed!',
+          message: `Your table for ${guestCount} guest(s) at ${restaurant.restaurantName} on ${dateStr} is confirmed. Total: $${totalAmount}.`,
+          category: NOTIFICATION_CATEGORIES.BOOKING,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+          actionUrl: `/my-reservations/${reservation._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error('[Notification Error] createReservation (customer):', notifError.message);
+    }
+
+    // --- Notification 2: UNICAST to Restaurant Owner — new table reservation ---
+    try {
+      const io = req.app.get('io');
+      const ownerId = restaurant.ownerId || restaurant.userId;
+      if (ownerId) {
+        await sendNotification(io, {
+          scope: NOTIFICATION_SCOPES.UNICAST,
+          recipientId: ownerId,
+          title: '📝 New Table Reservation Received',
+          message: `${userName} has reserved a ${tableType} table for ${guestCount} guest(s) on ${dateStr}.`,
+          category: NOTIFICATION_CATEGORIES.BOOKING,
+          priority: NOTIFICATION_PRIORITIES.HIGH,
+          actionUrl: `/restaurant/reservations/${reservation._id}`,
+        });
+      }
+    } catch (notifError) {
+      console.error('[Notification Error] createReservation (owner):', notifError.message);
+    }
 
     return res.status(201).json(reservation);
   } catch (error) {

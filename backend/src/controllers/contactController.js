@@ -1,5 +1,12 @@
 import ContactForm from '../models/ContactForm.js';
 import nodemailer from 'nodemailer';
+import { sendNotification } from '../services/NotificationService.js';
+import {
+  NOTIFICATION_SCOPES,
+  RECIPIENT_ROLES,
+  NOTIFICATION_CATEGORIES,
+  NOTIFICATION_PRIORITIES,
+} from '../constants/notificationConstants.js';
 
 export const submitContactForm = async (req, res, next) => {
   try {
@@ -40,6 +47,23 @@ ${message}`
     };
 
     await transporter.sendMail(mailOptions);
+
+    // --- Notification: MULTICAST to all Administrators ---
+    // Ensures admins are immediately alerted about a new contact inquiry in real-time.
+    try {
+      const io = req.app.get('io');
+      await sendNotification(io, {
+        scope: NOTIFICATION_SCOPES.MULTICAST,
+        recipientRole: RECIPIENT_ROLES.ADMIN,
+        title: '📩 New Contact Inquiry Received',
+        message: `${fullName} (${email}) submitted a new inquiry: "${subject}". Check the contact inbox to respond.`,
+        category: NOTIFICATION_CATEGORIES.INQUIRY,
+        priority: NOTIFICATION_PRIORITIES.MEDIUM,
+        actionUrl: `/admin/contact-inquiries`,
+      });
+    } catch (notifError) {
+      console.error('[Notification Error] submitContactForm:', notifError.message);
+    }
 
     res.status(201).json({ success: true, message: 'Message sent successfully!' });
   } catch (error) {
