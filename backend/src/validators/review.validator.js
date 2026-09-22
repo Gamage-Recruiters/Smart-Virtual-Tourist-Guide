@@ -4,6 +4,7 @@ import { PROVIDER_TYPES } from '../constants/review.constants.js';
 export const validateReview = (req, res, next) => {
     const schema = Joi.object({
         // touristId IS REMOVED HERE because it comes securely from req.user, not req.body!
+        touristId: Joi.string().optional().allow(null, ''),
         targetProviderId: Joi.string().required().messages({
             'any.required': 'Target Provider ID is required.'
         }),
@@ -19,18 +20,17 @@ export const validateReview = (req, res, next) => {
             'string.min': 'Review title must be at least 2 characters long.',
             'string.max': 'Review title cannot exceed 100 characters.'
         }),
-        reviewText: Joi.string().min(5).max(1000).required().messages({
-            'string.min': 'Review text is too short. It must be at least 5 characters long.',
+        reviewText: Joi.string().min(2).max(1000).required().messages({
+            'string.min': 'Review text is too short. It must be at least 2 characters long.',
             'string.max': 'Review text is too long. It cannot exceed 1000 characters.',
             'any.required': 'Review text is required.'
         }),
-        images: Joi.array().items(Joi.string().uri()).optional().default([]).messages({
-            'string.uri': 'Image must be a valid URL.',
-            'array.base': 'Images must be an array of URLs.'
+        images: Joi.array().items(Joi.string()).optional().default([]).messages({
+            'array.base': 'Images must be an array.'
         })
     });
 
-    const { error } = schema.validate(req.body);
+    const { error } = schema.validate(req.body, { allowUnknown: true });
 
     if (error) {
         return res.status(400).json({

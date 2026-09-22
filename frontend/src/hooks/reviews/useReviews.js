@@ -88,6 +88,20 @@ export const useReviews = (targetType, targetProviderId) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
+  const refetchReviews = async () => {
+    if (targetType && targetProviderId) {
+      try {
+        const response = await getProviderReviews(targetType, targetProviderId);
+        if (response.success) {
+          setReviews(response.data.reviews);
+          setStats(response.data.stats);
+        }
+      } catch (err) {
+        console.error("Failed to refetch reviews:", err);
+      }
+    }
+  };
+
   // Return everything the UI needs
   return {
     stats,
@@ -101,6 +115,7 @@ export const useReviews = (targetType, targetProviderId) => {
     searchQuery,
     setSearchQuery,
     handleHelpfulClick,
-    submitReport
+    submitReport,
+    refetchReviews
   };
 };

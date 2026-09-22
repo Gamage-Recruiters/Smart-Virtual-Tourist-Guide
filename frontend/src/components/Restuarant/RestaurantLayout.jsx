@@ -81,7 +81,7 @@ function Sidebar({ collapsed, onCollapse }) {
     navigate('/')
   }
 
-  const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
+  const user = JSON.parse(localStorage.getItem('restaurantUser') || localStorage.getItem('user') || '{}')
   const initials = user.fullName
     ? user.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     : 'R'
@@ -182,7 +182,7 @@ function Sidebar({ collapsed, onCollapse }) {
 
 // ─── Top bar ────────────────────────────────────────────────────────────────
 function TopBar({ onMobileToggle }) {
-  const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
+  const user = JSON.parse(localStorage.getItem('restaurantUser') || localStorage.getItem('user') || '{}')
 
   // Derive page title from current path
   const path = window.location.pathname

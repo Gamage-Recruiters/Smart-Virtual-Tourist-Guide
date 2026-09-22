@@ -6,6 +6,7 @@ import ListingCard from '../../components/Admin/ListingCard';
 import RejectModal from '../../components/Admin/RejectModal';
 import toast, { Toaster } from 'react-hot-toast';
 import ListingManagementBg from '../../assets/Admin/Listing_Management.png';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const ApproveListings = () => {
   const [listingsData, setListingsData] = useState([]);
@@ -30,7 +31,45 @@ const ApproveListings = () => {
         setError('');
         const response = await apiClient.get('/admin/packages');
         if (response.success) {
-          setListingsData(response.data || []);
+          let fetchedListings = response.data || [];
+
+          // Batch fetch ratings for each targetType
+          const targetTypes = ['Driver', 'Hotel', 'Restaurant', 'Activity'];
+          for (const tType of targetTypes) {
+            const ids = fetchedListings
+              .filter(item => {
+                const typeStr = (item.type || item.category || '').toLowerCase();
+                if (tType === 'Driver') return typeStr.includes('driver') || typeStr.includes('transport') || typeStr.includes('vehicle');
+                if (tType === 'Hotel') return typeStr.includes('hotel') || typeStr.includes('stay') || typeStr.includes('room');
+                if (tType === 'Restaurant') return typeStr.includes('rest') || typeStr.includes('food') || typeStr.includes('dining');
+                if (tType === 'Activity') return typeStr.includes('act') || typeStr.includes('tour') || typeStr.includes('safari');
+                return false;
+              })
+              .map(item => item._id || item.id);
+
+            if (ids.length > 0) {
+              try {
+                const ratingRes = await getBatchProviderRatings(tType, ids);
+                if (ratingRes.success && ratingRes.data) {
+                  fetchedListings = fetchedListings.map(item => {
+                    const stat = ratingRes.data[item._id || item.id];
+                    if (stat) {
+                      return {
+                        ...item,
+                        rating: stat.averageRating,
+                        reviewsCount: stat.totalReviews
+                      };
+                    }
+                    return item;
+                  });
+                }
+              } catch (rErr) {
+                console.log(`Could not load batch ratings for ${tType}:`, rErr);
+              }
+            }
+          }
+
+          setListingsData(fetchedListings);
           setStats(response.stats || { pending: 0, approved: 0, rejected: 0, avgVerification: '0%' });
         } else {
           setError('Failed to load listings data.');

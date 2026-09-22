@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaGlobe, FaAward, FaMapMarkerAlt } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const defaultGuidesData = [
   {
@@ -91,9 +92,28 @@ const Guides_Card = () => {
       try {
         const response = await fetch('http://localhost:5000/api/guides');
         const data = await response.json();
-        if (data.success && data.data.length > 0) {
-          setAllGuides(data.data);
-          setGuidesData(data.data);
+        if (data.success && data.data && data.data.length > 0) {
+          let loaded = data.data;
+
+          try {
+            const guideIds = loaded.map(g => g._id || g.id);
+            const ratingRes = await getBatchProviderRatings('Guide', guideIds);
+            if (ratingRes.success && ratingRes.data) {
+              loaded = loaded.map(g => {
+                const stat = ratingRes.data[g._id || g.id];
+                return {
+                  ...g,
+                  rating: stat ? stat.averageRating : (g.rating || 0),
+                  totalReviews: stat ? stat.totalReviews : (g.totalReviews || 0)
+                };
+              });
+            }
+          } catch (rErr) {
+            console.log("Could not load batch guide ratings:", rErr);
+          }
+
+          setAllGuides(loaded);
+          setGuidesData(loaded);
         } else {
           setAllGuides(defaultGuidesData);
           setGuidesData(defaultGuidesData);
