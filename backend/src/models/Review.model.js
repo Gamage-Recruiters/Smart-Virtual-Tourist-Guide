@@ -2,13 +2,12 @@ import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
   touristId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true
   },
   // The provider being reviewed (could be a driver, hotel, vehicle, activity, restaurant, or guide)
   targetProviderId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true
   },
   targetType: {
@@ -66,4 +65,5 @@ const reviewSchema = new mongoose.Schema({
 // Create a compound index to optimize queries for reviews of a specific provider and type  
 reviewSchema.index({ targetProviderId: 1, targetType: 1 });
 
-export default mongoose.model('Review', reviewSchema);
+const Review = mongoose.models.CentralReview || mongoose.model('CentralReview', reviewSchema, 'reviews');
+export default Review;

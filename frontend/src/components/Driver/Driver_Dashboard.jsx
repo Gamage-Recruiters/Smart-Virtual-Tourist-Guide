@@ -6,22 +6,40 @@ import { HiOutlineLocationMarker } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import bImage from "../../assets/B.png";
 import { userAPI } from "../../services/api";
+import { getProviderReviews } from "../../services/reviews/review.service";
 
 export default function Driver_Dashboard() {
   const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem('userData')) || {});
   const token = localStorage.getItem('token');
   const [drivers, setDrivers] = useState([]);
   const [passengers, setPassengers] = useState([]);
+  const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 });
+  const [realReviews, setRealReviews] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const profileRes = await userAPI.getProfile();
+        let u = currentUser;
         if (profileRes && (profileRes.user || profileRes.data)) {
-          const u = profileRes.user || profileRes.data.user || profileRes.data;
+          u = profileRes.user || profileRes.data.user || profileRes.data;
           setCurrentUser(u);
           const currentLocal = JSON.parse(localStorage.getItem('userData') || '{}');
           localStorage.setItem('userData', JSON.stringify({ ...currentLocal, ...u }));
+        }
+
+        // Fetch real reviews for this logged-in driver
+        const driverId = u._id || u.id;
+        if (driverId) {
+          try {
+            const revRes = await getProviderReviews('Driver', driverId);
+            if (revRes && revRes.success && revRes.data) {
+              setRatingStats(revRes.data.stats || { averageRating: 0, totalReviews: 0 });
+              setRealReviews(revRes.data.reviews || []);
+            }
+          } catch (rErr) {
+            console.warn("Could not fetch driver reviews:", rErr);
+          }
         }
       } catch (err) {
         console.error("Fetch profile error:", err);
@@ -60,7 +78,8 @@ export default function Driver_Dashboard() {
               });
             }
           });
-          setPassengers(uniqueCustomers); setHasNewRequest(pData.bookings.some(b => b.status.toLowerCase() === 'pending'));
+          setPassengers(uniqueCustomers); 
+          setHasNewRequest(pData.bookings.some(b => b.status?.toLowerCase() === 'pending'));
         }
       } catch (err) {
         console.error("Fetch data error:", err);
@@ -173,7 +192,10 @@ export default function Driver_Dashboard() {
             >
               <div className="w-10 h-10 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">⭐</div>
               <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wide">Driver Rating</h2>
-              <p className="text-2xl font-extrabold text-slate-800">4.8 <span className="text-sm text-slate-400 font-medium">/5</span></p>
+              <p className="text-2xl font-extrabold text-slate-800">
+                {ratingStats.averageRating > 0 ? ratingStats.averageRating.toFixed(1) : "0.0"}{" "}
+                <span className="text-sm text-slate-400 font-medium">({ratingStats.totalReviews || 0} reviews)</span>
+              </p>
             </div>
           </div>
 
@@ -370,30 +392,74 @@ export default function Driver_Dashboard() {
 
             </div>
 
-            {/* Right Side: Passengers */}
+            {/* Right Side: Passengers & Reviews */}
             <div className="lg:w-[400px] flex flex-col">
-              <h3 className="font-bold text-slate-800 mb-4 text-sm">Passengers</h3>
-              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                {passengers.map((passenger, index) => (
-                  <div key={index} className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 relative">
-                    <div className="absolute top-4 right-4 w-6 h-6 bg-blue-100 rounded-full"></div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <img src={passenger.image} alt={passenger.name} className="w-10 h-10 rounded-full object-cover" />
-                      <h4 className="font-bold text-sm text-slate-800">{passenger.name}</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-slate-800 text-sm">Passenger Reviews</h3>
+                <span className="text-xs text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded-full">
+                  {realReviews.length > 0 ? `${realReviews.length} Reviews` : 'No reviews yet'}
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2 max-h-[600px]">
+                {realReviews.length > 0 ? (
+                  realReviews.map((rev, index) => {
+                    const tourist = rev.touristId || {};
+                    const touristName = tourist.fullName || `${tourist.firstName || ''} ${tourist.lastName || ''}`.trim() || "Verified Tourist";
+                    const touristImg = tourist.profileImage || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                    
+                    return (
+                      <div key={rev._id || index} className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 relative shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <img src={touristImg} alt={touristName} className="w-10 h-10 rounded-full object-cover border border-slate-200" />
+                          <div>
+                            <h4 className="font-bold text-sm text-slate-800">{touristName}</h4>
+                            <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                              <span>{new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-600 leading-relaxed italic mb-3">"{rev.reviewText || rev.comment}"</p>
+                        
+                        <div className="flex items-center justify-between pt-2 border-t border-blue-100/60">
+                          <div className="flex text-amber-400 text-xs">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span key={star} className={star <= (rev.rating || 5) ? 'text-amber-400' : 'text-slate-200'}>★</span>
+                            ))}
+                          </div>
+                          <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+                            {rev.rating || 5}.0 Rating
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : passengers.length > 0 ? (
+                  passengers.map((passenger, index) => (
+                    <div key={index} className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-4 relative">
+                      <div className="flex items-center gap-3 mb-3">
+                        <img src={passenger.image} alt={passenger.name} className="w-10 h-10 rounded-full object-cover" />
+                        <h4 className="font-bold text-sm text-slate-800">{passenger.name}</h4>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-3 font-medium">
+                        <HiOutlineLocationMarker className="text-slate-400" />
+                        <span>{passenger.from}</span>
+                        <span>→</span>
+                        <HiOutlineLocationMarker className="text-slate-400" />
+                        <span>{passenger.to}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 italic mb-3">"{passenger.review}"</p>
+                      <div className="flex text-amber-400 text-[10px]">
+                        <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-3 font-medium">
-                      <HiOutlineLocationMarker className="text-slate-400" />
-                      <span>{passenger.from}</span>
-                      <span>→</span>
-                      <HiOutlineLocationMarker className="text-slate-400" />
-                      <span>{passenger.to}</span>
-                    </div>
-                    <p className="text-xs text-slate-600 italic mb-3">"{passenger.review}"</p>
-                    <div className="flex text-amber-400 text-[10px]">
-                      <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
-                    </div>
+                  ))
+                ) : (
+                  <div className="bg-[#F8FBFF] border border-blue-100 rounded-2xl p-6 text-center">
+                    <p className="text-xs text-slate-500 font-medium">No reviews received from passengers yet.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
