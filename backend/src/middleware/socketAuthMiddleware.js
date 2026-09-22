@@ -12,7 +12,6 @@ const socketAuth = async (socket, next) => {
   try {
     // 1. Get the token from either the 'auth' object or the 'headers'
     const token = socket.handshake.auth.token || socket.handshake.headers.token;
-    console.log("Socket Auth Middleware: Token received:", token);
 
     // Reject connection if no token is provided
     if (!token) {
@@ -61,7 +60,7 @@ const socketAuth = async (socket, next) => {
 
     // Log the successful connection
     logger.info(
-      `Socket Authenticated: User ${socket.userId} (${socket.userRole})`,
+      `Socket Authenticated: Role=${socket.userRole}`,
     );
 
     // Allow the connection to proceed

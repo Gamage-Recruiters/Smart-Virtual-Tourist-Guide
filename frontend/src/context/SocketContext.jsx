@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { io } from "socket.io-client";
@@ -27,6 +26,13 @@ import { updateFCMTokenApi } from "../api/userApi";
 
 const SocketContext = createContext();
 
+/**
+ * Custom hook to access the SocketContext.
+ * Must be used inside a {@link SocketProvider}.
+ *
+ * @returns {{ socket: import("socket.io-client").Socket|null, connectionStatus: string, reconnectAttempt: number, isMobileDevice: boolean, updateManualLocation: Function, requestNotificationPermission: Function }}
+ * @throws {Error} If used outside of a SocketProvider
+ */
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (!context)
@@ -34,116 +40,150 @@ export const useSocket = () => {
   return context;
 };
 
-// 📱 Helper function to check if the device is mobile
+/**
+ * Detects whether the current device is a mobile device by inspecting the User-Agent string.
+ * Used to branch between automatic GPS tracking (mobile) and manual location input (desktop).
+ *
+ * @returns {boolean} True if the device is mobile, false otherwise.
+ */
 const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent,
   );
 };
 
+/**
+ * SocketProvider — Context Provider that manages the real-time WebSocket connection lifecycle.
+ *
+ * Responsibilities:
+ * - Establishes and tears down the Socket.IO connection when a user logs in/out.
+ * - Registers socket event listeners for connect, disconnect, errors, and new_notification.
+ * - Dispatches incoming real-time notifications to the Redux store.
+ * - Performs an optimistic cache update on the React Query notification list.
+ * - On mobile devices, tracks live GPS via `watchPosition` with a 50m distance filter to
+ *   avoid excessive socket emissions. On desktops, waits for manual input via LocationSelector.
+ * - Handles FCM token registration for push notification support.
+ *
+ * @param {{ children: React.ReactNode }} props
+ */
 export const SocketProvider = ({ children }) => {
-  const socketRef = useRef(null);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const user = useSelector(selectCurrentUser);
   const token = useSelector(selectAuthToken);
 
-  // Connection States
+  // Use state instead of ref for the socket so consumers re-render correctly
+  // when the socket instance changes (e.g., after reconnect or logout).
+  const [socket, setSocket] = useState(null);
+
+  // Tracks current connection lifecycle stage for UI feedback (banner, etc.)
   const [connectionStatus, setConnectionStatus] = useState("disconnected");
   const [reconnectAttempt, setReconnectAttempt] = useState(0);
 
-  // State to check Mobile or Laptop
-  const [isMobileDevice, setIsMobileDevice] = useState(checkIsMobile());
+  // Computed once on mount — device type does not change during a session.
+  const [isMobileDevice] = useState(checkIsMobile());
 
-  // 🚀 UPDATE: Create a separate function to request FCM Token (Called later by user action)
+  /**
+   * Requests browser notification permission and registers the FCM token in the database.
+   * Called explicitly by the user via the LocationSelector UI, NOT on mount, to avoid
+   * triggering the permission prompt before the user has meaningfully interacted.
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
   const requestNotificationPermission = async () => {
     try {
-      console.log("🔔 Requesting Notification Permission from User...");
       const fcmToken = await requestForToken();
       if (fcmToken && user?._id) {
+        // Persist the FCM token server-side so this device receives push notifications
+        // even when the WebSocket connection is offline.
         await updateFCMTokenApi(user._id, fcmToken);
-        console.log("✅ FCM Token saved in DB successfully!");
       }
     } catch (error) {
-      console.error("❌ Notification permission denied or failed:", error);
+      console.error("FCM registration failed:", error);
     }
   };
+
+  // Extract primitive IDs to use as stable dependency array values
+  // instead of the entire user object, which would cause the effect
+  // to re-run on every render due to object reference inequality.
+  const currentUserId = user?._id || user?.id;
+  const userRole = user?.role;
 
   useEffect(() => {
     let watchId = null;
 
-    console.log("🔄 SocketProvider Effect Triggered:", {
-      hasUser: !!user,
-      userId: user?._id || user?.id,
-      hasToken: !!token,
-    });
-
-    const currentUserId = user?._id || user?.id;
-
     if (currentUserId && token) {
+      // Clear any stale notifications from a previous session on fresh login.
       dispatch(clearNotifications());
-      requestNotificationPermission();
 
+      // Only tourist and driver roles receive location-based notifications;
+      // admin and other roles use role-based rooms only.
       const ALLOWED_LOCATION_ROLES = ["tourist_user", "driver_user"];
-      const isLocationAllowedRole = ALLOWED_LOCATION_ROLES.includes(user.role);
+      const isLocationAllowedRole = ALLOWED_LOCATION_ROLES.includes(userRole);
 
-      const SOCKET_URL =
-        import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+      const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
-      // අලුතින් Socket එක හදනවා
-      socketRef.current = io(SOCKET_URL, {
+      const newSocket = io(SOCKET_URL, {
+        // JWT token is sent in the auth payload and validated by server-side middleware.
         auth: { token },
         reconnection: true,
         reconnectionAttempts: Infinity,
+        // Exponential-like backoff between 2s and 5s to reduce server pressure during outages.
         reconnectionDelay: 2000,
         reconnectionDelayMax: 5000,
+        // Prefer WebSocket for lower latency; fall back to long-polling if WS is blocked.
         transports: ["websocket", "polling"],
         autoConnect: true,
       });
 
-      const socket = socketRef.current;
+      // --- Socket Lifecycle Handlers ---
 
       const handleConnect = () => {
         setConnectionStatus("connected");
         setReconnectAttempt(0);
-        console.log("✅ Socket Connected to Engine. Socket ID:", socket.id);
       };
 
       const handleDisconnect = (reason) => {
-        console.log(`❌ Socket Disconnected: ${reason}`);
         setConnectionStatus("reconnecting");
+        // Actively reconnect if the server or transport layer initiated the disconnect.
+        // "io client disconnect" (user-triggered) is intentionally excluded.
         if (reason === "io server disconnect" || reason === "transport close") {
-          socket.connect();
+          newSocket.connect();
         }
       };
 
       const handleConnectError = (error) => {
-        console.error("⚠️ Connection Error:", error.message);
+        console.error("Socket connection error:", error.message);
         setConnectionStatus("reconnecting");
       };
 
       const handleReconnectAttempt = (attempt) => setReconnectAttempt(attempt);
 
+      /**
+       * Handles an incoming real-time notification from the server.
+       * 1. Triggers haptic/vibration feedback for critical/high priority notifications.
+       * 2. Dispatches to Redux to show the toast and increment the unread badge.
+       * 3. Performs an optimistic prepend into the React Query paginated cache so the
+       *    notification appears at the top of the list without a full refetch.
+       *    A duplicate check (by `_id`) prevents double-entries if a slow query resolves after.
+       */
       const handleNewNotification = (notification) => {
-        console.log("🔔 Notification Received:", notification);
-
-        if (
-          notification.priority === "critical" ||
-          notification.priority === "high"
-        ) {
+        if (notification.priority === "critical" || notification.priority === "high") {
           triggerSafetyFeedback(notification.priority);
         }
 
         dispatch(addRealtimeNotification(notification));
 
+        // Optimistically insert the notification at the top of the first page
+        // of the React Query infinite list cache.
         queryClient.setQueryData(["notifications", token], (oldData) => {
           if (!oldData || !oldData.pages) return oldData;
           const newPages = [...oldData.pages];
           if (newPages.length > 0) {
-            const exists = newPages[0].data.some(
-              (n) => n._id === notification._id,
-            );
+            // Guard against duplicates that can occur during rapid reconnect cycles.
+            const exists = newPages[0].data.some((n) => n._id === notification._id);
             if (!exists) {
               newPages[0] = {
                 ...newPages[0],
@@ -155,13 +195,17 @@ export const SocketProvider = ({ children }) => {
         });
       };
 
-      socket.on("connect", handleConnect);
-      socket.on("disconnect", handleDisconnect);
-      socket.on("connect_error", handleConnectError);
-      socket.on("reconnect_attempt", handleReconnectAttempt);
-      socket.on("new_notification", handleNewNotification);
+      // Register all event listeners using named handler references so they can
+      // be cleanly removed in the cleanup function below.
+      newSocket.on("connect", handleConnect);
+      newSocket.on("disconnect", handleDisconnect);
+      newSocket.on("connect_error", handleConnectError);
+      newSocket.on("reconnect_attempt", handleReconnectAttempt);
+      newSocket.on("new_notification", handleNewNotification);
 
-      // 📍 Location Tracking Logic
+      // --- Location Tracking (Mobile Only) ---
+      // On mobile devices, use the browser's Geolocation API to stream live GPS updates.
+      // Desktop users set their location manually via the LocationSelector modal.
       if ("geolocation" in navigator && isLocationAllowedRole) {
         if (isMobileDevice) {
           let lastLat = null;
@@ -170,68 +214,74 @@ export const SocketProvider = ({ children }) => {
           watchId = navigator.geolocation.watchPosition(
             (position) => {
               const { latitude, longitude } = position.coords;
+
+              // Skip emitting if the user has moved less than 50 metres from the last
+              // known position. This prevents excessive server-side region lookups and
+              // socket emissions for minor GPS jitter.
               if (lastLat && lastLng) {
-                const dist = calculateDistance(
-                  lastLat,
-                  lastLng,
-                  latitude,
-                  longitude,
-                );
+                const dist = calculateDistance(lastLat, lastLng, latitude, longitude);
                 if (dist < 50) return;
               }
+
               lastLat = latitude;
               lastLng = longitude;
-              socket.emit("update_location", { lat: latitude, lng: longitude });
+              newSocket.emit("update_location", { lat: latitude, lng: longitude });
             },
-            (err) => console.warn("⚠️ GPS Error:", err.message),
+            (err) => console.error("GPS tracking error:", err.message),
             { enableHighAccuracy: true, distanceFilter: 50 },
           );
-        } else {
-          console.log(
-            "💻 Laptop/Desktop Detected: Waiting for Manual Location Input",
-          );
         }
+        // Desktop: location is submitted manually via LocationSelector — no watchPosition needed.
       }
 
-      // Cleanup Function
+      setSocket(newSocket);
+
+      // --- Cleanup ---
+      // Runs when the user logs out (currentUserId/token becomes null) or on unmount.
+      // Removing listeners before disconnect prevents ghost event handlers on stale sockets.
       return () => {
-        console.log("🧹 Cleaning up Socket & GPS...");
         if (watchId) navigator.geolocation.clearWatch(watchId);
 
-        if (socket) {
-          socket.off("connect", handleConnect);
-          socket.off("disconnect", handleDisconnect);
-          socket.off("connect_error", handleConnectError);
-          socket.off("reconnect_attempt", handleReconnectAttempt);
-          socket.off("new_notification", handleNewNotification);
-          socket.disconnect();
-        }
-        socketRef.current = null;
+        newSocket.off("connect", handleConnect);
+        newSocket.off("disconnect", handleDisconnect);
+        newSocket.off("connect_error", handleConnectError);
+        newSocket.off("reconnect_attempt", handleReconnectAttempt);
+        newSocket.off("new_notification", handleNewNotification);
+        newSocket.disconnect();
+        setSocket(null);
       };
     } else {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
+      // Disconnect and clean up if the user logs out mid-session.
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
       }
     }
-  }, [user, token, dispatch, queryClient, isMobileDevice]);
+  // Depend on primitive IDs (not the user object) to avoid re-running the effect
+  // on every render due to object reference inequality from the Redux selector.
+  }, [currentUserId, userRole, token, dispatch, queryClient, isMobileDevice]);
 
+  /**
+   * Emits a manual location update over the socket for desktop users.
+   * Called by LocationSelector after the user confirms their city.
+   *
+   * @param {number} lat - Latitude of the selected location.
+   * @param {number} lng - Longitude of the selected location.
+   */
   const updateManualLocation = (lat, lng) => {
-    if (socketRef.current && connectionStatus === "connected") {
-      console.log("📍 Manual Location Submitted:", lat, lng);
-      socketRef.current.emit("update_location", { lat, lng });
+    if (socket && connectionStatus === "connected") {
+      socket.emit("update_location", { lat, lng });
     }
   };
 
   return (
     <SocketContext.Provider
       value={{
-        socket: socketRef.current,
+        socket,
         connectionStatus,
         reconnectAttempt,
         isMobileDevice,
         updateManualLocation,
-        // 🚀 UPDATE: Expose the function so LocationSelector can use it
         requestNotificationPermission,
       }}
     >

@@ -41,6 +41,9 @@ const authSlice = createSlice({
       localStorage.removeItem("userData");
       localStorage.removeItem("restaurantToken");
       localStorage.removeItem("adminToken");
+
+      // 🛠️ Clear the location flag on logout
+      localStorage.removeItem("user_location_set");
     },
 
     // 3. Switch between test users during development/testing
