@@ -4,6 +4,8 @@ import ServiceDetailsCard from "../../components/booking&reservation/bookingSumm
 import GuideAvailabilityCard from "../../components/booking&reservation/serviceAvailability/GuideAvailabilityCard";
 import { FaArrowLeft } from 'react-icons/fa';
 
+import ReviewSection from "../../pages/reviews/ReviewSection";
+
 const GuideBooking = () => {
     const location = useLocation();
     const guide = location.state?.guide;
@@ -41,7 +43,7 @@ const GuideBooking = () => {
                     <p className="text-gray-500">Check availability and hire an expert local guide for your journey.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                     {/* Left Column - Details */}
                     <div className="lg:col-span-2 space-y-6">
                         <ServiceDetailsCard service={serviceData} />
@@ -64,6 +66,15 @@ const GuideBooking = () => {
                             <GuideAvailabilityCard guide={displayGuide} />
                         </div>
                     </div>
+                </div>
+
+                {/* Reviews & Ratings Section */}
+                <div className="border-t border-gray-200 pt-8">
+                    <ReviewSection
+                        targetType="Guide"
+                        targetProviderId={displayGuide._id || displayGuide.id || 'sample-guide-1'}
+                        targetName={serviceData.name}
+                    />
                 </div>
             </main>
         </div>
