@@ -9,11 +9,19 @@ import User from "../models/User.js";
 import Admin from "../models/Admin/Admin.js";
 
 /**
- * 1. Fetch notifications with Pagination
- * GET /api/notifications?page=1&limit=20
+ * Retrieves a paginated list of notifications for the authenticated user.
  *
- * Description: Retrieves a list of notifications for the logged-in user.
- * It loads messages in chunks (pagination) to save data and improve speed.
+ * Targets notifications relevant to the user by matching their userId, role,
+ * broadcast scope, and geographic region (division/district). Performs a
+ * `$lookup` join with `NotificationReadStatus` to compute per-user read state
+ * for broadcast notifications, and filters out soft-deleted entries.
+ *
+ * @route   GET /api/notifications?page=1&limit=20
+ * @access  Private
+ * @param   {import('express').Request}  req
+ * @param   {import('express').Response} res
+ * @param   {import('express').NextFunction} next
+ * @returns {Promise<void>} JSON response with paginated notification array.
  */
 const getNotifications = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
@@ -21,7 +29,7 @@ const getNotifications = catchAsync(async (req, res, next) => {
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     return next(
       new AppError(
-        "Testing Error: Please provide valid 'user-id' in Headers",
+        "Invalid or missing user ID in the request context",
         400,
       ),
     );
@@ -115,10 +123,19 @@ const getNotifications = catchAsync(async (req, res, next) => {
 });
 
 /**
- * 2. Mark as read
- * PATCH /api/notifications/:id/read
+ * Marks a specific notification as read for the authenticated user.
  *
- * Description: Marks a specific notification as 'read' when the user clicks on it.
+ * For UNICAST notifications, updates the `isRead` flag directly on the document
+ * after verifying ownership. For broadcast/regional notifications, creates or
+ * updates a `NotificationReadStatus` record (upsert) to track per-user read state
+ * without modifying the shared notification document.
+ *
+ * @route   PATCH /api/notifications/:id/read
+ * @access  Private
+ * @param   {import('express').Request}  req
+ * @param   {import('express').Response} res
+ * @param   {import('express').NextFunction} next
+ * @returns {Promise<void>}
  */
 const markAsRead = catchAsync(async (req, res, next) => {
   const { id } = req.params; // The ID of the notification from the URL
@@ -128,7 +145,7 @@ const markAsRead = catchAsync(async (req, res, next) => {
 
   if (!userId) {
     return next(
-      new AppError("Testing Error: Please provide 'user-id' in Headers", 400),
+      new AppError("Authenticated user ID could not be resolved", 400),
     );
   }
 
@@ -195,19 +212,25 @@ const markAsRead = catchAsync(async (req, res, next) => {
 
 
 /**
- * 3. Get total unread count
- * GET /api/notifications/unread-count
+ * Calculates the total number of unread notifications for the authenticated user.
  *
- * Description: Calculates how many unread messages the user has.
- * This is useful for displaying the red badge number on the notification bell icon.
+ * Uses the same matching logic as `getNotifications` (userId, role, region) and
+ * joins with `NotificationReadStatus` to identify unread broadcast notifications.
+ * The result is used to seed the red badge count on the notification bell icon.
+ *
+ * @route   GET /api/notifications/unread-count
+ * @access  Private
+ * @param   {import('express').Request}  req
+ * @param   {import('express').Response} res
+ * @param   {import('express').NextFunction} next
+ * @returns {Promise<void>} JSON response with `{ unreadCount: number }`.
  */
-
 const getUnreadCount = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
 
   if (!userId) {
     return next(
-      new AppError("Testing Error: Please provide 'user-id' in Headers", 400),
+      new AppError("Authenticated user ID could not be resolved", 400),
     );
   }
 
@@ -296,8 +319,19 @@ const getUnreadCount = catchAsync(async (req, res, next) => {
 });
 
 /**
- * 4. Mark all notifications as read for a user
- * PATCH /api/notifications/mark-all-read
+ * Marks all visible notifications as read for the authenticated user.
+ *
+ * For UNICAST notifications, performs a bulk `updateMany`. For broadcast/regional
+ * notifications, bulk-upserts `NotificationReadStatus` records.
+ * Uses `bulkWrite` with `ordered: false` to maximise throughput and avoid a single
+ * failing upsert from blocking the rest of the batch.
+ *
+ * @route   PATCH /api/notifications/mark-all-read
+ * @access  Private
+ * @param   {import('express').Request}  req
+ * @param   {import('express').Response} res
+ * @param   {import('express').NextFunction} next
+ * @returns {Promise<void>}
  */
 const markAllAsRead = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
@@ -373,7 +407,7 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
 
     await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
       (e) => {
-        console.error("Error in bulkWrite for markAllAsRead:", e.message);
+        logger.error(`bulkWrite failed in markAllAsRead: ${e.message}`);
       },
     );
   }
@@ -385,8 +419,18 @@ const markAllAsRead = catchAsync(async (req, res, next) => {
 });
 
 /**
- * 5. Clear all notifications for a user
- * DELETE /api/notifications/clear-all
+ * Soft-deletes all visible notifications for the authenticated user.
+ *
+ * Permanently deletes UNICAST notifications owned by the user. For broadcast/regional
+ * notifications, sets `isDeleted: true` and records `deletedAt` in `NotificationReadStatus`
+ * (soft delete) so the shared notification document is unaffected for other users.
+ *
+ * @route   DELETE /api/notifications/clear-all
+ * @access  Private
+ * @param   {import('express').Request}  req
+ * @param   {import('express').Response} res
+ * @param   {import('express').NextFunction} next
+ * @returns {Promise<void>}
  */
 const clearAllNotifications = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
@@ -461,7 +505,7 @@ const clearAllNotifications = catchAsync(async (req, res, next) => {
 
     await NotificationReadStatus.bulkWrite(bulkOps, { ordered: false }).catch(
       (e) => {
-        console.error("Error in bulkWrite for clearAll:", e.message);
+        logger.error(`bulkWrite failed in clearAllNotifications: ${e.message}`);
       },
     );
   }

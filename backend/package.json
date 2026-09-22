@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "backend",
   "version": "1.0.0",
   "description": "Smart Virtual Tourist Guide Backend",
@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.6",

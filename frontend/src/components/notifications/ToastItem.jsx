@@ -13,12 +13,38 @@ import {
 import { X, ChevronRight } from "lucide-react";
 import { useNotificationNavigation } from "../../hooks/useNotificationNavigation";
 
+/**
+ * ToastItem — Displays a single real-time notification as an animated toast card.
+ *
+ * Behaviour:
+ * - Plays an audio cue matching the notification priority on mount.
+ * - Auto-dismisses after a priority-dependent duration (4s – 10s).
+ * - Clicking the card body opens the NotificationModal.
+ * - Clicking "View Details" navigates directly to the notification's `actionUrl`.
+ * - The close (×) button dismisses the toast immediately with a slide-out animation.
+ *
+ * @component
+ * @param {{ notification: Object }} props
+ * @param {string}  props.notification.toastId   - Unique ID used to remove this toast from Redux state.
+ * @param {string}  props.notification.priority  - "critical" | "high" | "medium" | "low"
+ * @param {string}  props.notification.category  - Determines the icon displayed.
+ * @param {string}  props.notification.title     - Toast headline.
+ * @param {string}  props.notification.message   - Toast body text.
+ * @param {string}  [props.notification.actionUrl] - Optional deep-link URL for "View Details".
+ * @returns {React.ReactElement}
+ */
 const ToastItem = ({ notification }) => {
   const dispatch = useDispatch();
   const [isLeaving, setIsLeaving] = useState(false);
   const { handleNotificationClick } = useNotificationNavigation();
 
-  // Set how long the toast stays on the screen based on priority
+  /**
+   * Returns the auto-dismiss duration in milliseconds based on notification priority.
+   * Critical alerts remain visible longer to ensure the user sees them.
+   *
+   * @param {string} priority - The notification priority level.
+   * @returns {number} Duration in milliseconds.
+   */
   const getDuration = (priority) => {
     switch (priority?.toLowerCase()) {
       case "critical":
@@ -32,7 +58,8 @@ const ToastItem = ({ notification }) => {
     }
   };
 
-  // Play sound and start the auto-close timer when the toast appears
+  // Play the appropriate audio cue and schedule the auto-dismiss timer on mount.
+  // The timer is cleared in the cleanup to prevent state updates on an unmounted component.
   useEffect(() => {
     playNotificationSound(notification.priority);
 
@@ -42,26 +69,40 @@ const ToastItem = ({ notification }) => {
     }, duration);
 
     return () => window.clearTimeout(timer);
-  }, [dispatch, notification]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // `handleClose` is intentionally omitted — it is a stable inline function that only
+    // dispatches to Redux. Including it would require `useCallback`, adding unnecessary complexity.
+  }, [notification.toastId]);
 
-  // Function to smoothly animate and remove the toast
+  /**
+   * Initiates the slide-out exit animation, then removes the toast from Redux state
+   * after the 300ms CSS transition completes.
+   */
   const handleClose = () => {
     setIsLeaving(true);
     window.setTimeout(() => dispatch(removeToast(notification.toastId)), 300);
   };
 
-  // When clicking anywhere on the toast body -> Open the Modal
+  /**
+   * Handles a click on the toast card body.
+   * Dismisses the toast and opens the NotificationModal for the full list.
+   */
   const handleBodyClick = () => {
     handleClose();
     dispatch(toggleNotificationModal(true));
   };
 
-  // When clicking the "View Details" button -> Navigate to the specific page
+  /**
+   * Handles a click on the "View Details" action button.
+   * Stops propagation so the card body click (modal open) is not also triggered.
+   * Dismisses the toast and navigates to the notification's action URL.
+   *
+   * @param {React.MouseEvent} e
+   */
   const handleActionClick = (e) => {
-    e.stopPropagation(); // Stop the click from triggering handleBodyClick
-    handleClose(); // Remove the toast from the screen
+    e.stopPropagation();
+    handleClose();
 
-    // Navigate to the URL using your custom hook
     if (notification.actionUrl) {
       handleNotificationClick(notification);
     }
@@ -73,7 +114,7 @@ const ToastItem = ({ notification }) => {
     <div
       role="alert"
       aria-live="assertive"
-      className={`pointer-events-auto relative flex w-[340px] bg-white/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-[16px] overflow-hidden mb-3 transition-all duration-300 transform border border-slate-100 border-l-[4px] ${getLeftBorderColor(notification.priority)} ${
+      className={`pointer-events-auto relative flex w-full min-w-[300px] max-w-[450px] h-auto bg-white/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.06)] rounded-[16px] overflow-hidden mb-3 transition-all duration-300 transform border border-slate-100 border-l-[4px] ${getLeftBorderColor(notification.priority)} ${
         isLeaving
           ? "opacity-0 translate-x-full"
           : "animate-in slide-in-from-top-4"
@@ -90,8 +131,8 @@ const ToastItem = ({ notification }) => {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <h4 className="text-[13px] font-bold text-slate-800 pr-2 truncate">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="text-[13px] font-bold text-slate-800 leading-snug">
               {notification.title}
             </h4>
 
@@ -100,17 +141,17 @@ const ToastItem = ({ notification }) => {
                 e.stopPropagation();
                 handleClose();
               }}
-              className="shrink-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1 rounded-full transition-all duration-200 focus:outline-none opacity-0 group-hover:opacity-100"
+              className="shrink-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1 rounded-full transition-all duration-200 focus:outline-none opacity-0 group-hover:opacity-100 mt-[-4px] mr-[-4px]"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-slate-500 line-clamp-2">
+          <p className="mt-1 text-[12px] font-medium leading-relaxed text-slate-500 break-words">
             {notification.message}
           </p>
 
-          {/* View Details Button */}
+          {/* View Details — only rendered if the notification has an associated deep-link */}
           {notification.actionUrl && (
             <div className="mt-3 mb-1">
               <button
