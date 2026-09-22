@@ -2,7 +2,6 @@
 # =====================
 # ENV FILES (SECURE)
 # =====================
-.env
 backend/.env
 frontend/.env
 !.env.example
@@ -76,7 +75,6 @@ coverage
 # =====================
 # IDE
 # =====================
-.vscode/
 !.vscode/extensions.json
 .idea
 

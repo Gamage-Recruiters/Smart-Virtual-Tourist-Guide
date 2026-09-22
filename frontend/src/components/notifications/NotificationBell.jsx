@@ -10,14 +10,32 @@ import { selectUnreadCount } from "../../store/selectors/notificationSelectors";
 import { selectAuthToken } from "../../store/selectors/authSelectors";
 import { fetchUnreadCountApi } from "../../api/notificationApi";
 
+/**
+ * NotificationBell — Header icon button that displays the live unread notification count.
+ *
+ * On mount, fetches the authoritative unread count from the server and seeds the Redux store.
+ * Subsequently, the count is kept in sync in real-time via socket events dispatched to the store.
+ *
+ * Triggers a bounce animation whenever the unread count increases (i.e., a new notification arrives).
+ * Clicking the bell opens the {@link NotificationModal}.
+ *
+ * @component
+ * @returns {React.ReactElement}
+ */
 const NotificationBell = () => {
   const dispatch = useDispatch();
   const token = useSelector(selectAuthToken);
   const unreadCount = useSelector(selectUnreadCount);
 
+  // Controls the CSS bounce animation that plays when a new notification arrives.
   const [isBouncing, setIsBouncing] = useState(false);
+
+  // Tracks the previous count to determine if the count increased (new notification)
+  // vs decreased (mark-as-read). Only an increase should trigger the bounce.
   const prevCountRef = useRef(0);
 
+  // Fetch the server-side unread count on mount to seed the Redux store accurately.
+  // staleTime of 5 minutes avoids redundant refetches; real-time updates come via socket.
   const { data: dbResponse } = useQuery({
     queryKey: ["unreadCount", token],
     queryFn: () => fetchUnreadCountApi(token),
@@ -25,6 +43,7 @@ const NotificationBell = () => {
     staleTime: 1000 * 60 * 5,
   });
 
+  // Seed the Redux unread count from the server response on initial load.
   useEffect(() => {
     const actualCount = dbResponse?.data?.unreadCount;
     if (actualCount !== undefined) {
@@ -32,6 +51,8 @@ const NotificationBell = () => {
     }
   }, [dbResponse, dispatch]);
 
+  // Trigger a short bounce animation when the count increases (new real-time notification).
+  // Using a ref for the previous count avoids adding `unreadCount` as a dep for cleanup.
   useEffect(() => {
     if (unreadCount > prevCountRef.current) {
       setIsBouncing(true);
@@ -45,7 +66,6 @@ const NotificationBell = () => {
   return (
     <button
       onClick={() => {
-        console.log("Button clicked!");
         dispatch(toggleNotificationModal(true));
       }}
       aria-label={`Notifications, ${unreadCount} unread`}
