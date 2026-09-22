@@ -15,12 +15,13 @@ export const calculateRatingStats = (reviews) => {
         starCounts[review.rating] += 1;
     });
 
-    const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : 0;
+    const averageRating = reviews.length > 0 ? parseFloat((totalRating / reviews.length).toFixed(1)) : 0;
 
     return {
         totalReviews: reviews.length,
         averageRating,
-        starCounts
+        starCounts,
+        distribution: starCounts
     };
 };
 

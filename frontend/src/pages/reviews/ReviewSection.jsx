@@ -11,7 +11,7 @@ import { useReviews } from '../../hooks/reviews/useReviews';
 // API service eken submitReview ekath gannawa
 import { submitReview } from '../../services/reviews/review.service';
 
-const ReviewSection = ({ targetType, targetProviderId, targetName = "the provider" }) => {
+const ReviewSection = ({ targetType, targetProviderId, targetName = "the provider", onStatsUpdate }) => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
@@ -25,8 +25,15 @@ const ReviewSection = ({ targetType, targetProviderId, targetName = "the provide
     setSortBy,
     setSearchQuery,
     handleHelpfulClick,
-    submitReport
+    submitReport,
+    refetchReviews
   } = useReviews(targetType, targetProviderId);
+
+  React.useEffect(() => {
+    if (stats && onStatsUpdate) {
+      onStatsUpdate(stats);
+    }
+  }, [stats, onStatsUpdate]);
 
   // --- Handlers ---
   const handleOpenReport = (review) => {
@@ -58,18 +65,41 @@ const ReviewSection = ({ targetType, targetProviderId, targetName = "the provide
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-        for (const file of files) {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('upload_preset', uploadPreset);
+        const isCloudinaryConfigured = 
+          cloudName && 
+          cloudName !== 'undefined' && 
+          cloudName !== 'your_cloud_name' && 
+          uploadPreset && 
+          uploadPreset !== 'your_upload_preset';
 
-          const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-            method: 'POST',
-            body: formData
+        for (const file of files) {
+          if (isCloudinaryConfigured) {
+            try {
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('upload_preset', uploadPreset);
+
+              const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: formData
+              });
+              
+              const uploadData = await uploadRes.json();
+              if (uploadData.secure_url) {
+                uploadedImageUrls.push(uploadData.secure_url);
+                continue;
+              }
+            } catch (cErr) {
+              console.warn("Cloudinary upload failed, falling back to base64:", cErr);
+            }
+          }
+          // Fallback if Cloudinary is not configured or fails: convert file to data URL
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
           });
-          
-          const uploadData = await uploadRes.json();
-          uploadedImageUrls.push(uploadData.secure_url); // Cloudinary dunna link eka array ekata danawa
+          uploadedImageUrls.push(base64);
         }
       }
 
@@ -90,7 +120,7 @@ const ReviewSection = ({ targetType, targetProviderId, targetName = "the provide
       if (response.success) {
         alert("Awesome! Your review and photos were uploaded successfully!");
         setIsWriteModalOpen(false);
-        window.location.reload(); // Aluth review eka pennanna page eka refresh karanawa
+        if (refetchReviews) await refetchReviews();
       }
 
     } catch (error) {

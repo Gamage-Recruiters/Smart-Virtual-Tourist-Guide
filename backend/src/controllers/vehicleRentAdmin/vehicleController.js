@@ -1,4 +1,42 @@
 import Vehicle from "../../models/vehicleRentAdmin/vehicle.js";
+import CentralReview from "../../models/Review.model.js";
+
+// Helper function to attach ratings from CentralReview
+const attachRatingsToVehicles = async (vehicles) => {
+  const isArray = Array.isArray(vehicles);
+  const list = isArray ? vehicles : [vehicles];
+  const vehicleIds = list.map((v) => v._id.toString());
+
+  const reviews = vehicleIds.length > 0
+    ? await CentralReview.find({
+        targetType: "Vehicle",
+        targetProviderId: { $in: vehicleIds },
+      }).lean()
+    : [];
+
+  const statsMap = {};
+  reviews.forEach((r) => {
+    const pId = r.targetProviderId;
+    if (!statsMap[pId]) statsMap[pId] = { sum: 0, count: 0 };
+    statsMap[pId].sum += (r.rating || 0);
+    statsMap[pId].count += 1;
+  });
+
+  const result = list.map((v) => {
+    const item = v.toObject ? v.toObject() : { ...v };
+    const st = statsMap[item._id.toString()];
+    if (st && st.count > 0) {
+      item.rating = parseFloat((st.sum / st.count).toFixed(1));
+      item.totalReviews = st.count;
+    } else {
+      item.rating = 4.9; // Default fallback if no reviews
+      item.totalReviews = 0;
+    }
+    return item;
+  });
+
+  return isArray ? result : result[0];
+};
 
 // 1. ADD NEW VEHICLE (Create)
 export const addVehicle = async (req, res) => {
@@ -118,7 +156,9 @@ export const getAllVehicles = async (req, res) => {
     const vehicles = await Vehicle.find({
       status: {$regex: "Available", $options: "i"},
     }).sort({ createdAt: -1 }); // Newest first
-    res.status(200).json(vehicles);
+
+    const enriched = await attachRatingsToVehicles(vehicles);
+    res.status(200).json(enriched);
   } catch (error) {
     res
       .status(500)
@@ -133,7 +173,8 @@ export const getAllVehicles = async (req, res) => {
 export const getVehiclesByVendor = async (req, res) => {
   try {
     const vehicles = await Vehicle.find({ ownerId: req.user._id });
-    res.status(200).json(vehicles);
+    const enriched = await attachRatingsToVehicles(vehicles);
+    res.status(200).json(enriched);
   } catch (error) {
     res
       .status(500)
@@ -155,7 +196,8 @@ export const getVehicleById = async (req, res) => {
       return res.status(404).json({ message: "Vehicle not found" });
     }
 
-    res.status(200).json(vehicle);
+    const enriched = await attachRatingsToVehicles(vehicle);
+    res.status(200).json(enriched);
   } catch (error) {
     res
       .status(500)
@@ -170,7 +212,8 @@ export const getVehicleById = async (req, res) => {
 export const getRecentVehicles = async (req, res) => {
   try {
     const vehicles = await Vehicle.find({ownerId: req.user._id}).sort({ createdAt: -1 }).limit(3);
-    res.status(200).json(vehicles);
+    const enriched = await attachRatingsToVehicles(vehicles);
+    res.status(200).json(enriched);
   } catch (error) {
     res
       .status(500)

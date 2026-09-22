@@ -19,6 +19,7 @@ import {
   FaSpa,
 } from "react-icons/fa";
 import apiClient from "../../services/api.js";
+import { getBatchProviderRatings } from "../../services/reviews/review.service.js";
 
 // ✅ Extracted top search / filter bar
 import SearchFilterBar from "../../components/TouristHotelView/SearchFilterBar";
@@ -161,8 +162,16 @@ function HotelCard({
                   </div>
                 )}
               </div>
-              <div className="flex text-yellow-400 text-sm shrink-0 ml-2">
-                {"★★★★★"}
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <div className="flex text-amber-400 text-xs">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <span key={s} className={s <= Math.round(hotel.averageRating || 0) ? "text-amber-400" : "text-slate-200"}>★</span>
+                  ))}
+                </div>
+                <span className="text-xs font-bold text-slate-700">
+                  {hotel.averageRating > 0 ? hotel.averageRating.toFixed(1) : "New"}
+                </span>
+                <span className="text-[11px] text-slate-400">({hotel.totalReviews || 0})</span>
               </div>
             </div>
 
@@ -613,7 +622,27 @@ export default function FindHotelPage() {
 
         const qs = params.toString() ? `?${params.toString()}` : "";
         const data = await apiClient.get(`/tourist/hotels/search-by-date${qs}`);
-        setHotels(Array.isArray(data.hotels) ? data.hotels : []);
+        const rawHotels = Array.isArray(data.hotels) ? data.hotels : [];
+
+        // Batch fetch rating data
+        const hotelIds = rawHotels.map((h) => h._id).filter(Boolean);
+        if (hotelIds.length > 0) {
+          try {
+            const batchRes = await getBatchProviderRatings("Hotel", hotelIds);
+            if (batchRes && batchRes.success && batchRes.data) {
+              rawHotels.forEach((h) => {
+                if (batchRes.data[h._id]) {
+                  h.averageRating = batchRes.data[h._id].averageRating || 0;
+                  h.totalReviews = batchRes.data[h._id].totalReviews || 0;
+                }
+              });
+            }
+          } catch (bErr) {
+            console.error("Batch ratings fetch error:", bErr);
+          }
+        }
+
+        setHotels(rawHotels);
         setUsingDateSearch(true);
         setCheapestPrices({});
       } else {
@@ -639,7 +668,27 @@ export default function FindHotelPage() {
 
         const qs = params.toString() ? `?${params.toString()}` : "";
         const data = await apiClient.get(`/tourist/hotels${qs}`);
-        setHotels(Array.isArray(data.hotels) ? data.hotels : []);
+        const rawHotels = Array.isArray(data.hotels) ? data.hotels : [];
+
+        // Batch fetch rating data
+        const hotelIds = rawHotels.map((h) => h._id).filter(Boolean);
+        if (hotelIds.length > 0) {
+          try {
+            const batchRes = await getBatchProviderRatings("Hotel", hotelIds);
+            if (batchRes && batchRes.success && batchRes.data) {
+              rawHotels.forEach((h) => {
+                if (batchRes.data[h._id]) {
+                  h.averageRating = batchRes.data[h._id].averageRating || 0;
+                  h.totalReviews = batchRes.data[h._id].totalReviews || 0;
+                }
+              });
+            }
+          } catch (bErr) {
+            console.error("Batch ratings fetch error:", bErr);
+          }
+        }
+
+        setHotels(rawHotels);
         setUsingDateSearch(false);
         setCheapestPrices({});
       }

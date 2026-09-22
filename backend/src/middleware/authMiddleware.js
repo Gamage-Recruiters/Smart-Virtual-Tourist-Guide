@@ -41,6 +41,24 @@ export const protect = async (req, res, next) => {
   }
 };
 
+export const optionalProtect = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+      req.user = await User.findById(decoded.id).select('-password');
+    } catch (error) {
+      console.warn('Optional JWT verification skipped:', error.message);
+    }
+  }
+  next();
+};
+
 // Authorize roles
 export const authorizeRoles = (...roles) => {
   return (req, res, next) => {

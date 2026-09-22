@@ -55,6 +55,8 @@ import availabilityRoutes from './routes/ActivityProvider/availability.routes.js
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 import touristHotelViewRoutes from './routes/touristHotelViewRoutes.js';
+import driverRoutes from './routes/driverRoutes.js';
+import guideRoutes from './routes/guideRoutes.js';
 
 import paymentRoutes from './routes/paymentRoutes.js';
 import serviceBookingRoutes from './routes/bookingRoutes.js';
@@ -118,6 +120,9 @@ app.use('/api/revenue-summary', hotelRevenueSummaryRoutes);
 
 app.use('/api/tourist/hotels', touristHotelViewRoutes);
 app.use("/api/gov/dashboard", governmentDashboardRoutes);
+
+app.use('/api/drivers', driverRoutes);
+app.use('/api/guides', guideRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
