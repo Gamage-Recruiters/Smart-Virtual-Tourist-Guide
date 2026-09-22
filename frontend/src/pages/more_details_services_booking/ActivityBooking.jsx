@@ -4,6 +4,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import ServiceDetailsCard from "../../components/booking&reservation/bookingSummary/ServiceDetailsCard";
 import ActivityAvailabilityCard from "../../components/booking&reservation/serviceAvailability/ActivityAvailabilityCard";
+import ReviewSection from "../reviews/ReviewSection";
 import { FaArrowLeft } from 'react-icons/fa';
 
 const ActivityBooking = () => {
@@ -12,6 +13,7 @@ const ActivityBooking = () => {
 
     // Fallback if no activity was passed via state
     const displayActivity = activity || {
+        _id: "act-1",
         image: "https://images.unsplash.com/photo-1549366021-9f761d040a94",
         name: "Yala Safari Adventure",
         title: "Yala Safari Adventure", // Map title to name
@@ -45,7 +47,7 @@ const ActivityBooking = () => {
                     <p className="text-gray-500">Check availability and secure your spot for {serviceData.name}.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                     {/* Left Column - Details */}
                     <div className="lg:col-span-2 space-y-6">
                         <ServiceDetailsCard service={serviceData} />
@@ -70,6 +72,15 @@ const ActivityBooking = () => {
                             <ActivityAvailabilityCard activity={displayActivity} />
                         </div>
                     </div>
+                </div>
+
+                {/* Reviews & Ratings Section */}
+                <div className="border-t border-gray-200 pt-8">
+                    <ReviewSection
+                        targetType="Activity"
+                        targetProviderId={displayActivity._id || displayActivity.id}
+                        targetName={serviceData.name}
+                    />
                 </div>
             </main>
         </div>
