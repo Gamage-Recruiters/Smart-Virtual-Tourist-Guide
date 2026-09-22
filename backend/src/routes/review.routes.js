@@ -10,7 +10,9 @@ import {
     deleteReview,
     getBatchProviderRatings,
     replyToReview,
-    getReportedReviews
+    getReportedReviews,
+    getOwnerReviews,
+    getRestaurantReviews
 } from '../controllers/review.controller.js';
 
 // Import our Joi Validator
@@ -18,17 +20,16 @@ import { validateReview } from '../validators/review.validator.js';
 
 // Import the authentication middleware 
 // Ensure the path and file name perfectly match the actual auth middleware file
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalProtect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 /**
  * @route   POST /api/reviews
  * @desc    Create a new review
- * @access  Private
- * @note    The 'protect' middleware ensures the user is authenticated before payload validation and review creation.
+ * @access  Public / Private (Authenticated tourists or guests)
  */
-router.post('/', protect, validateReview, createReview);
+router.post('/', optionalProtect, validateReview, createReview);
 
 /**
  * @route   GET /api/reviews/provider/:targetType/:targetProviderId
@@ -36,6 +37,15 @@ router.post('/', protect, validateReview, createReview);
  * @access  Public
  */
 router.get('/provider/:targetType/:targetProviderId', getProviderReviews);
+
+/**
+ * @route   GET /api/reviews/owner/:restaurantId
+ * @route   GET /api/reviews/restaurant/:restaurantId
+ * @desc    Get owner reviews for dashboard
+ * @access  Public / Private
+ */
+router.get('/owner/:restaurantId', getOwnerReviews);
+router.get('/restaurant/:restaurantId', getRestaurantReviews);
 
 /**
  * @route   GET /api/reviews/admin/reported
@@ -56,11 +66,12 @@ router.post('/batch-ratings', getBatchProviderRatings);
 
 /**
  * @route   PATCH /api/reviews/:id/reply
+ * @route   PUT /api/reviews/:id/reply
  * @desc    Add a reply to a review
- * @access  Private 
+ * @access  Public / Private 
  */
-// TODO: Add authorizeRoles() to ensure only the specific owner can reply
-router.patch('/:id/reply', protect, replyToReview);
+router.patch('/:id/reply', replyToReview);
+router.put('/:id/reply', replyToReview);
 
 
 
