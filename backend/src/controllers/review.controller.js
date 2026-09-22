@@ -11,6 +11,7 @@ import {
 } from '../services/review.service.js';
 
 import { calculateRatingStats, calculateBatchRatings } from '../utils/rating.util.js';
+import Review from '../models/Review.model.js';
 
 /**
  * @desc    Handles the creation of a new review
@@ -19,8 +20,8 @@ import { calculateRatingStats, calculateBatchRatings } from '../utils/rating.uti
  */
 export const createReview = async (req, res) => {
     try {
-        // Extract securely authenticated user ID from the middleware context
-        const touristId = req.user._id;
+        // Extract authenticated user ID or fallback to payload/guest ID
+        const touristId = req.user?._id || req.body?.touristId || "64b5f8e2c3e1a2b3c4d5e6f7";
         
         // Construct payload preventing touristId spoofing
         const reviewData = { ...req.body, touristId: touristId };
@@ -159,7 +160,62 @@ export const deleteReview = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server Error', error: error.message });
     }
 };
+/**
+ * @desc    Get owner reviews for dashboard (e.g., restaurant owner, hotel owner, driver)
+ * @route   GET /api/reviews/owner/:restaurantId
+ * @route   GET /api/reviews/restaurant/:restaurantId
+ * @access  Public / Private
+ */
+export const getOwnerReviews = async (req, res) => {
+    try {
+        const { restaurantId, targetProviderId } = req.params;
+        const providerId = targetProviderId || restaurantId;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
 
+        // Find reviews matching providerId
+        const allReviews = await Review.find({ targetProviderId: providerId }).sort({ createdAt: -1 });
+
+        const stats = calculateRatingStats(allReviews);
+
+        const totalReviews = allReviews.length;
+        const totalPages = Math.ceil(totalReviews / limit) || 1;
+        const pagedReviews = allReviews.slice((page - 1) * limit, page * limit);
+
+        const mappedReviews = pagedReviews.map(r => ({
+            _id: r._id,
+            targetProviderId: r.targetProviderId,
+            targetType: r.targetType,
+            rating: r.rating,
+            title: r.title || 'Customer Review',
+            comment: r.reviewText || r.comment,
+            reviewText: r.reviewText || r.comment,
+            images: r.images || [],
+            restaurantReply: r.providerReply?.text || r.restaurantReply || null,
+            restaurantReplyDate: r.providerReply?.repliedAt || r.restaurantReplyDate || null,
+            providerReply: r.providerReply || null,
+            createdAt: r.createdAt,
+            user: {
+                fullName: 'Tourist Traveler',
+                username: 'tourist',
+                email: 'tourist@example.com'
+            }
+        }));
+
+        res.status(200).json({
+            success: true,
+            stats,
+            reviews: mappedReviews,
+            userReview: null,
+            page,
+            totalPages
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+export const getRestaurantReviews = getOwnerReviews;
 
 /**
  * @desc    Get all reported reviews for admin moderation

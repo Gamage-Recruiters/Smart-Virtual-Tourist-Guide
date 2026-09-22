@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import apiClient from "../../services/api.js";
 import PriceBox from "../../components/TouristHotelView/PriceBox.jsx";
+import ReviewSection from "../reviews/ReviewSection.jsx";
+import { getBatchProviderRatings } from "../../services/reviews/review.service.js";
 
 const API_ORIGIN = (
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
@@ -194,7 +196,7 @@ function HotelGallery({ images }) {
 // ---------------------------------------------------------------------------
 // HotelInfo
 // ---------------------------------------------------------------------------
-function HotelInfo({ hotel, amenities, policies }) {
+function HotelInfo({ hotel, amenities, policies, ratingStats = { averageRating: 0, totalReviews: 0 } }) {
   const [expanded, setExpanded] = useState(false);
 
   const policyLines = policies
@@ -211,6 +213,9 @@ function HotelInfo({ hotel, amenities, policies }) {
   const hasMoreContent =
     needsTruncation || amenities.length > 0 || policyLines.length > 0;
 
+  const avgRating = ratingStats.averageRating || 0;
+  const reviewCount = ratingStats.totalReviews || 0;
+
   return (
     <div>
       <div>
@@ -222,9 +227,15 @@ function HotelInfo({ hotel, amenities, policies }) {
         </div>
 
         <div className="flex items-center gap-2 mt-3">
-          <div className="text-yellow-400 text-lg">★★★★★</div>
-          <span className="font-semibold">{hotel.rating}</span>
-          <span className="text-gray-500">({hotel.reviews} reviews)</span>
+          <div className="flex text-amber-400 text-base">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span key={star} className={star <= Math.round(avgRating) ? "text-amber-400" : "text-slate-200"}>★</span>
+            ))}
+          </div>
+          <span className="font-bold text-slate-800">
+            {avgRating > 0 ? avgRating.toFixed(1) : "0.0"}
+          </span>
+          <span className="text-gray-500 text-sm">({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
         </div>
 
         {desc && (
@@ -1088,6 +1099,7 @@ export default function HotelDetails() {
   const [hotel, setHotel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 });
 
   const [bookings, setBookings] = useState([]);
 
@@ -1122,7 +1134,22 @@ export default function HotelDetails() {
       }
     };
 
-    if (id) fetchHotel();
+    const fetchRatingStats = async () => {
+      if (!id) return;
+      try {
+        const res = await getBatchProviderRatings("Hotel", [id]);
+        if (isMounted && res && res.success && res.data && res.data[id]) {
+          setRatingStats(res.data[id]);
+        }
+      } catch {
+        // Fallback to default state
+      }
+    };
+
+    if (id) {
+      fetchHotel();
+      fetchRatingStats();
+    }
 
     return () => {
       isMounted = false;
@@ -1281,6 +1308,7 @@ export default function HotelDetails() {
               hotel={mappedHotel}
               amenities={hotelAmenities}
               policies={hotelPolicies}
+              ratingStats={ratingStats}
             />
 
             <div ref={detailCardRef}>
@@ -1293,7 +1321,14 @@ export default function HotelDetails() {
               />
             </div>
 
-            <GuestReviews />
+            {/* Dynamic Review & Rating System Component */}
+            <div className="bg-white rounded-2xl p-6 shadow-md border border-slate-100">
+              <ReviewSection 
+                targetType="Hotel" 
+                targetProviderId={id} 
+                targetName={mappedHotel.name} 
+              />
+            </div>
           </div>
 
           <div className="space-y-5">
