@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import React from 'react';
 
-// ==================== Existing Project Imports (From Main) ====================
+// ==================== Existing Project Imports ====================
 import ActivityProviderDashboard from "./pages/ActivityProvider/ActivityProviderDashboard.jsx";
 import ActivityList from "./pages/ActivityProvider/ActivityList.jsx";
 import Activity from "./pages/ActivityProvider/AddActivity.jsx";
@@ -9,6 +9,7 @@ import ManageCalendar from "./pages/ActivityProvider/ManageCalendar.jsx";
 import ViewRatings from "./pages/ActivityProvider/ViewRatings.jsx";
 import AcceptBookings from "./pages/ActivityProvider/AcceptBookings.jsx";
 
+// ===== LANDING PAGES =====
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import AboutUs from "./pages/AboutUs";
@@ -25,7 +26,7 @@ import LoginScreen from "./pages/Login/LoginScreen";
 import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
 import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
-// Restaurant & Hotel
+// ===== RESTAURANT & HOTEL =====
 import RestuarantSignup from "./pages/Restuarant/resturentRegistrationPage.jsx";
 import RestuarantLogin from "./pages/Restuarant/resturentLogingPage.jsx";
 import RestuarantDashboard from "./pages/Restuarant/resturentDashboardPage.jsx";
@@ -74,8 +75,11 @@ import IntegratedAdminProtectedRoute from "./components/Admin/ProtectedRoute";
 import DriverSignUp1 from "./pages/Driver/SignUpForm1";
 import DriverSignUp2 from "./pages/Driver/SignUpForm2";
 import DriverSignUp3 from "./pages/Driver/SignUpForm3";
+
 import { DriverSignupProvider } from "./context/DriverSignupContext";
 import { PageTitleProvider } from "./context/PageTitleContext";
+
+import DummyPageGuide from "./pages/Guide/dummyPage";
 import Driver_Dashboard from "./components/Driver/Driver_Dashboard";
 import Driver_Request from "./components/Driver/Driver_Request";
 import Driver_Earnings from "./components/Driver/Driver_Earnings";
@@ -83,13 +87,23 @@ import Driver_Bids from "./components/Driver/Driver_Bids";
 import Submit_Bids from "./components/Driver/Submit_Bids";
 import Ride_Details from "./components/Driver/Ride_Details";
 import Driver_Details from "./components/Driver/Driver_Deatils";
+import DummyPageAdmin from "./pages/Admin/dummyPage";
+
+import VehicleAdmin from "./pages/Renter/vehicleAdminDashboard/vehicleAdminPage";
+import Dashboard from "./pages/Renter/vehicleAdminDashboard/dashboard";
+import RentalRequestsPage from "./pages/Renter/vehicleAdminDashboard/rentalRequestsPage";
+import MyFleetPage from "./pages/Renter/vehicleAdminDashboard/myFleetPage";
+import EarningsPage from "./pages/Renter/vehicleAdminDashboard/earningsPage";
+import SettingsPage from "./pages/Renter/vehicleAdminDashboard/settingsPage";
 
 import MainPage from "./pages/Tourist/touristMainPage/mainPage.jsx";
 import TouristProfilePage from "./pages/Tourist/touristProfile/touristProfilePage.jsx";
+
 import NavigationMain from "./pages/NavigationAndMapping/NavigationMain.jsx";
 
-// ==================== Safety & Others ====================
+// ==================== Safety Module Imports ====================
 import { SafetyProvider } from "./context/SafetyContext.jsx";
+
 import SafetyLayout from "./pages/safety/SafetyLayout";
 import PublicIncidentsPage from "./pages/safety/PublicIncidentsPage";
 import EmergencyCallPage from "./pages/safety/EmergencyCallPage";
@@ -101,6 +115,7 @@ import IncidentReportSuccessPage from "./pages/safety/IncidentReportSuccessPage"
 import WeatherAlertsPage from "./pages/safety/WeatherAlertsPage";
 import NavigationDirectionsPage from "./pages/safety/NavigationDirectionsPage";
 
+// ==================== CSS ====================
 import "./App.css";
 import { RentVehiclePage } from "./pages/Renter/rentVehiclePage.jsx";
 import TouristDashboard from "./pages/Tourist/touristDashboard/dashboard.jsx";
@@ -110,6 +125,8 @@ import VehicleDetailsPage from "./pages/Renter/vehicleDetailsPage.jsx";
 import BookDriver from "./pages/Driver/bookDriver.jsx";
 import FindHotelPage from "./pages/TouristHotelView/findHotelPage.jsx";
 import HotelDetails from "./pages/TouristHotelView/HotelDetails.jsx";
+
+// ==================== PayHere Payment & Booking Imports ====================
 import BookingPage from "./pages/booking&reservation/BookingPage.jsx";
 import ActivityBooking from "./pages/more_details_services_booking/ActivityBooking.jsx";
 import HotelBooking from "./pages/more_details_services_booking/HotelBooking.jsx";
@@ -118,6 +135,8 @@ import VehicleBooking from "./pages/more_details_services_booking/VehicleBooking
 import GuideBooking from "./pages/more_details_services_booking/GuideBooking.jsx";
 import RestaurantBooking from "./pages/more_details_services_booking/RestaurantBooking.jsx";
 import MyBookings from "./pages/booking&reservation/MyBookings.jsx";
+
+// ===== FEATURE/TRAVEL-PACKAGEMENT-MANAGEMENT ROUTES =====
 import AddNewPackage from './pages/travelPackage/AddNewPackage.jsx';
 import SucessPackage from './pages/travelPackage/SucessPackage.jsx';
 import UserPackages from './pages/travelPackage/UserPackages.jsx';
@@ -129,7 +148,7 @@ import CreateAD from './pages/travelPackage/CreateAD.jsx';
 import ReviewSection from './pages/reviews/ReviewSection';
 
 function App() {
-  const testProviderId = "64b5f8e2c3e1a2b3c4d5e6f8"; 
+  const testProviderId = "64b5f8e2c3e1a2b3c4d5e6f8";
   const testProviderType = "Driver";
 
   // Test Component Wrapper
@@ -143,6 +162,7 @@ function App() {
     <SafetyProvider>
       <Router>
         <Routes>
+          {/* ===== LANDING PAGES ===== */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutUs />} />
@@ -152,13 +172,295 @@ function App() {
             <Route path="results" element={<ResultsPage />} />
             <Route path="destination-detail" element={<DestinationDetails />} />
           </Route>
-          
+          <Route path="/add-destination" element={<AddDestination />} />
+
+          {/* ===== REVIEWS TEST ROUTE ===== */}
           <Route path="/test-reviews" element={<ReviewTestEnvironment />} />
-          
-          {/* ... (All other Aysha/Main routes) ... */}
+
+          {/* ===== ACTIVITY PROVIDER ROUTES ===== */}
+          <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
+          <Route path="/activityprovider/activities" element={<ActivityList />} />
+          <Route path="/activityprovider/activities/new" element={<Activity />} />
+          <Route path="/activityprovider/activities/edit/:id" element={<Activity />} />
+          <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
+          <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
+          <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
+
+          {/* ===== AUTHENTICATION ===== */}
           <Route path="/login" element={<LoginScreen />} />
-          {/* Add all other routes here exactly as they were in the main branch */}
-          
+          <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+          <Route path="/create-password" element={<NewPasswordCreate />} />
+
+          {/* ===== SIGNUP / REGISTER FLOWS ===== */}
+          <Route path="/tourist" element={<SignupForm />} />
+          <Route path="/signup1" element={<SignupForm />} />
+          <Route path="/tourist-signup" element={<SignupForm />} />
+          <Route path="/travel-safety" element={<TravelSafetyInfo />} />
+
+          <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
+          <Route path="/hotel-owner-signup" element={<HotelOwnerSignup />} />
+          <Route path="/hotel-info" element={<HotelInfo />} />
+
+          <Route path="/restuarant" element={<RestuarantSignup />} />
+          <Route path="/resturent/register" element={<RestuarantSignup />} />
+          <Route path="/restaurant/signup" element={<RestuarantSignup />} />
+          <Route path="/resturent/login" element={<RestuarantLogin />} />
+
+          <Route path="/guide" element={<GuideSignup />} />
+          <Route path="/guide-signup" element={<GuideSignup />} />
+
+          <Route path="/renter" element={<RenterSignup />} />
+          <Route path="/renter-signup" element={<RenterSignup />} />
+
+          <Route path="/government" element={<GovernmentSignup />} />
+          <Route path="/government-signup" element={<GovernmentSignup />} />
+
+          <Route path="/activity-provider" element={<ActivityProviderSignup />} />
+          <Route path="/activity-provider-signup" element={<ActivityProviderSignup />} />
+
+          <Route path="/admin/legacy-login" element={<AdminLogin />} />
+
+          {/* ===== DRIVER SIGNUP ===== */}
+          <Route
+            path="/driver-signup1"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp1 />
+              </DriverSignupProvider>
+            }
+          />
+          <Route
+            path="/driver-signup2"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp2 />
+              </DriverSignupProvider>
+            }
+          />
+          <Route
+            path="/driver-signup3"
+            element={
+              <DriverSignupProvider>
+                <DriverSignUp3 />
+              </DriverSignupProvider>
+            }
+          />
+
+          {/* ===== TOURIST DASHBOARD ===== */}
+          <Route path="/dashboard-Tourist" element={<MainPage />}>
+            <Route index element={<TouristDashboard />} />
+            <Route path="trip-plan" element={<TripPlanningPage />} />
+            <Route
+              path="direction"
+              element={
+                <PageTitleProvider>
+                  <NavigationMain />
+                </PageTitleProvider>
+              }
+            />
+            <Route path="touristProfile" element={<TouristProfilePage />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
+            <Route path="rent-vehicle" element={<RentVehiclePage />} />
+            <Route path="rent-vehicle/vehicle-details/:id" element={<VehicleDetailsPage />} />
+            <Route path="book-driver" element={<BookDriver />} />
+            <Route path="find-hotel" element={<FindHotelPage />} />
+            <Route path="find-hotel/hotel-details/:id" element={<HotelDetails />} />
+            <Route path="restaurants" element={<TouristRestaurantsPage />} />
+            <Route path="restaurants/:id" element={<TouristRestaurantDetailsPage />} />
+          </Route>
+
+          {/* ===== HOTEL OWNER DASHBOARD & MANAGEMENT ===== */}
+          <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
+          <Route path="/view-rooms-packages" element={<ViewCurrentRoomsPackages />} />
+          <Route path="/add-room-package" element={<AddRoomPage />} />
+          <Route path="/edit-room/:id" element={<AddRoomPage />} />
+          <Route path="/add-special-package" element={<AddSpecialPackages />} />
+          <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
+          <Route path="/manage-availability" element={<ManageRoomAvailability />} />
+          <Route path="/view-availability-calendar" element={<ViewRoomAvailabilityCalenderPage />} />
+          <Route path="/view-reservations" element={<ViewRoomReservation />} />
+          <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
+          <Route path="/dashboard" element={<HotelOwnerDashboard />} />
+          <Route path="/Hotel-Owner-Profile-Settings" element={<HotelOwnerProfileSettings />} />
+
+          {/* ===== RESTAURANT DASHBOARD ===== */}
+          <Route path="/resturent/dashboard" element={<RestaurantLayout />}>
+            <Route index element={<RestuarantDashboard />} />
+            <Route path="menu" element={<RestuarantMenuPage />} />
+            <Route path="menu/add" element={<RestuarantAddMenuPage />} />
+            <Route path="menu/edit/:id" element={<RestuarantAddMenuPage />} />
+            <Route path="offers" element={<RestuarantOfferPage />} />
+            <Route path="profile" element={<RestuarantProfilePage />} />
+            <Route path="reservations" element={<RestuarantReservationPage />} />
+            <Route path="revenue" element={<RestuarantRevenuePage />} />
+            <Route path="reviews" element={<RestuarantReviewPage />} />
+          </Route>
+          <Route path="/dashboard-Restaurant" element={<RestaurantLayout />}>
+            <Route index element={<RestuarantDashboard />} />
+          </Route>
+
+          {/* ===== OTHER ROLE DASHBOARDS ===== */}
+          <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
+          <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
+          <Route path="/dashboard-Government" element={<GovernmentDashboard />} />
+          <Route path="/government-dashboard-public" element={<GovernmentDashboard />} />
+
+          {/* ===== DRIVER DASHBOARD ===== */}
+          <Route path="/dashboard-Driver" element={<Navigate to="/driver-dashboard" replace />} />
+          <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
+          <Route path="/driver-request" element={<Driver_Request />} />
+          <Route path="/driver-earnings" element={<Driver_Earnings />} />
+          <Route path="/driver-bids" element={<Driver_Bids />} />
+          <Route path="/other-drivers/:tripId" element={<Submit_Bids />} />
+          <Route path="/other-drivers" element={<Submit_Bids />} />
+          <Route path="/ride-details" element={<Ride_Details />} />
+          <Route path="/driver-details" element={<Driver_Details />} />
+
+          <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
+          <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
+
+          {/* ===== VEHICLE ADMIN ===== */}
+          <Route path="/vehicle-admin" element={<VehicleAdmin />}>
+            <Route index element={<Dashboard />} />
+            <Route path="requests" element={<RentalRequestsPage />} />
+            <Route path="fleet" element={<MyFleetPage />} />
+            <Route path="earnings" element={<EarningsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+
+          {/* ===== SAFETY MODULE ===== */}
+          <Route path="/safety" element={<SafetyLayout />}>
+            <Route index element={<PublicIncidentsPage />} />
+            <Route path="alerts" element={<SecurityAlertsPage />} />
+            <Route path="security-alerts" element={<Navigate to="/safety/alerts" replace />} />
+            <Route path="my-incidents" element={<MyStatusDashboardPage />} />
+            <Route path="my-reports" element={<Navigate to="/safety/my-incidents" replace />} />
+            <Route path="status-dashboard" element={<Navigate to="/safety/my-incidents" replace />} />
+            <Route path="public-analytics" element={<IncidentTrackingPage />} />
+            <Route path="analytics" element={<Navigate to="/safety/public-analytics" replace />} />
+            <Route path="public-incidents" element={<PublicIncidentsPage />} />
+            <Route path="weather" element={<WeatherAlertsPage />} />
+          </Route>
+
+          {/* ===== SAFETY STANDALONE & BOOKINGS ===== */}
+          <Route element={<Layout />}>
+            <Route path="/safety/emergency" element={<EmergencyCallPage />} />
+            <Route path="/safety/navigate" element={<NavigationDirectionsPage />} />
+            <Route path="/safety/report-incident" element={<IncidentReportPage />} />
+            <Route path="/safety/report-incident/form" element={<Navigate to="/safety/report-incident" replace />} />
+            <Route path="/restaurants" element={<TouristRestaurantsPage />} />
+            <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
+            <Route path="/booking-page" element={<BookingPage />} />
+            <Route path="/hotel-booking" element={<HotelBooking />} />
+            <Route path="/hotel-booking/:id" element={<HotelBooking />} />
+            <Route path="/vehicle-booking" element={<VehicleBooking />} />
+            <Route path="/vehicle-booking/:id" element={<VehicleBooking />} />
+            <Route path="/restaurant-booking" element={<RestaurantBooking />} />
+            <Route path="/restaurant-booking/:id" element={<RestaurantBooking />} />
+            <Route path="/driver-booking" element={<DriverBooking />} />
+            <Route path="/driver-booking/:id" element={<DriverBooking />} />
+            <Route path="/guide-booking" element={<GuideBooking />} />
+            <Route path="/guide-booking/:id" element={<GuideBooking />} />
+            <Route path="/activity-booking" element={<ActivityBooking />} />
+            <Route path="/activity-booking/:id" element={<ActivityBooking />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/touristProfile" element={<TouristProfilePage />} />
+            <Route path="/safety/report-success" element={<IncidentReportSuccessPage />} />
+          </Route>
+
+          {/* ===== TRAVEL PACKAGES ===== */}
+          <Route path="/packages/view/:id" element={<PackageView />} />
+          <Route path="/packages/user" element={<UserPackages />} />
+          <Route path="/packages/admin" element={<AdminPackages />} />
+          <Route path="/packages/new" element={<AddNewPackage />} />
+          <Route path="/packages/edit/:id" element={<AddNewPackage />} />
+          <Route path="/packages/success" element={<SucessPackage />} />
+          <Route path="/packages/create-ad" element={<CreateAD />} />
+
+          {/* ===== INTEGRATED ADMIN ROUTES ===== */}
+          <Route path="/admin/login" element={<IntegratedAdminLogin />} />
+          <Route
+            path="/admin"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminDashboard />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminUsers />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users/new"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminAddUser />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/listings"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator", "Moderator"]}>
+                <IntegratedAdminListings />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/view-details/:id"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator", "Moderator"]}>
+                <IntegratedAdminViewDetails />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ads"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminAds />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ads/create"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminCreateAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/edit-ad/:id"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminEditAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/view-ad/:id"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator"]}>
+                <IntegratedAdminViewAd />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/access-denied"
+            element={
+              <IntegratedAdminProtectedRoute allowedRoles={["Editor"]}>
+                <IntegratedAdminAccessDenied />
+              </IntegratedAdminProtectedRoute>
+            }
+          />
+
+          {/* ===== FALLBACK ROUTE ===== */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

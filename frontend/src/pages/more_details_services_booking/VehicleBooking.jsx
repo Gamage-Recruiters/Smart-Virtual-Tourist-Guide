@@ -6,6 +6,8 @@ import ServiceDetailsCard from "../../components/booking&reservation/bookingSumm
 import VehicleAvailabilityCard from "../../components/booking&reservation/serviceAvailability/VehicleRentalAvailabilityCard";
 import { FaArrowLeft } from 'react-icons/fa';
 
+import ReviewSection from "../../pages/reviews/ReviewSection";
+
 const VehicleBooking = () => {
     const location = useLocation();
     const vehicle = location.state?.vehicle;
@@ -43,7 +45,7 @@ const VehicleBooking = () => {
                     <p className="text-gray-500">Select dates and reserve {serviceData.name} for your trip.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                     {/* Left Column - Details */}
                     <div className="lg:col-span-2 space-y-6">
                         <ServiceDetailsCard service={serviceData} />
@@ -66,6 +68,15 @@ const VehicleBooking = () => {
                             <VehicleAvailabilityCard vehicle={displayVehicle} />
                         </div>
                     </div>
+                </div>
+
+                {/* Reviews & Ratings Section */}
+                <div className="border-t border-gray-200 pt-8">
+                    <ReviewSection
+                        targetType="Vehicle"
+                        targetProviderId={displayVehicle._id || displayVehicle.id || 'sample-vehicle-1'}
+                        targetName={serviceData.name}
+                    />
                 </div>
             </main>
         </div>

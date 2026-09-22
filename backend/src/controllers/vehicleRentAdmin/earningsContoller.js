@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import RentalEarning from "../../models/vehicleRentAdmin/rentalEarnings.js";
 import RentalRequest from "../../models/vehicleRentAdmin/rentalRequest.js";
 import Vehicle from "../../models/vehicleRentAdmin/vehicle.js";
+import CentralReview from "../../models/Review.model.js";
 
 // Helper 1: Fetch all vehicle IDs owned by this renter
 const getRenterVehicleIds = async (renterId) => {
@@ -48,10 +49,30 @@ export const dashboardStats = async (req, res) => {
       0,
     );
 
+    // 3. Dynamic Ratings: Find ratings across all vehicles owned by this renter
+    const vehicleIds = await getRenterVehicleIds(renterId);
+    const stringVehicleIds = vehicleIds.map((id) => id.toString());
+
+    const reviews = stringVehicleIds.length > 0
+      ? await CentralReview.find({
+          targetType: "Vehicle",
+          targetProviderId: { $in: stringVehicleIds },
+        }).lean()
+      : [];
+
+    let averageRating = 0;
+    const totalReviews = reviews.length;
+    if (reviews.length > 0) {
+      const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+      averageRating = parseFloat((sum / reviews.length).toFixed(1));
+    }
+
     return res.status(200).json({
       activeRenatalsCount,
       rentedVehiclesCount,
       totalEarnings,
+      averageRating,
+      totalReviews,
     });
   } catch (err) {
     console.error("dashboardStats error:", err);

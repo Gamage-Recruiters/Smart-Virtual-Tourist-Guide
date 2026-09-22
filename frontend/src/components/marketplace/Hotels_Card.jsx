@@ -5,6 +5,7 @@ import {
   FaCoffee, FaParking, FaSnowflake 
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const defaultHotelsData = [
   {
@@ -108,18 +109,19 @@ const Hotels_Card = () => {
   React.useEffect(() => {
     const fetchHotels = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/hotels');
+        const response = await fetch('http://localhost:5000/api/tourist/hotels');
         const data = await response.json();
         
-        if (data.success && data.data && data.data.length > 0) {
-          // Map backend schema (User + Room) to frontend UI schema
-          const mappedHotels = data.data.map(dbHotel => {
-            const rawPrice = dbHotel.minPrice !== undefined && dbHotel.minPrice !== null ? dbHotel.minPrice : 20000;
-            const imagesList = Array.isArray(dbHotel.images) && dbHotel.images.length > 0
-              ? dbHotel.images
-              : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600'];
+        const rawList = data.hotels || data.data || (Array.isArray(data) ? data : []);
+        if (rawList.length > 0) {
+          // Map backend schema to frontend UI schema
+          let mappedHotels = rawList.map(dbHotel => {
+            const rawPrice = dbHotel.hotelPrice || dbHotel.minPrice || 20000;
+            const imagesList = Array.isArray(dbHotel.hotelImages) && dbHotel.hotelImages.length > 0
+              ? dbHotel.hotelImages
+              : (Array.isArray(dbHotel.images) && dbHotel.images.length > 0 ? dbHotel.images : ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=600']);
 
-            const mappedAmenities = (dbHotel.amenities || []).map(a => {
+            const mappedAmenities = (dbHotel.hotelAmenities || dbHotel.amenities || []).map(a => {
               const lower = String(a).toLowerCase();
               if (lower.includes('wifi') || lower.includes('wi-fi')) return 'wifi';
               if (lower.includes('pool')) return 'pool';
@@ -129,29 +131,53 @@ const Hotels_Card = () => {
               return lower;
             });
 
+            const locStr = typeof dbHotel.hotelLocation === 'object' && dbHotel.hotelLocation
+              ? `${dbHotel.hotelLocation.city || ''} ${dbHotel.hotelLocation.district || ''}`.trim()
+              : (dbHotel.hotelAddress || dbHotel.location || 'Sri Lanka');
+
+            const hId = dbHotel._id || dbHotel.hotelId || dbHotel.ownerId;
+
             return {
-              _id: dbHotel.hotelId || dbHotel._id || dbHotel.ownerId,
-              hotelId: dbHotel.hotelId || dbHotel._id,
+              _id: hId,
+              hotelId: hId,
               ownerId: dbHotel.ownerId || dbHotel._id,
               name: dbHotel.hotelName || dbHotel.name || 'Unnamed Hotel',
-              location: dbHotel.hotelAddress || dbHotel.location || 'Sri Lanka',
+              location: locStr || 'Sri Lanka',
               starRating: dbHotel.starRating || 4,
               price: rawPrice.toLocaleString(),
               numericPrice: rawPrice,
               priceUnit: 'night',
-              userRating: dbHotel.userRating || 4.8,
-              reviews: dbHotel.reviews || 120,
+              userRating: 0,
+              reviews: 0,
               isFeatured: dbHotel.isFeatured || false,
               amenities: mappedAmenities.length > 0 ? mappedAmenities : ['wifi', 'ac'],
               image: imagesList[0],
               images: imagesList,
-              description: dbHotel.description,
+              description: dbHotel.hotelDescription || dbHotel.description,
               rooms: dbHotel.rooms || [],
-              hotelEmail: dbHotel.hotelEmail,
-              hotelContactNumber: dbHotel.hotelContactNumber,
+              hotelEmail: dbHotel.hotelEmail || dbHotel.email,
+              hotelContactNumber: dbHotel.hotelContactNumber || dbHotel.contactNumber,
               ...dbHotel
             };
           });
+
+          // Fetch batch rating statistics for hotels
+          try {
+            const hotelIds = mappedHotels.map(h => h._id);
+            const ratingRes = await getBatchProviderRatings('Hotel', hotelIds);
+            if (ratingRes.success && ratingRes.data) {
+              mappedHotels = mappedHotels.map(h => {
+                const stat = ratingRes.data[h._id];
+                return {
+                  ...h,
+                  userRating: stat ? stat.averageRating : 0,
+                  reviews: stat ? stat.totalReviews : 0
+                };
+              });
+            }
+          } catch (rErr) {
+            console.log("Could not load batch hotel ratings:", rErr);
+          }
           
           setAllHotels(mappedHotels);
           setHotelsData(mappedHotels);

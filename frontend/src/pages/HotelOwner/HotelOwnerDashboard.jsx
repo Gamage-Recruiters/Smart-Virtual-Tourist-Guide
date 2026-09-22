@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../../services/api'
 import { hotelOwnerAPI } from '../../services/api'
+import { getBatchProviderRatings, getProviderReviews } from '../../services/reviews/review.service.js'
 import Header from '../../components/HotelOwner/Header';
 import Footer from '../../components/HotelOwner/Footer';
 import dashboardBackground from '../../assets/HotelOwner/Dashboard Image.png'
@@ -25,6 +26,26 @@ function HotelOwnerDashboard() {
 	const [weeklyBookingsData, setWeeklyBookingsData] = useState([])
 	const [hoveredWeek, setHoveredWeek] = useState(null)
 	const [hoveredBar, setHoveredBar] = useState(null)
+	const [hotelRatingStats, setHotelRatingStats] = useState({ averageRating: 0, totalReviews: 0 })
+	const [hotelReviews, setHotelReviews] = useState([])
+
+	const fetchHotelReviewsData = (hotelId) => {
+		getBatchProviderRatings('Hotel', [hotelId])
+			.then(res => {
+				if (res && res.success && res.data && res.data[hotelId]) {
+					setHotelRatingStats(res.data[hotelId])
+				}
+			})
+			.catch(() => {})
+
+		getProviderReviews('Hotel', hotelId)
+			.then(res => {
+				if (res && res.success && Array.isArray(res.data)) {
+					setHotelReviews(res.data)
+				}
+			})
+			.catch(() => {})
+	}
 
 	useEffect(() => {
 		const userData = JSON.parse(localStorage.getItem('userData') || '{}')
@@ -41,6 +62,7 @@ function HotelOwnerDashboard() {
 						const hotelId = res.user.hotels[0]._id
 						fetchBookingMetrics(hotelId)
 						fetchLatestReservation(hotelId)
+						fetchHotelReviewsData(hotelId)
 					}
 				}
 			})
@@ -50,6 +72,7 @@ function HotelOwnerDashboard() {
 					const hotelId = userData.hotels[0]._id
 					fetchBookingMetrics(hotelId)
 					fetchLatestReservation(hotelId)
+					fetchHotelReviewsData(hotelId)
 				}
 			})
 	}, [])
@@ -262,8 +285,12 @@ function HotelOwnerDashboard() {
 											</div>
 											<div className="rounded-lg bg-white p-3 shadow-sm">
 												<p className="text-[11px] text-slate-500">Average Rating</p>
-												<p className="mt-1 text-2xl font-black text-slate-900">4.7</p>
-												<p className="mt-1 text-[11px] text-emerald-600">+0.3 <span className="text-slate-500">vs last month</span></p>
+												<p className="mt-1 text-2xl font-black text-slate-900">
+													{hotelRatingStats.averageRating > 0 ? hotelRatingStats.averageRating.toFixed(1) : "0.0"}
+												</p>
+												<p className="mt-1 text-[11px] text-slate-500">
+													{hotelRatingStats.totalReviews || 0} total reviews
+												</p>
 											</div>
 										</div>
 
@@ -429,6 +456,45 @@ function HotelOwnerDashboard() {
 								) : (
 									<p className="mt-8 text-sm text-slate-400">No reservations yet.</p>
 								)}
+
+								{/* Recent Guest Reviews Feed */}
+								<div className="mt-12 pt-8 border-t border-slate-200">
+									<div className="flex items-center justify-between mb-6">
+										<h3 className="text-3xl font-black text-slate-900">Recent Guest Reviews</h3>
+										<span className="text-xs bg-sky-100 text-sky-800 font-bold px-3 py-1 rounded-full">
+											{hotelReviews.length} {hotelReviews.length === 1 ? 'Review' : 'Reviews'}
+										</span>
+									</div>
+
+									{hotelReviews.length > 0 ? (
+										<div className="grid md:grid-cols-2 gap-4">
+											{hotelReviews.slice(0, 4).map((rev, idx) => {
+												const tourist = rev.touristId || {}
+												const touristName = tourist.fullName || `${tourist.firstName || ''} ${tourist.lastName || ''}`.trim() || 'Verified Guest'
+												const touristImg = tourist.profileImage || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
+												return (
+													<div key={rev._id || idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+														<div className="flex items-center gap-3 mb-3">
+															<img src={touristImg} alt={touristName} className="w-10 h-10 rounded-full object-cover border border-slate-100" />
+															<div>
+																<h4 className="font-bold text-sm text-slate-900">{touristName}</h4>
+																<p className="text-[11px] text-slate-400">{new Date(rev.createdAt).toLocaleDateString()}</p>
+															</div>
+														</div>
+														<div className="flex text-amber-400 text-xs mb-2">
+															{[1, 2, 3, 4, 5].map(star => (
+																<span key={star} className={star <= (rev.rating || 5) ? 'text-amber-400' : 'text-slate-200'}>★</span>
+															))}
+														</div>
+														<p className="text-xs text-slate-600 italic leading-relaxed">"{rev.reviewText || rev.comment}"</p>
+													</div>
+												)
+											})}
+										</div>
+									) : (
+										<p className="text-sm text-slate-400">No guest reviews received yet.</p>
+									)}
+								</div>
 
 								<div className="mt-8 flex justify-end">
 									<button
