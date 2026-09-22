@@ -38,6 +38,7 @@ function ResturentReviewPage() {
   const [restaurantId, setRestaurantId] = useState(null)
   const [stats, setStats] = useState({ averageRating: 0, totalReviews: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } })
   const [reviews, setReviews] = useState([])
+  const [filterTab, setFilterTab] = useState('all') // 'all', 'unreplied', 'critical'
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -54,10 +55,10 @@ function ResturentReviewPage() {
   useEffect(() => {
     const findRestaurant = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('restaurantToken')
+        const user = JSON.parse(localStorage.getItem('restaurantUser') || localStorage.getItem('user') || '{}')
+        const token = localStorage.getItem('restaurantToken') || localStorage.getItem('token')
         const res = await fetch(`${API_BASE}/restaurants`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
         const all = await res.json()
         const matched = Array.isArray(all) ? all.find(r => r.email === user.email) : null
@@ -205,10 +206,10 @@ function ResturentReviewPage() {
               {/* Average */}
               <div className="text-center md:text-left shrink-0 md:w-32">
                 <div className="text-5xl font-black text-slate-900 leading-none">
-                  {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
+                  {Number(stats.averageRating || 0) > 0 ? Number(stats.averageRating || 0).toFixed(1) : '0.0'}
                 </div>
                 <div className="mt-2">
-                  <RatingStars rating={Math.round(stats.averageRating)} size="w-4 h-4" />
+                  <RatingStars rating={Math.round(Number(stats.averageRating || 0))} size="w-4 h-4" />
                 </div>
                 <p className="mt-1.5 text-xs text-slate-400 font-medium">
                   {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'}
@@ -236,6 +237,38 @@ function ResturentReviewPage() {
             </div>
           </div>
 
+          {/* Filter Tabs matching Screenshot 2 */}
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-wrap gap-3">
+            <div className="flex gap-2">
+              {[
+                { id: 'all', label: 'All Reviews' },
+                { id: 'unreplied', label: 'Unreplied' },
+                { id: 'critical', label: 'Critical (1-2★)' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilterTab(tab.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    filterTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-slate-400 font-semibold">
+              Showing {
+                reviews.filter(r => {
+                  if (filterTab === 'unreplied') return !r.restaurantReply;
+                  if (filterTab === 'critical') return r.rating <= 2;
+                  return true;
+                }).length
+              } reviews
+            </span>
+          </div>
+
           {/* Reviews List */}
           {reviews.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-12 text-center">
@@ -251,9 +284,13 @@ function ResturentReviewPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">All Reviews ({stats.totalReviews})</h3>
-
-              {reviews.map(review => (
+              {reviews
+                .filter(r => {
+                  if (filterTab === 'unreplied') return !r.restaurantReply;
+                  if (filterTab === 'critical') return r.rating <= 2;
+                  return true;
+                })
+                .map(review => (
                 <div key={review._id} className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 space-y-4 hover:shadow-md transition-shadow">
                   {/* Review Content */}
                   <div className="flex items-start gap-4">
