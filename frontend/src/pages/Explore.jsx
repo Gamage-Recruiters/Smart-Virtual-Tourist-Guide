@@ -31,10 +31,14 @@ const Explore = () => {
   const searched = hasSearched || localSearched;
   const [placePhotos, setPlacePhotos] = useState([]);
   const [nearbyHotels, setNearbyHotels] = useState([]);
+  const [photosLoading, setPhotosLoading] = useState(false);
   const [hotelsLoading, setHotelsLoading] = useState(false);
   const [showUserPopup, setShowUserPopup] = useState(false);
   const [detailsPanelCollapsed, setDetailsPanelCollapsed] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+  const abortControllerRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
+  const photosCache = useRef(new Map());
 
   const getPlaceKey = useCallback((place) => {
     const placeId = place?.place_id || place?.placeId || '';
@@ -67,32 +71,97 @@ const Explore = () => {
     setLocalSearched(true);
     setHasSearched(true);
 
-    // Fetch photos using Wikimedia Commons Geosearch for nearby tourist attractions
-    const nearbyPlaces = await findNearbyPlaces(lat, lng, 5000);
-    const photoPromises = nearbyPlaces.slice(0, 7).map(p =>
-      getPlacePhotoByLocation(p.lat, p.lng, 500, p.name)
-    );
-    const photoResults = await Promise.all(photoPromises);
-    let urls = photoResults.filter(Boolean);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
-    // Also try to get a photo for the searched place itself
-    if (urls.length < 5) {
-      const placeName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
-      const mainPhoto = await getPlacePhotoByLocation(lat, lng, 500, placeName);
-      if (mainPhoto && !urls.includes(mainPhoto)) {
-        urls = [mainPhoto, ...urls].slice(0, 7);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    setPlacePhotos([]);
+    setPhotosLoading(true);
+
+    const placeName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
+    const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}_${placeName}`;
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        if (signal.aborted) return;
+        
+        if (photosCache.current.has(cacheKey)) {
+          const cachedUrls = photosCache.current.get(cacheKey);
+          setPlacePhotos(cachedUrls);
+          setPhotosLoading(false);
+          if (cachedUrls.length > 0) {
+            void saveRecentPlace(place, null, undefined, cachedUrls.slice(0, 2));
+          }
+          return;
+        }
+
+        const lsKey = `photoList_v2_${cacheKey}`;
+        try {
+          const stored = localStorage.getItem(lsKey);
+          if (stored) {
+            const { t, data } = JSON.parse(stored);
+            const isFresh = data.length > 0 ? (Date.now() - t < 24 * 60 * 60 * 1000) : (Date.now() - t < 5 * 60 * 1000);
+            if (isFresh) {
+              photosCache.current.set(cacheKey, data);
+              setPlacePhotos(data);
+              setPhotosLoading(false);
+              if (data.length > 0) {
+                void saveRecentPlace(place, null, undefined, data.slice(0, 2));
+              }
+              return;
+            }
+          }
+        } catch(e) {}
+
+        const nearbyPlaces = await findNearbyPlaces(lat, lng, 5000);
+        const candidates = [
+          { name: placeName, lat, lng },
+          ...nearbyPlaces.slice(0, 6)
+        ];
+
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_BASE}/place-photos/suggestions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ places: candidates }),
+          signal
+        });
+
+        if (!res.ok) throw new Error('Proxy failed');
+        const data = await res.json();
+        
+        if (signal.aborted) return;
+        
+        const urls = data.photos || [];
+        
+        photosCache.current.set(cacheKey, urls);
+        try {
+          localStorage.setItem(lsKey, JSON.stringify({ t: Date.now(), data: urls }));
+        } catch(e) {}
+
+        setPlacePhotos(urls);
+        if (urls.length > 0) {
+          void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error("Error fetching photos:", error);
+          setPlacePhotos([]);
+        }
+      } finally {
+        if (!signal.aborted) setPhotosLoading(false);
       }
-    }
-
-    setPlacePhotos(urls);
-    if (urls.length > 0) {
-      void saveRecentPlace(place, null, undefined, urls.slice(0, 2));
-    }
+    }, 400);
 
     // Fetch hotels from database within 30km radius
     setHotelsLoading(true);
-    const locationName = place.displayName || place.formatted_address?.split(',')[0] || place.name || '';
-    fetchHotels(locationName, lat, lng)
+    fetchHotels(placeName, lat, lng)
       .then(res => {
         const data = Array.isArray(res?.data) ? res.data : [];
         setNearbyHotels(data);
@@ -433,6 +502,7 @@ const Explore = () => {
             setDetailsPanelCollapsed={setDetailsPanelCollapsed}
             showUserPopup={showUserPopup}
             placePhotos={placePhotos}
+            photosLoading={photosLoading}
             nearbyHotels={nearbyHotels}
             handleExploreAction={handleExploreAction}
             handleSavePlace={handleSavePlace}

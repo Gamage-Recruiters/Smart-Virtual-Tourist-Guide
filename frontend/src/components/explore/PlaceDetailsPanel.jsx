@@ -1,5 +1,4 @@
 import React from 'react';
-import explore2 from '../../assets/explore2.png';
 import PhotoGrid from './PhotoGrid';
 import HotelList from './HotelList';
 
@@ -17,6 +16,7 @@ export default function PlaceDetailsPanel({
   handleSavePlace,
   handleSaveDestinationToFavorites,
   handleShareLocation,
+  photosLoading,
 }) {
   if (!searchedPlace) return null;
 
@@ -74,24 +74,6 @@ export default function PlaceDetailsPanel({
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
       </button>
-
-      {/* Background explore2 image */}
-      <img
-        src={explore2}
-        alt="Explore"
-        style={{
-          position: 'absolute',
-          width: '1443.93px',
-          height: '844.18px',
-          top: '0px',
-          left: '0px',
-          transform: 'rotate(0.09deg)',
-          objectFit: 'cover',
-          objectPosition: 'top',
-          display: detailsPanelCollapsed ? 'none' : 'block',
-          zIndex: 1,
-        }}
-      />
 
       {/* Content area */}
       <div style={{
@@ -158,7 +140,7 @@ export default function PlaceDetailsPanel({
             </div>
 
             {/* Photos */}
-            <PhotoGrid photos={placePhotos} />
+            <PhotoGrid photos={placePhotos} loading={photosLoading} />
 
             {/* Hotels */}
             <HotelList hotels={nearbyHotels} />
