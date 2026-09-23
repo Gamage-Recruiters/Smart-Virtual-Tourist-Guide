@@ -97,14 +97,26 @@ const DirectionOne = () => {
   const [swapped, setSwapped] = useState(false);
   const [searching, setSearching] = useState(false);
   const [recentPlaces, setRecentPlaces] = useState([]);
-  const originSearch = useLocationSearch(() => {}, '');
+  const handlePlaceSelect = async (place) => {
+    try {
+      await saveRecentPlace(place, null);
+      const response = await fetchRecentPlaces(undefined, 50);
+      if (Array.isArray(response?.data)) {
+        setRecentPlaces(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to save recent place:', error);
+    }
+  };
+
+  const originSearch = useLocationSearch(handlePlaceSelect, '');
   
   const initialDest = searchedPlace?.displayName || searchedPlace?.name || searchedPlace?.formatted_address?.split(',')[0] || '';
-  const destinationSearch = useLocationSearch(() => {}, initialDest);
+  const destinationSearch = useLocationSearch(handlePlaceSelect, initialDest);
 
   useEffect(() => {
     let isActive = true;
-    fetchRecentPlaces(undefined, 6)
+    fetchRecentPlaces(undefined, 50)
       .then(response => {
         if (isActive && Array.isArray(response?.data)) {
           setRecentPlaces(response.data);
@@ -174,6 +186,9 @@ const DirectionOne = () => {
       <style>{`
         input::placeholder { opacity: 1; transition: opacity 0.2s; }
         input:focus::placeholder { opacity: 0; }
+        .recent-scroll::-webkit-scrollbar { width: 6px; }
+        .recent-scroll::-webkit-scrollbar-track { background: transparent; }
+        .recent-scroll::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 10px; }
       `}</style>
       {/* Background image */}
       <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
@@ -265,7 +280,7 @@ const DirectionOne = () => {
           </div>
 
           {/* Recent places inside same box */}
-          <div className="flex flex-col gap-7">
+          <div className="flex flex-col gap-7 overflow-y-auto pr-2 recent-scroll" style={{ maxHeight: '400px' }}>
             {recentPlaces.length === 0 ? (
               <div className="text-sm font-medium text-gray-800 pl-4">No recent places found.</div>
             ) : (
