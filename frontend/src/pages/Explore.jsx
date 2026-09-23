@@ -5,7 +5,7 @@ import { Compass, User, Navigation } from 'lucide-react';
 import { useUIContext } from '../contexts/UIContext';
 import { useLocationContext } from '../contexts/LocationContext';
 import { useAppNavigate } from '../hooks/useAppNavigate';
-import { reverseGeocode, getPlacePhotoByLocation, getPlacePhotoByName, findNearbyPlaces } from '../utils/mapServices';
+import { reverseGeocode, getPlacePhotoByLocation, getPlacePhotoByName, findAllNearbyPOIs } from '../utils/mapServices';
 import { saveRecentPlace, saveFavoritePlace, fetchHotels } from '../services/api';
 import { isInsideSriLanka } from '../utils/geo';
 import { createUserLocationIcon } from '../utils/leafletSetup';
@@ -16,6 +16,7 @@ import UserPopup from '../components/shared/UserPopup';
 import PlaceDetailsPanel from '../components/explore/PlaceDetailsPanel';
 
 const USER_LOCATION = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
+const NEARBY_LIMIT = 3;
 
 const Explore = () => {
   const mapRef = useRef(null);
@@ -119,10 +120,11 @@ const Explore = () => {
           }
         } catch(e) {}
 
-        const nearbyPlaces = await findNearbyPlaces(lat, lng, 5000);
+        const allPois = await findAllNearbyPOIs([{ lat, lng }]);
+        const nearbyPlaces = allPois.filter(p => p.category === 'Attraction');
         const candidates = [
           { name: placeName, lat, lng },
-          ...nearbyPlaces.slice(0, 6)
+          ...nearbyPlaces.slice(0, NEARBY_LIMIT)
         ];
 
         const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
@@ -202,7 +204,8 @@ const Explore = () => {
       if (photo) photoUrls.push(photo);
 
       if (photoUrls.length === 0) {
-        const nearbyPlaces = await findNearbyPlaces(userLocation.lat, userLocation.lng, 5000);
+        const allPois = await findAllNearbyPOIs([{ lat: userLocation.lat, lng: userLocation.lng }]);
+        const nearbyPlaces = allPois.filter(p => p.category === 'Attraction');
         for (const p of nearbyPlaces.slice(0, 2)) {
           const url = await getPlacePhotoByLocation(p.lat, p.lng, 500, p.name);
           if (url) photoUrls.push(url);

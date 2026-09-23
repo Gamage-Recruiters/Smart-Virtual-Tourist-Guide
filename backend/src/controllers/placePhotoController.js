@@ -34,6 +34,8 @@ export const createPlacePhoto = async (req, res) => {
   res.status(201).json({ success: true });
 };
 
+const GOOD_ENOUGH = 3;
+
 // Helper: Wikimedia Commons Geosearch.
 // Accumulates DISTINCT photo urls across radii instead of returning on the first hit,
 // so one place can fill most/all of the 5-photo grid by itself.
@@ -42,34 +44,26 @@ async function fetchCommonsPhotos(lat, lng, max = TARGET_PHOTOS) {
   const urls = [];
 
   for (const r of [500, 1500, 3000]) {
-    if (urls.length >= max) break;
+    if (urls.length >= max || urls.length >= GOOD_ENOUGH) break;
     try {
-      const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lng}&gsradius=${r}&gslimit=10&gsnamespace=6&format=json`;
+      const url = `https://commons.wikimedia.org/w/api.php?action=query` +
+        `&generator=geosearch&ggscoord=${lat}|${lng}&ggsradius=${r}&ggslimit=10&ggsnamespace=6` +
+        `&prop=imageinfo&iiprop=url|mime&iiurlwidth=800&format=json`;
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
       if (!res.ok) continue;
       const data = await res.json();
-      const results = (data?.query?.geosearch || []).filter(r => !seen.has(r.pageid));
-      if (!results.length) continue;
+      const pages = data?.query?.pages || {};
 
-      const titles = results.slice(0, 10).map(r => encodeURIComponent(r.title)).join('|');
-      const fileUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${titles}&prop=imageinfo&iiprop=url|mime&iiurlwidth=800&format=json`;
-      const fileRes = await fetch(fileUrl, { headers: { 'User-Agent': USER_AGENT } });
-      const fileData = await fileRes.json();
-      const pages = fileData?.query?.pages || {};
+      const newPages = Object.values(pages).filter(p => p.pageid && !seen.has(p.pageid));
+      if (!newPages.length) continue;
 
-      const titleToUrl = {};
-      for (const page of Object.values(pages)) {
+      for (const page of newPages) {
+        if (urls.length >= max) break;
+        seen.add(page.pageid);
         const info = page?.imageinfo?.[0];
         const isPhoto = info && (!info.mime || ['image/jpeg', 'image/png', 'image/webp'].includes(info.mime));
         const thumbUrl = isPhoto ? (info.thumburl || info.url) : null;
-        if (thumbUrl) titleToUrl[page.title] = thumbUrl;
-      }
-
-      for (const r of results) {
-        if (urls.length >= max) break;
-        seen.add(r.pageid);
-        const u = titleToUrl[r.title];
-        if (u && !urls.includes(u)) urls.push(u);
+        if (thumbUrl && !urls.includes(thumbUrl)) urls.push(thumbUrl);
       }
     } catch (error) {
       console.warn(`Commons geosearch failed at radius ${r}:`, error.message);
@@ -234,7 +228,7 @@ export const getSuggestions = async (req, res) => {
   const saveToDb = async (records, isFound) => {
     if (records.length === 0) return;
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (isFound ? 90 : 7));
+    expiresAt.setDate(expiresAt.getDate() + (isFound ? 90 : 30));
 
     const bulkOps = records.map(r => ({
       updateOne: {
