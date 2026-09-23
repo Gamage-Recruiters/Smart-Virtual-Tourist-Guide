@@ -26,7 +26,7 @@ export default function PhotoGrid({ photos = [], loading = false }) {
 
   // Filter valid photos (not failed)
   const validPhotos = photos.filter((url) => !failedImages.has(url)).slice(0, 5);
-  
+
   // Render empty state if not loading and no valid photos
   if (!loading && validPhotos.length === 0) {
     return (
@@ -52,11 +52,11 @@ export default function PhotoGrid({ photos = [], loading = false }) {
   // Count items to determine layout
   // When loading, we force the count to 5 to show all skeletons
   const displayCount = loading ? 5 : validPhotos.length;
-  
+
   // Right side grid layout logic based on number of thumbnails (count - 1)
   const numThumbnails = displayCount - 1;
   let rightGridTemplate = {};
-  
+
   if (numThumbnails === 1) {
     rightGridTemplate = { gridTemplateColumns: '1fr', gridTemplateRows: '1fr' };
   } else if (numThumbnails === 2) {
@@ -73,7 +73,10 @@ export default function PhotoGrid({ photos = [], loading = false }) {
     const url = validPhotos[index];
     const hasPhoto = !!url;
     const isLoaded = loadedImages.has(url);
-    const showSkeleton = loading && !hasPhoto;
+    // FIX 2: keep the skeleton until the image has actually painted, not just
+    // until `loading` flips false — otherwise there's a blank gap between
+    // "URL arrived" and "image finished downloading".
+    const showSkeleton = !isLoaded && (loading || hasPhoto);
 
     // Grid item styling for 3 thumbnails (first thumbnail spans full width of right side)
     let extraStyle = {};
@@ -110,7 +113,13 @@ export default function PhotoGrid({ photos = [], loading = false }) {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              display: isLoaded ? 'block' : 'none'
+              // FIX 1: stay in the layout and fade via opacity instead of
+              // `display: none` — a display:none image has no box, so the
+              // browser's native lazy-loading may never fetch it and
+              // onLoad never fires, leaving the thumbnail blank forever.
+              opacity: isLoaded ? 1 : 0,
+              position: 'absolute',
+              inset: 0
             }}
           />
         )}
@@ -121,8 +130,8 @@ export default function PhotoGrid({ photos = [], loading = false }) {
   return (
     <div style={{ display: 'flex', gap: '8px', marginTop: '60px', height: '400px', width: '100%' }}>
       {/* Hero Slot (Left Side) */}
-      <div style={{ 
-        flex: displayCount === 1 ? '1' : '0 0 calc(50% - 4px)', 
+      <div style={{
+        flex: displayCount === 1 ? '1' : '0 0 calc(50% - 4px)',
         height: '100%',
         transition: 'flex 0.3s ease'
       }}>

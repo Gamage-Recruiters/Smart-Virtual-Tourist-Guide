@@ -1,6 +1,8 @@
 import PlacePhoto from '../models/placePhoto.js';
 
 const USER_AGENT = 'SVTG/1.0 (Smart Virtual Tourist Guide, intern project)';
+const TARGET_PHOTOS = 5;
+const MIN_ACCEPTABLE_CACHE = 3; // legacy records with fewer than this are topped up, not trusted as-is
 
 // GET /api/place-photos?lat=X&lng=Y
 export const getPlacePhoto = async (req, res) => {
@@ -32,42 +34,53 @@ export const createPlacePhoto = async (req, res) => {
   res.status(201).json({ success: true });
 };
 
-// Helper: Wikimedia Commons Geosearch
-async function fetchCommonsPhoto(lat, lng) {
+// Helper: Wikimedia Commons Geosearch.
+// Accumulates DISTINCT photo urls across radii instead of returning on the first hit,
+// so one place can fill most/all of the 5-photo grid by itself.
+async function fetchCommonsPhotos(lat, lng, max = TARGET_PHOTOS) {
+  const seen = new Set();
+  const urls = [];
+
   for (const r of [500, 1500, 3000]) {
+    if (urls.length >= max) break;
     try {
-      const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lng}&gsradius=${r}&gslimit=5&gsnamespace=6&format=json`;
+      const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lng}&gsradius=${r}&gslimit=10&gsnamespace=6&format=json`;
       const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
       if (!res.ok) continue;
       const data = await res.json();
-      const results = data?.query?.geosearch || [];
+      const results = (data?.query?.geosearch || []).filter(r => !seen.has(r.pageid));
       if (!results.length) continue;
 
-      const titles = results.slice(0, 5).map(r => encodeURIComponent(r.title)).join('|');
-      const fileUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${titles}&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json`;
+      const titles = results.slice(0, 10).map(r => encodeURIComponent(r.title)).join('|');
+      const fileUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${titles}&prop=imageinfo&iiprop=url|mime&iiurlwidth=800&format=json`;
       const fileRes = await fetch(fileUrl, { headers: { 'User-Agent': USER_AGENT } });
       const fileData = await fileRes.json();
       const pages = fileData?.query?.pages || {};
-      
+
       const titleToUrl = {};
       for (const page of Object.values(pages)) {
-        const thumbUrl = page?.imageinfo?.[0]?.thumburl || page?.imageinfo?.[0]?.url;
+        const info = page?.imageinfo?.[0];
+        const isPhoto = info && (!info.mime || ['image/jpeg', 'image/png', 'image/webp'].includes(info.mime));
+        const thumbUrl = isPhoto ? (info.thumburl || info.url) : null;
         if (thumbUrl) titleToUrl[page.title] = thumbUrl;
       }
-      
-      const urls = [];
+
       for (const r of results) {
-        if (titleToUrl[r.title]) urls.push(titleToUrl[r.title]);
+        if (urls.length >= max) break;
+        seen.add(r.pageid);
+        const u = titleToUrl[r.title];
+        if (u && !urls.includes(u)) urls.push(u);
       }
-      if (urls.length > 0) return urls;
     } catch (error) {
       console.warn(`Commons geosearch failed at radius ${r}:`, error.message);
     }
   }
-  return [];
+  return urls;
 }
 
-// Helper: Wikipedia Pageimages Batch
+// Helper: Wikipedia Pageimages Batch.
+// The pageimages API only ever returns 1 thumbnail per article (their limit, not ours),
+// so this stays a fallback for places Commons found nothing for — never the primary source.
 async function fetchWikipediaPhotosBatch(names) {
   if (names.length === 0) return {};
   try {
@@ -78,7 +91,6 @@ async function fetchWikipediaPhotosBatch(names) {
     const data = await res.json();
     const pages = data?.query?.pages || {};
 
-    // Create map from normalized title to url
     const result = {};
     for (const page of Object.values(pages)) {
       if (page.title && page.thumbnail?.source) {
@@ -86,7 +98,6 @@ async function fetchWikipediaPhotosBatch(names) {
       }
     }
 
-    // Also map redirects
     const redirects = data?.query?.redirects || [];
     for (const r of redirects) {
       if (result[r.to.toLowerCase()]) {
@@ -110,7 +121,7 @@ export const getSuggestions = async (req, res) => {
     return res.status(400).json({ success: false, photos: [] });
   }
 
-  // Deduplicate incoming places
+  // Deduplicate incoming places (order preserved — the searched place should be places[0])
   const uniquePlaces = [];
   const seenKeys = new Set();
   for (const p of places) {
@@ -124,80 +135,91 @@ export const getSuggestions = async (req, res) => {
     }
   }
 
-  // 1. Batch read from DB
+  // 1. Batch read from DB.
+  // A cached entry only counts as a full hit once it has enough photos to be useful;
+  // thin/legacy entries (old 1-photo records, or previously-capped results) are topped up below.
   const orQueries = uniquePlaces.map(p => ({ lat: p.lat, lng: p.lng }));
   const cachedRecords = await PlacePhoto.find({ $or: orQueries });
 
-  const dbCache = new Map();
+  const dbCache = new Map();      // key -> urls to use as-is (>= MIN_ACCEPTABLE_CACHE, or confirmed 0)
+  const topUpNeeded = new Map();  // key -> urls already known, but worth extending
+
   for (const record of cachedRecords) {
-    if (record.photoUrls && record.photoUrls.length > 0) {
-      dbCache.set(`${record.lat},${record.lng}`, record.photoUrls);
-    } else if (record.photoUrl) {
-      // Legacy record with 1 photo: use it so we don't lose the photo!
-      dbCache.set(`${record.lat},${record.lng}`, [record.photoUrl]);
-    } else if (record.photoUrls && record.photoUrls.length === 0) {
-      // Confirmed 0 photos
-      dbCache.set(`${record.lat},${record.lng}`, []);
+    const key = `${record.lat},${record.lng}`;
+    const urls = (record.photoUrls && record.photoUrls.length > 0)
+      ? record.photoUrls
+      : (record.photoUrl ? [record.photoUrl] : []);
+
+    if (urls.length === 0 && record.photoUrls) {
+      dbCache.set(key, []); // confirmed 0 photos — trust it, don't refetch every search
+    } else if (urls.length >= MIN_ACCEPTABLE_CACHE) {
+      dbCache.set(key, urls);
+    } else if (urls.length > 0) {
+      topUpNeeded.set(key, urls); // e.g. legacy 1-photo record — reuse it, but try to extend it
     }
   }
 
   const finalPhotos = new Set();
   const results = [];
   const namesForWikipedia = [];
-
-  // Helper to process a found photo URL
-  const addPhoto = (url) => {
-    if (url && !finalPhotos.has(url)) {
-      finalPhotos.add(url);
-      results.push(url);
-    }
-  };
-
   const missesToSave = [];
   const foundToSave = [];
 
-  // 2. Process DB Hits and identify Misses
+  const addPhoto = (url) => {
+    if (url && !finalPhotos.has(url) && results.length < TARGET_PHOTOS) {
+      finalPhotos.add(url);
+      results.push(url);
+      return true;
+    }
+    return false;
+  };
+
+  // 2. Process places in order: confirmed cache hits, then top-ups, then fresh fetches
   for (const p of uniquePlaces) {
-    if (results.length >= 5) break;
+    if (results.length >= TARGET_PHOTOS) break;
 
     if (dbCache.has(p.key)) {
-      const urls = dbCache.get(p.key);
-      if (urls && urls.length > 0) {
-        for (const u of urls) {
-          if (results.length >= 5) break;
-          addPhoto(u);
-        }
+      for (const u of dbCache.get(p.key)) {
+        if (results.length >= TARGET_PHOTOS) break;
+        addPhoto(u);
       }
-    } else {
-      // Need to fetch this one.
-      // Dedupe concurrent identical requests using inFlightRequests
-      let fetchPromise = inFlightRequests.get(p.key);
-      if (!fetchPromise) {
-        fetchPromise = fetchCommonsPhoto(p.lat, p.lng);
-        inFlightRequests.set(p.key, fetchPromise);
-        fetchPromise.finally(() => inFlightRequests.delete(p.key));
-      }
+      continue;
+    }
 
-      const photoUrls = await fetchPromise;
-      if (photoUrls && photoUrls.length > 0) {
-        for (const u of photoUrls) {
-          if (results.length >= 5) break;
-          addPhoto(u);
-        }
-        foundToSave.push({ lat: p.lat, lng: p.lng, photoUrls });
-      } else {
-        if (p.name) namesForWikipedia.push({ lat: p.lat, lng: p.lng, name: p.name });
+    const known = topUpNeeded.get(p.key) || [];
+    for (const u of known) addPhoto(u);
+    if (results.length >= TARGET_PHOTOS) continue;
+
+    // Dedupe concurrent identical requests
+    let fetchPromise = inFlightRequests.get(p.key);
+    if (!fetchPromise) {
+      fetchPromise = fetchCommonsPhotos(p.lat, p.lng, TARGET_PHOTOS);
+      inFlightRequests.set(p.key, fetchPromise);
+      fetchPromise.finally(() => inFlightRequests.delete(p.key));
+    }
+
+    const photoUrls = await fetchPromise;
+    const merged = Array.from(new Set([...known, ...photoUrls]));
+
+    if (merged.length > 0) {
+      for (const u of merged) {
+        if (results.length >= TARGET_PHOTOS) break;
+        addPhoto(u);
       }
+      foundToSave.push({ lat: p.lat, lng: p.lng, photoUrls: merged });
+    } else if (p.name) {
+      namesForWikipedia.push({ lat: p.lat, lng: p.lng, name: p.name });
+    } else {
+      missesToSave.push({ lat: p.lat, lng: p.lng, photoUrls: [] });
     }
   }
 
-  // 3. Wikipedia Fallback Batch
-  if (results.length < 5 && namesForWikipedia.length > 0) {
-    const batchedNames = namesForWikipedia.map(n => n.name).slice(0, 50); // limit to 50
+  // 3. Wikipedia fallback batch (only for places Commons truly found nothing for)
+  if (results.length < TARGET_PHOTOS && namesForWikipedia.length > 0) {
+    const batchedNames = namesForWikipedia.map(n => n.name).slice(0, 50);
     const wikiResults = await fetchWikipediaPhotosBatch(batchedNames);
 
     for (const p of namesForWikipedia) {
-      if (results.length >= 5) break;
       const url = wikiResults[p.name.toLowerCase()];
       if (url) {
         addPhoto(url);
@@ -218,13 +240,13 @@ export const getSuggestions = async (req, res) => {
       updateOne: {
         filter: { lat: r.lat, lng: r.lng },
         update: { $set: { photoUrls: r.photoUrls, expiresAt } },
-        upsert: true
-      }
+        upsert: true,
+      },
     }));
     try {
       await PlacePhoto.bulkWrite(bulkOps);
     } catch (err) {
-      console.error("Bulk write failed:", err.message);
+      console.error('Bulk write failed:', err.message);
     }
   };
 
