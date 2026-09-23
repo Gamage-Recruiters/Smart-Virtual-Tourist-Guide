@@ -36,6 +36,47 @@ export const createPlacePhoto = async (req, res) => {
 
 const GOOD_ENOUGH = 3;
 
+const IRRELEVANT_CATEGORY_HINTS = [
+  'vehicle', 'automobile', 'car', 'bus', 'truck', 'train',
+  'bird', 'mammal', 'animal', 'cat', 'dog', 'insect', 'fish',
+  'portrait', 'people', 'logo', 'flag of', 'diagram', 'map of',
+  'screenshot', 'text', 'sign', 'icon'
+];
+
+async function fetchCategories(titles) {
+  if (!titles || titles.length === 0) return {};
+  try {
+    const titlesParam = titles.map(encodeURIComponent).join('|');
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&titles=${titlesParam}&prop=categories&cllimit=500&format=json`;
+    const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+    if (!res.ok) return {};
+    const data = await res.json();
+    const pages = data?.query?.pages || {};
+    
+    const result = {};
+    for (const page of Object.values(pages)) {
+      if (page.title) {
+        result[page.title] = (page.categories || []).map(c => c.title.toLowerCase());
+      }
+    }
+    return result;
+  } catch (err) {
+    console.warn('Failed to fetch categories:', err.message);
+    return {};
+  }
+}
+
+function isLikelyRelevant(categories) {
+  // Fail-open: if no categories are present, assume it's a valid photo
+  if (!categories || categories.length === 0) return true;
+  for (const cat of categories) {
+    if (IRRELEVANT_CATEGORY_HINTS.some(hint => cat.includes(hint))) {
+      return false; // Found an irrelevant hint
+    }
+  }
+  return true;
+}
+
 // Helper: Wikimedia Commons Geosearch.
 // Accumulates DISTINCT photo urls across radii instead of returning on the first hit,
 // so one place can fill most/all of the 5-photo grid by itself.
@@ -57,13 +98,32 @@ async function fetchCommonsPhotos(lat, lng, max = TARGET_PHOTOS) {
       const newPages = Object.values(pages).filter(p => p.pageid && !seen.has(p.pageid));
       if (!newPages.length) continue;
 
+      const candidatePages = [];
       for (const page of newPages) {
-        if (urls.length >= max) break;
-        seen.add(page.pageid);
+        seen.add(page.pageid); // mark all as seen
         const info = page?.imageinfo?.[0];
         const isPhoto = info && (!info.mime || ['image/jpeg', 'image/png', 'image/webp'].includes(info.mime));
-        const thumbUrl = isPhoto ? (info.thumburl || info.url) : null;
-        if (thumbUrl && !urls.includes(thumbUrl)) urls.push(thumbUrl);
+        if (isPhoto) {
+          candidatePages.push(page);
+        }
+      }
+
+      if (candidatePages.length === 0) continue;
+
+      // Fetch categories for all candidate photos in one batch
+      const titles = candidatePages.map(p => p.title);
+      const categoriesMap = await fetchCategories(titles);
+
+      for (const page of candidatePages) {
+        const pageCategories = categoriesMap[page.title] || [];
+        
+        // Filter irrelevant photos before adding to urls
+        if (isLikelyRelevant(pageCategories)) {
+          if (urls.length >= max) break;
+          const info = page?.imageinfo?.[0];
+          const thumbUrl = info.thumburl || info.url;
+          if (thumbUrl && !urls.includes(thumbUrl)) urls.push(thumbUrl);
+        }
       }
     } catch (error) {
       console.warn(`Commons geosearch failed at radius ${r}:`, error.message);
