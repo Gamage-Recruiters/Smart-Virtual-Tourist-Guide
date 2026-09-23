@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Phone } from 'lucide-react';
 import bottomLogo from '../assets/bottomLogo.png';
 import middle from '../assets/middle.png';
@@ -18,7 +18,7 @@ export default function SafetyAlertTemplate() {
     setTitle('Safety Alert');
   }, [setTitle]);
 
-  const routePath = safetyData?.routePath || [];
+  const routePath = useMemo(() => safetyData?.routePath || [], [safetyData?.routePath]);
   const safeDestination = (safetyData?.destination || '').replace(/[^a-zA-Z0-9\s,\-.]/g, '').trim().slice(0, 100);
   const destinationCoords = safetyData?.destinationCoords || null;
   const [alerts, setAlerts] = useState([]);
@@ -75,11 +75,6 @@ export default function SafetyAlertTemplate() {
     { name: 'Ambulance', number: '1990' },
     { name: 'Tourist police', number: '1912' }
   ]);
-
-  const routeSummary = useMemo(() => {
-    if (!safetyData) return '';
-    return `${safetyData.origin ? 'From your current location' : 'Route'} to ${safeDestination || 'destination'}`;
-  }, [safetyData]);
 
   useEffect(() => {
     let cancelled = false;
@@ -166,7 +161,7 @@ export default function SafetyAlertTemplate() {
 
     runChecks();
     return () => { cancelled = true; };
-  }, [safetyData?.destination, routePath]);
+  }, [safetyData?.destination, routePath, safeDestination, destinationCoords]);
 
   // ── Filter crime alerts near the user's route (within 5km), sorted by distance ──
   const nearbyRoadblocks = useMemo(() => {

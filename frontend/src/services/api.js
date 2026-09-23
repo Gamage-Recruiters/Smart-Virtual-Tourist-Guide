@@ -213,4 +213,3 @@ export const fetchHotels = async (location, lat, lng) => {
   return apiClient.get(`/hotels${suffix}`);
 };
 
-export default apiClient;

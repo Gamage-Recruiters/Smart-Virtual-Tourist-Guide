@@ -190,12 +190,6 @@ export const describeRoute = (route, idx, allRoutes) => {
   return [routeLabel, traffic, via].filter(Boolean).join(' · ');
 };
 
-/**
- * Strip HTML tags from a navigation instruction string.
- * @param {string} html
- * @returns {string}
- */
-export const sanitizeInstruction = (html = '') => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
  * Format a turn-by-turn navigation maneuver instruction into human-readable text.

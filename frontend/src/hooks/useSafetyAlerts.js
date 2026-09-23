@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { createRouteLabel } from '../utils/leafletSetup';
-import { haversineDist } from '../utils/geo';
+import { haversineDistance } from '../utils/geo';
 import { checkRouteForFlood } from '../utils/floodService';
 import { fetchCrimeAlerts, fetchRoadBlockages, fetchWeatherAlerts } from '../services/api';
 import { getDistanceToPath } from '../utils/geo';
@@ -174,7 +174,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
     overviewPath.forEach((pt, idx) => {
       const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
       const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
-      const d = haversineDist(userLat, userLng, ptLat, ptLng);
+      const d = haversineDistance(userLat, userLng, ptLat, ptLng);
       if (d < userMinDist) { userMinDist = d; userRouteIdx = idx; }
     });
 
@@ -191,14 +191,14 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       overviewPath.forEach((pt, idx) => {
         const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
         const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
-        const d = haversineDist(crimeLat, crimeLng, ptLat, ptLng);
+        const d = haversineDistance(crimeLat, crimeLng, ptLat, ptLng);
         if (d < crimeRouteDist) { crimeRouteDist = d; crimeRouteIdx = idx; }
       });
 
       if (crimeRouteDist > 5000) return;
       if (crimeRouteIdx < userRouteIdx) return;
 
-      const distToUser = haversineDist(userLat, userLng, crimeLat, crimeLng);
+      const distToUser = haversineDistance(userLat, userLng, crimeLat, crimeLng);
       if (distToUser < bestDistToUser) { bestDistToUser = distToUser; bestCrime = crime; }
     });
 
@@ -282,7 +282,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
     overviewPath.forEach((pt, idx) => {
       const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
       const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
-      const d = haversineDist(refLat, refLng, ptLat, ptLng);
+      const d = haversineDistance(refLat, refLng, ptLat, ptLng);
       if (d < userMinDist) { userMinDist = d; userRouteIdx = idx; }
     });
 
@@ -299,14 +299,14 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       overviewPath.forEach((pt, idx) => {
         const ptLat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
         const ptLng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
-        const d = haversineDist(incLat, incLng, ptLat, ptLng);
+        const d = haversineDistance(incLat, incLng, ptLat, ptLng);
         if (d < incidentRouteDist) { incidentRouteDist = d; incidentRouteIdx = idx; }
       });
 
       if (incidentRouteDist > 5000) return;
       if (incidentRouteIdx < userRouteIdx) return;
 
-      const distToUser = haversineDist(refLat, refLng, incLat, incLng);
+      const distToUser = haversineDistance(refLat, refLng, incLat, incLng);
       if (distToUser < bestDistToUser) { bestDistToUser = distToUser; bestRoadblock = incident; }
     });
 
@@ -381,7 +381,7 @@ export function useSafetyAlerts(mapInstanceRef, showDetailsPanel) {
       const results = await findNearbyPlacesFn(loc.lat, loc.lng, HOSPITAL_NAV_RADIUS, '"amenity"="hospital"');
       if (!results?.length) return;
       const EXCLUDE_KEYWORDS = /medical cent(er|re)|medi cent(er|re)/i;
-      const getDistanceMeters = (a, b) => haversineDist(a.lat, a.lng, b.lat, b.lng);
+      const getDistanceMeters = (a, b) => haversineDistance(a.lat, a.lng, b.lat, b.lng);
       const hospital = results
         .filter(p => !EXCLUDE_KEYWORDS.test(p.name || ''))
         .sort((a, b) => {

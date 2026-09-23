@@ -11,7 +11,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
  * Fix Leaflet default marker icon paths (broken by bundlers like Vite).
  * Safe to call multiple times — the fix is idempotent.
  */
-export const fixLeafletDefaultIcons = () => {
+const fixLeafletDefaultIcons = () => {
   delete L.Icon.Default.prototype._getIconUrl;
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
@@ -97,7 +97,7 @@ function ensureOverlay(container) {
   return overlay;
 }
 
-export function showCtrlScrollPrompt(map) {
+function showCtrlScrollPrompt(map) {
   const container = getMapContainer(map);
   const overlay = ensureOverlay(container);
   if (!overlay) return;
@@ -112,7 +112,7 @@ export function showCtrlScrollPrompt(map) {
   }, PROMPT_TIMEOUT_MS);
 }
 
-export function hideCtrlScrollPrompt(map) {
+function hideCtrlScrollPrompt(map) {
   const container = getMapContainer(map);
   if (!container) return;
   const overlay = container.querySelector('.leaflet-ctrl-scroll-overlay');
@@ -131,7 +131,7 @@ let isCtrlScrollPatched = false;
  * Patches Leaflet ScrollWheelZoom so that normal scroll events bubble up
  * to allow natural page scrolling unless Ctrl/Cmd is pressed.
  */
-export const setupCtrlScrollZoom = () => {
+const setupCtrlScrollZoom = () => {
   if (isCtrlScrollPatched) return;
   if (typeof window === 'undefined' || !L.Map || !L.Map.ScrollWheelZoom) return;
 
@@ -194,8 +194,7 @@ export const getBlueMarkerIcon = () =>
     shadowSize: [41, 41],
   });
 
-// Alias — both names were used in Direction.jsx
-export const getNavigationMarkerIcon = getBlueMarkerIcon;
+
 
 /**
  * Blue pulsing dot icon for the user's current location.

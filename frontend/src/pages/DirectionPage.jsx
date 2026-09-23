@@ -15,7 +15,7 @@ import { saveFavoritePlace } from '../services/api';
 import ActionToast from '../components/shared/ActionToast';
 import middle from '../assets/middle.png';
 import { LocateFixed } from 'lucide-react';
-import { getBlueMarkerIcon, getNavigationMarkerIcon } from '../utils/leafletSetup';
+import { getBlueMarkerIcon } from '../utils/leafletSetup';
 import { renderPOIPopup } from '../components/shared/LeafletPopups';
 
 export default function DirectionPage() {

@@ -2,10 +2,6 @@
  * Utility helper functions
  */
 
-export const formatDate = (date) => {
-  return new Date(date).toLocaleDateString();
-};
-
 export const formatViewedAgo = (timestamp) => {
   if (!timestamp) return 'Viewed';
 
@@ -40,21 +36,6 @@ export const formatViewedAgo = (timestamp) => {
 
   const weeks = Math.floor(days / 7);
   return `Viewed by ${weeks} week${weeks === 1 ? '' : 's'} ago`;
-};
-
-export const formatCurrency = (amount, currency = 'USD') => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(amount);
-};
-
-export const debounce = (func, delay) => {
-  let timeoutId;
-  return (...args) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
-  };
 };
 
 

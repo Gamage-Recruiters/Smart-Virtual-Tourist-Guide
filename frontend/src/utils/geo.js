@@ -5,7 +5,7 @@
  */
 
 /** Sri Lanka geographic bounding box */
-export const SRI_LANKA_BOUNDS = {
+const SRI_LANKA_BOUNDS = {
   north: 10.0,
   south: 5.7,
   east: 82.1,
@@ -44,9 +44,6 @@ export const haversineDistance = (lat1, lon1, lat2, lon2) => {
       Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
-
-// Alias for backward compatibility
-export const haversineDist = haversineDistance;
 
 /**
  * Format a distance in metres to a human-readable string.

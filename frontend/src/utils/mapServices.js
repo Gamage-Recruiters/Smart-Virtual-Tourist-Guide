@@ -452,7 +452,7 @@ export function getCachedPOIs(routeHash, maxAgeMs = 30 * 60 * 1000) {
       return null;
     }
     return pois;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -463,7 +463,7 @@ export function setCachedPOIs(routeHash, pois) {
       `poi_${routeHash}`,
       JSON.stringify({ pois, timestamp: Date.now() })
     );
-  } catch (e) {
+  } catch {
     // storage quota exceeded — fail silently, RAM cache still works
   }
 }

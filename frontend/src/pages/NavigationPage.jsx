@@ -148,9 +148,8 @@ export default function NavigationPage() {
     }
 
     // Advance step within current leg
-    const activeRoute = routing.directionsResultRef.current?.routes?.[routing.selectedIdx];
-    const currentLeg = activeRoute?.legs?.[currentLegIndex];
-    const steps = currentLeg?.steps || routing.routes?.[routing.selectedIdx]?.steps || [];
+    const activeRoute = routing.routes?.[routing.selectedIdx];
+    const steps = activeRoute?.legs?.[currentLegIndex]?.steps || activeRoute?.steps || [];
     if (steps.length > 0) {
       setNavStepIndex((currentIdx) => {
         if (currentIdx >= steps.length - 1) return currentIdx;
@@ -165,7 +164,7 @@ export default function NavigationPage() {
         return currentIdx;
       });
     }
-  }, [routing.routes, routing.directionsResultRef.current, routing.selectedIdx, currentLegIndex, getDestinationCoords, getWaypoints]);
+  }, [routing.routes, routing.selectedIdx, currentLegIndex, getDestinationCoords, getWaypoints]);
 
   // Initialize route, markers and start GPS watching
   useEffect(() => {
@@ -257,10 +256,11 @@ export default function NavigationPage() {
         { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
       );
     }
+    const mapInstance = mapInstanceRef.current;
 
     return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.off('dragstart', handleDragStart);
+      if (mapInstance) {
+        mapInstance.off('dragstart', handleDragStart);
       }
       if (navWatchIdRef.current != null) {
         navigator.geolocation.clearWatch(navWatchIdRef.current);
@@ -276,8 +276,8 @@ export default function NavigationPage() {
 
   // Update safety overlays when route changes
   useEffect(() => {
-    if (routing.directionsResultRef.current && mapInstanceRef.current) {
-      const overviewPath = routing.directionsResultRef.current.routes[routing.selectedIdx]?.overview_path;
+    if (routing.routes?.[routing.selectedIdx] && mapInstanceRef.current) {
+      const overviewPath = routing.routes[routing.selectedIdx]?.overview_path;
       if (overviewPath) {
         const destName = searchedPlace?.displayName || searchedPlace?.name || 'Destination';
         const destinationCoords = getDestinationCoords();
@@ -285,12 +285,13 @@ export default function NavigationPage() {
         safetyAlerts.checkAndDrawWeatherLabels(overviewPath, destName, destinationCoords);
         safetyAlerts.checkAndDrawCrimeLabels(overviewPath);
         safetyAlerts.checkAndDrawRoadblockLabels(overviewPath);
-        if (safetyAlerts.floodPollRef.current) clearInterval(safetyAlerts.floodPollRef.current);
-        safetyAlerts.floodPollRef.current = setInterval(() => safetyAlerts.checkAndDrawFloodLabel(overviewPath, destName), 5 * 60 * 1000);
+        const { floodPollRef } = safetyAlerts;
+        if (floodPollRef.current) clearInterval(floodPollRef.current);
+        floodPollRef.current = setInterval(() => safetyAlerts.checkAndDrawFloodLabel(overviewPath, destName), 5 * 60 * 1000);
       }
     }
     return () => safetyAlerts.clearAllSafetyOverlays();
-  }, [routing.directionsResultRef.current, routing.selectedIdx, safetyAlerts, searchedPlace]);
+  }, [routing.routes, routing.selectedIdx, safetyAlerts, searchedPlace, getDestinationCoords]);
 
   const handleSafetyAlertClick = () => {
     const routePath = routing.directionsResultRef.current?.routes?.[routing.selectedIdx]?.overview_path || [];
@@ -326,9 +327,8 @@ export default function NavigationPage() {
 
   // Resolve active maneuver step from route data
   const getActiveManeuverStep = useCallback(() => {
-    const fullRoute = routing.directionsResultRef.current?.routes?.[routing.selectedIdx];
-    const currentLeg = fullRoute?.legs?.[currentLegIndex];
-    const steps = currentLeg?.steps || routing.routes?.[routing.selectedIdx]?.steps || [];
+    const selectedRoute = routing.routes?.[routing.selectedIdx];
+    const steps = selectedRoute?.legs?.[currentLegIndex]?.steps || selectedRoute?.steps || [];
     if (!steps.length) return null;
 
     const safeIndex = Math.min(navStepIndex, steps.length - 1);
@@ -339,10 +339,10 @@ export default function NavigationPage() {
     let distText = step.distance?.text || '';
 
     // Calculate live distance if current GPS is known
-    if (userLocationRef.current && step.start_location) {
+    if (userLocation && step.start_location) {
       const d = haversineDistance(
-        userLocationRef.current.lat,
-        userLocationRef.current.lng,
+        userLocation.lat,
+        userLocation.lng,
         step.start_location.lat,
         step.start_location.lng
       );
@@ -358,7 +358,7 @@ export default function NavigationPage() {
       totalSteps: steps.length,
       isNext: safeIndex < steps.length - 1,
     };
-  }, [routing.routes, routing.directionsResultRef.current, routing.selectedIdx, navStepIndex]);
+  }, [routing.routes, routing.selectedIdx, currentLegIndex, navStepIndex, userLocation]);
 
   const activeManeuver = getActiveManeuverStep();
   const currentTurnInstruction = activeManeuver?.label || '';

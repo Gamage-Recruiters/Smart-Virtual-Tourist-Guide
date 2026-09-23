@@ -1,9 +1,36 @@
 import { useState, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { getRoute, getRouteWithWaypoints } from '../utils/mapServices';
-import { getBlueMarkerIcon, getNavigationMarkerIcon, createRouteLabel } from '../utils/leafletSetup';
+import { getBlueMarkerIcon, createRouteLabel } from '../utils/leafletSetup';
 import { MODE_CONFIGS, formatCompactDuration, parseDurationToMinutes, formatManeuverInstruction } from '../utils/routeHelpers';
 
+const parseOsrmSteps = (steps, overviewPath) => {
+  return (steps || []).map((step) => {
+    const instructionText = formatManeuverInstruction(step);
+    return {
+      instructions: instructionText,
+      name: step.name || '',
+      maneuver: {
+        type: step.maneuver?.type || 'turn',
+        modifier: step.maneuver?.modifier || '',
+        instruction: instructionText,
+        location: step.maneuver?.location || null,
+        bearing_after: step.maneuver?.bearing_after,
+        bearing_before: step.maneuver?.bearing_before,
+      },
+      distance: {
+        value: step.distance,
+        text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m`,
+      },
+      duration: {
+        value: step.duration,
+        text: formatCompactDuration(Math.round(step.duration / 60)),
+      },
+      start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
+      end_location: overviewPath[overviewPath.length - 1],
+    };
+  });
+};
 /**
  * Hook that encapsulates OSRM route fetching, route normalization,
  * route drawing, and selected-route state.
@@ -218,31 +245,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
         const distText = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${Math.round(distM)} m`;
         const durText = formatCompactDuration(durMins);
         const overviewPath = (route.geometry?.coordinates || []).map(c => ({ lat: c[1], lng: c[0] }));
-        const steps = (route.steps || []).map((step) => {
-          const instructionText = formatManeuverInstruction(step);
-          return {
-            instructions: instructionText,
-            name: step.name || '',
-            maneuver: {
-              type: step.maneuver?.type || 'turn',
-              modifier: step.maneuver?.modifier || '',
-              instruction: instructionText,
-              location: step.maneuver?.location || null,
-              bearing_after: step.maneuver?.bearing_after,
-              bearing_before: step.maneuver?.bearing_before,
-            },
-            distance: {
-              value: step.distance,
-              text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m`,
-            },
-            duration: {
-              value: step.duration,
-              text: formatCompactDuration(Math.round(step.duration / 60)),
-            },
-            start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
-            end_location: overviewPath[overviewPath.length - 1],
-          };
-        });
+        const steps = parseOsrmSteps(route.steps, overviewPath);
         return {
           overview_path: overviewPath,
           legs: [{ distance: { value: distM, text: distText }, duration: { value: durS, text: durText }, steps, start_location: overviewPath[0] || normalizedOrigin, end_location: overviewPath[overviewPath.length - 1] || normalizedDestination }],
@@ -362,31 +365,7 @@ export function useRouting(mapInstanceRef, opts = {}) {
           const legDistText = leg.distance >= 1000 ? `${(leg.distance / 1000).toFixed(1)} km` : `${Math.round(leg.distance)} m`;
           const legDurText = formatCompactDuration(legDurMins);
 
-          const steps = (leg.steps || []).map((step) => {
-            const instructionText = formatManeuverInstruction(step);
-            return {
-              instructions: instructionText,
-              name: step.name || '',
-              maneuver: {
-                type: step.maneuver?.type || 'turn',
-                modifier: step.maneuver?.modifier || '',
-                instruction: instructionText,
-                location: step.maneuver?.location || null,
-                bearing_after: step.maneuver?.bearing_after,
-                bearing_before: step.maneuver?.bearing_before,
-              },
-              distance: {
-                value: step.distance,
-                text: step.distance >= 1000 ? `${(step.distance / 1000).toFixed(1)} km` : `${Math.round(step.distance)} m`,
-              },
-              duration: {
-                value: step.duration,
-                text: formatCompactDuration(Math.round(step.duration / 60)),
-              },
-              start_location: step.maneuver?.location ? { lat: step.maneuver.location[1], lng: step.maneuver.location[0] } : overviewPath[0],
-              end_location: overviewPath[overviewPath.length - 1],
-            };
-          });
+          const steps = parseOsrmSteps(leg.steps, overviewPath);
 
           return {
             distance: { value: leg.distance, text: legDistText },

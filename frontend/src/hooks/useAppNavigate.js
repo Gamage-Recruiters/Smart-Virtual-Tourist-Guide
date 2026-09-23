@@ -14,4 +14,3 @@ export const useAppNavigate = () => {
   return (page) => navigate(PAGE_ROUTES[page] || '/');
 };
 
-export { PAGE_ROUTES };
