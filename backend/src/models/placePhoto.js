@@ -12,4 +12,4 @@ placePhotoSchema.index({ lat: 1, lng: 1 }, { unique: true });
 // TTL index for dynamic expiration
 placePhotoSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export default mongoose.model('PlacePhoto', placePhotoSchema);
+export default mongoose.models.PlacePhoto || mongoose.model('PlacePhoto', placePhotoSchema);

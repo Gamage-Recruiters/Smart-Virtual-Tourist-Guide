@@ -29,3 +29,20 @@
     opacity: 1;
   }
 }
+
+/* Photo grid skeleton loading animations */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.photo-skeleton {
+  animation: shimmer 2s infinite linear;
+  background: #f6f7f8;
+  background: linear-gradient(to right, #f3f4f6 8%, #e5e7eb 18%, #f3f4f6 33%);
+  background-size: 1000px 100%;
+}
+
+.photo-reveal {
+  animation: fadeIn 0.4s ease-out forwards;
+}
