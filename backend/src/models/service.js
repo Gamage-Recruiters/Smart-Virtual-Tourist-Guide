@@ -42,4 +42,4 @@ const recentPlaceSchema = new mongoose.Schema(
 	}
 );
 
-export default mongoose.model('RecentPlace', recentPlaceSchema);
+export default mongoose.models.RecentPlace || mongoose.model('RecentPlace', recentPlaceSchema);

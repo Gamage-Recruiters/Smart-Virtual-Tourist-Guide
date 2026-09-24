@@ -23,4 +23,4 @@ const securityAlertSchema = new mongoose.Schema(
   { collection: 'securityalerts' }
 );
 
-export default mongoose.model('SecurityAlert', securityAlertSchema);
+export default mongoose.models.SecurityAlert || mongoose.model('SecurityAlert', securityAlertSchema);

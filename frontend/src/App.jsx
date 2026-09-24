@@ -114,6 +114,7 @@ import NavigationPage from './pages/NavigationPage';
 import DirectionOne from './pages/DirectionOne';
 import EtaPage from './pages/EtaPage';
 import SafetyAlertTemplate from './pages/SafetyAlertTemplate';
+import TouristProtectedRoute from './components/TouristProtectedRoute';
 // ==================== Safety Module Imports ====================
 import { SafetyProvider } from "./context/SafetyContext.jsx";
 
@@ -615,13 +616,15 @@ function App() {
           />
 
           {/* ==================== NEW NAVI AND MAP ROUTES ==================== */}
-          <Route element={<MapLayout />}>
-            <Route path="/map" element={<Explore />} />
-            <Route path="/direction/setup" element={<DirectionOne />} />
-            <Route path="/direction" element={<DirectionPage />} />
-            <Route path="/navigation" element={<NavigationPage />} />
-            <Route path="/eta" element={<EtaPage />} />
-            <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
+          <Route element={<TouristProtectedRoute />}>
+            <Route element={<MapLayout />}>
+              <Route path="/map" element={<Explore />} />
+              <Route path="/direction/setup" element={<DirectionOne />} />
+              <Route path="/direction" element={<DirectionPage />} />
+              <Route path="/navigation" element={<NavigationPage />} />
+              <Route path="/eta" element={<EtaPage />} />
+              <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
