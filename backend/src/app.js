@@ -48,6 +48,7 @@ import favoriteRouter from './routes/NavigationAndMapping/favoriteRouter.js';
 import securityAlertRouter from './routes/NavigationAndMapping/securityAlertRouter.js';
 import incidentRouter from './routes/NavigationAndMapping/incidentRouter.js';
 import hotelRouter from './routes/NavigationAndMapping/hotelRouter.js';
+import placePhotoRouter from './routes/placePhotoRouter.js';
 import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';
 import availabilityRoutes from './routes/ActivityProvider/availability.routes.js';
@@ -150,6 +151,7 @@ app.use('/api/favorite-places', favoriteRouter);
 app.use('/api/security-alerts', securityAlertRouter);
 app.use('/api/incidents', incidentRouter);
 app.use('/api/hotels', hotelRouter);
+app.use('/api/place-photos', placePhotoRouter);
 
 // Hotel Owner Routes - Room Management
 app.use('/api/rooms', roomRoutes);

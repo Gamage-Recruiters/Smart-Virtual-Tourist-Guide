@@ -15,7 +15,6 @@
     "@mui/material": "^9.0.1",
     "@mui/x-date-pickers": "^9.3.0",
     "@supabase/supabase-js": "^2.108.2",
-    "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.17.0",
     "browser-image-compression": "^2.0.2",
     "country-list": "^2.4.1",
@@ -47,6 +46,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
