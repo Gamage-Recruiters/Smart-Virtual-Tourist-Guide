@@ -16,8 +16,21 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const userDisplayName = (typeof window !== 'undefined' && (window.localStorage.getItem('userName') || window.localStorage.getItem('displayName'))) || 'nethmi';
-
+  const getUserName = () => {
+    try {
+      const userDataStr = localStorage.getItem('userData');
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        if (userData?.name) return userData.name;
+        if (userData?.fullName) return userData.fullName;
+        if (userData?.firstName) return `${userData.firstName} ${userData.lastName || ''}`.trim();
+      }
+      return localStorage.getItem('userName') || localStorage.getItem('displayName') || 'Tourist';
+    } catch (err) {
+      return 'Tourist';
+    }
+  };
+  const userDisplayName = getUserName();
   useEffect(() => {
     let isActive = true;
 
