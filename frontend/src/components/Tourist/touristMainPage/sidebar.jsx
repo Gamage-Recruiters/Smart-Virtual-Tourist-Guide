@@ -36,8 +36,8 @@ function Sidebar() {
           <NavItem
             icon={<Map size={20} />}
             label="Map"
-            navigate="/dashboard-Tourist/direction"
-            active={location === "/dashboard-Tourist/direction"}
+            navigate="/map"
+            active={location.startsWith("/map") || location.startsWith("/direction")}
           />
           <NavItem
             icon={<ShoppingBag size={20} />}

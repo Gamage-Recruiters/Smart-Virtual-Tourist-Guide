@@ -43,11 +43,11 @@ import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
 import bidRoutes from './routes/bidRoutes.js';
 
 import safetyRouter from './routes/Safety/safetyRouter.js';
-import serviceRouter from './routes/NavigationAndMapping/serviceRouter.js';
-import favoriteRouter from './routes/NavigationAndMapping/favoriteRouter.js';
-import securityAlertRouter from './routes/NavigationAndMapping/securityAlertRouter.js';
-import incidentRouter from './routes/NavigationAndMapping/incidentRouter.js';
-import hotelRouter from './routes/NavigationAndMapping/hotelRouter.js';
+import serviceRouter from './routes/serviceRouter.js';
+import favoriteRouter from './routes/favoriteRouter.js';
+import securityAlertRouter from './routes/securityAlertRouter.js';
+import incidentRouter from './routes/incidentRouter.js';
+import hotelRouter from './routes/hotelRouter.js';
 import placePhotoRouter from './routes/placePhotoRouter.js';
 import activityRoutes from './routes/ActivityProvider/activity.routes.js';
 import activityBookingRoutes from './routes/ActivityProvider/activityBooking.routes.js';

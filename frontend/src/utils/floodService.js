@@ -1,7 +1,6 @@
 import { fetchWeatherAlerts } from '../services/api';
 
 const FLOOD_TEXT_RE = /(flood|heavy rain|extreme rain|thunderstorm|storm|downpour|landslide|cyclone|weather alert|unsafe)/i;
-const FOG_TEXT_RE = /(fog|mist|haze|smoke|dust|sand|ash|squall|tornado)/i;
 const WEATHER_ALERT_RADIUS_METERS = 5000;
 
 /**
@@ -35,18 +34,7 @@ const getSeverityText = (alert) => [
   alert?.description,
 ].filter(Boolean).join(' ');
 
-const isNearRoute = (alert, sampledPath) => {
-  const alertLat = alert?.latitude ?? alert?.lat;
-  const alertLng = alert?.longitude ?? alert?.lng ?? alert?.lon;
-  if (alertLat == null || alertLng == null) return true;
-  if (!sampledPath.length) return true;
 
-  return sampledPath.some((point) => {
-    const pointLat = toCoord(point.lat);
-    const pointLng = toCoord(point.lng);
-    return haversineDistance(alertLat, alertLng, pointLat, pointLng) <= WEATHER_ALERT_RADIUS_METERS;
-  });
-};
 
 const readAlertsFromResponse = (res) => (Array.isArray(res) ? res : (res?.data || []));
 
@@ -126,24 +114,3 @@ export async function checkRouteForFlood(overviewPath, destination = '') {
   }
 }
 
-/**
- * Check all sampled waypoints along a Google Maps route for fog / low visibility.
- * Returns { isFog: boolean, fogPoint: LatLng|null }
- */
-export async function checkRouteForFog(overviewPath) {
-  try {
-    const weatherResponse = await fetchWeatherAlerts();
-    const alerts = readAlertsFromResponse(weatherResponse);
-    if (!alerts.length) return { isFog: false, fogPoint: null };
-
-    const sampledPath = samplePath(overviewPath, 6);
-    const fogAlert = alerts.find((alert) => {
-      const text = getSeverityText(alert);
-      return FOG_TEXT_RE.test(text) && isNearRoute(alert, sampledPath);
-    });
-
-    return { isFog: Boolean(fogAlert), fogPoint: sampledPath[0] || null };
-  } catch {
-    return { isFog: false, fogPoint: null };
-  }
-}

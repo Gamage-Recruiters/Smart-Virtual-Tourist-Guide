@@ -118,6 +118,7 @@ import SafetyAlertTemplate from './pages/SafetyAlertTemplate';
 import { SafetyProvider } from "./context/SafetyContext.jsx";
 
 import SafetyLayout from "./pages/safety/SafetyLayout";
+import MapLayout from "./components/MapLayout";
 import PublicIncidentsPage from "./pages/safety/PublicIncidentsPage";
 import EmergencyCallPage from "./pages/safety/EmergencyCallPage";
 import SecurityAlertsPage from "./pages/safety/SecurityAlertsPage";
@@ -280,8 +281,7 @@ function App() {
           <Route path="/dashboard-Tourist" element={<MainPage />}>
             <Route index element={<TouristDashboard />} />
             <Route path="trip-plan" element={<TripPlanningPage />} />
-            {/* Navigation Map Component */}
-            <Route path="direction" element={<Explore />} />
+            {/* Navigation map link is in sidebar and routes directly to /map */}
             <Route path="touristProfile" element={<TouristProfilePage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="rent-vehicle" element={<RentVehiclePage />} />
@@ -615,12 +615,14 @@ function App() {
           />
 
           {/* ==================== NEW NAVI AND MAP ROUTES ==================== */}
-          <Route path="/map" element={<Explore />} />
-          <Route path="/direction/setup" element={<DirectionOne />} />
-          <Route path="/direction" element={<DirectionPage />} />
-          <Route path="/navigation" element={<NavigationPage />} />
-          <Route path="/eta" element={<EtaPage />} />
-          <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
+          <Route element={<MapLayout />}>
+            <Route path="/map" element={<Explore />} />
+            <Route path="/direction/setup" element={<DirectionOne />} />
+            <Route path="/direction" element={<DirectionPage />} />
+            <Route path="/navigation" element={<NavigationPage />} />
+            <Route path="/eta" element={<EtaPage />} />
+            <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
