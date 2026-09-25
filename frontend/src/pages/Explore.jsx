@@ -71,6 +71,8 @@ const Explore = () => {
       .openPopup();
     setLocalSearched(true);
     setHasSearched(true);
+    setShowUserPopup(false);
+    setDetailsPanelCollapsed(false);
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
