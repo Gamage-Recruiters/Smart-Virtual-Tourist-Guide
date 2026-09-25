@@ -16,7 +16,17 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const userDisplayName = (typeof window !== 'undefined' && (window.localStorage.getItem('userName') || window.localStorage.getItem('displayName'))) || 'nethmi';
+  const userDisplayName = (() => {
+    if (typeof window === 'undefined') return 'User';
+    try {
+      const stored = window.localStorage.getItem('userData') || window.localStorage.getItem('user') || window.localStorage.getItem('renter') || window.localStorage.getItem('restaurantUser');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.name || parsed.firstName || parsed.username || 'User';
+      }
+    } catch (e) { }
+    return 'User';
+  })();
 
   useEffect(() => {
     let isActive = true;
@@ -32,7 +42,8 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
         setPlaces(items);
       } catch (err) {
         if (!isActive) return;
-        setError('Failed to load places');
+        console.error('Failed to load places:', err);
+        setError('Failed to load places: ' + (err.message || 'Unknown error'));
         setPlaces([]);
       } finally {
         if (isActive) setLoading(false);
@@ -119,20 +130,40 @@ export default function UserPopup({ onClose, setActionMessage, renderRecentPlace
         {/* Place list */}
         <div style={{ marginTop: '20px', marginLeft: '40px', marginRight: '40px', maxHeight: '390px', overflowY: 'auto', paddingRight: '8px' }}>
           {loading && (
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#374151' }}>
-              Loading recent places...
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#64748B', textAlign: 'center', padding: '20px' }}>
+              Loading your saved places...
             </div>
           )}
 
           {!loading && error && (
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#B91C1C' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#B91C1C', textAlign: 'center', padding: '20px', backgroundColor: '#FEF2F2', borderRadius: '8px' }}>
               {error}
             </div>
           )}
 
           {!loading && !error && places.length === 0 && (
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#374151' }}>
-              No recent places found.
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '48px 20px',
+              textAlign: 'center',
+              backgroundColor: '#F8FAFC',
+              borderRadius: '12px',
+              border: '1px dashed #CBD5E1',
+              marginTop: '10px',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+            }}>
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px' }}>
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 600, color: '#334155', fontFamily: 'Inter, sans-serif' }}>
+                No {selectedTab} places saved yet
+              </h3>
+              <p style={{ margin: 0, fontSize: '14px', color: '#64748B', fontFamily: 'Inter, sans-serif', maxWidth: '300px', lineHeight: 1.5 }}>
+                When you save a location as {selectedTab}, it will appear here for quick access during your trips.
+              </p>
             </div>
           )}
 

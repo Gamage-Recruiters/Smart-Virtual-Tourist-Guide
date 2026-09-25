@@ -3,6 +3,9 @@ import FavoritePlace from '../models/favoritePlace.js';
 const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';
 
 const resolveUserId = (req) => {
+	if (req.user && (req.user.id || req.user._id)) {
+		return (req.user.id || req.user._id).toString();
+	}
 	return req.body?.userId || req.query?.userId || DEFAULT_USER_ID;
 };
 
