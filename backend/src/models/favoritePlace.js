@@ -42,4 +42,4 @@ const favoritePlaceSchema = new mongoose.Schema(
 	}
 );
 
-export default mongoose.models.FavoritePlace || mongoose.model('FavoritePlace', favoritePlaceSchema);
+export default mongoose.model('FavoritePlace', favoritePlaceSchema);

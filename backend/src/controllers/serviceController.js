@@ -3,7 +3,7 @@ import RecentPlace from '../models/service.js';
 const DEFAULT_USER_ID = process.env.RECENT_PLACES_DEFAULT_USER_ID || 'testUser01';
 
 const resolveUserId = (req) => {
-	return req.user?.id || req.user?._id || req.body?.userId || req.query?.userId || DEFAULT_USER_ID;
+	return req.body?.userId || req.query?.userId || DEFAULT_USER_ID;
 };
 
 const normalizeAction = (action) => {

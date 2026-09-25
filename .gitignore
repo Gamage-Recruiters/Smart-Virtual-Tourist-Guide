@@ -229,3 +229,6 @@ coverage
 frontend/vite.config copy.js
 
 config.bat
+
+# Temporary files
+temp/

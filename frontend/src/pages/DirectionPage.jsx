@@ -427,7 +427,15 @@ export default function DirectionPage() {
           />
         )}
 
-
+        {!addStopOpen && (
+          <button
+            type="button"
+            onClick={() => appNavigate('explore')}
+            style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 1100, width: '40px', height: '40px', borderRadius: '50%', background: '#fff', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+          </button>
+        )}
 
         {!addStopOpen && (
           <div style={{ maxWidth: '100%', margin: '0 auto', padding: 0 }}>
