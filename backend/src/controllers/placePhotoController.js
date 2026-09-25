@@ -1,4 +1,5 @@
 import PlacePhoto from '../models/placePhoto.js';
+import { searchPlacePhotos } from '../services/photoProviders.js';
 
 const USER_AGENT = 'SVTG/1.0 (Smart Virtual Tourist Guide, intern project)';
 const TARGET_PHOTOS = 5;
@@ -80,7 +81,7 @@ function isLikelyRelevant(categories) {
 // Helper: Wikimedia Commons Geosearch.
 // Accumulates DISTINCT photo urls across radii instead of returning on the first hit,
 // so one place can fill most/all of the 5-photo grid by itself.
-async function fetchCommonsPhotos(lat, lng, max = TARGET_PHOTOS) {
+export async function fetchCommonsPhotos(lat, lng, max = TARGET_PHOTOS) {
   const seen = new Set();
   const urls = [];
 
@@ -247,7 +248,7 @@ export const getSuggestions = async (req, res) => {
     // Dedupe concurrent identical requests
     let fetchPromise = inFlightRequests.get(p.key);
     if (!fetchPromise) {
-      fetchPromise = fetchCommonsPhotos(p.lat, p.lng, TARGET_PHOTOS);
+      fetchPromise = searchPlacePhotos(p, TARGET_PHOTOS);
       inFlightRequests.set(p.key, fetchPromise);
       fetchPromise.finally(() => inFlightRequests.delete(p.key));
     }
