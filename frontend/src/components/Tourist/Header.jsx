@@ -71,7 +71,7 @@ const Header = () => {
     <header className="sticky top-0 z-50">
       <nav className="relative">
         {/* Background Image for Navigation Bar */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${navBg})`,
@@ -79,24 +79,24 @@ const Header = () => {
         />
         {/* Semi-transparent overlay for better text readability */}
         <div className="absolute inset-0 bg-white/90" />
-        
+
         {/* Navigation Content */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
-            
+
             {/* Logo Section - Using Images with increased size */}
             <div className="flex items-center space-x-4">
               {/* Logo Icon Image - Increased from h-10 to h-14 */}
-              <img 
-                src={logoIcon} 
-                alt="Logo" 
+              <img
+                src={logoIcon}
+                alt="Logo"
                 className="h-14 w-auto cursor-pointer"
                 onClick={() => navigate('/')}
               />
               {/* Logo Text Image - Increased from h-8 to h-10 */}
-              <img 
-                src={logoText} 
-                alt="Smart Virtual Tourist Guide" 
+              <img
+                src={logoText}
+                alt="Smart Virtual Tourist Guide"
                 className="h-10 w-auto hidden sm:block cursor-pointer"
                 onClick={() => navigate('/')}
               />
@@ -117,7 +117,7 @@ const Header = () => {
 
             {/* Language Selector & Action Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              
+
               {/* Language Dropdown */}
               <div className="relative">
                 <button
@@ -132,18 +132,17 @@ const Header = () => {
                 {/* Dropdown Menu */}
                 {isLanguageOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setIsLanguageOpen(false)} 
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsLanguageOpen(false)}
                     />
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       {languages.map((lang) => (
                         <button
                           key={lang.code}
                           onClick={() => handleLanguageChange(lang.code, lang.name)}
-                          className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors flex items-center space-x-3 ${
-                            selectedLanguage === lang.code ? 'bg-blue-50 text-[#0075FF]' : 'text-gray-700'
-                          }`}
+                          className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors flex items-center space-x-3 ${selectedLanguage === lang.code ? 'bg-blue-50 text-[#0075FF]' : 'text-gray-700'
+                            }`}
                         >
                           <span className="text-lg">{lang.flag}</span>
                           <span className="flex-1">{lang.name}</span>
@@ -181,7 +180,7 @@ const Header = () => {
                   </button>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={() => navigate('/login')}
                   className="ml-2 px-6 py-2 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-xl"
                 >
@@ -223,7 +222,7 @@ const Header = () => {
                 ))}
 
 
-                
+
                 {/* Mobile Language Selector */}
                 <div className="px-4 py-2">
                   <div className="text-gray-500 text-sm mb-2 font-medium">Select Language</div>
@@ -235,11 +234,10 @@ const Header = () => {
                           handleLanguageChange(lang.code, lang.name);
                           setIsMenuOpen(false);
                         }}
-                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                          selectedLanguage === lang.code
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${selectedLanguage === lang.code
                             ? 'bg-[#0075FF] text-white'
                             : 'bg-white/80 text-gray-700 hover:bg-white'
-                        }`}
+                          }`}
                       >
                         <span className="text-lg">{lang.flag}</span>
                         <span className="text-sm">{lang.name}</span>
@@ -247,7 +245,7 @@ const Header = () => {
                     ))}
                   </div>
                 </div>
-                
+
                 {user ? (
                   <div className="mx-4 py-3 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-[#0075FF] font-bold text-sm">
@@ -267,7 +265,7 @@ const Header = () => {
                     </button>
                   </div>
                 ) : (
-                  <button 
+                  <button
                     className="px-4 py-3 bg-[#0075FF] hover:bg-[#0059CC] text-white font-semibold rounded-lg transition-colors mt-2 text-center"
                     onClick={() => {
                       setIsMenuOpen(false);
