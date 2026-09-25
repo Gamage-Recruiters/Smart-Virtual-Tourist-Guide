@@ -244,7 +244,7 @@ const Footer = () => {
         {/* --- COLUMN 1: BRAND & DESCRIPTION --- */}
         <div className="lg:col-span-1 flex flex-col items-start">
           {/* Logo Image */}
-          <div className="mt-6 mb-3">
+          <div className="mb-3">
             <img
               src={logoImage}
               alt="Sri Lanka Tourism Logo"
