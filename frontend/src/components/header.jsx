@@ -146,6 +146,9 @@ const Header = () => {
                     localStorage.removeItem('token');
                     localStorage.removeItem('userData');
                     localStorage.removeItem('restaurantUser');
+                    localStorage.removeItem('renter');
+                    localStorage.removeItem('touristProfile');
+                    localStorage.removeItem('user');
                     window.location.reload();
                   }}
                   className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
