@@ -217,7 +217,6 @@ coverage
 # =====================
 !.vscode/extensions.json
 .idea
-.vscode
 # =====================
 # MISC
 # =====================
