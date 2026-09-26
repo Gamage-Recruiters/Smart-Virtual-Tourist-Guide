@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import SafetySidebar from '../../components/safety/SafetySidebar'
 import { FiMenu } from 'react-icons/fi'
-import Header from '../../components/header'
+import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 
 export default function SafetyLayout() {
