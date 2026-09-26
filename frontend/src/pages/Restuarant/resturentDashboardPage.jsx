@@ -38,9 +38,9 @@ function ResturentDashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
-        const token = localStorage.getItem('restaurantToken')
-        const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+        const user = JSON.parse(localStorage.getItem('restaurantUser') || localStorage.getItem('user') || '{}')
+        const token = localStorage.getItem('restaurantToken') || localStorage.getItem('token')
+        const headers = token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' }
 
         // Fetch all restaurants to find this owner's restaurant
         const restRes = await fetch(`${API_BASE}/restaurants`, { headers })
@@ -103,7 +103,7 @@ function ResturentDashboardPage() {
     fetchDashboardData()
   }, [])
 
-  const user = JSON.parse(localStorage.getItem('restaurantUser') || '{}')
+  const user = JSON.parse(localStorage.getItem('restaurantUser') || localStorage.getItem('user') || '{}')
 
   // ── Handle profile creation for users who skipped/failed step 2 ──────────
   const handleSetupProfile = async (e) => {
@@ -207,7 +207,7 @@ function ResturentDashboardPage() {
     { label: 'Today Reservations', value: loading ? '...' : todayReservationsCount, sub: 'Diners visiting today' },
     {
       label: 'Rating & Reviews',
-      value: loading ? '...' : (reviewData.averageRating > 0 ? `⭐ ${reviewData.averageRating.toFixed(1)}` : '0.0'),
+      value: loading ? '...' : (Number(reviewData.averageRating || 0) > 0 ? `⭐ ${Number(reviewData.averageRating || 0).toFixed(1)}` : '0.0'),
       sub: loading ? '...' : `${reviewData.totalReviews} total ${reviewData.totalReviews === 1 ? 'review' : 'reviews'}`
     },
     { label: 'Active Offers', value: loading ? '...' : activeOffers, sub: 'Currently running' },
@@ -332,7 +332,7 @@ function ResturentDashboardPage() {
               ) : (
                 <div className="space-y-2.5">
                   {reviewData.recentReviews.map(rev => (
-                    <div key={rev._id} className="bg-white/80 p-3 rounded-xl border border-slate-100 text-xs space-y-1">
+                    <div key={rev._id} className="bg-white/80 p-3 rounded-xl border border-slate-100 text-xs space-y-1 hover:border-blue-200 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-white">
@@ -343,9 +343,19 @@ function ResturentDashboardPage() {
                         <RatingStars rating={rev.rating} />
                       </div>
                       <p className="text-slate-600 text-xs line-clamp-2 pl-8">{rev.comment}</p>
-                      {rev.restaurantReply && (
-                        <p className="text-[10px] text-blue-600 font-medium pl-8">✓ Replied</p>
-                      )}
+                      <div className="flex items-center justify-between pl-8 pt-1">
+                        {rev.restaurantReply ? (
+                          <span className="text-[10px] text-green-600 font-medium flex items-center gap-1">✓ Replied</span>
+                        ) : (
+                          <span className="text-[10px] text-amber-600 font-medium">Pending Reply</span>
+                        )}
+                        <button
+                          onClick={() => navigate('/resturent/dashboard/reviews')}
+                          className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                        >
+                          Reply →
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -392,10 +402,10 @@ function ResturentDashboardPage() {
                 <p className="text-xs text-slate-500">Average Customer Rating</p>
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-3xl font-extrabold text-slate-900">
-                    {reviewData.averageRating > 0 ? reviewData.averageRating.toFixed(1) : '0.0'}
+                    {Number(reviewData.averageRating || 0) > 0 ? Number(reviewData.averageRating || 0).toFixed(1) : '0.0'}
                   </span>
                   <div className="flex flex-col items-start">
-                    <RatingStars rating={Math.round(reviewData.averageRating)} size="w-4 h-4" />
+                    <RatingStars rating={Math.round(Number(reviewData.averageRating || 0))} size="w-4 h-4" />
                     <span className="text-[10px] text-slate-400 mt-0.5">out of 5.0</span>
                   </div>
                 </div>
