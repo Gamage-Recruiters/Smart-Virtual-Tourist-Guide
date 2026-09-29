@@ -8,13 +8,15 @@ import HealthSafetyLogPDF from "../components/HealthSafetyLogPDF";
 import RateExperiencePDF from "../components/RateExperiencePDF";
 
 
-const FinalTripReportPDF = ({ touristId: propTouristId, tripId: propTripId }) => {
+const FinalTripReportPDF = ({ touristId: propTouristId, tripId: propTripId}) => {
 
   const { touristId: urlTouristId, tripId: urlTripId } = useParams();
   const searchParams = new URLSearchParams(window.location.search);
 
   const tId = propTouristId || urlTouristId || searchParams.get('touristId');
   const trId = propTripId || urlTripId || searchParams.get('tripId');
+
+  const userEmail = "it22300096@my.sliit.lk"; 
 
   return (
     <div className="print-container">
@@ -28,7 +30,7 @@ const FinalTripReportPDF = ({ touristId: propTouristId, tripId: propTripId }) =>
       <FinancialSummaryPDF touristId={tId} />
 
       {/* Section 04 */}
-      <ServiceProvidersPDF />
+      <ServiceProvidersPDF touristId={tId} tripId={trId} userEmail={userEmail} />
 
       {/* Section 05 */}
       <HealthSafetyLogPDF touristId={tId} tripId={trId} />

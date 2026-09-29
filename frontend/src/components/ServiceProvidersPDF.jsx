@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { fetchMyBookings } from '../services/bookingService';
 
-const ServiceProvidersPDF = ({ touristId, tripId }) => {
+const ServiceProvidersPDF = ({ touristId, tripId, userEmail }) => {
   const [mainPartners, setMainPartners] = useState([]);
   const [additionalProviders, setAdditionalProviders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadPdfData = async () => {
-      const userEmail = "it22300096@my.sliit.lk"; 
       const result = await fetchMyBookings(userEmail);
 
       if (result.success) {
