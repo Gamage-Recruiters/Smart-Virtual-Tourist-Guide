@@ -1,29 +1,17 @@
-import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import FinalTripReport from './pages/FinalTripReport';
 import FinalTripReportPDF from './pages/FinalTripReportPDF';
-import TouristArrivalReport from './pages/TouristArrivalReport';
-import RevenueReport from './pages/RevenueReport';
-import BehaviorStatReport from './pages/BehaviorStatReport';
-import ComplaintReport from './pages/ComplaintReport';
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
       <Router>
         <Routes>
-
           <Route path="/" element={<FinalTripReport />} />
-          {/* <Route path="/trip/:touristId/:tripId/pdf" element={<FinalTripReportPDF />} /> */}
-          {/* <Route path="/" element={<TouristArrivalReport />} /> */}
-          {/* <Route path="/" element={<RevenueReport />} /> */}
-          {/* <Route path="/" element={<BehaviorStatReport />} /> */}
-          {/* <Route path="/" element={<ComplaintReport />} /> */}
-
-          {/* <Route path="/trip/:touristId/:tripId" element={<FinalTripReportPDF />} /> */}
+          <Route path="/trip/:touristId/:tripId/pdf" element={<FinalTripReportPDF />} />
+          <Route path="/trip/:touristId/:tripId" element={<FinalTripReportPDF />} />
         </Routes>
       </Router>
     </>
