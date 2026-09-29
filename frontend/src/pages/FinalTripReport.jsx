@@ -18,6 +18,8 @@ import Footer from "../components/Footer";
 const FinalTripReport = () => {
   // const { touristId, tripId } = useParams();
 
+  // we should get email from local storage
+
   const touristId = "6a28dc49a14342989f1e4ee4";
   const tripId = "6a28dc49a14342989f1e4ee5";
   const email = "it22300096@my.sliit.lk";
