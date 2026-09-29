@@ -12,7 +12,6 @@ import connectDB from './src/configs/database.js';
 
 import feedbackRoutes from './src/routes/feedbackRoutes.js';
 import itineraryRoutes from './src/routes/itineraryRoutes.js';
-import reportRoutes from './src/routes/reportRoutes.js';
 import pdfRoutes from './src/routes/pdfRoutes.js';
 import healthRoutes from './src/routes/healthRoutes.js';
 import emailRoutes from './src/routes/emailRoutes.js';
@@ -34,7 +33,6 @@ app.use(
 
 app.use('/api/feedback', feedbackRoutes); 
 app.use('/api/itinerary', itineraryRoutes);
-app.use('/api/reports', reportRoutes);
 app.use('/api/export', pdfRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/email', emailRoutes);
