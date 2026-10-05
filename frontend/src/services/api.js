@@ -313,6 +313,9 @@ export const driverAPI = {
       userData
     );
   },
+  getAllDrivers() {
+    return apiClient.get('/auth/drivers');
+  }
 };
 
 /**
@@ -432,8 +435,7 @@ export const reviewAPI = {
     return apiClient.get(`/reviews/owner/${restaurantId}?page=${page}`);
   },
   replyToReview(reviewId, replyText) {
-    // Backend route: PUT /api/reviews/:reviewId/reply
-    return apiClient.put(`/reviews/${reviewId}/reply`, { reply: replyText });
+    return apiClient.put(`/reviews/${reviewId}/reply`, { replyText, reply: replyText });
   },
 };
 

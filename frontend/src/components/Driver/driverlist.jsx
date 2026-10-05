@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DriverCard from "./driverCard";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { driverAPI } from "../../services/api";
+import { getBatchProviderRatings } from "../../services/reviews/review.service";
 
 const defaultSampleDrivers = [
   {
@@ -67,8 +68,8 @@ export default function DriverList({ filters, sortBy, onResetFilters }) {
               id: d._id || index,
               name: d.fullName || "Registered Driver",
               experience: d.experience || "Experienced Local Driver",
-              rating: d.rating || 4.9,
-              reviews: d.reviews || 15,
+              rating: d.rating || 0,
+              reviews: d.reviews || 0,
               price: d.price || 85,
               tags: [
                 vehicle,
@@ -80,6 +81,26 @@ export default function DriverList({ filters, sortBy, onResetFilters }) {
               image: d.profileImage || d.image || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
             };
           });
+
+          // Fetch real rating stats from backend for all drivers
+          try {
+            const driverIds = mappedDrivers.map(d => d.id).filter(id => typeof id === 'string');
+            if (driverIds.length > 0) {
+              const batchRes = await getBatchProviderRatings('Driver', driverIds);
+              if (batchRes && batchRes.success && batchRes.data) {
+                mappedDrivers.forEach(d => {
+                  if (batchRes.data[d.id]) {
+                    const stat = batchRes.data[d.id];
+                    d.rating = stat.averageRating ? parseFloat(stat.averageRating) : 0;
+                    d.reviews = stat.totalReviews || 0;
+                  }
+                });
+              }
+            }
+          } catch (batchErr) {
+            console.warn("Could not fetch batch ratings:", batchErr);
+          }
+
           setDriversList(mappedDrivers);
         } else {
           setDriversList(defaultSampleDrivers);

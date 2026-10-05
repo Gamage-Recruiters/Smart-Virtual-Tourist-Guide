@@ -9,6 +9,7 @@ import directionImg from '../../assets/NavigationAndMapping/direction.png';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { ensureMapsScript, formatViewedAgo } from '../../utils/helpers';
 import { fetchRecentPlaces, saveRecentPlace, saveFavoritePlace, fetchFavoritePlaces, deleteRecentPlace, deleteFavoritePlace, fetchHotels } from '../../services/api';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const USER_LOCATION = { lat: 7.8731, lng: 80.7718 }; // Sri Lanka center
 
@@ -132,8 +133,32 @@ const Explore = () => {
     const lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
     const lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
     fetchHotels(locationName, lat, lng)
-      .then(res => {
+      .then(async res => {
         const data = Array.isArray(res?.data) ? res.data : [];
+        const hotelIds = data.map(h => h.hotelId || h._id || h.id).filter(Boolean);
+        if (hotelIds.length > 0) {
+          try {
+            const ratingRes = await getBatchProviderRatings('Hotel', hotelIds);
+            if (ratingRes.success && ratingRes.data) {
+              const updatedData = data.map(h => {
+                const hId = h.hotelId || h._id || h.id;
+                const stat = ratingRes.data[hId];
+                if (stat) {
+                  return {
+                    ...h,
+                    rating: stat.averageRating,
+                    reviewsCount: stat.totalReviews
+                  };
+                }
+                return h;
+              });
+              setNearbyHotels(updatedData);
+              return;
+            }
+          } catch (rErr) {
+            console.log('Error fetching hotel ratings for Explore map:', rErr);
+          }
+        }
         setNearbyHotels(data);
       })
       .catch(() => setNearbyHotels([]))
@@ -900,7 +925,16 @@ ensureMapsScript(() => {
                                   />
                                 )}
                                 <div style={{ padding: '10px 10px 0' }}>
-                                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{base.name}</div>
+                                  <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '15px', color: '#000', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{base.name}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '6px' }}>
+                                    <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: '12px', color: '#111827' }}>
+                                      {Number(base.rating || 4.9).toFixed(1)}
+                                    </span>
+                                    <span style={{ color: '#F59E0B', fontSize: '11px' }}>★★★★★</span>
+                                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px', color: '#6B7280' }}>
+                                      ({base.reviewsCount || base.totalReviews || base.reviews || 390})
+                                    </span>
+                                  </div>
                                 </div>
                                 <div style={{ padding: '0 10px 10px' }}>
                                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#555', marginBottom: '2px' }}>{base.roomName}</div>

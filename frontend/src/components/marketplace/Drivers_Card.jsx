@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fa';
 const D0 = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 // Default Drivers Dummy Data (Fallback)
 const defaultDriversData = [
@@ -86,9 +87,28 @@ const Drivers_Card = () => {
       try {
         const response = await fetch('http://localhost:5000/api/drivers');
         const data = await response.json();
-        if (data.success && data.data.length > 0) {
-          setAllDrivers(data.data);
-          setDriversData(data.data);
+        if (data.success && data.data && data.data.length > 0) {
+          let loaded = data.data;
+
+          try {
+            const driverIds = loaded.map(d => d._id || d.id);
+            const ratingRes = await getBatchProviderRatings('Driver', driverIds);
+            if (ratingRes.success && ratingRes.data) {
+              loaded = loaded.map(d => {
+                const stat = ratingRes.data[d._id || d.id];
+                return {
+                  ...d,
+                  rating: stat ? stat.averageRating : (d.rating || 0),
+                  totalReviews: stat ? stat.totalReviews : (d.totalReviews || 0)
+                };
+              });
+            }
+          } catch (rErr) {
+            console.log("Could not load batch driver ratings:", rErr);
+          }
+
+          setAllDrivers(loaded);
+          setDriversData(loaded);
         } else {
           setAllDrivers(defaultDriversData);
           setDriversData(defaultDriversData);

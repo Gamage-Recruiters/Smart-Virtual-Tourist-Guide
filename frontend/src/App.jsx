@@ -1,9 +1,5 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React from 'react';
 
 // ==================== Existing Project Imports ====================
 import ActivityProviderDashboard from "./pages/ActivityProvider/ActivityProviderDashboard.jsx";
@@ -13,7 +9,7 @@ import ManageCalendar from "./pages/ActivityProvider/ManageCalendar.jsx";
 import ViewRatings from "./pages/ActivityProvider/ViewRatings.jsx";
 import AcceptBookings from "./pages/ActivityProvider/AcceptBookings.jsx";
 
-// ===== LANDING PAGES (from main) =====
+// ===== LANDING PAGES =====
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import AboutUs from "./pages/AboutUs";
@@ -26,12 +22,11 @@ import ResultsPage from "./pages/ResultsPage.jsx";
 
 import SignupForm from "./pages/Tourist/SignupForm1";
 import TravelSafetyInfo from "./pages/Tourist/SignupForm2";
-
 import LoginScreen from "./pages/Login/LoginScreen";
 import ForgotPasswordScreen from "./pages/Login/ForgotPasswordScreen";
 import NewPasswordCreate from "./pages/Login/NewPasswordCreate";
 
-// ===== RESTAURANT ROUTES =====
+// ===== RESTAURANT & HOTEL =====
 import RestuarantSignup from "./pages/Restuarant/resturentRegistrationPage.jsx";
 import RestuarantLogin from "./pages/Restuarant/resturentLogingPage.jsx";
 import RestuarantDashboard from "./pages/Restuarant/resturentDashboardPage.jsx";
@@ -149,16 +144,25 @@ import AdminPackages from './pages/travelPackage/AdminPackages.jsx';
 import PackageView from './pages/travelPackage/PackageView.jsx';
 import CreateAD from './pages/travelPackage/CreateAD.jsx';
 
+// ==================== PRASHAN'S REVIEW SECTION ====================
+import ReviewSection from './pages/reviews/ReviewSection';
+
 function App() {
+  const testProviderId = "64b5f8e2c3e1a2b3c4d5e6f8";
+  const testProviderType = "Driver";
+
+  // Test Component Wrapper
+  const ReviewTestEnvironment = () => (
+    <div className="min-h-screen bg-gray-50 py-10">
+      <ReviewSection targetType={testProviderType} targetProviderId={testProviderId} />
+    </div>
+  );
+
   return (
     <SafetyProvider>
       <Router>
         <Routes>
-          {/* ========================================================= */}
-          {/*                     EXISTING PROJECT                      */}
-          {/* ========================================================= */}
-
-          {/* ===== LANDING PAGES (from main) ===== */}
+          {/* ===== LANDING PAGES ===== */}
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutUs />} />
@@ -166,78 +170,57 @@ function App() {
             <Route path="destinations" element={<Destinations />} />
             <Route path="contact" element={<ContactUs />} />
             <Route path="results" element={<ResultsPage />} />
-            <Route
-              path="/destination-detail"
-              element={<DestinationDetails />}
-            />
+            <Route path="destination-detail" element={<DestinationDetails />} />
           </Route>
           <Route path="/add-destination" element={<AddDestination />} />
 
-          {/* Activity Provider */}
-          <Route
-            path="/activityprovider/dashboard"
-            element={<ActivityProviderDashboard />}
-          />
-          <Route
-            path="/activityprovider/activities"
-            element={<ActivityList />}
-          />
-          <Route
-            path="/activityprovider/activities/new"
-            element={<Activity />}
-          />
-          <Route
-            path="/activityprovider/activities/edit/:id"
-            element={<Activity />}
-          />
-          <Route
-            path="/activityprovider/calendar"
-            element={<ManageCalendar />}
-          />
-          <Route
-            path="/activityprovider/viewratings"
-            element={<ViewRatings />}
-          />
-          <Route
-            path="/activityprovider/acceptbookings"
-            element={<AcceptBookings />}
-          />
+          {/* ===== REVIEWS TEST ROUTE ===== */}
+          <Route path="/test-reviews" element={<ReviewTestEnvironment />} />
 
-          {/* Authentication */}
+          {/* ===== ACTIVITY PROVIDER ROUTES ===== */}
+          <Route path="/activityprovider/dashboard" element={<ActivityProviderDashboard />} />
+          <Route path="/activityprovider/activities" element={<ActivityList />} />
+          <Route path="/activityprovider/activities/new" element={<Activity />} />
+          <Route path="/activityprovider/activities/edit/:id" element={<Activity />} />
+          <Route path="/activityprovider/calendar" element={<ManageCalendar />} />
+          <Route path="/activityprovider/viewratings" element={<ViewRatings />} />
+          <Route path="/activityprovider/acceptbookings" element={<AcceptBookings />} />
+
+          {/* ===== AUTHENTICATION ===== */}
           <Route path="/login" element={<LoginScreen />} />
-
           <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
-
           <Route path="/create-password" element={<NewPasswordCreate />} />
 
-          {/* Signup Flows */}
+          {/* ===== SIGNUP / REGISTER FLOWS ===== */}
           <Route path="/tourist" element={<SignupForm />} />
-
+          <Route path="/signup1" element={<SignupForm />} />
+          <Route path="/tourist-signup" element={<SignupForm />} />
           <Route path="/travel-safety" element={<TravelSafetyInfo />} />
 
           <Route path="/hotel-owner" element={<HotelOwnerSignup />} />
-
+          <Route path="/hotel-owner-signup" element={<HotelOwnerSignup />} />
           <Route path="/hotel-info" element={<HotelInfo />} />
 
-          {/* ===== RESTAURANT AUTH ROUTES ===== */}
           <Route path="/restuarant" element={<RestuarantSignup />} />
           <Route path="/resturent/register" element={<RestuarantSignup />} />
+          <Route path="/restaurant/signup" element={<RestuarantSignup />} />
           <Route path="/resturent/login" element={<RestuarantLogin />} />
 
           <Route path="/guide" element={<GuideSignup />} />
+          <Route path="/guide-signup" element={<GuideSignup />} />
 
           <Route path="/renter" element={<RenterSignup />} />
+          <Route path="/renter-signup" element={<RenterSignup />} />
 
           <Route path="/government" element={<GovernmentSignup />} />
+          <Route path="/government-signup" element={<GovernmentSignup />} />
 
-          <Route
-            path="/activity-provider"
-            element={<ActivityProviderSignup />}
-          />
+          <Route path="/activity-provider" element={<ActivityProviderSignup />} />
+          <Route path="/activity-provider-signup" element={<ActivityProviderSignup />} />
 
           <Route path="/admin/legacy-login" element={<AdminLogin />} />
 
-          {/* Driver Signup */}
+          {/* ===== DRIVER SIGNUP ===== */}
           <Route
             path="/driver-signup1"
             element={
@@ -246,7 +229,6 @@ function App() {
               </DriverSignupProvider>
             }
           />
-
           <Route
             path="/driver-signup2"
             element={
@@ -255,7 +237,6 @@ function App() {
               </DriverSignupProvider>
             }
           />
-
           <Route
             path="/driver-signup3"
             element={
@@ -265,11 +246,10 @@ function App() {
             }
           />
 
-          {/*tourist Dashboards */}
+          {/* ===== TOURIST DASHBOARD ===== */}
           <Route path="/dashboard-Tourist" element={<MainPage />}>
             <Route index element={<TouristDashboard />} />
             <Route path="trip-plan" element={<TripPlanningPage />} />
-            {/* Navigation */}
             <Route
               path="direction"
               element={
@@ -281,56 +261,29 @@ function App() {
             <Route path="touristProfile" element={<TouristProfilePage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="rent-vehicle" element={<RentVehiclePage />} />
-            <Route
-              path="rent-vehicle/vehicle-details/:id"
-              element={<VehicleDetailsPage />}
-            />
+            <Route path="rent-vehicle/vehicle-details/:id" element={<VehicleDetailsPage />} />
             <Route path="book-driver" element={<BookDriver />} />
             <Route path="find-hotel" element={<FindHotelPage />} />
-            <Route
-              path="find-hotel/hotel-details/:id"
-              element={<HotelDetails />}
-            />
-            {/* Tourist Restaurant / Food routes */}
+            <Route path="find-hotel/hotel-details/:id" element={<HotelDetails />} />
             <Route path="restaurants" element={<TouristRestaurantsPage />} />
-            <Route
-              path="restaurants/:id"
-              element={<TouristRestaurantDetailsPage />}
-            />
+            <Route path="restaurants/:id" element={<TouristRestaurantDetailsPage />} />
           </Route>
 
-          <Route
-            path="/dashboard-HotelOwner"
-            element={<HotelOwnerDashboard />}
-          />
-          {/* ACCOMMODATION MANAGEMENT ROUTES */}
-          <Route
-            path="/view-rooms-packages"
-            element={<ViewCurrentRoomsPackages />}
-          />
+          {/* ===== HOTEL OWNER DASHBOARD & MANAGEMENT ===== */}
+          <Route path="/dashboard-HotelOwner" element={<HotelOwnerDashboard />} />
+          <Route path="/view-rooms-packages" element={<ViewCurrentRoomsPackages />} />
           <Route path="/add-room-package" element={<AddRoomPage />} />
           <Route path="/edit-room/:id" element={<AddRoomPage />} />
           <Route path="/add-special-package" element={<AddSpecialPackages />} />
           <Route path="/edit-package/:id" element={<AddSpecialPackages />} />
-          <Route
-            path="/manage-availability"
-            element={<ManageRoomAvailability />}
-          />
-          <Route
-            path="/view-availability-calendar"
-            element={<ViewRoomAvailabilityCalenderPage />}
-          />
+          <Route path="/manage-availability" element={<ManageRoomAvailability />} />
+          <Route path="/view-availability-calendar" element={<ViewRoomAvailabilityCalenderPage />} />
           <Route path="/view-reservations" element={<ViewRoomReservation />} />
-          <Route
-            path="/financial-analysis"
-            element={<FinancialAnalysisDashboard />}
-          />
+          <Route path="/financial-analysis" element={<FinancialAnalysisDashboard />} />
           <Route path="/dashboard" element={<HotelOwnerDashboard />} />
-          <Route
-            path="/Hotel-Owner-Profile-Settings"
-            element={<HotelOwnerProfileSettings />}
-          />
-          {/* ===== RESTAURANT DASHBOARD WITH SIDEBAR LAYOUT ===== */}
+          <Route path="/Hotel-Owner-Profile-Settings" element={<HotelOwnerProfileSettings />} />
+
+          {/* ===== RESTAURANT DASHBOARD ===== */}
           <Route path="/resturent/dashboard" element={<RestaurantLayout />}>
             <Route index element={<RestuarantDashboard />} />
             <Route path="menu" element={<RestuarantMenuPage />} />
@@ -338,36 +291,22 @@ function App() {
             <Route path="menu/edit/:id" element={<RestuarantAddMenuPage />} />
             <Route path="offers" element={<RestuarantOfferPage />} />
             <Route path="profile" element={<RestuarantProfilePage />} />
-            <Route
-              path="reservations"
-              element={<RestuarantReservationPage />}
-            />
+            <Route path="reservations" element={<RestuarantReservationPage />} />
             <Route path="revenue" element={<RestuarantRevenuePage />} />
             <Route path="reviews" element={<RestuarantReviewPage />} />
           </Route>
-
-          {/* Legacy route kept for backward compatibility */}
           <Route path="/dashboard-Restaurant" element={<RestaurantLayout />}>
             <Route index element={<RestuarantDashboard />} />
           </Route>
 
+          {/* ===== OTHER ROLE DASHBOARDS ===== */}
           <Route path="/dashboard-Guide" element={<DummyPageGuide />} />
-
           <Route path="/dashboard-Renter" element={<VehicleAdmin />} />
+          <Route path="/dashboard-Government" element={<GovernmentDashboard />} />
+          <Route path="/government-dashboard-public" element={<GovernmentDashboard />} />
 
-          <Route
-            path="/dashboard-Government"
-            element={<GovernmentDashboard />}
-          />
-          <Route
-            path="/government-dashboard-public"
-            element={<GovernmentDashboard />}
-          />
-
-          <Route
-            path="/dashboard-Driver"
-            element={<Navigate to="/driver-dashboard" replace />}
-          />
+          {/* ===== DRIVER DASHBOARD ===== */}
+          <Route path="/dashboard-Driver" element={<Navigate to="/driver-dashboard" replace />} />
           <Route path="/driver-dashboard" element={<Driver_Dashboard />} />
           <Route path="/driver-request" element={<Driver_Request />} />
           <Route path="/driver-earnings" element={<Driver_Earnings />} />
@@ -378,115 +317,46 @@ function App() {
           <Route path="/driver-details" element={<Driver_Details />} />
 
           <Route path="/dashboard-Admin" element={<DummyPageAdmin />} />
+          <Route path="/dashboard-ActivityProvider" element={<ActivityProviderDashboard />} />
 
-          <Route
-            path="/dashboard-ActivityProvider"
-            element={<ActivityProviderDashboard />}
-          />
-
-          {/* Vehicle Admin */}
+          {/* ===== VEHICLE ADMIN ===== */}
           <Route path="/vehicle-admin" element={<VehicleAdmin />}>
             <Route index element={<Dashboard />} />
-
             <Route path="requests" element={<RentalRequestsPage />} />
-
             <Route path="fleet" element={<MyFleetPage />} />
-
             <Route path="earnings" element={<EarningsPage />} />
-
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
-          {/* ========================================================= */}
-          {/*                         SAFETY MODULE                     */}
-          {/* ========================================================= */}
-
-          {/* Safety routes with Sidebar Layout */}
+          {/* ===== SAFETY MODULE ===== */}
           <Route path="/safety" element={<SafetyLayout />}>
-            {/* /safety */}
             <Route index element={<PublicIncidentsPage />} />
-
-            {/* /safety/alerts */}
             <Route path="alerts" element={<SecurityAlertsPage />} />
-
-            {/* Old route → new route */}
-            <Route
-              path="security-alerts"
-              element={<Navigate to="/safety/alerts" replace />}
-            />
-
-            {/* /safety/my-incidents */}
+            <Route path="security-alerts" element={<Navigate to="/safety/alerts" replace />} />
             <Route path="my-incidents" element={<MyStatusDashboardPage />} />
-
-            {/* Old route → new route */}
-            <Route
-              path="my-reports"
-              element={<Navigate to="/safety/my-incidents" replace />}
-            />
-
-            {/* Old route → new route */}
-            <Route
-              path="status-dashboard"
-              element={<Navigate to="/safety/my-incidents" replace />}
-            />
-
-            {/* /safety/public-analytics */}
+            <Route path="my-reports" element={<Navigate to="/safety/my-incidents" replace />} />
+            <Route path="status-dashboard" element={<Navigate to="/safety/my-incidents" replace />} />
             <Route path="public-analytics" element={<IncidentTrackingPage />} />
-
-            {/* Old route → new route */}
-            <Route
-              path="analytics"
-              element={<Navigate to="/safety/public-analytics" replace />}
-            />
-
-            {/* /safety/public-incidents */}
+            <Route path="analytics" element={<Navigate to="/safety/public-analytics" replace />} />
             <Route path="public-incidents" element={<PublicIncidentsPage />} />
-
-            {/* /safety/weather */}
             <Route path="weather" element={<WeatherAlertsPage />} />
           </Route>
 
-          {/* Safety Standalone Pages */}
+          {/* ===== SAFETY STANDALONE & BOOKINGS ===== */}
           <Route element={<Layout />}>
-            {/* Emergency Call */}
             <Route path="/safety/emergency" element={<EmergencyCallPage />} />
-
-            {/* Navigation Directions */}
-            <Route
-              path="/safety/navigate"
-              element={<NavigationDirectionsPage />}
-            />
-
-            {/* Incident Report */}
-            <Route
-              path="/safety/report-incident"
-              element={<IncidentReportPage />}
-            />
-
-            {/* Old report form route */}
-            <Route
-              path="/safety/report-incident/form"
-              element={<Navigate to="/safety/report-incident" replace />}
-            />
-
-            {/* ===== TOURIST-FACING RESTAURANT & MARKETPLACE ROUTES ===== */}
+            <Route path="/safety/navigate" element={<NavigationDirectionsPage />} />
+            <Route path="/safety/report-incident" element={<IncidentReportPage />} />
+            <Route path="/safety/report-incident/form" element={<Navigate to="/safety/report-incident" replace />} />
             <Route path="/restaurants" element={<TouristRestaurantsPage />} />
-            <Route
-              path="/restaurants/:id"
-              element={<TouristRestaurantDetailsPage />}
-            />
-
-            {/* ===== PAYHERE PAYMENT & SERVICE BOOKING ROUTES ===== */}
+            <Route path="/restaurants/:id" element={<TouristRestaurantDetailsPage />} />
             <Route path="/booking-page" element={<BookingPage />} />
             <Route path="/hotel-booking" element={<HotelBooking />} />
             <Route path="/hotel-booking/:id" element={<HotelBooking />} />
             <Route path="/vehicle-booking" element={<VehicleBooking />} />
             <Route path="/vehicle-booking/:id" element={<VehicleBooking />} />
             <Route path="/restaurant-booking" element={<RestaurantBooking />} />
-            <Route
-              path="/restaurant-booking/:id"
-              element={<RestaurantBooking />}
-            />
+            <Route path="/restaurant-booking/:id" element={<RestaurantBooking />} />
             <Route path="/driver-booking" element={<DriverBooking />} />
             <Route path="/driver-booking/:id" element={<DriverBooking />} />
             <Route path="/guide-booking" element={<GuideBooking />} />
@@ -495,15 +365,10 @@ function App() {
             <Route path="/activity-booking/:id" element={<ActivityBooking />} />
             <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/touristProfile" element={<TouristProfilePage />} />
-
-            {/* Report Success */}
-            <Route
-              path="/safety/report-success"
-              element={<IncidentReportSuccessPage />}
-            />
+            <Route path="/safety/report-success" element={<IncidentReportSuccessPage />} />
           </Route>
 
-          {/* ===== TRAVEL PACKAGE ROUTES ===== */}
+          {/* ===== TRAVEL PACKAGES ===== */}
           <Route path="/packages/view/:id" element={<PackageView />} />
           <Route path="/packages/user" element={<UserPackages />} />
           <Route path="/packages/admin" element={<AdminPackages />} />
@@ -511,19 +376,8 @@ function App() {
           <Route path="/packages/edit/:id" element={<AddNewPackage />} />
           <Route path="/packages/success" element={<SucessPackage />} />
           <Route path="/packages/create-ad" element={<CreateAD />} />
-          {/* ========================================================= */}
-          {/*                    FALLBACK ROUTE                         */}
-          {/* ========================================================= */}
 
-          {/*
-            IMPORTANT:
-            Existing "/" route is preserved above.
-            Therefore we should NOT redirect "/" to "/safety".
-
-            Unknown URLs will go to the existing home page.
-          */}
-
-          {/* Integrated Admin routes */}
+          {/* ===== INTEGRATED ADMIN ROUTES ===== */}
           <Route path="/admin/login" element={<IntegratedAdminLogin />} />
           <Route
             path="/admin"
@@ -552,9 +406,7 @@ function App() {
           <Route
             path="/admin/listings"
             element={
-              <IntegratedAdminProtectedRoute
-                allowedRoles={["Administrator", "Moderator"]}
-              >
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator", "Moderator"]}>
                 <IntegratedAdminListings />
               </IntegratedAdminProtectedRoute>
             }
@@ -562,9 +414,7 @@ function App() {
           <Route
             path="/admin/view-details/:id"
             element={
-              <IntegratedAdminProtectedRoute
-                allowedRoles={["Administrator", "Moderator"]}
-              >
+              <IntegratedAdminProtectedRoute allowedRoles={["Administrator", "Moderator"]}>
                 <IntegratedAdminViewDetails />
               </IntegratedAdminProtectedRoute>
             }
@@ -610,6 +460,7 @@ function App() {
             }
           />
 
+          {/* ===== FALLBACK ROUTE ===== */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
