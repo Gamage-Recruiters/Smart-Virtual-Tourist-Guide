@@ -1,31 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import sriLankaFlag from '../assets/LandingPage/SLFH.jpg'; 
-import logoImage from '../assets/LandingPage/logo.png'; 
-import bg4Image from '../assets/LandingPage/bg4.png'; 
+// IMPORT YOUR FLAG IMAGE HERE
+import sriLankaFlag from '../assets/SLFH.jpg'; 
+// IMPORT YOUR LOGO IMAGE HERE
+import logoImage from '../assets/logo.png'; 
+// IMPORT YOUR BACKGROUND IMAGE HERE
+import bg4Image from '../assets/bg4.png'; 
 
 const Header = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
-
-  // Load user data if logged in (check all potential keys)
-  const getUserFromStorage = () => {
-    try {
-      const keys = ['userData', 'user', 'restaurantUser', 'renter', 'touristProfile'];
-      for (const key of keys) {
-        const item = localStorage.getItem(key);
-        if (item) {
-          const parsed = JSON.parse(item);
-          if (parsed && typeof parsed === 'object') return parsed;
-        }
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  };
-
-  const user = getUserFromStorage();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -33,24 +17,6 @@ const Header = () => {
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
-  };
-
-  const handleProfileClick = () => {
-    const activeUser = user || getUserFromStorage();
-    const role = (activeUser?.role || '').toLowerCase();
-    if (role.includes('driver')) {
-      navigate('/driver-details');
-    } else if (role.includes('hotel')) {
-      navigate('/Hotel-Owner-Profile-Settings');
-    } else if (role.includes('restaurant')) {
-      navigate('/resturent/dashboard/profile');
-    } else if (role.includes('guide')) {
-      navigate('/guide-dashboard');
-    } else if (role.includes('renter')) {
-      navigate('/renter-dashboard');
-    } else {
-      navigate('/dashboard-Tourist/touristProfile');
-    }
   };
 
   const handleNavigation = (path) => {
@@ -71,13 +37,13 @@ const Header = () => {
               backgroundSize: 'cover',
               backgroundPosition: 'right center',
               backgroundRepeat: 'no-repeat',
-              opacity: 1,
+              opacity: 1, // Set to 100% opacity
             }}
           ></div>
 
           {/* --- Left: Logo & Title --- */}
-          <div className="flex items-center gap-3 relative z-10 cursor-pointer" onClick={() => navigate('/')}>
-            {/* Logo Image */}
+          <div className="flex items-center gap-3 relative z-10">
+            {/* Logo Image - Imported from assets (No round shape) */}
             <div className="relative w-12 h-12 md:w-16 md:h-16 flex-shrink-0">
               <img 
                 src={logoImage} 
@@ -88,10 +54,12 @@ const Header = () => {
 
             {/* Text Area */}
             <div className="flex flex-col items-start">
+              {/* Small Tagline */}
               <span className="text-[8px] md:text-xs font-bold text-gray-700 tracking-wide mb-0.5">
                 Smart Virtual Tourism Guide
               </span>
               
+              {/* Main Title with Sri Lankan Flag Mask */}
               <div className="relative">
                 <h1 
                   className="text-lg md:text-2xl lg:text-3xl font-extrabold tracking-[0.15em] leading-none text-transparent bg-clip-text"
@@ -130,34 +98,10 @@ const Header = () => {
 
           {/* --- Right: Actions --- */}
           <div className="flex items-center gap-3 relative z-10">
-            {/* Sign In Button / User Profile */}
-            {user ? (
-              <div className="items-center gap-2 hidden sm:flex">
-                <button 
-                  onClick={handleProfileClick} 
-                  className="cursor-pointer px-4 py-1.5 bg-blue-50 border border-blue-200 text-[#0075FF] font-bold rounded-lg text-sm flex items-center gap-1.5 shadow-sm hover:bg-blue-100 transition-colors"
-                  title="View Profile"
-                >
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  {user.fullName || user.restaurantName || user.username || 'User'}
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('userData');
-                    localStorage.removeItem('restaurantUser');
-                    window.location.reload();
-                  }}
-                  className="px-4 py-1.5 border border-slate-200 bg-red-500 hover:bg-red-600 hover:border-red-200 text-white font-bold rounded-lg text-sm transition-all cursor-pointer"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => handleNavigation('/login')} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
-                Sign in
-              </button>
-            )}
+            {/* Sign In Button */}
+            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-5 rounded-md transition-colors shadow-sm hidden sm:block">
+              Sign in
+            </button>
 
             {/* Language Selector */}
             <div className="flex items-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium hidden sm:flex">
@@ -251,18 +195,27 @@ const Header = () => {
             <Link to="/contact" className="px-6 py-3 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#3CB4FF] transition-colors border-b border-gray-50" onClick={closeSidebar}>
               Contact
             </Link>
-            {user ? (
-              <button
-                onClick={() => {
-                  closeSidebar();
-                  handleProfileClick();
-                }}
-                className="px-6 py-3 text-left font-bold text-[#0075FF] hover:bg-blue-50 transition-colors border-b border-gray-50"
-              >
-                My Profile ({user.fullName || user.username})
-              </button>
-            ) : null}
           </nav>
+
+          {/* Sidebar Actions */}
+          <div className="p-4 border-t border-gray-200">
+            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm mb-3">
+              Sign in
+            </button>
+            <div className="flex items-center justify-center text-gray-700 cursor-pointer hover:text-gray-900 gap-1 text-sm font-medium">
+              <span>EN</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-3 w-3" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
     </>

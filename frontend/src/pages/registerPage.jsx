@@ -1,6 +1,6 @@
 import { FaFacebookF } from "react-icons/fa";
 import carImage from "../assets/registerVehicle/main_car_image.png";
-import Header from "../components/header";
+import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
@@ -14,7 +14,7 @@ function RegisterPage() {
   const [contact, setContact] = useState("");
   const [confirmedPassword, setConfirmedPassword] = useState("");
 
-  function handleSubmit(e){
+  function handleSubmit(e) {
     e.preventDefault();
     // check password with confirmed password
     if (password !== confirmedPassword) {
@@ -23,7 +23,7 @@ function RegisterPage() {
     }
 
     axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register/renter`, {
-      fullName:name,
+      fullName: name,
       email,
       password,
       contactNumber: contact,
@@ -86,7 +86,7 @@ function RegisterPage() {
                     <input
                       type="text"
                       placeholder="e.g. Sampath Jayathilaka"
-                      onChange={(e)=> setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -99,7 +99,7 @@ function RegisterPage() {
                     <input
                       type="email"
                       placeholder="name@rent.com"
-                      onChange={(e)=> setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -112,7 +112,7 @@ function RegisterPage() {
                     <input
                       type="text"
                       placeholder="Min. 8 characters"
-                      onChange={(e)=> setContact(e.target.value)}
+                      onChange={(e) => setContact(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -125,7 +125,7 @@ function RegisterPage() {
                     <input
                       type="password"
                       placeholder="Min, 8 characters"
-                      onChange={(e)=> setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -138,7 +138,7 @@ function RegisterPage() {
                     <input
                       type="password"
                       placeholder="Min, 8 characters"
-                      onChange={(e)=> setConfirmedPassword(e.target.value)}
+                      onChange={(e) => setConfirmedPassword(e.target.value)}
                       className="w-full bg-slate-50/50 border border-slate-100 rounded-xl py-3 px-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 placeholder:text-slate-300 transition-all"
                     />
                   </div>
@@ -206,7 +206,7 @@ function RegisterPage() {
                   <div className="pt-4 space-y-4 text-center">
                     <p className="text-sm text-slate-500 font-medium">
                       Already have an account?{" "}
-                      <button onClick={()=>navigate("/login")}
+                      <button onClick={() => navigate("/login")}
                         className="text-[#1A73E8] font-bold hover:underline cursor-pointer"
                       >
                         Sign in

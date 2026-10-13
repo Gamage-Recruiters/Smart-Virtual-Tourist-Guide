@@ -12,9 +12,9 @@
 //             style={{ 
 //               background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(160, 219, 255, 0.8))'
 //             }}>
-      
+
 //       {/* --- DECORATIVE BACKGROUND IMAGES --- */}
-      
+
 //       {/* Bottom Left Lotus Flower Image - 90% opacity */}
 //       <div className="absolute bottom-0 left-0 pointer-events-none select-none z-0">
 //         <img 
@@ -35,7 +35,7 @@
 
 //       {/* MAIN CONTENT CONTAINER - z-10 to stay above images */}
 //       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 relative z-10 max-w-7xl">
-        
+
 //         {/* --- COLUMN 1: BRAND & DESCRIPTION --- */}
 //         <div className="lg:col-span-1 flex flex-col items-start">
 //           {/* Logo Image */}
@@ -46,9 +46,9 @@
 //               className="w-20 h-auto object-contain mb-1"
 //             />
 //           </div>
-          
+
 //           <h2 className="text-gray-800 font-bold text-base mb-0.5">Smart Virtual Tourism Guide</h2>
-          
+
 //           <div className="mb-2 relative">
 //             <h1 
 //               className="text-2xl font-bold tracking-tight"
@@ -168,10 +168,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Import images from your assets folder
-import lotusFlower from '../assets/LandingPage/fbg1.png';
-import mandalaPattern from '../assets/LandingPage/fbg2.png';
-import logoImage from '../assets/LandingPage/logo.png';
-import sriLankaFlag from '../assets/LandingPage/SLFF.jpg';
+import lotusFlower from '../assets/Lotus.png';
+import mandalaPattern from '../assets/bottomLogo.png';
+import logoImage from '../assets/Logo.png';
+import sriLankaFlag from '../assets/sriflag.jpg';
 
 const fallbackDestinations = [
   { _id: 'fb-1', title: 'Sigiriya Cultural Heritage', location: 'Sigiriya' },

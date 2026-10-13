@@ -10,7 +10,7 @@ const navLinks = [
   { to: '/safety/weather', text: 'Live Weather', icon: <FiCloud className="text-blue-500" /> },
 ]
 
-export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileMenu = () => {} }) {
+export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileMenu = () => { } }) {
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -31,17 +31,17 @@ export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileM
 
   const sidebarContent = (
     <>
-      <p className="text-base font-bold text-black">Security Alerts</p>
-      <p className="mt-4 text-xs font-bold text-black">Sidebar</p>
+      <p className="text-lg font-bold text-black">Security Alerts</p>
+      <p className="mt-2 text-sm font-bold text-black uppercase tracking-wider text-slate-500">Navigation</p>
 
-      <nav className="mt-3 space-y-2 text-xs font-semibold">
+      <nav className="mt-4 space-y-3 text-[13px] font-semibold">
         {navLinks.map(({ to, text, icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/safety'} // Use `end` to prevent matching child routes
             className={({ isActive }) =>
-              `flex items-center gap-3 px-2 py-1.5 text-black rounded-md transition-colors ${isActive ? 'bg-sky-200' : 'hover:bg-sky-100'}`
+              `flex items-center gap-4 px-3 py-2.5 text-black rounded-lg transition-colors ${isActive ? 'bg-sky-200 shadow-sm' : 'hover:bg-sky-100'}`
             }
           >
             {icon}
@@ -66,9 +66,8 @@ export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileM
 
       {/* Mobile sidebar overlay */}
       <div
-        className={`fixed inset-0 z-[9999] md:hidden transition-opacity duration-300 ${
-          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-[9999] md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
       >
         {/* Backdrop */}
         <div
@@ -78,9 +77,8 @@ export default function SafetySidebar({ isMobileMenuOpen = false, onCloseMobileM
 
         {/* Slide-in panel */}
         <aside
-          className={`absolute left-0 top-0 h-full w-[260px] bg-[#f5fbff] px-6 py-6 shadow-xl overflow-y-auto transition-transform duration-300 ease-out ${
-            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`absolute left-0 top-0 h-full w-[260px] bg-[#f5fbff] px-6 py-6 shadow-xl overflow-y-auto transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <button
             type="button"

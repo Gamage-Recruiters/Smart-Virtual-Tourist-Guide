@@ -11,9 +11,9 @@
 // //         <path d="M 100,200 Q 300,50 500,250 T 900,100" fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
 // //         <path d="M 500,100 Q 800,300 1100,50" fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="5,5" opacity="0.5" />
 // //       </svg>
-      
+
 // //       <Header />
-      
+
 // //       <main className="flex-grow flex flex-col lg:flex-row relative z-10 pt-24 pb-16">
 // //         {/* Left Side */}
 // //         <div className="w-full lg:w-[45%] flex flex-col items-center justify-center px-8 lg:px-16 xl:px-24">
@@ -30,14 +30,14 @@
 // //                         </div>
 // //               <p className="text-gray-500 text-sm">Login to explore Sri Lanka with your smart virtual guide</p>
 // //             </div>
-            
+
 // //             {/* The Form Content Wrapper */}
 // //             <div className="w-full">
 // //               {children}
 // //             </div>
 // //           </div>
 // //         </div>
-        
+
 // //         {/* Right Side */}
 // //         <div className="hidden lg:block w-[55%] relative">
 // //           <div className="absolute inset-0 right-0 top-0 bottom-0 overflow-hidden">
@@ -295,7 +295,7 @@
 // export default AuthLayout;
 
 import React from 'react';
-import Header from '../header.jsx';
+import Header from '../Header.jsx';
 import Footer from './Footer.jsx';
 import logoText from '../../assets/Tourist/name.png';
 
@@ -307,25 +307,25 @@ const AuthLayout = ({
   rightConfig = {},
 }) => {
 
-const leftStyle = {
-  backgroundImage: leftImage ? `url(${leftImage})` : 'none',
-  backgroundSize: leftConfig.size || 'cover',
-  backgroundPosition: leftConfig.position || 'left top',
-  opacity: leftConfig.opacity ?? 1,
-  zIndex: leftConfig.zIndex ?? 20,
-  filter: leftConfig.blur ? `blur(${leftConfig.blur}px)` : 'none',
-  display: leftImage ? 'block' : 'none',
-};
+  const leftStyle = {
+    backgroundImage: leftImage ? `url(${leftImage})` : 'none',
+    backgroundSize: leftConfig.size || 'cover',
+    backgroundPosition: leftConfig.position || 'left top',
+    opacity: leftConfig.opacity ?? 1,
+    zIndex: leftConfig.zIndex ?? 20,
+    filter: leftConfig.blur ? `blur(${leftConfig.blur}px)` : 'none',
+    display: leftImage ? 'block' : 'none',
+  };
 
-const rightStyle = {
-  backgroundImage: rightImage ? `url(${rightImage})` : 'none',
-  backgroundSize: rightConfig.size || 'cover',
-  backgroundPosition: rightConfig.position || 'right top',
-  opacity: rightConfig.opacity ?? 1,
-  zIndex: rightConfig.zIndex ?? 0,
-  filter: rightConfig.blur ? `blur(${rightConfig.blur}px)` : 'none',
-  display: rightImage ? 'block' : 'none',
-};
+  const rightStyle = {
+    backgroundImage: rightImage ? `url(${rightImage})` : 'none',
+    backgroundSize: rightConfig.size || 'cover',
+    backgroundPosition: rightConfig.position || 'right top',
+    opacity: rightConfig.opacity ?? 1,
+    zIndex: rightConfig.zIndex ?? 0,
+    filter: rightConfig.blur ? `blur(${rightConfig.blur}px)` : 'none',
+    display: rightImage ? 'block' : 'none',
+  };
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#f4f8fc] overflow-hidden">

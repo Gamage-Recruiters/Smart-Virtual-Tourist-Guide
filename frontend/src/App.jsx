@@ -104,12 +104,22 @@ import SettingsPage from "./pages/Renter/vehicleAdminDashboard/settingsPage";
 import MainPage from "./pages/Tourist/touristMainPage/mainPage.jsx";
 import TouristProfilePage from "./pages/Tourist/touristProfile/touristProfilePage.jsx";
 
-import NavigationMain from "./pages/NavigationAndMapping/NavigationMain.jsx";
-
+// ==================== Map Module Imports ====================
+import { LocationProvider } from './contexts/LocationContext';
+import { NavigationProvider } from './contexts/NavigationContext';
+import { UIProvider } from './contexts/UIContext';
+import Explore from './pages/Explore';
+import DirectionPage from './pages/DirectionPage';
+import NavigationPage from './pages/NavigationPage';
+import DirectionOne from './pages/DirectionOne';
+import EtaPage from './pages/EtaPage';
+import SafetyAlertTemplate from './pages/SafetyAlertTemplate';
+import TouristProtectedRoute from './components/TouristProtectedRoute';
 // ==================== Safety Module Imports ====================
 import { SafetyProvider } from "./context/SafetyContext.jsx";
 
 import SafetyLayout from "./pages/safety/SafetyLayout";
+import MapLayout from "./components/MapLayout";
 import PublicIncidentsPage from "./pages/safety/PublicIncidentsPage";
 import EmergencyCallPage from "./pages/safety/EmergencyCallPage";
 import SecurityAlertsPage from "./pages/safety/SecurityAlertsPage";
@@ -152,8 +162,11 @@ import CreateAD from './pages/travelPackage/CreateAD.jsx';
 function App() {
   return (
     <SafetyProvider>
-      <Router>
-        <Routes>
+      <LocationProvider>
+        <NavigationProvider>
+          <UIProvider>
+            <Router>
+              <Routes>
           {/* ========================================================= */}
           {/*                     EXISTING PROJECT                      */}
           {/* ========================================================= */}
@@ -269,15 +282,7 @@ function App() {
           <Route path="/dashboard-Tourist" element={<MainPage />}>
             <Route index element={<TouristDashboard />} />
             <Route path="trip-plan" element={<TripPlanningPage />} />
-            {/* Navigation */}
-            <Route
-              path="direction"
-              element={
-                <PageTitleProvider>
-                  <NavigationMain />
-                </PageTitleProvider>
-              }
-            />
+            {/* Navigation map link is in sidebar and routes directly to /map */}
             <Route path="touristProfile" element={<TouristProfilePage />} />
             <Route path="marketplace" element={<MarketplacePage />} />
             <Route path="rent-vehicle" element={<RentVehiclePage />} />
@@ -610,9 +615,24 @@ function App() {
             }
           />
 
+          {/* ==================== NEW NAVI AND MAP ROUTES ==================== */}
+          <Route element={<TouristProtectedRoute />}>
+            <Route element={<MapLayout />}>
+              <Route path="/map" element={<Explore />} />
+              <Route path="/direction/setup" element={<DirectionOne />} />
+              <Route path="/direction" element={<DirectionPage />} />
+              <Route path="/navigation" element={<NavigationPage />} />
+              <Route path="/eta" element={<EtaPage />} />
+              <Route path="/route-alerts" element={<SafetyAlertTemplate />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+          </UIProvider>
+        </NavigationProvider>
+      </LocationProvider>
     </SafetyProvider>
   );
 }
