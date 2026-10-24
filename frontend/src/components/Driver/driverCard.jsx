@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, ShieldCheck, Phone, Car, MapPin, X, CheckCircle, Calendar } from "lucide-react";
+import ReviewSection from "../../pages/reviews/ReviewSection";
 
 export default function DriverCard({ driver }) {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  const [rating, setRating] = useState(driver.rating || 0);
+  const [reviewsCount, setReviewsCount] = useState(driver.reviews || 0);
+
+  useEffect(() => {
+    setRating(driver.rating || 0);
+    setReviewsCount(driver.reviews || 0);
+  }, [driver.rating, driver.reviews]);
 
   const handleBookDriver = () => {
     setBookingSuccess(true);
@@ -77,11 +86,11 @@ export default function DriverCard({ driver }) {
             />
 
             <span className="font-bold text-amber-900">
-              {driver.rating}
+              {rating}
             </span>
 
             <span className="text-amber-700 text-sm">
-              ({driver.reviews} reviews)
+              ({reviewsCount} reviews)
             </span>
           </div>
 
@@ -143,8 +152,8 @@ export default function DriverCard({ driver }) {
                 <div className="flex items-center justify-center md:justify-start gap-4 mt-3">
                   <div className="flex items-center gap-1.5 text-amber-600 font-semibold text-sm">
                     <Star size={16} className="fill-amber-400 text-amber-400" />
-                    <span>{driver.rating}</span>
-                    <span className="text-slate-400 font-normal">({driver.reviews} reviews)</span>
+                    <span>{rating}</span>
+                    <span className="text-slate-400 font-normal">({reviewsCount} reviews)</span>
                   </div>
                   <div className="text-slate-300">|</div>
                   <div className="text-blue-600 font-bold text-lg">
@@ -210,6 +219,21 @@ export default function DriverCard({ driver }) {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Reviews & Rating System Integration */}
+              <div className="border-t border-slate-100 pt-6">
+                <ReviewSection 
+                  targetType="Driver" 
+                  targetProviderId={driver.id || driver._id} 
+                  targetName={driver.name} 
+                  onStatsUpdate={(newStats) => {
+                    if (newStats) {
+                      setRating(newStats.averageRating ? parseFloat(newStats.averageRating) : 0);
+                      setReviewsCount(newStats.totalReviews || 0);
+                    }
+                  }}
+                />
               </div>
 
             </div>

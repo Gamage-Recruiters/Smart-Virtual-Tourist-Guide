@@ -39,6 +39,7 @@ const router = express.Router();
 
 // Route to get all registered drivers
 router.get('/drivers', getAllDrivers);
+router.get('/drivers/all', getAllDrivers);
 
 // Registration routes per role
 router.post('/register/tourist', validateTouristRegister, registerTourist);

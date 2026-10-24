@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Tourist/Header';
 import Footer from '../../components/Tourist/Footer';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
@@ -22,8 +23,10 @@ export default function TouristRestaurantsPage() {
   const [search, setSearch] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [selectedStarRating, setSelectedStarRating] = useState(null); // '5', '4', '3'
   const [onlyWithOffers, setOnlyWithOffers] = useState(false);
   const [restaurantOffersMap, setRestaurantOffersMap] = useState({});
+  const [ratingStatsMap, setRatingStatsMap] = useState({});
 
   // User Reservations States
   const [showReservations, setShowReservations] = useState(false);
@@ -68,9 +71,23 @@ export default function TouristRestaurantsPage() {
           fetch(`${API_BASE}/offers/active`)
         ]);
 
+        let loadedRestaurants = [];
         if (restRes.ok) {
           const data = await restRes.json();
-          setRestaurants(Array.isArray(data) ? data : []);
+          loadedRestaurants = Array.isArray(data) ? data : [];
+          setRestaurants(loadedRestaurants);
+
+          // Batch fetch rating stats for loaded restaurants
+          const restIds = loadedRestaurants.map(r => r._id || r.id).filter(Boolean);
+          if (restIds.length > 0) {
+            getBatchProviderRatings('Restaurant', restIds)
+              .then(batchRes => {
+                if (batchRes && batchRes.success && batchRes.data) {
+                  setRatingStatsMap(batchRes.data);
+                }
+              })
+              .catch(() => {});
+          }
         }
 
         if (offersRes.ok) {
@@ -104,6 +121,9 @@ export default function TouristRestaurantsPage() {
   };
 
   const filteredRestaurants = restaurants.filter(r => {
+    const resId = r._id || r.id;
+    const stats = ratingStatsMap[resId] || { averageRating: 0, totalReviews: 0 };
+
     const matchesSearch = r.restaurantName?.toLowerCase().includes(search.toLowerCase()) ||
       r.address?.toLowerCase().includes(search.toLowerCase());
 
@@ -115,7 +135,16 @@ export default function TouristRestaurantsPage() {
 
     const matchesOffers = onlyWithOffers ? !!(r?._id && restaurantOffersMap[r._id]) : true;
 
-    return matchesSearch && matchesDistrict && matchesAmenities && matchesOffers;
+    let matchesStarRating = true;
+    if (selectedStarRating === '5') {
+      matchesStarRating = stats.averageRating >= 4.8;
+    } else if (selectedStarRating === '4') {
+      matchesStarRating = stats.averageRating >= 4.0;
+    } else if (selectedStarRating === '3') {
+      matchesStarRating = stats.averageRating >= 3.0;
+    }
+
+    return matchesSearch && matchesDistrict && matchesAmenities && matchesOffers && matchesStarRating;
   });
 
 
@@ -160,6 +189,29 @@ export default function TouristRestaurantsPage() {
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Star Rating Filter (Screenshot 1) */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Star Rating</label>
+                  <div className="space-y-2">
+                    {[
+                      { id: '5', label: '5 Stars (4.8+)' },
+                      { id: '4', label: '4+ Stars' },
+                      { id: '3', label: '3+ Stars' }
+                    ].map(opt => (
+                      <label key={opt.id} className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="starRating"
+                          checked={selectedStarRating === opt.id}
+                          onChange={() => setSelectedStarRating(selectedStarRating === opt.id ? null : opt.id)}
+                          className="h-4 w-4 border-blue-400 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Amenities Checkboxes */}
@@ -317,6 +369,8 @@ export default function TouristRestaurantsPage() {
                   <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredRestaurants.map((restaurant, idx) => {
                       const resId = restaurant?._id || restaurant?.id || idx;
+                      const stats = ratingStatsMap[resId] || { averageRating: 0, totalReviews: 0 };
+                      const avgRating = stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '4.5';
                       return (
                         <article 
                           key={resId} 
@@ -334,8 +388,18 @@ export default function TouristRestaurantsPage() {
                             <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm">
                               {restaurant.district}
                             </span>
+
+                            {/* Top Right Rating Badge (Screenshot 1) */}
+                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm border border-slate-100">
+                              <span className="text-amber-400 text-xs font-bold">★</span>
+                              <span className="text-xs font-black text-slate-800">{avgRating}</span>
+                              {stats.totalReviews > 0 && (
+                                <span className="text-[10px] text-slate-400">({stats.totalReviews})</span>
+                              )}
+                            </div>
+
                             {restaurantOffersMap[resId] !== undefined && (
-                              <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm animate-pulse">
+                              <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-md px-2 py-0.5 shadow-sm animate-pulse">
                                 🔥 {restaurantOffersMap[resId]}% OFF
                               </span>
                             )}

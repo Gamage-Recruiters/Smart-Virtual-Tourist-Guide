@@ -5,6 +5,7 @@ import {
   FaBiking, FaShoppingBag, FaStore 
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 const defaultRestaurantsData = [
   {
@@ -99,21 +100,56 @@ const Restaurants_Card = () => {
         const response = await fetch('http://localhost:5000/api/restaurants');
         const data = await response.json();
         
-        if (data.success && data.data && data.data.length > 0) {
+        const rawList = Array.isArray(data) ? data : (data.data || []);
+        if (rawList.length > 0) {
           // Map backend schema to frontend UI schema
-          const mappedRestaurants = data.data.map(dbRest => ({
-            _id: dbRest._id,
-            name: dbRest.restaurantName || 'Unnamed Restaurant',
-            location: dbRest.restaurantAddress || 'Unknown Location',
-            cuisine: 'Varied', // Fallback
-            starRating: 4.5,
-            reviews: 120,
-            priceLevel: '$$', // Fallback
-            isOpen: true,
-            features: ['dinein', 'takeaway', 'delivery'],
-            image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600',
-            ...dbRest
-          }));
+          let mappedRestaurants = rawList.map(dbRest => {
+            const defaultImg = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=600';
+            const img = dbRest.profileImage || dbRest.coverImage || (dbRest.images && dbRest.images[0]) || defaultImg;
+
+            const ratingVal = dbRest.averageRating || 0;
+            const revCount = dbRest.totalReviews || 0;
+
+            return {
+              _id: dbRest._id,
+              name: dbRest.restaurantName || dbRest.name || 'Unnamed Restaurant',
+              location: dbRest.restaurantAddress || dbRest.address || 'Sri Lanka',
+              cuisine: dbRest.cuisineType || dbRest.cuisine || 'Sri Lankan',
+              starRating: ratingVal,
+              userRating: ratingVal,
+              rating: ratingVal,
+              reviews: revCount,
+              totalReviews: revCount,
+              priceLevel: dbRest.priceLevel || '$$',
+              isOpen: dbRest.status !== 'Closed',
+              features: ['dinein', 'takeaway', 'delivery'],
+              image: img,
+              ...dbRest
+            };
+          });
+
+          // Fetch batch rating statistics for restaurants
+          try {
+            const restIds = mappedRestaurants.map(r => r._id);
+            const ratingRes = await getBatchProviderRatings('Restaurant', restIds);
+            if (ratingRes.success && ratingRes.data) {
+              mappedRestaurants = mappedRestaurants.map(r => {
+                const stat = ratingRes.data[r._id];
+                const avg = stat ? stat.averageRating : r.starRating;
+                const cnt = stat ? stat.totalReviews : r.reviews;
+                return {
+                  ...r,
+                  starRating: avg,
+                  userRating: avg,
+                  rating: avg,
+                  reviews: cnt,
+                  totalReviews: cnt
+                };
+              });
+            }
+          } catch (rErr) {
+            console.log("Could not load batch restaurant ratings:", rErr);
+          }
           
           setAllRestaurants(mappedRestaurants);
           setFilteredRestaurants(mappedRestaurants);
