@@ -1,4 +1,5 @@
 import Activity from '../../models/ActivityProvider/activity.model.js';
+import CentralReview from '../../models/Review.model.js';
 
 const normalizeImages = (images = []) =>
   [...new Set(
@@ -52,9 +53,34 @@ export const getActivities = async (req, res) => {
       Activity.countDocuments(query),
     ]);
 
+    const activityIds = activities.map((a) => a._id.toString());
+    const allReviews = activityIds.length > 0
+      ? await CentralReview.find({ targetType: 'Activity', targetProviderId: { $in: activityIds } }).lean()
+      : [];
+
+    const reviewStatsMap = {};
+    allReviews.forEach((rev) => {
+      const pId = rev.targetProviderId;
+      if (!reviewStatsMap[pId]) {
+        reviewStatsMap[pId] = { sum: 0, count: 0 };
+      }
+      reviewStatsMap[pId].sum += (rev.rating || 0);
+      reviewStatsMap[pId].count += 1;
+    });
+
     const data = activities.map((activity) => {
       const item = activity.toObject();
       item.images = normalizeImages(item.images);
+
+      const stats = reviewStatsMap[item._id.toString()];
+      if (stats && stats.count > 0) {
+        item.averageRating = parseFloat((stats.sum / stats.count).toFixed(1));
+        item.totalReviews = stats.count;
+      } else {
+        item.averageRating = 0;
+        item.totalReviews = 0;
+      }
+
       return item;
     });
 
@@ -80,6 +106,17 @@ export const getActivityById = async (req, res) => {
     if (!activity) return res.status(404).json({ success: false, message: 'Activity not found' });
     const data = activity.toObject();
     data.images = normalizeImages(data.images);
+
+    const reviews = await CentralReview.find({ targetType: 'Activity', targetProviderId: data._id.toString() }).lean();
+    if (reviews.length > 0) {
+      const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+      data.averageRating = parseFloat((sum / reviews.length).toFixed(1));
+      data.totalReviews = reviews.length;
+    } else {
+      data.averageRating = 0;
+      data.totalReviews = 0;
+    }
+
     res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
