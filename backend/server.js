@@ -16,7 +16,7 @@ connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 
-    //Initial startup sync ---
+    // Initial startup sync
     (async () => {
       try {
         logger.info('[Cron] Running initial weather sync on startup...');
@@ -30,7 +30,7 @@ connectDB().then(() => {
       }
     })();
 
-    // Schedule 2-hour recurring sync ---
+    // Schedule 2-hour recurring sync
     cron.schedule('0 */2 * * *', async () => {
       if (isSyncing) {
         logger.warn('[Cron] Sync skipped: previous run still in progress');
