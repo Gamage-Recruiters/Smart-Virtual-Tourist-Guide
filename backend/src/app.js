@@ -6,7 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { configureCloudinary } from './configs/ActivityProvider/cloudinary.js';
 
-// Import all routes with correct paths
+// Import all routes
 import roomRoutes from './routes/HotelOwner/Room.routes.js';
 import specialPackageRoutes from './routes/HotelOwner/specialPackage.routes.js';
 import roomAvailabilityRoutes from './routes/HotelOwner/roomAvailability.routes.js';
@@ -25,18 +25,19 @@ import adminRoutes from './routes/Admin/adminRoutes.js';
 import tempHotBookRoutes from './routes/HotelOwner/tempHotBook.routes.js';                            
 import hotelRevenueSummaryRoutes from './routes/HotelOwner/hotelRevenueSummary.routes.js';             
 import startBookingSyncScheduler from './jobs/HotelOwner/bookingSyncScheduler.js'; 
-// Restaurant route imports (from Integration-resturent/shakir branch)
 
+// Restaurant route imports
 import menuItemRoutes from './routes/Restuarant/menuItem.routes.js';
 import offerRoutes from './routes/Restuarant/offer.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import reservationRoutes from './routes/Restuarant/reservation.routes.js';
-import reviewRoutes from './routes/Restuarant/review.routes.js';
 import restaurantRoutes from './routes/Restuarant/restaurant.routes.js';
+
+// Review Routes (Prashan's module)
+import reviewRoutes from './routes/review.routes.js'; 
 
 import budgetRoutes from './routes/TouristDashboard/budgetRoutes.js';
 import bookingRoutes from './routes/TouristDashboard/bookingRoutes.js';
-
 import itineraryRoutes from './routes/TouristDashboard/itineraryRoutes.js';
 import notificationRoutes from './routes/TouristDashboard/notificationRoutes.js';
 import touristRoutes from './routes/TouristDashboard/touristRoutes.js';
@@ -54,11 +55,13 @@ import availabilityRoutes from './routes/ActivityProvider/availability.routes.js
 import activityCalenderRoutes from './routes/ActivityProvider/activityCalender.routes.js';
 import rentVehicleBookingRouter from './routes/TouristDashboard/rentVehicleBookingRoutes.js';
 import touristHotelViewRoutes from './routes/touristHotelViewRoutes.js';
+import driverRoutes from './routes/driverRoutes.js';
+import guideRoutes from './routes/guideRoutes.js';
 
 import paymentRoutes from './routes/paymentRoutes.js';
 import serviceBookingRoutes from './routes/bookingRoutes.js';
 
-// ===== TRAVEL PACKAGE ROUTE IMPORTS =====
+// Travel Package Routes
 import packageRoutes from './routes/travelPackage/packageRoutes.js';
 import advertisementRoutes from './routes/travelPackage/advertisementRoutes.js';
 
@@ -70,64 +73,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // ==================== MIDDLEWARE ====================
-
-// middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 connectDB();
 
 // ============================================================================
-// BASIC ROUTES
-// ============================================================================
-
-app.get("/", (req, res) => {
-  res.json({
-    message: "Welcome to Smart Virtual Tourist Guide API",
-    version: "1.0.0",
-    endpoints: {
-      health: 'GET /api/health',
-      auth: 'POST /api/auth/register, POST /api/auth/login',
-      dashboard: 'GET /api/dashboard',
-      rooms: 'GET /api/rooms, POST /api/rooms, PUT /api/rooms/:id, DELETE /api/rooms/:id',
-      packages: 'GET /api/packages, POST /api/packages, PUT /api/packages/:id, DELETE /api/packages/:id',
-      roomAvailability: 'GET /api/room-availability, POST /api/room-availability, PUT /api/room-availability/:id, DELETE /api/room-availability/:id',
-      users: 'GET /api/users, POST /api/users, PUT /api/users/:id, DELETE /api/users/:id',
-      vehicle: 'GET /api/vehicle, POST /api/vehicle, PUT /api/vehicle/:id, DELETE /api/vehicle/:id',
-      activities: 'GET /api/activities, POST /api/activities, PUT /api/activities/:id, DELETE /api/activities/:id, PATCH /api/activities/:id/publish',
-      bookings: 'GET /api/bookings, PATCH /api/bookings/:id/status',
-      availability: 'GET /api/availability, GET /api/availability/date/:date',
-      calendar: 'GET /api/calendar/:activityId/month, GET /api/calendar/:activityId/summary, GET /api/calendar/:activityId/date/:date, POST /api/calendar/:activityId/date/:date, PATCH /api/calendar/:activityId/date/:date/unavailable',
-      governmentDashboard: "GET /api/dashboard/government",
-    }
-  });
-});
-
-// ============================================================================
-// HEALTH CHECK
-// ============================================================================
-
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "Server is running",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: "Connected",
-  });
-});
-
-// ============================================================================
 // API ROUTES
 // ============================================================================
 
-//auth routes
 app.use('/api/auth', authRoutes);
-
-// Dashboard Routes
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/destinations', destinationRoutes);
@@ -140,6 +98,7 @@ app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/tourists', touristRoutes);
 app.use('/api/bids', bidRoutes);
+
 // Admin Routes
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
@@ -151,7 +110,7 @@ app.use('/api/security-alerts', securityAlertRouter);
 app.use('/api/incidents', incidentRouter);
 app.use('/api/hotels', hotelRouter);
 
-// Hotel Owner Routes - Room Management
+// Hotel Owner Routes
 app.use('/api/rooms', roomRoutes);
 app.use('/api/special-packages', specialPackageRoutes);
 app.use('/api/room-availability', roomAvailabilityRoutes);
@@ -159,35 +118,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/temp-bookings', tempHotBookRoutes); 
 app.use('/api/revenue-summary', hotelRevenueSummaryRoutes); 
 
-
-// Tourist Hotel View Routes
 app.use('/api/tourist/hotels', touristHotelViewRoutes);
-
-// -----------------------------------------------------------------------------
-// Government Dashboard
-// -----------------------------------------------------------------------------
-//
-// IMPORTANT:
-// This route is registered BEFORE the existing dashboard routes.
-//
-// dashboard.js contains:
-// router.get("/government", ...)
-//
-// Therefore the final endpoint is:
-//
-// GET /api/gov/dashboard/government
-//
-// -----------------------------------------------------------------------------
-
 app.use("/api/gov/dashboard", governmentDashboardRoutes);
 
-// -----------------------------------------------------------------------------
-// Existing Dashboard Routes
-// -----------------------------------------------------------------------------
-//
-// These are kept unchanged for your existing dashboard functionality.
-//
-// -----------------------------------------------------------------------------
+app.use('/api/drivers', driverRoutes);
+app.use('/api/guides', guideRoutes);
 
 // Vehicle Rental Routes
 app.use('/api/vehicle', vehicleRouter);
@@ -202,48 +137,32 @@ app.use('/api/activity-bookings', activityBookingRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/calendar/:activityId', activityCalenderRoutes);
 
-// Payment & Booking Engine Routes
+// Payment & Booking Engine
 app.use('/api/payment', paymentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/service-bookings', serviceBookingRoutes);
 app.use('/api/bookings', serviceBookingRoutes);
 
-// ===== TRAVEL PACKAGE ROUTES =====
+// Travel Package Routes
 app.use('/api/packages', packageRoutes);
 app.use('/api/advertisements', advertisementRoutes);
 
-// ==================== ERROR HANDLING ====================
-// ==================== RESTAURANT API ROUTES ====================
-// Restaurant profile routes
+// Restaurant Routes
 app.use('/api/restaurants', restaurantRoutes);
-
-// Menu item routes
 app.use('/api/menu', menuItemRoutes);
-
-// Offer routes
 app.use('/api/offers', offerRoutes);
-
-// Reservation routes
 app.use('/api/reservations', reservationRoutes);
 
-// Review routes
+// REVIEW ROUTES (YOUR MODULE)
 app.use('/api/reviews', reviewRoutes);
 
-// Image upload route
+// Image upload
 app.use('/api/upload', uploadRoutes);
 
-
-// 404 handler for undefined routes
+// 404 & Global Error Handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`,
-  });
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 });
-
-// ============================================================================
-// GLOBAL ERROR HANDLER
-// ============================================================================
 
 app.use(errorHandler);
 
