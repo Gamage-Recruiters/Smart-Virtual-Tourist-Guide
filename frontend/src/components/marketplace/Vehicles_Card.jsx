@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FaCogs, FaUsers
+  FaCogs, FaUsers, FaStar 
 } from 'react-icons/fa';
 const tuk = 'https://images.unsplash.com/photo-1598970434795-0c54fe7c0648?auto=format&fit=crop&q=80&w=600';
 import { useTranslation } from 'react-i18next';
+import { getBatchProviderRatings } from '../../services/reviews/review.service';
 
 
 
@@ -91,17 +92,45 @@ const Vehicles_Card = () => {
         const response = await fetch('http://localhost:5000/api/vehicles');
         const result = await response.json();
         
-        if (result.success && result.data && result.data.length > 0) {
-          const formattedData = result.data.map(vehicle => ({
-            _id: vehicle._id,
-            name: vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : 'Unnamed Vehicle',
-            type: vehicle.brand || 'SUV',
-            seats: vehicle.passengers ? `${vehicle.passengers} Seats` : '4 Seats',
-            price: vehicle.dailyRentalPrice || 5000,
-            badge: vehicle.status === 'Available' ? 'Available' : 'Booked',
-            driverName: vehicle.ownerId,
-            image: vehicle.photos?.exterior || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600'
-          }));
+        const rawList = result.data || (Array.isArray(result) ? result : []);
+        if (result.success && rawList.length > 0) {
+          let formattedData = rawList.map(vehicle => {
+            const extPhoto = vehicle.photos?.exterior;
+            const fallbackImg = typeof extPhoto === 'string' && extPhoto ? extPhoto : (Array.isArray(extPhoto) && extPhoto[0] ? extPhoto[0] : 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=600');
+
+            return {
+              _id: vehicle._id,
+              name: vehicle.brand ? `${vehicle.brand} ${vehicle.model}` : 'Unnamed Vehicle',
+              type: vehicle.brand || 'SUV',
+              seats: vehicle.passengers ? `${vehicle.passengers} Seats` : '4 Seats',
+              price: vehicle.dailyRentalPrice || 5000,
+              badge: vehicle.status === 'Available' ? 'Available' : 'Booked',
+              driverName: vehicle.ownerId,
+              rating: vehicle.averageRating || 0,
+              reviews: vehicle.totalReviews || 0,
+              image: fallbackImg,
+              ...vehicle
+            };
+          });
+
+          // Fetch batch rating statistics for vehicles
+          try {
+            const vIds = formattedData.map(v => v._id);
+            const ratingRes = await getBatchProviderRatings('Vehicle', vIds);
+            if (ratingRes.success && ratingRes.data) {
+              formattedData = formattedData.map(v => {
+                const stat = ratingRes.data[v._id];
+                return {
+                  ...v,
+                  rating: stat ? stat.averageRating : v.rating,
+                  reviews: stat ? stat.totalReviews : v.reviews
+                };
+              });
+            }
+          } catch (rErr) {
+            console.log("Could not load batch vehicle ratings:", rErr);
+          }
+
           setAllVehicles(formattedData);
           setVehiclesData(formattedData);
         } else {
@@ -293,6 +322,13 @@ const Vehicles_Card = () => {
                   <div className="relative h-48 bg-gray-50">
                     <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
                     
+                    {/* Rating Top Left */}
+                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-lg flex items-center space-x-1 shadow-xs">
+                      <FaStar className="text-amber-400 text-[11px]" />
+                      <span className="text-xs font-black text-gray-800">{vehicle.rating || 0}</span>
+                      <span className="text-[10px] text-gray-400 font-bold">({vehicle.reviews || 0})</span>
+                    </div>
+
                     {/* Badge top right (e.g. SUV, Hybrid) */}
                     <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[10px] font-bold text-gray-800 shadow-xs uppercase">
                       {vehicle.badge}

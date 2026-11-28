@@ -44,9 +44,15 @@ const ListingCard = ({ listing, onApprove, onReject }) => {
         <div>
           <div className="mb-3 flex items-start justify-between gap-4">
             <h2 className="pr-3 text-[19px] font-medium leading-tight text-[#111111] sm:text-[21px]">{listing.title}</h2>
-            {listing.rating != null && (
-              <div className="flex shrink-0 items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-[12px] font-medium text-slate-700">
-                <FiStar className="fill-current text-yellow-400" /> {listing.rating}
+            {(listing.rating != null || listing.averageRating != null) && (
+              <div className="flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-2.5 py-1 text-[12px] font-bold text-amber-800 shadow-xs">
+                <FiStar className="fill-current text-yellow-400" />
+                <span>{Number(listing.rating ?? listing.averageRating).toFixed(1)}</span>
+                {(listing.reviewsCount || listing.totalReviews || listing.reviews) > 0 && (
+                  <span className="text-[11px] font-normal text-slate-500">
+                    ({listing.reviewsCount || listing.totalReviews || listing.reviews})
+                  </span>
+                )}
               </div>
             )}
           </div>
